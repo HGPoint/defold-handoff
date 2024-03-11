@@ -1,13 +1,15 @@
 {
-  "name": "FigmaDefoldHandoff",
-  "version": "1.0.0",
-  "description": "Your Figma Plugin",
-  "main": "index.js",
+  "name": "figma-defold-handoff",
+  "version": "0.1",
+  "description": "Figma Defold Handoff",
+  "main": "code.js",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
     "lint": "eslint --ext .ts,.tsx --ignore-pattern node_modules .",
     "lint:fix": "eslint --ext .ts,.tsx --ignore-pattern node_modules --fix .",
-    "watch": "npm run build -- --watch"
+    "build": "tsc -p tsconfig.json",
+    "bundle": "esbuild code.js --bundle --outfile=code.js",
+    "watch": "npm run build -- --watch --preserveWatchOutput && npm run bundle -- --watch",
+    "start": "npm run watch"
   },
   "author": "",
   "license": "",
@@ -16,6 +18,7 @@
     "@figma/plugin-typings": "*",
     "@typescript-eslint/eslint-plugin": "^6.12.0",
     "@typescript-eslint/parser": "^6.12.0",
+    "esbuild": "0.20.1",
     "eslint": "^8.54.0",
     "typescript": "^5.3.2"
   },

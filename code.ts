@@ -1,34 +1,62 @@
-// This plugin will open a window to prompt the user to enter a number, and
-// it will then create that many rectangles on the screen.
+import { reduceSelection, areMultipleDefoldComponentsSelected, areMultipleFigmaLayersSelected, isDefoldComponentSelected, isFigmaLayerSelected } from './utilities/figma';
+import { createDefoldComponent, createMultipleDefoldComponents, removeDefoldComponent, removeMultipleDefoldComponents } from './utilities/defold';
 
-// This file holds the main code for plugins. Code in this file has access to
-// the *figma document* via the figma global object.
-// You can access browser APIs in the <script> tag inside "ui.html" which has a
-// full browser environment (See https://www.figma.com/plugin-docs/how-plugins-run).
+let selection: SelectionData = { defoldComponents: [], figmaLayers: [] };
 
-// This shows the HTML page in "ui.html".
-figma.showUI(__html__);
+function showPluginSection(section: PluginUISection) {
+  figma.showUI(__uiFiles__[section]);
+}
 
-// Calls to "parent.postMessage" from within the HTML page will trigger this
-// callback. The callback will be passed the "pluginMessage" property of the
-// posted message.
-figma.ui.onmessage =  (msg: {type: string, count: number}) => {
-  // One way of distinguishing between different types of messages sent from
-  // your HTML page is to use an object with a "type" property like this.
-  if (msg.type === 'create-rectangles') {
-    const nodes: SceneNode[] = [];
-    for (let i = 0; i < msg.count; i++) {
-      const rect = figma.createRectangle();
-      rect.x = i * 150;
-      rect.fills = [{type: 'SOLID', color: {r: 1, g: 0.5, b: 0}}];
-      figma.currentPage.appendChild(rect);
-      nodes.push(rect);
-    }
-    figma.currentPage.selection = nodes;
-    figma.viewport.scrollAndZoomIntoView(nodes);
+function switchPluginSection(selection: SelectionData) {
+  if (isDefoldComponentSelected(selection)) {
+    showPluginSection('defoldComponent');
+  } else if (areMultipleDefoldComponentsSelected(selection)) {
+    showPluginSection('multipleDefoldComponents');
+  } else if (isFigmaLayerSelected(selection)) {
+    showPluginSection('figmaLayer');
+  } else if (areMultipleFigmaLayersSelected(selection)) {
+    showPluginSection('multipleFigmaLayers');
+  } else {
+    showPluginSection('start');
   }
+}
 
-  // Make sure to close the plugin when you're done. Otherwise the plugin will
-  // keep running, which shows the cancel button at the bottom of the screen.
-  figma.closePlugin();
-};
+function updatePluginUI() {
+  switchPluginSection(selection);
+}
+
+function processPluginUIMessage(message: PluginUIMessage) {
+  if (message.action === 'createDefoldComponent') {
+    if (isFigmaLayerSelected(selection)) {
+      const [ layer ] = selection.figmaLayers;
+      createDefoldComponent(layer);
+    } else if (areMultipleFigmaLayersSelected(selection)) {
+      createMultipleDefoldComponents(selection.figmaLayers);
+    }
+  } else if (message.action === 'removeDefoldComponent') {
+    if (isDefoldComponentSelected(selection)) {
+      const [ defoldComponent ] = selection.defoldComponents;
+      removeDefoldComponent(defoldComponent);
+    } else if (areMultipleDefoldComponentsSelected(selection)) {
+      removeMultipleDefoldComponents(selection.defoldComponents);
+    }
+  }
+}
+
+function onSelectionChange() {
+  selection = reduceSelection();
+  updatePluginUI();
+}
+
+function onPluginUIMessage(message: PluginUIMessage) {
+  processPluginUIMessage(message);
+  updatePluginUI();
+}
+
+function initializePlugin() {
+  figma.on('selectionchange', onSelectionChange);
+  figma.ui.on('message', onPluginUIMessage);
+  updatePluginUI();
+}
+
+initializePlugin();

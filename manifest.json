@@ -1,14 +1,20 @@
 {
-  "name": "FigmaDefoldHandoff",
+  "name": "figma-defold-handoff",
   "id": "1348841716600635717",
   "api": "1.0.0",
-  "main": "index.js",
+  "main": "code.js",
   "capabilities": [],
   "enableProposedApi": false,
   "editorType": [
     "figma"
   ],
-  "ui": "ui.html",
+  "ui": {
+    "start": "ui/start.html",
+    "figmaLayer": "ui/figmaLayer.html",
+    "multipleFigmaLayers": "ui/figmaLayers.html",
+    "defoldComponent": "ui/defoldComponent.html",
+    "multipleDefoldComponents": "ui/defoldComponents.html"
+  },
   "networkAccess": {
     "allowedDomains": [
       "none"
