@@ -1,3 +1,5 @@
+.vscode/
+
 # Node
 *.log
 *.log.*
