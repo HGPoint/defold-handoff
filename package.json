@@ -2,13 +2,12 @@
   "name": "figma-defold-handoff",
   "version": "0.1",
   "description": "Figma Defold Handoff",
-  "main": "code.js",
+  "main": "dist/code.js",
   "scripts": {
     "lint": "eslint --ext .ts,.tsx --ignore-pattern node_modules .",
     "lint:fix": "eslint --ext .ts,.tsx --ignore-pattern node_modules --fix .",
-    "build": "tsc -p tsconfig.json",
-    "bundle": "esbuild code.js --bundle --outfile=code.js",
-    "watch": "npm run build -- --watch --preserveWatchOutput && npm run bundle -- --watch",
+    "build": "esbuild ./src/code.ts --bundle --outfile=./dist/code.js",
+    "watch": "npm run build -- --watch",
     "start": "npm run watch"
   },
   "author": "",

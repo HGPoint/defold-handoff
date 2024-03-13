@@ -1,0 +1,21 @@
+<button id="exportDefoldAtlases">Export Defold Atlases</button>
+<button id="destroyDefoldAtlases">Destroy Defold Atlases</button>
+
+<script>
+  const exportDefoldAtlasesButton = document.getElementById("exportDefoldAtlases");
+  const destroyDefoldAtlasesButton = document.getElementById("destroyDefoldAtlases");
+
+  function onExportDefoldAtlases() {
+    parent.postMessage({ pluginMessage: { type: "exportDefoldAtlas" } }, "*");
+  }
+
+  function onDestroyDefoldAtlases() {
+    parent.postMessage({ pluginMessage: { type: "destroyDefoldAtlas" } }, "*");
+  }
+
+  function initializeUI() {
+    exportDefoldAtlasesButton.addEventListener("click", onExportDefoldAtlases);
+    destroyDefoldAtlasesButton.addEventListener("click", onDestroyDefoldAtlases);
+  }
+
+  initializeUI();

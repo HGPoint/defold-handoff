@@ -1,0 +1,44 @@
+<button id="exportDefoldAtlas">Export Defold Atlas</button>
+<button id="destroyDefoldAtlas">Destroy Defold Atlas</button>
+
+<script>
+  const exportDefoldAtlasButton = document.getElementById("exportDefoldAtlas");
+  const destroyDefoldAtlasButton = document.getElementById("destroyDefoldAtlas");
+
+  function exportAtlases(atlases) {
+    atlases.forEach((atlas) => {
+      atlas.forEach((sprite) => {
+        const blob = new Blob([sprite.data], { type: "image/png" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = sprite.name;
+        link.click();
+        URL.revokeObjectURL(url);  
+      });
+    });
+  }
+
+  function onExportDefoldAtlas() {
+    parent.postMessage({ pluginMessage: { type: "exportDefoldAtlases" } }, "*");
+  }
+
+  function onDestroyDefoldAtlas() {
+    parent.postMessage({ pluginMessage: { type: "destroyDefoldAtlases" } }, "*");
+  }
+
+  function onPluginMessage(event) {
+    const { data } = event;
+    if (data.pluginMessage.type === "defoldAtlasesExported") {
+      exportAtlases(data.pluginMessage.atlases);
+    }
+  }
+
+  function initializeUI() {
+    exportDefoldAtlasButton.addEventListener("click", onExportDefoldAtlas);
+    destroyDefoldAtlasButton.addEventListener("click", onDestroyDefoldAtlas);
+    window.addEventListener("message", onPluginMessage);
+  }
+
+  initializeUI();
+</script>

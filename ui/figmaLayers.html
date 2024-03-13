@@ -1,0 +1,22 @@
+<button id="createDefoldComponents">Create Defold Components</button>
+<button id="createDefoldAtlas">Create Defold Atlas</button>
+
+<script>
+  const createDefoldComponentsButton = document.getElementById("createDefoldComponents");
+  const createDefoldAtlasButton = document.getElementById("createDefoldAtlas");
+
+  function onDefoldComponentsCreate() {
+    parent.postMessage({ pluginMessage: { type: "createDefoldComponents" } }, "*");
+  }
+
+  function onDefoldAtlasCreate() {
+    parent.postMessage({ pluginMessage: { type: "createDefoldAtlas" } }, "*");
+  }
+
+  function initializeUI() {
+    createDefoldComponentsButton.addEventListener("click", onDefoldComponentsCreate);
+    createDefoldAtlasButton.addEventListener("click", onDefoldAtlasCreate);
+  }
+
+  initializeUI();
+</script>
