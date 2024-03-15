@@ -1,1 +1,66 @@
-<button id="createDefoldComponent">Create Defold Component</button>
+<button id="createAdvancedDefoldComponent">Create Advanced Defold Component</button>
+<button id="copyComponentToDefold">Copy Component to Defold</button>
+<button id="exportComponentToDefold">Export Component to Defold</button>
+
+<script>
+  const createAdvancedDefoldComponent = document.getElementById('createAdvancedDefoldComponent');
+  const copyComponentToDefold = document.getElementById('copyComponentToDefold');
+  const exportComponentToDefold = document.getElementById('exportComponentToDefold');
+
+  function isPluginMessage(event) {
+    return event.data?.pluginMessage;
+  }
+
+  function exportComponent({ component }) {
+
+  }
+
+  function copyComponent({ component }) {
+
+  }
+
+  function postMessageToPlugin(type) {
+    parent.postMessage({ pluginMessage: { type } }, "*");
+  }
+
+  function onCreateAdvancedDefoldComponent() {
+    postMessageToPlugin("createAdvancedDefoldComponent");
+  }
+
+  function onCopyComponentToDefold() {
+    postMessageToPlugin("copyComponentsToDefold");
+  }
+
+  function onComponentsCopiedToDefold(data) {
+    copyComponent(data);
+  }
+
+  function onExportComponentToDefold() {
+    postMessageToPlugin("exportComponentsToDefold");
+  }
+
+  function onComponentsExportedToDefold(data) {
+    exportComponent(data);
+  }
+
+  function onPluginMessage() {
+    if (isPluginMessage(event)) {
+      const { pluginMessage } = event.data;
+      const { type, data } = pluginMessage;
+      if (type === "componentsExportedToDefold") {
+        onComponentsExportedToDefold(data);
+      } else if (type === "componentsCopiedToDefold") {
+        onComponentsCopiedToDefold(data);
+      }
+    }
+  }
+
+  function initializeUI() {
+    createAdvancedDefoldComponent.addEventListener("click", onCreateAdvancedDefoldComponent);
+    copyComponentToDefold.addEventListener("click", onCopyComponentToDefold);
+    exportComponentToDefold.addEventListener("click", onExportComponentToDefold);
+    window.addEventListener("message", onPluginMessage);
+  }
+
+  initializeUI();
+</script>

@@ -1,26 +1,35 @@
-import { setPluginData } from "../utilities/figma";
+import { convertToDefoldObject, convertToDefoldComponents } from "../utilities/defold";
 
 export function isDefoldComponent(layer: SceneNode) {
-  return layer.getPluginData("defoldComponent") === "true";
+  return layer.getPluginData("defoldComponent");
 }
 
-export function createDefoldComponent(layer: SceneNode) {
-  setPluginData(layer, { defoldComponent: "true" });
+export function createAdvancedDefoldComponent(layer: SceneNode) {
   return layer;
 }
 
-export function createDefoldComponents(layers: SceneNode[]) {
-  return layers.map(createDefoldComponent);
+export function createAdvancedDefoldComponents(layers: SceneNode[]) {
+  return layers.map(createAdvancedDefoldComponent);
 }
 
-export function exportDefoldComponents(defoldComponents: SceneNode[]) {
-  figma.notify("Not implemented");
+export function copyComponentsToDefold(components: FrameNode[]) {
+  const [component] = components;
+  const defoldObject = convertToDefoldObject(component);
+  const defoldComponent = convertToDefoldComponents(defoldObject);
+  return Promise.resolve(defoldComponent);
 }
 
-export function removeDefoldComponent(defoldComponent: SceneNode) {
+export function exportComponentsToDefold(components: FrameNode[]) {
+  const [ component ] = components;
+  const defoldObject = convertToDefoldObject(component);
+  const defoldComponent = convertToDefoldComponents(defoldObject);
+  return Promise.resolve(defoldComponent);
+}
+
+export function destroyAdvancedDefoldComponent(defoldComponent: SceneNode) {
   defoldComponent.setPluginData("defoldComponent", "");
 }
 
-export function removeDefoldComponents(defoldComponents: SceneNode[]) {
-  defoldComponents.forEach(removeDefoldComponent);
+export function destroyAdvancedDefoldComponents(defoldComponents: SceneNode[]) {
+  defoldComponents.forEach(destroyAdvancedDefoldComponent);
 }

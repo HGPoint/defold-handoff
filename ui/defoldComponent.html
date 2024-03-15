@@ -1,2 +1,60 @@
-<button id="exportDefoldComponent">Export Defold Component</button>
-<button id="destroyDefoldComponent">Destroy Defold Component</button>
+<button id="copyComponentToDefold">Copy Component to Defold</button>
+<button id="exportComponentToDefold">Export Component to Defold</button>
+<button id="destroyAdvancedDefoldComponent">Destroy Advanced Defold Component</button>
+
+<script>
+  const copyComponentToDefold = document.getElementById('copyComponentToDefold');
+  const exportComponentToDefold = document.getElementById('exportComponentToDefold');
+
+  function isPluginMessage(event) {
+    return event.data?.pluginMessage;
+  }
+
+  function exportComponent({ component }) {
+    console.log(component);
+  }
+
+  function copyComponent({ component }) {
+    console.log(component);
+  }
+
+  function postMessageToPlugin(type) {
+    parent.postMessage({ pluginMessage: { type } }, "*");
+  }
+
+  function onCopyComponentToDefold() {
+    postMessageToPlugin("copyComponentsToDefold");
+  }
+
+  function onComponentsCopiedToDefold(data) {
+    copyComponent(data);
+  }
+
+  function onExportComponentToDefold() {
+    postMessageToPlugin("exportComponentsToDefold");
+  }
+
+  function onComponentsExportedToDefold(data) {
+    exportComponent(data);
+  }
+
+  function onPluginMessage() {
+    if (isPluginMessage(event)) {
+      const { pluginMessage } = event.data;
+      const { type, data } = pluginMessage;
+      if (type === "componentsExportedToDefold") {
+        onComponentsExportedToDefold(data);
+      } else if (type === "componentsCopiedToDefold") {
+        onComponentsCopiedToDefold(data);
+      }
+    }
+  }
+
+  function initializeUI() {
+    copyComponentToDefold.addEventListener("click", onCopyComponentToDefold);
+    exportComponentToDefold.addEventListener("click", onExportComponentToDefold);
+    window.addEventListener("message", onPluginMessage);
+  }
+
+  initializeUI();
+</script>`

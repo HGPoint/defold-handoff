@@ -1,0 +1,19 @@
+{
+  "paths": {
+    "assetsPath": "assets",
+    "atlasAssetsPath": "atlases",
+    "imageAssetsPath": "images",
+    "fontAssetsPath": "fonts",
+    "spineAssetsPath": "spines"
+  },
+  "defoldConstKeys": [
+    "type",
+    "blend_mode",
+    "xanchor",
+    "yanchor",
+    "pivot",
+    "adjust_mode",
+    "clipping_mode",
+    "size_mode"
+  ]
+}

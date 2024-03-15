@@ -8,16 +8,34 @@ type PluginUISection =
   "defoldAtlases"
 
 type PluginUIAction =
-  "refresh" |
-  "createDefoldComponents" |
-  "exportDefoldComponents" |
-  "removeDefoldComponents" |
+  "refreshPlugin" |
+  "createAdvancedDefoldComponent" |
+  "copyComponentsToDefold" |
+  "componentsCopiedToDefold" |
+  "exportComponentsToDefold" |
+  "componentsExportedToDefold" |
+  "destroyAdvancedDefoldComponents" |
   "createDefoldAtlas" |
+  "updateDefoldAtlas" |
   "exportDefoldAtlases" |
   "defoldAtlasesExported" |
-  "removeDefoldAtlases"
+  "destroyDefoldAtlases" |
+  "figmaSelectionUpdated"
 
 type PluginUIMessage = {
   type: PluginUIAction,
-  atlases?: Uint8Array[][]
+  data?: PluginUIMessagePayload
+}
+
+type PluginUIMessagePayload = {
+  atlases?: AtlasData[],
+  component?: string,
+  selection?: PluginUISelectionData,
+  paths?: DefoldPathsData
+  imageAssetsPath?: string,
+} | undefined
+
+type PluginUISelectionData = {
+  defoldComponents: DefoldComponentData[];
+  defoldAtlases: DefoldAtlasData[];
 }

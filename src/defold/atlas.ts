@@ -1,11 +1,16 @@
-import { setPluginData } from "../utilities/figma";
+import { isFigmaComponent, setPluginData } from "../utilities/figma";
 
 export function isDefoldAtlas(layer: SceneNode) {
-  return layer.getPluginData("defoldAtlas") === "true";
+  return layer.getPluginData("defoldAtlas");
+}
+
+function generateAtlasData(atlas: ComponentSetNode, data?: PluginUIMessagePayload) {
+  const defoldAtlas = { id: atlas.id };
+  return { defoldAtlas };
 }
 
 function createAtlasSprite(layer: SceneNode) {
-  const sprite = figma.createComponentFromNode(layer);
+  const sprite = isFigmaComponent(layer) ? (layer as ComponentNode) : figma.createComponentFromNode(layer);
   sprite.name = `Sprite=${layer.name}`;
   layer.locked = true;
   return sprite;
@@ -18,7 +23,8 @@ function createAtlasSprites(layers: SceneNode[]) {
 function createAtlas(sprites: ComponentNode[]) {
   const atlas = figma.combineAsVariants(sprites, figma.currentPage);
   atlas.name = "Atlas";
-  setPluginData(atlas, { defoldAtlas: "true" });
+  const atlasData = generateAtlasData(atlas);
+  setPluginData(atlas, atlasData);
   return atlas;
 }
 
@@ -39,23 +45,34 @@ export function createDefoldAtlas(layers: SceneNode[]) {
   return atlas;
 }
 
-async function exportAtlasSprite(sprite: SceneNode) {
+export function updateDefoldAtlas(atlas: ComponentSetNode, data: PluginUIMessagePayload) {
+  const atlasData = generateAtlasData(atlas, data);
+  setPluginData(atlas, atlasData);
+  figma.notify("Atlas updated");
+  return atlas;
+}
+
+async function exportAtlasSprite(sprite: SceneNode): Promise<SpriteData> {
   const data = await (sprite as ComponentNode).exportAsync({ format: "PNG" });
   const name = sprite.name.replace("Sprite=", "");
   return ({ name, data });
 }
 
-function exportDefoldAtlas(atlas: ComponentNode) {
+async function exportDefoldAtlas(atlas: ComponentSetNode): Promise<AtlasData> {
   const { children } = atlas;
   const exportPromises = children.map(exportAtlasSprite);
-  return Promise.all(exportPromises);
+  const sprites = await Promise.all(exportPromises);
+  return {
+    name: atlas.name,
+    sprites,
+  };
 }
 
-export function exportDefoldAtlases(atlas: ComponentNode[]) {
+export function exportDefoldAtlases(atlas: ComponentSetNode[]): Promise<AtlasData[]> {
   const exportPromises = atlas.map(exportDefoldAtlas);
   return Promise.all(exportPromises);
 }
 
-export function removeDefoldAtlases(atlas: SceneNode[]) {
+export function destroyDefoldAtlases(atlas: SceneNode[]) {
   figma.notify("Not implemented");
 }

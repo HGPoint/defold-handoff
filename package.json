@@ -6,7 +6,7 @@
   "scripts": {
     "lint": "eslint --ext .ts,.tsx --ignore-pattern node_modules .",
     "lint:fix": "eslint --ext .ts,.tsx --ignore-pattern node_modules --fix .",
-    "build": "esbuild ./src/code.ts --bundle --outfile=./dist/code.js",
+    "build": "esbuild ./src/code.ts --bundle --target=es6 --outfile=./dist/code.js",
     "watch": "npm run build -- --watch",
     "start": "npm run watch"
   },
