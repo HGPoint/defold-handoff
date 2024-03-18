@@ -2,6 +2,7 @@ import config from "./config/config.json";
 import { reduceSelection, generatePluginUISelectionData, isFigmaLayerSelected, areMultipleFigmaLayersSelected, isDefoldComponentSelected, areMultipleDefoldComponentsSelected, isDefoldAtlasSelected, areMultipleDefoldAtlasesSelected } from './utilities/figma';
 import { createAdvancedDefoldComponents, copyComponentsToDefold, exportComponentsToDefold, destroyAdvancedDefoldComponents } from './defold/component';
 import { createDefoldAtlas, updateDefoldAtlas, exportDefoldAtlases, destroyDefoldAtlases } from './defold/atlas';
+import { exportBundleToDefold } from "./defold/bundle";
 
 let currentSection: PluginUISection;
 let currentSelection: SelectionData = { defoldComponents: [], defoldAtlases: [], figmaLayers: [] };
@@ -72,7 +73,7 @@ function onCopyComponentsToDefold() {
     .then(onComponentsCopiedToDefold);
 }
 
-function onComponentsCopiedToDefold(components: string[]) {
+function onComponentsCopiedToDefold(components: DefoldComponent[]) {
   postMessageToPluginUI('componentsCopiedToDefold', { components })
 }
 
@@ -81,8 +82,17 @@ function onExportComponentsToDefold() {
     .then(onComponentsExportedToDefold);
 }
 
-function onComponentsExportedToDefold(components: string[]) {
+function onComponentsExportedToDefold(components: DefoldComponent[]) {
   postMessageToPluginUI('componentsExportedToDefold', { components })
+}
+
+function onExportBundleToDefold() {
+  exportBundleToDefold(currentSelection.defoldComponents)
+    .then(onBundleExportedToDefold);
+}
+
+function onBundleExportedToDefold(bundle: DefoldBundle) {
+  postMessageToPluginUI('bundleExportedToDefold', { ...bundle, paths: config.paths })
 }
 
 function onDestroyAdvancedDefoldComponents() {
@@ -120,6 +130,8 @@ function processPluginUIMessage(message: PluginUIMessage) {
     onCopyComponentsToDefold();
   } else if (type === 'exportComponentsToDefold') {
     onExportComponentsToDefold();
+  } else if (type === 'exportBundleToDefold') {
+    onExportBundleToDefold();
   } else if (type === 'destroyAdvancedDefoldComponents') {
     onDestroyAdvancedDefoldComponents();
   } else if (type === 'createDefoldAtlas') {

@@ -55,7 +55,10 @@ export function updateDefoldAtlas(atlas: ComponentSetNode, data: PluginUIMessage
 async function exportAtlasSprite(sprite: SceneNode): Promise<SpriteData> {
   const data = await (sprite as ComponentNode).exportAsync({ format: "PNG" });
   const name = sprite.name.replace("Sprite=", "");
-  return ({ name, data });
+  return {
+    name,
+    data
+  };
 }
 
 async function exportDefoldAtlas(atlas: ComponentSetNode): Promise<AtlasData> {

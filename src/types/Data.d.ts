@@ -93,7 +93,12 @@ type DefoldObjectNodeKeyType = keyof DefoldObjectNode;
 
 type DefoldObjectNodeValueType = DefoldObjectNode[DefoldObjectNodeKeyType];
 
-type DefoldObjectTexture = Record<string, string>;
+type DefoldObjectTextureAtlas = {
+  path: string;
+  id: string;
+}
+
+type DefoldObjectTexture = Record<string, DefoldObjectTextureAtlas>;
 
 type DefoldObject = {
   name: string;
@@ -105,4 +110,10 @@ type DefoldObject = {
 type DefoldComponent = {
   name: string;
   data: string;
+}
+
+type DefoldBundle = {
+  components: DefoldComponent[];
+  atlases: AtlasData[];
+  paths?: DefoldPathsData;
 }

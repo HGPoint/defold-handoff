@@ -130,7 +130,11 @@ async function convertChildrenToDefoldObjectTextures(node: SceneNode, defoldObje
         if (isDefoldAtlas(componentSet)) {
           const texture = componentSet.name;
           const path = `/${config.paths.assetsPath}/${config.paths.atlasAssetsPath}/${texture}.atlas`;
-          defoldObjectTextures[texture] = path;
+          const id = componentSet.id;
+          defoldObjectTextures[texture] = {
+            path,
+            id
+          };
         }
       }
     }
@@ -192,8 +196,8 @@ function convertObjectToDefoldNodes(acc: string, defoldObjectNode: DefoldObjectN
   return `${acc}\nnodes\n{\n${component}}`;
 }
 
-function convertObjectToDefoldTextures(acc: string, [name, texture]: [string, string]): string {
-  return `${acc}\ntextures\n{\n  name: "${name}"\n  texture: "${texture}"\n}`;
+function convertObjectToDefoldTextures(acc: string, [name, texture]: [string, DefoldObjectTextureAtlas]): string {
+  return `${acc}\ntextures\n{\n  name: "${name}"\n  texture: "${texture.path}"\n}`;
 }
 
 function convertToComponentGUIProperty(acc: string, [key, value]: [DefoldObjectGUIKeyType, DefoldObjectGUIValueType]) {

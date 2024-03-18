@@ -21,11 +21,11 @@
     parent.postMessage({ pluginMessage: { type } }, "*");
   }
 
-  function downloadAtlases(blob) {
+  function downloadAtlases(blob, fileName) {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = "atlases.zip";
+    link.download = `${fileName}.atlas.zip`;
     link.click();
     URL.revokeObjectURL(url);
   }
@@ -33,6 +33,7 @@
   function exportAtlases({ atlases, paths }) {
     const { assetsPath, atlasAssetsPath, imageAssetsPath } = paths;
     const zip = new JSZip();
+    let [{ name: fileName }] = atlases;
     atlases.forEach(({ sprites, name }) => {
       const folder = zip.folder(ATLAS_ARCHIVE_BASE_PATH);
       const atlasImageAssetsPath = `${assetsPath}/${imageAssetsPath}/${name}`;
@@ -49,7 +50,7 @@
     });
     zip
       .generateAsync({ type: "blob" })
-      .then(downloadAtlases);
+      .then((blob) => downloadAtlases(blob, fileName));
   }
 
   function onExportDefoldAtlas() {

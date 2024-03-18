@@ -14,6 +14,8 @@ type PluginUIAction =
   "componentsCopiedToDefold" |
   "exportComponentsToDefold" |
   "componentsExportedToDefold" |
+  "exportBundleToDefold" |
+  "bundleExportedToDefold" |
   "destroyAdvancedDefoldComponents" |
   "createDefoldAtlas" |
   "updateDefoldAtlas" |
@@ -29,7 +31,8 @@ type PluginUIMessage = {
 
 type PluginUIMessagePayload = {
   atlases?: AtlasData[],
-  components?: string[],
+  components?: DefoldComponent[],
+  bundle?: DefoldBundle,
   selection?: PluginUISelectionData,
   paths?: DefoldPathsData
   imageAssetsPath?: string,
