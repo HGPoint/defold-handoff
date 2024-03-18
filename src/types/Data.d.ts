@@ -48,8 +48,22 @@ type Vector4 = {
   w: number;
 }
 
-type DefoldObject = {
+type SizeMode = "SIZE_MODE_AUTO" | "SIZE_MODE_MANUAL";
+
+type DefoldObjectGUI = {
+  background_color: Vector4,
+  material: string,
+  adjust_reference: string,
+  max_nodes: number
+}
+
+type DefoldObjectGUIKeyType = keyof DefoldObjectGUI;
+
+type DefoldObjectGUIValueType = DefoldObjectGUI[DefoldObjectGUIKeyType];
+
+type DefoldObjectNode = {
   id: string,
+  parent?: string,
   enabled: boolean,
   visible: boolean,
   position: Vector4,
@@ -75,6 +89,20 @@ type DefoldObject = {
   template_node_child: boolean,
 }
 
-type DefoldObjectKeyType = keyof DefoldObject;
+type DefoldObjectNodeKeyType = keyof DefoldObjectNode;
 
-type DefoldObjectValueType = DefoldObject[DefoldObjectKeyType];
+type DefoldObjectNodeValueType = DefoldObjectNode[DefoldObjectNodeKeyType];
+
+type DefoldObjectTexture = Record<string, string>;
+
+type DefoldObject = {
+  name: string;
+  gui: DefoldObjectGUI;
+  nodes: DefoldObjectNode[];
+  textures: DefoldObjectTexture;
+}
+
+type DefoldComponent = {
+  name: string;
+  data: string;
+}

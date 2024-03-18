@@ -72,8 +72,8 @@ function onCopyComponentsToDefold() {
     .then(onComponentsCopiedToDefold);
 }
 
-function onComponentsCopiedToDefold(component: string) {
-  postMessageToPluginUI('componentsCopiedToDefold', { component })
+function onComponentsCopiedToDefold(components: string[]) {
+  postMessageToPluginUI('componentsCopiedToDefold', { components })
 }
 
 function onExportComponentsToDefold() {
@@ -81,8 +81,8 @@ function onExportComponentsToDefold() {
     .then(onComponentsExportedToDefold);
 }
 
-function onComponentsExportedToDefold(component: string) {
-  postMessageToPluginUI('componentsExportedToDefold', { component })
+function onComponentsExportedToDefold(components: string[]) {
+  postMessageToPluginUI('componentsExportedToDefold', { components })
 }
 
 function onDestroyAdvancedDefoldComponents() {

@@ -1,7 +1,7 @@
 import { isFigmaComponent, setPluginData } from "../utilities/figma";
 
 export function isDefoldAtlas(layer: SceneNode) {
-  return layer.getPluginData("defoldAtlas");
+  return !!layer.getPluginData("defoldAtlas");
 }
 
 function generateAtlasData(atlas: ComponentSetNode, data?: PluginUIMessagePayload) {

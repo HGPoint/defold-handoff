@@ -29,7 +29,7 @@ type PluginUIMessage = {
 
 type PluginUIMessagePayload = {
   atlases?: AtlasData[],
-  component?: string,
+  components?: string[],
   selection?: PluginUISelectionData,
   paths?: DefoldPathsData
   imageAssetsPath?: string,

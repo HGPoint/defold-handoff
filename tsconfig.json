@@ -5,7 +5,7 @@
     "moduleResolution": "nodenext",
     "target": "ES6",
     "lib": [
-      "ES6"
+      "ES2017"
     ],
     "allowImportingTsExtensions": true,
     "allowSyntheticDefaultImports": true,

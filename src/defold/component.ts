@@ -1,7 +1,7 @@
-import { convertToDefoldObject, convertToDefoldComponents } from "../utilities/defold";
+import { convertToDefoldObjects, convertSetToDefoldComponents } from "../utilities/defold";
 
 export function isDefoldComponent(layer: SceneNode) {
-  return layer.getPluginData("defoldComponent");
+  return !!layer.getPluginData("defoldComponent");
 }
 
 export function createAdvancedDefoldComponent(layer: SceneNode) {
@@ -12,24 +12,22 @@ export function createAdvancedDefoldComponents(layers: SceneNode[]) {
   return layers.map(createAdvancedDefoldComponent);
 }
 
-export function copyComponentsToDefold(components: FrameNode[]) {
-  const [component] = components;
-  const defoldObject = convertToDefoldObject(component);
-  const defoldComponent = convertToDefoldComponents(defoldObject);
-  return Promise.resolve(defoldComponent);
+export async function copyComponentsToDefold(layers: FrameNode[]) {
+  const defoldObjectsSet = await convertToDefoldObjects(layers);
+  const defoldComponents = convertSetToDefoldComponents(defoldObjectsSet);
+  return defoldComponents;
 }
 
-export function exportComponentsToDefold(components: FrameNode[]) {
-  const [ component ] = components;
-  const defoldObject = convertToDefoldObject(component);
-  const defoldComponent = convertToDefoldComponents(defoldObject);
-  return Promise.resolve(defoldComponent);
+export async function exportComponentsToDefold(layers: FrameNode[]) {
+  const defoldObjectsSet = await convertToDefoldObjects(layers);
+  const defoldComponents = convertSetToDefoldComponents(defoldObjectsSet);
+  return defoldComponents;
 }
 
-export function destroyAdvancedDefoldComponent(defoldComponent: SceneNode) {
-  defoldComponent.setPluginData("defoldComponent", "");
+export function destroyAdvancedDefoldComponent(layer: SceneNode) {
+  layer.setPluginData("defoldComponent", "");
 }
 
-export function destroyAdvancedDefoldComponents(defoldComponents: SceneNode[]) {
-  defoldComponents.forEach(destroyAdvancedDefoldComponent);
+export function destroyAdvancedDefoldComponents(layer: SceneNode[]) {
+  layer.forEach(destroyAdvancedDefoldComponent);
 }

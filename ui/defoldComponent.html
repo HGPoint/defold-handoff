@@ -10,12 +10,37 @@
     return event.data?.pluginMessage;
   }
 
-  function exportComponent({ component }) {
-    console.log(component);
+  function downloadComponent(blob, name) {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${name}.gui`;
+    link.click();
+    URL.revokeObjectURL(url);
   }
 
-  function copyComponent({ component }) {
-    console.log(component);
+  function exportComponent({ components }) {
+    const [ component ] = components;
+    const blob = new Blob([component.data], { type: 'text/plain' });
+    downloadComponent(blob, component.name)
+  }
+
+  function putComponentOnClipboard(component) {
+    const textarea = document.createElement("textarea");
+    textarea.value = component;
+    textarea.style.position = "fixed";
+    textarea.style.zIndex = -100;
+    textarea.style.left = "-10000px";
+    textarea.style.top = "-10000px";
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand("copy");
+    document.body.removeChild(textarea);
+  }
+
+  function copyComponent({ components }) {
+    const [ component ] = components;
+    putComponentOnClipboard(component.data);
   }
 
   function postMessageToPlugin(type) {
@@ -57,4 +82,4 @@
   }
 
   initializeUI();
-</script>`
+</script>

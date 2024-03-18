@@ -6,7 +6,7 @@
     "fontAssetsPath": "fonts",
     "spineAssetsPath": "spines"
   },
-  "defoldConstKeys": [
+  "defoldNodeConstKeys": [
     "type",
     "blend_mode",
     "xanchor",
@@ -15,5 +15,30 @@
     "adjust_mode",
     "clipping_mode",
     "size_mode"
-  ]
+  ],
+  "defoldNodeDefaultValues": {
+    "type": "TYPE_BOX",
+    "size_mode": "SIZE_MODE_AUTO",
+    "layer": "",
+    "inherit_alpha": false,
+    "xanchor": "XANCHOR_NONE",
+    "yanchor": "YANCHOR_NONE",
+    "pivot": "PIVOT_CENTER",
+    "adjust_mode": "ADJUST_MODE_FIT",
+    "clipping_mode": "CLIPPING_MODE_NONE",
+    "clipping_visible": true,
+    "clipping_inverted": false,
+    "blend_mode": "BLEND_MODE_ALPHA",
+    "custom_type": 0,
+    "template_node_child": false
+  },
+  "defoldGUIConstKeys": [
+    "adjust_reference"
+  ],
+  "defoldGUIDefaultValues": {
+    "script": "",
+    "material": "/builtins/materials/gui.material",
+    "adjust_reference": "ADJUST_REFERENCE_PARENT",
+    "max_nodes": 512
+  }
 }
