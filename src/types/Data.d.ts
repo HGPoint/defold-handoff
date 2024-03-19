@@ -1,6 +1,3 @@
-type UnionToIntersection<U> = (U extends unknown ? (k: U) => void : never) extends ((k: infer I) => void) ? I : never;
-
-
 type SelectionData = {
   defoldComponents: FrameNode[];
   defoldAtlases: ComponentSetNode[];
@@ -62,6 +59,7 @@ type DefoldObjectGUIKeyType = keyof DefoldObjectGUI;
 type DefoldObjectGUIValueType = DefoldObjectGUI[DefoldObjectGUIKeyType];
 
 type DefoldObjectNode = {
+  type: string,
   id: string,
   parent?: string,
   enabled: boolean,
@@ -70,13 +68,17 @@ type DefoldObjectNode = {
   rotation: Vector4,
   scale: Vector4,
   size: Vector4,
-  color: Vector4,
-  texture: string,
-  type: string,
-  size_mode: string,
-  slice9: Vector4,
-  layer: string,
   inherit_alpha: boolean,
+  color: Vector4,
+  text?: string,
+  font?: string,
+  outline?: Vector4,
+  shadow?: Vector4,
+  texture?: string,
+  size_mode?: string,
+  slice9: Vector4,
+  layer?: string,
+  material?: string,
   xanchor: string,
   yanchor: string,
   pivot: string,
@@ -100,11 +102,14 @@ type DefoldObjectTextureAtlas = {
 
 type DefoldObjectTexture = Record<string, DefoldObjectTextureAtlas>;
 
+type DefoldObjectFont = Record<string, string>;
+
 type DefoldObject = {
   name: string;
   gui: DefoldObjectGUI;
   nodes: DefoldObjectNode[];
   textures: DefoldObjectTexture;
+  fonts: DefoldObjectFont
 }
 
 type DefoldComponent = {
