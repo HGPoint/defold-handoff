@@ -6,7 +6,7 @@
     "fontAssetsPath": "fonts",
     "spineAssetsPath": "spines"
   },
-  "defoldNodeConstKeys": [
+  "defoldConstKeys": [
     "type",
     "blend_mode",
     "xanchor",
@@ -14,9 +14,11 @@
     "pivot",
     "adjust_mode",
     "clipping_mode",
-    "size_mode"
+    "size_mode",
+    "adjust_reference"
   ],
-  "defoldNodeDefaultValues": {
+  "defoldGUINodeDefaultValues": {
+    "enabled": true,
     "layer": "",
     "inherit_alpha": false,
     "xanchor": "XANCHOR_NONE",
@@ -30,9 +32,6 @@
     "custom_type": 0,
     "template_node_child": false
   },
-  "defoldGUIConstKeys": [
-    "adjust_reference"
-  ],
   "defoldGUIDefaultValues": {
     "script": "",
     "material": "/builtins/materials/gui.material",

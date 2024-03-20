@@ -1,14 +1,14 @@
-<button id="createDefoldAtlas">Create Defold Atlas</button>
+<button id="createAtlas">Create Defold Atlas</button>
 
 <script>
-  const createDefoldAtlasButton = document.getElementById("createDefoldAtlas");
+  const createAtlasButton = document.getElementById("createAtlas");
 
   function onDefoldAtlasCreate() {
-    parent.postMessage({ pluginMessage: { type: "createDefoldAtlas" } }, "*");
+    parent.postMessage({ pluginMessage: { type: "createAtlas" } }, "*");
   }
 
   function initializeUI() {
-    createDefoldAtlasButton.addEventListener("click", onDefoldAtlasCreate);
+    createAtlasButton.addEventListener("click", onDefoldAtlasCreate);
   }
 
   initializeUI();

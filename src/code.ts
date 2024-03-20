@@ -1,11 +1,11 @@
 import config from "./config/config.json";
-import { reduceSelection, generatePluginUISelectionData, isFigmaLayerSelected, areMultipleFigmaLayersSelected, isDefoldComponentSelected, areMultipleDefoldComponentsSelected, isDefoldAtlasSelected, areMultipleDefoldAtlasesSelected } from './utilities/figma';
-import { createAdvancedDefoldComponents, copyComponentsToDefold, exportComponentsToDefold, destroyAdvancedDefoldComponents } from './defold/component';
-import { createDefoldAtlas, updateDefoldAtlas, exportDefoldAtlases, destroyDefoldAtlases } from './defold/atlas';
-import { exportBundleToDefold } from "./defold/bundle";
+import { reduceSelection, isLayerSelected, areMultipleLayersSelected, isGUINodeSelected, areMultipleGUINodesSelected, isAtlasSelected, areAtlasesSelected } from './utilities/figma';
+import { createGUINodes, copyGUINodesToDefold, exportGUINodesToDefold, destroyGUINodes } from './defold/gui';
+import { createAtlas, exportAtlases, destroyAtlases } from './defold/atlas';
+import { exportBundle } from "./defold/bundle";
 
 let currentSection: PluginUISection;
-let currentSelection: SelectionData = { defoldComponents: [], defoldAtlases: [], figmaLayers: [] };
+let currentSelection: SelectionData = { guiNodes: [], atlases: [], layers: [] };
 
 function postMessageToPluginUI(type: PluginUIAction, data: PluginUIMessagePayload) {
   if (isPluginUIShown()) {
@@ -29,17 +29,17 @@ function showPluginSection(section: PluginUISection) {
 }
 
 function switchPluginSection(selection: SelectionData) {
-  if (isDefoldComponentSelected(selection)) {
+  if (isGUINodeSelected(selection)) {
     showPluginSection('defoldComponent');
-  } else if (areMultipleDefoldComponentsSelected(selection)) {
+  } else if (areMultipleGUINodesSelected(selection)) {
     showPluginSection('defoldComponents');
-  } else if (isDefoldAtlasSelected(selection)) {
+  } else if (isAtlasSelected(selection)) {
     showPluginSection('defoldAtlas');
-  } else if (areMultipleDefoldAtlasesSelected(selection)) {
+  } else if (areAtlasesSelected(selection)) {
     showPluginSection('defoldAtlases');
-  } else if (isFigmaLayerSelected(selection)) {
+  } else if (isLayerSelected(selection)) {
     showPluginSection('figmaLayer');
-  } else if (areMultipleFigmaLayersSelected(selection)) {
+  } else if (areMultipleLayersSelected(selection)) {
     showPluginSection('figmaLayers');
   } else {
     showPluginSection('start');
@@ -48,10 +48,6 @@ function switchPluginSection(selection: SelectionData) {
 
 function updatePluginUI() {
   switchPluginSection(currentSelection);
-}
-
-function updatePluginUISelection() {
-  postMessageToPluginUI('figmaSelectionUpdated', { selection: generatePluginUISelectionData(currentSelection) });
 }
 
 function updateSelection() {
@@ -64,83 +60,76 @@ function selectNode(nodes: SceneNode[]) {
 }
 
 function onCreateAdvancedDefoldComponent() {
-  const components = createAdvancedDefoldComponents(currentSelection.figmaLayers);
-  selectNode(components);
+  const guiNodes = createGUINodes(currentSelection.layers);
+  selectNode(guiNodes);
 }
 
 function onCopyComponentsToDefold() {
-  copyComponentsToDefold(currentSelection.defoldComponents)
+  copyGUINodesToDefold(currentSelection.guiNodes)
     .then(onComponentsCopiedToDefold);
 }
 
-function onComponentsCopiedToDefold(components: DefoldComponent[]) {
-  postMessageToPluginUI('componentsCopiedToDefold', { components })
+function onComponentsCopiedToDefold(components: SerializedDefoldData[]) {
+  postMessageToPluginUI('guiNodesCopied', { gui: components })
 }
 
 function onExportComponentsToDefold() {
-  exportComponentsToDefold(currentSelection.defoldComponents)
+  exportGUINodesToDefold(currentSelection.guiNodes)
     .then(onComponentsExportedToDefold);
 }
 
-function onComponentsExportedToDefold(components: DefoldComponent[]) {
-  postMessageToPluginUI('componentsExportedToDefold', { components })
+function onComponentsExportedToDefold(components: SerializedDefoldData[]) {
+  postMessageToPluginUI('guiNodesExported', { gui: components })
 }
 
 function onExportBundleToDefold() {
-  exportBundleToDefold(currentSelection.defoldComponents)
+  exportBundle(currentSelection.guiNodes)
     .then(onBundleExportedToDefold);
 }
 
 function onBundleExportedToDefold(bundle: DefoldBundle) {
-  postMessageToPluginUI('bundleExportedToDefold', { ...bundle, paths: config.paths })
+  postMessageToPluginUI('bundleExported', { ...bundle, paths: config.paths })
 }
 
 function onDestroyAdvancedDefoldComponents() {
-  destroyAdvancedDefoldComponents(currentSelection.defoldComponents);
+  destroyGUINodes(currentSelection.guiNodes);
 }
 
 function onCreateDefoldAtlas() {
-  const atlas = createDefoldAtlas(currentSelection.figmaLayers);
+  const atlas = createAtlas(currentSelection.layers);
   selectNode([atlas]);
 }
 
-function onUpdateDefoldAtlas(data: PluginUIMessagePayload) {
-  const [ atlas ] = currentSelection.defoldAtlases;
-  updateDefoldAtlas(atlas, data);
-}
-
 function onExportDefoldAtlases() {
-  exportDefoldAtlases(currentSelection.defoldAtlases)
+  exportAtlases(currentSelection.atlases)
     .then(onDefoldAtlasesExported);
 }
 
 function onDefoldAtlasesExported(atlases: AtlasData[]) {
-  postMessageToPluginUI('defoldAtlasesExported', { atlases, paths: config.paths });
+  postMessageToPluginUI('atlasesExported', { atlases, paths: config.paths });
 }
 
 function onDestroyDefoldAtlases() {
-  destroyDefoldAtlases(currentSelection.defoldAtlases);
+  destroyAtlases(currentSelection.atlases);
 }
 
 function processPluginUIMessage(message: PluginUIMessage) {
-  const { type, data } = message;
-  if (type === 'createAdvancedDefoldComponent') {
+  const { type } = message;
+  if (type === 'createGUINode') {
     onCreateAdvancedDefoldComponent();
-  } else if (type === 'copyComponentsToDefold') {
+  } else if (type === 'copyGUINodes') {
     onCopyComponentsToDefold();
-  } else if (type === 'exportComponentsToDefold') {
+  } else if (type === 'exportGUINodes') {
     onExportComponentsToDefold();
-  } else if (type === 'exportBundleToDefold') {
+  } else if (type === 'exportBundle') {
     onExportBundleToDefold();
-  } else if (type === 'destroyAdvancedDefoldComponents') {
+  } else if (type === 'destroyGUINodes') {
     onDestroyAdvancedDefoldComponents();
-  } else if (type === 'createDefoldAtlas') {
+  } else if (type === 'createAtlas') {
     onCreateDefoldAtlas();
-  } else if (type === 'updateDefoldAtlas') {
-    onUpdateDefoldAtlas(data);
-  } else if (type === 'exportDefoldAtlases') {
+  } else if (type === 'exportAtlases') {
     onExportDefoldAtlases();
-  } else if (type === 'destroyDefoldAtlases') {
+  } else if (type === 'destroyAtlases') {
     onDestroyDefoldAtlases();
   }
 }
@@ -148,7 +137,6 @@ function processPluginUIMessage(message: PluginUIMessage) {
 function onSelectionChange() {
   updateSelection()
   updatePluginUI();
-  updatePluginUISelection();
 }
 
 function onPluginUIMessage(message: PluginUIMessage) {
@@ -161,7 +149,6 @@ function initializePlugin() {
   figma.ui.on('message', onPluginUIMessage);
   updateSelection();
   updatePluginUI();
-  updatePluginUISelection();
 }
 
 initializePlugin();

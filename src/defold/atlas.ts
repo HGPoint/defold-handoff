@@ -1,26 +1,24 @@
 import { isFigmaComponent, setPluginData } from "../utilities/figma";
 
-export function isDefoldAtlas(layer: SceneNode) {
-  return !!layer.getPluginData("defoldAtlas");
-}
-
-function generateAtlasData(atlas: ComponentSetNode, data?: PluginUIMessagePayload) {
+function generateAtlasData(atlas: ComponentSetNode) {
   const defoldAtlas = { id: atlas.id };
-  return { defoldAtlas };
+  return {
+    defoldAtlas
+  };
 }
 
-function createAtlasSprite(layer: SceneNode) {
-  const sprite = isFigmaComponent(layer) ? (layer as ComponentNode) : figma.createComponentFromNode(layer);
+function createAtlasSpriteComponent(layer: SceneNode) {
+  const sprite = isFigmaComponent(layer) ? layer : figma.createComponentFromNode(layer);
   sprite.name = `Sprite=${layer.name}`;
-  layer.locked = true;
+  sprite.locked = true;
   return sprite;
 }
 
-function createAtlasSprites(layers: SceneNode[]) {
-  return layers.map(createAtlasSprite);
+function createAtlasSpritesComponents(layers: SceneNode[]) {
+  return layers.map(createAtlasSpriteComponent);
 }
 
-function createAtlas(sprites: ComponentNode[]) {
+function createAtlasComponent(sprites: ComponentNode[]) {
   const atlas = figma.combineAsVariants(sprites, figma.currentPage);
   atlas.name = "Atlas";
   const atlasData = generateAtlasData(atlas);
@@ -28,7 +26,7 @@ function createAtlas(sprites: ComponentNode[]) {
   return atlas;
 }
 
-function styleAtlas(atlas: ComponentSetNode) {
+function styleAtlasComponent(atlas: ComponentSetNode) {
   atlas.fills = [{ type: "SOLID", color: { r: 1, g: 1, b: 1 } }];
   atlas.clipsContent = false;
   const bounds = atlas.absoluteRenderBounds;
@@ -37,18 +35,11 @@ function styleAtlas(atlas: ComponentSetNode) {
   }
 }
 
-export function createDefoldAtlas(layers: SceneNode[]) {
-  const sprites = createAtlasSprites(layers);
-  const atlas = createAtlas(sprites);
-  styleAtlas(atlas);
+export function createAtlas(layers: SceneNode[]) {
+  const sprites = createAtlasSpritesComponents(layers);
+  const atlas = createAtlasComponent(sprites);
+  styleAtlasComponent(atlas);
   figma.notify("Atlas created");
-  return atlas;
-}
-
-export function updateDefoldAtlas(atlas: ComponentSetNode, data: PluginUIMessagePayload) {
-  const atlasData = generateAtlasData(atlas, data);
-  setPluginData(atlas, atlasData);
-  figma.notify("Atlas updated");
   return atlas;
 }
 
@@ -71,11 +62,12 @@ async function exportDefoldAtlas(atlas: ComponentSetNode): Promise<AtlasData> {
   };
 }
 
-export function exportDefoldAtlases(atlas: ComponentSetNode[]): Promise<AtlasData[]> {
-  const exportPromises = atlas.map(exportDefoldAtlas);
+export function exportAtlases(atlases: ComponentSetNode[]): Promise<AtlasData[]> {
+  const exportPromises = atlases.map(exportDefoldAtlas);
   return Promise.all(exportPromises);
 }
 
-export function destroyDefoldAtlases(atlas: SceneNode[]) {
+export function destroyAtlases(atlases: SceneNode[]) {
+  console.log(atlases);
   figma.notify("Not implemented");
 }

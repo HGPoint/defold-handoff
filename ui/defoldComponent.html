@@ -1,6 +1,6 @@
 <button id="copyComponentToDefold">Copy Component to Defold</button>
 <button id="exportComponentToDefold">Export Component to Defold</button>
-<button id="exportBundleToDefold">Export Bundle to Defold</button>
+<button id="exportBundle">Export Bundle to Defold</button>
 <button id="destroyAdvancedDefoldComponent">Destroy Advanced Defold Component</button>
 
 <script>
@@ -10,7 +10,7 @@
 <script>
   const copyComponentToDefold = document.getElementById('copyComponentToDefold');
   const exportComponentToDefold = document.getElementById('exportComponentToDefold');
-  const exportBundleToDefold = document.getElementById('exportBundleToDefold');
+  const exportBundle = document.getElementById('exportBundle');
 
   const ATLAS_ARCHIVE_BASE_PATH = "atlases";
   const ATLAS_TEMPLATE = `{{images}}margin: 0\nextrude_borders: 2\ninner_padding: 0\nmax_page_width: 0\nmax_page_height: 0\n`;
@@ -91,7 +91,7 @@
   }
 
   function onCopyComponentToDefold() {
-    postMessageToPlugin("copyComponentsToDefold");
+    postMessageToPlugin("copyGUINodes");
   }
 
   function onComponentsCopiedToDefold(data) {
@@ -99,7 +99,7 @@
   }
 
   function onExportComponentToDefold() {
-    postMessageToPlugin("exportComponentsToDefold");
+    postMessageToPlugin("exportGUINodes");
   }
 
   function onComponentsExportedToDefold(data) {
@@ -107,7 +107,7 @@
   }
 
   function onExportBundleToDefold() {
-    postMessageToPlugin("exportBundleToDefold");
+    postMessageToPlugin("exportBundle");
   }
 
   function onBundleExportedToDefold(data) {
@@ -118,11 +118,11 @@
     if (isPluginMessage(event)) {
       const { pluginMessage } = event.data;
       const { type, data } = pluginMessage;
-      if (type === "componentsCopiedToDefold") {
+      if (type === "guiNodesCopied") {
         onComponentsCopiedToDefold(data);
-      } else if (type === "componentsExportedToDefold") {
+      } else if (type === "guiNodesExported") {
         onComponentsExportedToDefold(data);
-      } else if (type === "bundleExportedToDefold") {
+      } else if (type === "bundleExported") {
         onBundleExportedToDefold(data);
       }
     }
@@ -131,7 +131,7 @@
   function initializeUI() {
     copyComponentToDefold.addEventListener("click", onCopyComponentToDefold);
     exportComponentToDefold.addEventListener("click", onExportComponentToDefold);
-    exportBundleToDefold.addEventListener("click", onExportBundleToDefold);
+    exportBundle.addEventListener("click", onExportBundleToDefold);
     window.addEventListener("message", onPluginMessage);
   }
 

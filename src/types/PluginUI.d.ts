@@ -9,36 +9,30 @@ type PluginUISection =
 
 type PluginUIAction =
   "refreshPlugin" |
-  "createAdvancedDefoldComponent" |
-  "copyComponentsToDefold" |
-  "componentsCopiedToDefold" |
-  "exportComponentsToDefold" |
-  "componentsExportedToDefold" |
-  "exportBundleToDefold" |
-  "bundleExportedToDefold" |
-  "destroyAdvancedDefoldComponents" |
-  "createDefoldAtlas" |
-  "updateDefoldAtlas" |
-  "exportDefoldAtlases" |
-  "defoldAtlasesExported" |
-  "destroyDefoldAtlases" |
-  "figmaSelectionUpdated"
+  "createGUINode" |
+  "copyGUINodes" |
+  "guiNodesCopied" |
+  "exportGUINodes" |
+  "guiNodesExported" |
+  "exportBundle" |
+  "bundleExported" |
+  "destroyGUINodes" |
+  "createAtlas" |
+  "exportAtlases" |
+  "atlasesExported" |
+  "destroyAtlases"
+
+type PluginUIMessagePayloadData = {
+  atlases?: AtlasData[],
+  gui?: SerializedDefoldData[],
+  bundle?: DefoldBundle,
+  paths?: ProjectPathData
+  imageAssetsPath?: string,
+}
+
+type PluginUIMessagePayload = PluginUIMessagePayloadData | undefined
 
 type PluginUIMessage = {
   type: PluginUIAction,
   data?: PluginUIMessagePayload
-}
-
-type PluginUIMessagePayload = {
-  atlases?: AtlasData[],
-  components?: DefoldComponent[],
-  bundle?: DefoldBundle,
-  selection?: PluginUISelectionData,
-  paths?: DefoldPathsData
-  imageAssetsPath?: string,
-} | undefined
-
-type PluginUISelectionData = {
-  defoldComponents: DefoldComponentData[];
-  defoldAtlases: DefoldAtlasData[];
 }

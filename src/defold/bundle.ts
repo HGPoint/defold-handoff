@@ -1,7 +1,8 @@
-import { convertToDefoldObjects, convertSetToDefoldComponents } from "../utilities/defold";
-import { exportDefoldAtlases } from "./atlas";
+import { generateDefoldDataSet } from "../utilities/dataGenerators";
+import { serializeDefoldDataSet } from "../utilities/dataSerializers";
+import { exportAtlases } from "./atlas";
 
-function reduceAtlases(atlasIds: string[], defoldObject: DefoldObject) {
+function reduceAtlases(atlasIds: string[], defoldObject: DefoldData) {
   const textureNames = Object.values(defoldObject.textures).map((texture) => texture.id);
   return atlasIds.concat(textureNames);
 }
@@ -17,11 +18,11 @@ async function findAtlases(atlasIds: string[]): Promise<ComponentSetNode[]> {
   return atlases;
 }
 
-export async function exportBundleToDefold(layers: FrameNode[]) {
-  const defoldObjectsSet = await convertToDefoldObjects(layers);
-  const components = convertSetToDefoldComponents(defoldObjectsSet);
+export async function exportBundle(layers: FrameNode[]) {
+  const defoldObjectsSet = await generateDefoldDataSet(layers);
+  const components = serializeDefoldDataSet(defoldObjectsSet);
   const atlasIds = defoldObjectsSet.reduce(reduceAtlases, []);
   const atlasLayers = await findAtlases(atlasIds);
-  const atlases = await exportDefoldAtlases(atlasLayers);
+  const atlases = await exportAtlases(atlasLayers);
   return { components, atlases };
 }

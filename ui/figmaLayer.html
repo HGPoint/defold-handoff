@@ -1,9 +1,9 @@
-<button id="createAdvancedDefoldComponent">Create Advanced Defold Component</button>
+<button id="createGUINode">Create Advanced Defold Component</button>
 <button id="copyComponentToDefold">Copy Component to Defold</button>
 <button id="exportComponentToDefold">Export Component to Defold</button>
 
 <script>
-  const createAdvancedDefoldComponent = document.getElementById('createAdvancedDefoldComponent');
+  const createGUINode = document.getElementById('createGUINode');
   const copyComponentToDefold = document.getElementById('copyComponentToDefold');
   const exportComponentToDefold = document.getElementById('exportComponentToDefold');
 
@@ -24,11 +24,11 @@
   }
 
   function onCreateAdvancedDefoldComponent() {
-    postMessageToPlugin("createAdvancedDefoldComponent");
+    postMessageToPlugin("createGUINode");
   }
 
   function onCopyComponentToDefold() {
-    postMessageToPlugin("copyComponentsToDefold");
+    postMessageToPlugin("copyGUINodes");
   }
 
   function onComponentsCopiedToDefold(data) {
@@ -36,7 +36,7 @@
   }
 
   function onExportComponentToDefold() {
-    postMessageToPlugin("exportComponentsToDefold");
+    postMessageToPlugin("exportGUINodes");
   }
 
   function onComponentsExportedToDefold(data) {
@@ -47,16 +47,16 @@
     if (isPluginMessage(event)) {
       const { pluginMessage } = event.data;
       const { type, data } = pluginMessage;
-      if (type === "componentsExportedToDefold") {
+      if (type === "guiNodesExported") {
         onComponentsExportedToDefold(data);
-      } else if (type === "componentsCopiedToDefold") {
+      } else if (type === "guiNodesCopied") {
         onComponentsCopiedToDefold(data);
       }
     }
   }
 
   function initializeUI() {
-    createAdvancedDefoldComponent.addEventListener("click", onCreateAdvancedDefoldComponent);
+    createGUINode.addEventListener("click", onCreateAdvancedDefoldComponent);
     copyComponentToDefold.addEventListener("click", onCopyComponentToDefold);
     exportComponentToDefold.addEventListener("click", onExportComponentToDefold);
     window.addEventListener("message", onPluginMessage);

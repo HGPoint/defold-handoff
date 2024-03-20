@@ -54,7 +54,7 @@
   }
 
   function onExportDefoldAtlas() {
-    postMessageToPlugin("exportDefoldAtlases");
+    postMessageToPlugin("exportAtlases");
   }
 
   function onDefoldAtlasesExported(data) {
@@ -62,14 +62,14 @@
   }
 
   function onDestroyDefoldAtlas() {
-    postMessageToPlugin("destroyDefoldAtlases");
+    postMessageToPlugin("destroyAtlases");
   }
 
   function onPluginMessage(event) {
     if (isPluginMessage(event)) {
       const { pluginMessage } = event.data;
       const { type, data } = pluginMessage;
-      if (type === "defoldAtlasesExported") {
+      if (type === "atlasesExported") {
         onDefoldAtlasesExported(data);
       }
     }
