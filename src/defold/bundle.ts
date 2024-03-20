@@ -18,11 +18,11 @@ async function findAtlases(atlasIds: string[]): Promise<ComponentSetNode[]> {
   return atlases;
 }
 
-export async function exportBundle(layers: FrameNode[]) {
+export async function exportBundle(layers: FrameNode[]): Promise<BundleData> {
   const defoldObjectsSet = await generateDefoldDataSet(layers);
-  const components = serializeDefoldDataSet(defoldObjectsSet);
+  const gui = serializeDefoldDataSet(defoldObjectsSet);
   const atlasIds = defoldObjectsSet.reduce(reduceAtlases, []);
   const atlasLayers = await findAtlases(atlasIds);
   const atlases = await exportAtlases(atlasLayers);
-  return { components, atlases };
+  return { gui, atlases };
 }

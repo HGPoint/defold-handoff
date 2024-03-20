@@ -9,6 +9,7 @@
     ],
     "allowImportingTsExtensions": true,
     "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
     "resolveJsonModule": true,
     "noEmit": true,

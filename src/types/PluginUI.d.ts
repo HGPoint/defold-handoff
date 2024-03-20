@@ -25,7 +25,7 @@ type PluginUIAction =
 type PluginUIMessagePayloadData = {
   atlases?: AtlasData[],
   gui?: SerializedDefoldData[],
-  bundle?: DefoldBundle,
+  bundle?: BundleData,
   paths?: ProjectPathData
   imageAssetsPath?: string,
 }

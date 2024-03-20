@@ -1,8 +1,3 @@
-type Vector2 = {
-  x: number;
-  y: number;
-}
-
 type Vector4 = {
   x: number;
   y: number;

@@ -8,15 +8,7 @@
   "editorType": [
     "figma"
   ],
-  "ui": {
-    "start": "ui/start.html",
-    "figmaLayer": "ui/figmaLayer.html",
-    "figmaLayers": "ui/figmaLayers.html",
-    "defoldComponent": "ui/defoldComponent.html",
-    "defoldComponents": "ui/defoldComponents.html",
-    "defoldAtlas": "ui/defoldAtlas.html",
-    "defoldAtlases": "ui/defoldAtlases.html"
-  },
+  "ui": "dist/ui.html",
   "networkAccess": {
     "allowedDomains": [
       "none"

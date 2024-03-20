@@ -1,3 +1,21 @@
+type ProjectPathData = {
+  assetsPath: string;
+  atlasAssetsPath: string;
+  imageAssetsPath: string;
+  fontAssetsPath: string;
+  spineAssetsPath: string;
+}
+
+type AtlasData = {
+  name: string;
+  sprites: SpriteData[];
+}
+
+type SpriteData = {
+  name: string;
+  data: Uint8Array;
+}
+
 type GUIData = {
   script: string,
   background_color: Vector4,
@@ -69,7 +87,7 @@ type SerializedDefoldData = {
   data: string;
 }
 
-type DefoldBundle = {
+type BundleData = {
   gui: SerializedDefoldData[];
   atlases: AtlasData[];
   paths?: ProjectPathData;

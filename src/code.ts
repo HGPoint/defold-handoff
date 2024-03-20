@@ -14,7 +14,7 @@ function postMessageToPluginUI(type: PluginUIAction, data: PluginUIMessagePayloa
 }
 
 function isPluginUIShown() {
-  return figma.ui && currentSection;
+  return figma.ui && !!currentSection;
 }
 
 function shouldShowPluginSection(section: PluginUISection) {
@@ -24,7 +24,7 @@ function shouldShowPluginSection(section: PluginUISection) {
 function showPluginSection(section: PluginUISection) {
   if (shouldShowPluginSection(section)) {
     currentSection = section;
-    figma.showUI(__uiFiles__[section]);
+    figma.showUI(__html__);
   }
 }
 
@@ -87,7 +87,7 @@ function onExportBundleToDefold() {
     .then(onBundleExportedToDefold);
 }
 
-function onBundleExportedToDefold(bundle: DefoldBundle) {
+function onBundleExportedToDefold(bundle: BundleData) {
   postMessageToPluginUI('bundleExported', { ...bundle, paths: config.paths })
 }
 
