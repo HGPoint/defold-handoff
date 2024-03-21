@@ -1,8 +1,8 @@
 type Vector4 = {
-  x: number;
-  y: number;
-  z: number;
-  w: number;
+  x: number,
+  y: number,
+  z: number,
+  w: number,
 }
 
 type SizeMode = "SIZE_MODE_AUTO" | "SIZE_MODE_MANUAL";

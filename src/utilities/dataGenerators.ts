@@ -2,7 +2,7 @@ import config from "../config/config.json";
 import { findMainComponent, hasChildren, isAtlas, isFigmaSceneNode, isFigmaComponentInstance, isFigmaBox, isFigmaText } from "./figma";
 import { vector4 } from "./math";
 import { convertGUIData, convertBoxGUINodeData, convertTextGUINodeData } from "./dataConverters";
-import { generateTexturePath, generateFontPath } from "./path";
+import { generateAtlasPath, generateFontPath } from "./path";
 
 async function findGUINodes(layer: SceneNode, guiNodesData: GUINodeData[], atRoot?: boolean, parentId?: string, parentSize?: Vector4) {
   if (layer.visible) {
@@ -34,7 +34,7 @@ async function findTextures(layer: SceneNode, texturesData: TextureData) {
         if (isFigmaSceneNode(parent) && isAtlas(parent)) {
           const texture = parent.name;
           if (!texturesData[texture]) {
-            const path = generateTexturePath(texture);
+            const path = generateAtlasPath(texture);
             const id = parent.id;
             texturesData[texture] = {
               path,

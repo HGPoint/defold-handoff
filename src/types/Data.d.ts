@@ -88,7 +88,6 @@ type SerializedDefoldData = {
 }
 
 type BundleData = {
-  gui: SerializedDefoldData[];
-  atlases: AtlasData[];
-  paths?: ProjectPathData;
+  gui?: SerializedDefoldData[];
+  atlases?: AtlasData[];
 }

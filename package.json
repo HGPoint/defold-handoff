@@ -12,6 +12,9 @@
   },
   "author": "",
   "license": "",
+  "dependencies": {
+    "jszip": "^3.10.1"
+  },
   "devDependencies": {
     "@figma/eslint-plugin-figma-plugins": "*",
     "@figma/plugin-typings": "*",
@@ -36,7 +39,9 @@
     "parser": "@typescript-eslint/parser",
     "overrides": [
       {
-        "files": ["*.svelte"],
+        "files": [
+          "*.svelte"
+        ],
         "parser": "svelte-eslint-parser"
       }
     ],

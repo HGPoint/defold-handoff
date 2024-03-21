@@ -39,27 +39,27 @@ export function hasChildren(layer: BoxLayer) {
 }
 
 export function isGUINodeSelected(selection: SelectionData) {
-  return selection.guiNodes.length === 1;
+  return selection?.gui?.length === 1;
 }
 
 export function areMultipleGUINodesSelected(selection: SelectionData) {
-  return selection.guiNodes.length > 1;
+  return selection?.gui?.length > 1;
 }
 
 export function isAtlasSelected(selection: SelectionData) {
-  return selection.atlases.length === 1;
+  return selection?.atlases?.length === 1;
 }
 
-export function areAtlasesSelected(selection: SelectionData) {
-  return selection.atlases.length > 1;
+export function areMultipleAtlasesSelected(selection: SelectionData) {
+  return selection?.atlases?.length > 1;
 }
 
 export function isLayerSelected(selection: SelectionData) {
-  return selection.layers.length === 1;
+  return selection?.layers?.length === 1;
 }
 
 export function areMultipleLayersSelected(selection: SelectionData) {
-  return selection.layers.length > 1;
+  return selection?.layers?.length > 1;
 }
 
 export function hasSolidFills(fills: readonly Paint[] | typeof figma.mixed): fills is readonly SolidPaint[] {
@@ -97,7 +97,7 @@ function selectionReducer(selection: SelectionData, layer: SceneNode): Selection
     if (isAtlas(layer)) {
       selection.atlases.push(layer);
     } else if (isFigmaFrame(layer)) {
-      selection.guiNodes.push(layer);
+      selection.gui.push(layer);
     } else {
       selection.layers.push(layer);
     }
@@ -106,6 +106,6 @@ function selectionReducer(selection: SelectionData, layer: SceneNode): Selection
 }
 
 export function reduceSelection(): SelectionData {
-  const selection: SelectionData = { guiNodes: [], atlases: [], layers: [] }; 
+  const selection: SelectionData = { gui: [], atlases: [], layers: [] }; 
   return figma.currentPage.selection.reduce(selectionReducer, selection);
 }

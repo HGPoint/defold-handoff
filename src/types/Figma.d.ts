@@ -1,4 +1,4 @@
-type ExportableLayer = FrameNode | InstanceNode | TextNode;
+type ExportableLayer = BoxLayer | TextLayer;
 
 type BoxLayer = FrameNode | InstanceNode;
 
