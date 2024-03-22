@@ -1,8 +1,8 @@
-import config from "../config/config.json";
-import { findMainComponent, hasChildren, isAtlas, isFigmaSceneNode, isFigmaComponentInstance, isFigmaBox, isFigmaText } from "./figma";
-import { vector4 } from "./math";
-import { convertGUIData, convertBoxGUINodeData, convertTextGUINodeData } from "./dataConverters";
-import { generateAtlasPath, generateFontPath } from "./path";
+import config from "config/config.json";
+import { findMainComponent, hasChildren, isAtlas, isFigmaSceneNode, isFigmaComponentInstance, isFigmaBox, isFigmaText } from "utilities/figma";
+import { vector4 } from "utilities/math";
+import { convertGUIData, convertBoxGUINodeData, convertTextGUINodeData } from "utilities/guiDataConverters";
+import { generateAtlasPath, generateFontPath } from "utilities/path";
 
 async function findGUINodes(layer: SceneNode, guiNodesData: GUINodeData[], atRoot?: boolean, parentId?: string, parentSize?: Vector4) {
   if (layer.visible) {
@@ -61,7 +61,7 @@ async function findFonts(layer: SceneNode, fontData: FontData) {
     }
   }
   if (isFigmaText(layer)) {
-    const font = config.defoldFontFamily;
+    const font = config.fontFamily;
     const path = generateFontPath(font);
     if (!fontData[font]) {
       fontData[font] = path;
@@ -69,15 +69,15 @@ async function findFonts(layer: SceneNode, fontData: FontData) {
   }
 }
 
-async function generateDefoldData(component: FrameNode | InstanceNode): Promise<DefoldData> {
-  const name = component.name;
+async function generateGUIData(layer: FrameNode | InstanceNode): Promise<GUIData> {
+  const { name } = layer;
   const gui = convertGUIData();
   const nodes: GUINodeData[] = [];
-  await findGUINodes(component, nodes, true);
+  await findGUINodes(layer, nodes, true);
   const textures: TextureData = {};
-  await findTextures(component, textures);  
+  await findTextures(layer, textures);  
   const fonts = {};
-  await findFonts(component, fonts);
+  await findFonts(layer, fonts);
   return {
     name,
     gui,
@@ -87,7 +87,7 @@ async function generateDefoldData(component: FrameNode | InstanceNode): Promise<
   };
 }
 
-export async function generateDefoldDataSet(components: FrameNode[]): Promise<DefoldData[]> {
-  const guiNodesDataSets = components.map(generateDefoldData);
+export async function generateGUIDataSet(layers: FrameNode[]): Promise<GUIData[]> {
+  const guiNodesDataSets = layers.map(generateGUIData);
   return Promise.all(guiNodesDataSets);
 }

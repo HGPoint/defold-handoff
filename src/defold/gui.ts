@@ -1,22 +1,34 @@
-import { generateDefoldDataSet } from "../utilities/dataGenerators";
-import { serializeDefoldDataSet } from "../utilities/dataSerializers";
-import { setPluginData, removePluginData } from "../utilities/figma";
+import { generateGUIDataSet } from "utilities/guiDataGenerators";
+import { serializeGUIDataSet } from "utilities/guiDataSerializers";
+import { setPluginData, removePluginData } from "utilities/figma";
 
-function generateGUINodeData(layer: SceneNode) {
+function generateGUINodePluginData(layer: SceneNode): PluginData {
   const defoldGUINode = { id: layer.id };
   return {
     defoldGUINode
   };
 }
 
-export function createGUINode(layer: SceneNode) {
-  const componentData = generateGUINodeData(layer);
+export function createGUINode(layer: SceneNode): SceneNode {
+  const componentData = generateGUINodePluginData(layer);
   setPluginData(layer, componentData);
   return layer;
 }
 
-export function createGUINodes(layers: SceneNode[]) {
+export function createGUINodes(layers: SceneNode[]): SceneNode[] {
   return layers.map(createGUINode);
+}
+
+export async function copyGUINodes(layers: FrameNode[]): Promise<SerializedGUIData[]> {
+  const guiNodesData = await generateGUIDataSet(layers);
+  const serializedGUINodesData = serializeGUIDataSet(guiNodesData);
+  return serializedGUINodesData;
+}
+
+export async function exportGUINodes(layers: FrameNode[]): Promise<SerializedGUIData[]> {
+  const guiNodesData = await generateGUIDataSet(layers);
+  const serializedGUINodesData = serializeGUIDataSet(guiNodesData);
+  return serializedGUINodesData;
 }
 
 export function destroyGUINode(layer: SceneNode) {
@@ -25,16 +37,4 @@ export function destroyGUINode(layer: SceneNode) {
 
 export function destroyGUINodes(layers: SceneNode[]) {
   layers.forEach(destroyGUINode);
-}
-
-export async function copyGUINodesToDefold(layers: FrameNode[]) {
-  const guiNodesData = await generateDefoldDataSet(layers);
-  const guiNodes = serializeDefoldDataSet(guiNodesData);
-  return guiNodes;
-}
-
-export async function exportGUINodesToDefold(layers: FrameNode[]) {
-  const guiNodesData = await generateDefoldDataSet(layers);
-  const guiNodes = serializeDefoldDataSet(guiNodesData);
-  return guiNodes;
 }

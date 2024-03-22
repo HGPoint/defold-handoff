@@ -1,22 +1,47 @@
 type ProjectPathData = {
-  assetsPath: string;
-  atlasAssetsPath: string;
-  imageAssetsPath: string;
-  fontAssetsPath: string;
-  spineAssetsPath: string;
+  assetsPath: string,
+  atlasAssetsPath: string,
+  imageAssetsPath: string,
+  fontAssetsPath: string,
+  spineAssetsPath: string,
 }
 
-type AtlasData = {
-  name: string;
-  sprites: SpriteData[];
+type SpriteComponentData = {
+  sprite_trim_mode: SpriteTrimMode,
 }
 
 type SpriteData = {
-  name: string;
-  data: Uint8Array;
+  name: string,
+  sprite: SpriteComponentData,
+  data: Uint8Array,
 }
 
-type GUIData = {
+type SerializedSpriteData = {
+  name: string,
+  data: Uint8Array,
+}
+
+type AtlasComponentData = {
+  margin: number,
+  extrude_borders: number,
+  inner_padding: number,
+  max_page_width: number,
+  max_page_height: number,
+}
+
+type AtlasData = {
+  name: string,
+  atlas: AtlasComponentData,
+  images: SpriteData[],
+}
+
+type SerializedAtlasData = {
+  name: string,
+  data: string,
+  images: SerializedSpriteData[],
+}
+
+type GUIComponentData = {
   script: string,
   background_color: Vector4,
   material: string,
@@ -24,9 +49,9 @@ type GUIData = {
   max_nodes: number
 }
 
-type GUIDataKey = keyof GUIData;
+type GUIComponentDataKey = keyof GUIComponentData;
 
-type GUIDataValue = GUIData[GUIDataKey];
+type GUIComponentDataValue = GUIComponentData[GUIComponentDataKey];
 
 type GUINodeData = {
   type: string,
@@ -66,28 +91,28 @@ type GUINodeDataKey = keyof GUINodeData;
 type GUINodeDataValue = GUINodeData[GUINodeDataKey];
 
 type TextureAtlasData = {
-  path: string;
-  id: string;
+  id: string,
+  path: string,
 }
 
 type TextureData = Record<string, TextureAtlasData>;
 
 type FontData = Record<string, string>;
 
-type DefoldData = {
-  name: string;
-  gui: GUIData;
-  nodes: GUINodeData[];
-  textures: TextureData;
+type GUIData = {
+  name: string,
+  gui: GUIComponentData,
+  nodes: GUINodeData[],
+  textures: TextureData,
   fonts: FontData
 }
 
-type SerializedDefoldData = {
-  name: string;
-  data: string;
+type SerializedGUIData = {
+  name: string,
+  data: string,
 }
 
 type BundleData = {
-  gui?: SerializedDefoldData[];
-  atlases?: AtlasData[];
+  gui?: SerializedGUIData[],
+  atlases?: SerializedAtlasData[],
 }

@@ -10,27 +10,27 @@ export function isFigmaSceneNode(layer: BaseNode | null ): layer is SceneNode {
   return !!layer && (layer.type === "FRAME" || layer.type === "INSTANCE" || layer.type === "TEXT");
 }
 
-export function isFigmaComponent(layer: SceneNode): layer is ComponentNode {
+export function isFigmaComponent(layer: BaseNode): layer is ComponentNode {
   return layer.type === "COMPONENT";
 }
 
-export function isFigmaComponentSet(layer: SceneNode): layer is ComponentSetNode {
+export function isFigmaComponentSet(layer: BaseNode): layer is ComponentSetNode {
   return layer.type === "COMPONENT_SET";
 }
 
-export function isFigmaComponentInstance(layer: SceneNode): layer is InstanceNode {
+export function isFigmaComponentInstance(layer: BaseNode): layer is InstanceNode {
   return layer.type === "INSTANCE";
 }
 
-export function isFigmaFrame(layer: SceneNode): layer is FrameNode {
+export function isFigmaFrame(layer: BaseNode): layer is FrameNode {
   return layer.type === "FRAME";
 }
 
-export function isFigmaBox(layer: SceneNode): layer is (FrameNode | InstanceNode) {
+export function isFigmaBox(layer: BaseNode): layer is (FrameNode | InstanceNode) {
   return isFigmaFrame(layer) || isFigmaComponentInstance(layer);
 }
 
-export function isFigmaText(layer: SceneNode): layer is TextNode {
+export function isFigmaText(layer: BaseNode): layer is TextNode {
   return layer.type === "TEXT";
 }
 
@@ -75,17 +75,18 @@ function pluginDataSetter(key: PluginDataKey, value: PluginDataValue, layer: Sce
 }
 
 export function setPluginData(layer: SceneNode, data: PluginData) {
-  Object.entries(data).forEach(([key, value]) => { pluginDataSetter(key as PluginDataKey, value as PluginDataValue, layer); });
+  Object.entries(data).forEach(([key, value]) => { pluginDataSetter(key as PluginDataKey, value, layer); });
 }
 
 function pluginDataReducer(data: PluginData, key: PluginDataKey, layer: SceneNode) {
   const value = layer.getPluginData(key);
-  data[key] = value ? JSON.parse(value) : {} as PluginDataValue;
+  data[key] = (value ? JSON.parse(value) : {}) as PluginDataValue;
   return data;
 }
 
 export function getPluginData(layer: SceneNode, keys: PluginDataKey[]) {
-  return keys.reduce((data, key) => pluginDataReducer(data, key, layer), {} as PluginData);
+  const pluginData: PluginData = {};
+  return keys.reduce((data, key) => pluginDataReducer(data, key, layer), pluginData);
 }
 
 export function removePluginData(layer: SceneNode, keys: PluginDataKey[]) {

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Section from '../Section';
+  import Section from "components/Section";
 </script>
 
 <Section>

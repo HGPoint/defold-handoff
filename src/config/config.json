@@ -6,7 +6,8 @@
     "fontAssetsPath": "fonts",
     "spineAssetsPath": "spines"
   },
-  "defoldConstKeys": [
+  "constKeys": [
+    "adjust_reference",
     "type",
     "blend_mode",
     "xanchor",
@@ -15,9 +16,15 @@
     "adjust_mode",
     "clipping_mode",
     "size_mode",
-    "adjust_reference"
+    "sprite_trim_mode"
   ],
-  "defoldGUINodeDefaultValues": {
+  "guiDefaultValues": {
+    "script": "",
+    "material": "/builtins/materials/gui.material",
+    "adjust_reference": "ADJUST_REFERENCE_PARENT",
+    "max_nodes": 512
+  },
+  "guiNodeDefaultValues": {
     "enabled": true,
     "layer": "",
     "inherit_alpha": false,
@@ -32,12 +39,16 @@
     "custom_type": 0,
     "template_node_child": false
   },
-  "defoldGUIDefaultValues": {
-    "script": "",
-    "material": "/builtins/materials/gui.material",
-    "adjust_reference": "ADJUST_REFERENCE_PARENT",
-    "max_nodes": 512
+  "atlasDefaultValues": {
+    "margin": 0,
+    "extrude_borders": 2,
+    "inner_padding": 0,
+    "max_page_width": 0,
+    "max_page_height": 0
   },
-  "defoldFontFamily": "franxurter",
-  "defoldFontSize": 36
+  "atlasImageDefaultValues": {
+    "sprite_trim_mode": "SPRITE_TRIM_MODE_OFF"
+  },
+  "fontFamily": "franxurter",
+  "fontSize": 36
 }

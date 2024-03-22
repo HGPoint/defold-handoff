@@ -16,6 +16,21 @@
     "typeRoots": [
       "./node_modules/@types",
       "./node_modules/@figma"
-    ]
+    ],
+    "baseUrl": "./src",
+    "paths": {
+      "config": [
+        "config/*"
+      ],
+      "components": [
+        "components/*"
+      ],
+      "defold": [
+        "defold/*"
+      ],
+      "utilities": [
+        "utilities/*"
+      ]
+    },
   }
 }

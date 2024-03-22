@@ -1,11 +1,15 @@
-import { exportAtlases, copyComponent, exportComponent, exportResources } from "./resources";
+import { exportAtlases, copyComponent, exportComponent, exportResources } from "utilities/resources";
 
 export function isPluginMessage(event: MessageEvent): event is MessageEvent<PluginUIMessage> {
   return !!event?.data?.pluginMessage;
 }
 
-export function isSelectionData(data?: PluginMessagePayload): data is SelectionData {
-  return !!data && typeof data === "object" && "gui" in data && "atlases" in data && "layers" in data;
+export function isPluginMessagePayload(data?: PluginMessagePayload): data is PluginMessagePayload {
+  return !!data && typeof data === "object" && ("bundle" in data || "selection" in data);
+}
+
+export function isSelectionData(selection?: SelectionData): selection is SelectionData {
+  return !!selection && "gui" in selection && "atlases" in selection && "layers" in selection;
 }
 
 export function postMessageToPlugin(type: PluginMessageAction) {

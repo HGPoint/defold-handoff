@@ -1,6 +1,8 @@
-import { isFigmaComponent, setPluginData } from "../utilities/figma";
+import { generateAtlasDataSet } from "utilities/atlasDataGenerators";
+import { serializeAtlasDataSet } from "utilities/atlasDataSerializers";
+import { isFigmaComponent, setPluginData } from "utilities/figma";
 
-function generateAtlasData(atlas: ComponentSetNode) {
+function generateAtlasPluginData(atlas: ComponentSetNode) {
   const defoldAtlas = { id: atlas.id };
   return {
     defoldAtlas
@@ -21,7 +23,7 @@ function createAtlasSpritesComponents(layers: SceneNode[]) {
 function createAtlasComponent(sprites: ComponentNode[]) {
   const atlas = figma.combineAsVariants(sprites, figma.currentPage);
   atlas.name = "Atlas";
-  const atlasData = generateAtlasData(atlas);
+  const atlasData = generateAtlasPluginData(atlas);
   setPluginData(atlas, atlasData);
   return atlas;
 }
@@ -43,28 +45,11 @@ export function createAtlas(layers: SceneNode[]) {
   return atlas;
 }
 
-async function exportAtlasSprite(sprite: SceneNode): Promise<SpriteData> {
-  const data = await (sprite as ComponentNode).exportAsync({ format: "PNG" });
-  const name = sprite.name.replace("Sprite=", "");
-  return {
-    name,
-    data
-  };
-}
-
-async function exportDefoldAtlas(atlas: ComponentSetNode): Promise<AtlasData> {
-  const { children } = atlas;
-  const exportPromises = children.map(exportAtlasSprite);
-  const sprites = await Promise.all(exportPromises);
-  return {
-    name: atlas.name,
-    sprites,
-  };
-}
-
-export function exportAtlases(atlases: ComponentSetNode[]): Promise<AtlasData[]> {
-  const exportPromises = atlases.map(exportDefoldAtlas);
-  return Promise.all(exportPromises);
+export async function exportAtlases(atlases: ComponentSetNode[]): Promise<SerializedAtlasData[]> {
+  const atlasData = await generateAtlasDataSet(atlases);
+  const serializedAtlasData = serializeAtlasDataSet(atlasData);
+  figma.notify("Atlases exported");
+  return serializedAtlasData;
 }
 
 export function destroyAtlases(atlases: SceneNode[]) {

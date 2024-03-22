@@ -1,6 +1,6 @@
-import config from "../config/config.json";
-import { isAtlas, isFigmaSceneNode, isFigmaText, isFigmaComponentInstance, hasSolidFills, findMainComponent } from "./figma";
-import { vector4 } from "./math";
+import config from "config/config.json";
+import { isAtlas, isFigmaSceneNode, isFigmaText, isFigmaComponentInstance, hasSolidFills, findMainComponent } from "utilities/figma";
+import { vector4 } from "utilities/math";
 
 function calculateId(layer: ExportableLayer) {
   return layer.name;
@@ -44,7 +44,7 @@ function calculateMixedTextScale() {
 }
 
 function calculateTextScale(fontSize: number) {
-  const scale = fontSize / config.defoldFontSize;
+  const scale = fontSize / config.fontSize;
   return vector4(scale, scale, scale, 1);
 }
 
@@ -160,7 +160,7 @@ async function convertBoxVisuals(layer: BoxLayer) {
 }
 
 function calculateFont() {
-  return config.defoldFontFamily;
+  return config.fontFamily;
 }
 
 function calculateOutline() {
@@ -191,7 +191,7 @@ function convertTextVisuals(layer: TextLayer) {
 
 function injectGUINodeDefaults() {
   return {
-    ...config.defoldGUINodeDefaultValues,
+    ...config.guiNodeDefaultValues,
   };
 }
 
@@ -240,13 +240,11 @@ function calculateBackgroundColor() {
 }
 
 function injectGUIDefaults() {
-  return {
-    ...config.defoldGUIDefaultValues,
-  };
+  return config.guiDefaultValues;
 
 }
 
-export function convertGUIData(): GUIData {
+export function convertGUIData(): GUIComponentData {
   const backgroundColor = calculateBackgroundColor();
   const defaults = injectGUIDefaults();
   return {

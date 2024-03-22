@@ -1,6 +1,6 @@
 <script lang="ts">
-  import Sections from "../Sections";
-  import PluginSignals from "../PluginSignals";
+  import Sections from "components/Sections";
+  import PluginSignals from "components/PluginSignals";
 
   let selection: SelectionData;
 </script>

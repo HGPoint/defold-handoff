@@ -49,6 +49,17 @@
       "project": "./tsconfig.json"
     },
     "root": true,
+    "settings": {
+      "alias": {
+          "map": [
+          ["components", "./src/components"],
+          ["config", "./src/config"],
+          ["defold", "./src/defold"],
+          ["utilities", "./src/utilities"]
+        ],
+          "extensions": [".js", ".jsx", ".ts", ".tsx", ".svelte", ".json"]
+      }
+    },
     "rules": {
       "@typescript-eslint/no-unused-vars": [
         "error",

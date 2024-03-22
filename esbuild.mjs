@@ -49,20 +49,20 @@ let inlineScript = {
 }
 
 const figmaPluginConfig = {
-  entryPoints: ["./src/code.ts"],
+  entryPoints: ["./src/plugin.ts"],
   target: "ES6",
   bundle: true,
-  outfile: "./dist/code.js",
+  outfile: "./dist/plugin.js",
   logLevel: "info",
 }
 
 const uiConfig = {
-  entryPoints: ["./src/ui/app.ts"],
+  entryPoints: ["./src/app.ts"],
   mainFields: ["svelte", "browser", "module", "main"],
   conditions: ["svelte", "browser"],
   target: "ES6",
   bundle: true,
-  outdir: "./dist",
+  outfile: "./dist/app.js",
   plugins: [
     esbuildSvelte({
       preprocess: sveltePreprocess(),

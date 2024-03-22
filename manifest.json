@@ -2,7 +2,7 @@
   "name": "Figma Defold Handoff",
   "id": "1348841716600635717",
   "api": "1.0.0",
-  "main": "dist/code.js",
+  "main": "dist/plugin.js",
   "capabilities": [],
   "enableProposedApi": false,
   "editorType": [

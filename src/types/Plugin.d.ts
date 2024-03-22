@@ -37,7 +37,10 @@ type PluginMessageAction =
   "destroyAtlases" |
   "selectionChanged"
 
-type PluginMessagePayload = BundleData | SelectionData
+type PluginMessagePayload = {
+  bundle?: BundleData,
+  selection?: SelectionData
+}
 
 type PluginMessage = {
   type: PluginMessageAction,
