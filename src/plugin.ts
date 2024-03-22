@@ -119,7 +119,7 @@ function onPluginUIMessage(message: PluginMessage) {
 }
 
 function initializePlugin() {
-  figma.showUI(__html__, { width: 350, height: 600 });
+  figma.showUI(__html__, { width: 400, height: 600 });
   figma.on("selectionchange", onSelectionChange);
   figma.ui.on("message", onPluginUIMessage);
   updateSelection();

@@ -3,13 +3,9 @@
 
   export let label: string;
   export let value: number;
-  export let onUpdate: (value: number) => void;
+  export let disabled = false;
 
   const id = generateRandomId();
-
-  function onInput() {
-    onUpdate(value);
-  }
 </script>
 
 <label
@@ -22,4 +18,4 @@
   type="number"
   id={id}
   bind:value
-  on:input={onInput} />
+  {disabled} />

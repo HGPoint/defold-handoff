@@ -8,3 +8,10 @@ export function convertHexToRGBA(hex: string): Vector4 {
   const a = 1;
   return vector4(r, g, b, a);
 }
+
+export function convertRGBAToHex(rgba: Vector4): string {
+  const r = Math.round(rgba.x * 255).toString(16).padStart(2, "0");
+  const g = Math.round(rgba.y * 255).toString(16).padStart(2, "0");
+  const b = Math.round(rgba.z * 255).toString(16).padStart(2, "0");
+  return `#${r}${g}${b}`;
+}

@@ -1,18 +1,15 @@
 <script lang="ts">
-  import { postMessageToPlugin } from "utilities/plugin";
   import Section from "components/Section";
-  import Button from "components/Button";
-
-  function onCopyGUINode() {
-    postMessageToPlugin("copyGUINodes");
-  }
-
-  function onExportGUINode() {
-    postMessageToPlugin("exportGUINodes");
-  }
+  import ActionButton from "components/ActionButton";
 </script>
 
 <Section>
-  <Button label="Copy GUI Node" onClick={onCopyGUINode} />
-  <Button label="Export GUI Node" onClick={onExportGUINode} />
+  <div class="actions">
+    <ActionButton label="Copy GUI Node" action="copyGUINodes" />
+    <ActionButton label="Export GUI Node" action="exportGUINodes" />
+    <ActionButton label="Export GUI Node Bundle" action="exportBundle" />  
+    <ActionButton label="Fix GUI Node" action="fixGUINodes" disabled={true} />
+    <ActionButton label="Validate GUI Node" action="validateGUINodes" disabled={true} />
+    <ActionButton label="Reset GUI Node" action="resetGUINodes" />
+  </div>
 </Section>

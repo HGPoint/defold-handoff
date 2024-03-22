@@ -1,46 +1,46 @@
 <script lang="ts">
   import config from "config/config.json";
-  import { postMessageToPlugin, generateGUINodeProperties } from "utilities/plugin";
+  import { postMessageToPlugin } from "utilities/pluginUI";
+  import { generateGUINodeProperties } from "utilities/components";
   import Section from "components/Section";
-  import Button from "components/Button";
+  import ActionButton from "components/ActionButton";
   import OptionsProperty from "components/OptionsProperty";
   import ToggleProperty from "components/ToggleProperty";
+  import TransformationProperty from "components/TransformationProperty";
+  import Slice9Property from "components/Slice9Property";
 
   export let selection: SelectionUIData;
-  const gui = selection.gui[0];
 
+  const gui = selection.gui[0];
   const properties = generateGUINodeProperties(gui);
 
   $: postMessageToPlugin("updateGUINode", { guiNode: { ...properties } });
-
-  function onCopyGUINode() {
-    postMessageToPlugin("copyGUINodes");
-  }
-
-  function onExportGUINode() {
-    postMessageToPlugin("exportGUINodes");
-  }
-
-  function onExportGUINodeBundle() {
-    postMessageToPlugin("exportBundle");
-  }
-
-  function onResetGUINode() {
-    postMessageToPlugin("resetGUINodes");
-  }
 </script>
 
 <Section>
   <div class="properties">
+    <TransformationProperty label="Scale" bind:value={properties.scale} disabled={true} />
+    <OptionsProperty label="Size Mode" bind:value={properties.size_mode} options={config.sizeModes} />
     <ToggleProperty label="Enabled" bind:value={properties.enabled} />
     <ToggleProperty label="Visible" bind:value={properties.visible} />
+    <OptionsProperty label="Material" bind:value={properties.material} options={{}} disabled={true} />
+    <Slice9Property label="Slice 9" bind:value={properties.slice9} />
     <ToggleProperty label="Inherit Alpha" bind:value={properties.inherit_alpha} />
+    <OptionsProperty label="Layer" bind:value={properties.layer} options={{}} disabled={true} />
     <OptionsProperty label="Blend Mode" bind:value={properties.blend_mode} options={config.blendModes} />
+    <OptionsProperty label="Pivot" bind:value={properties.pivot} options={config.pivots} />
+    <OptionsProperty label="X Anchor" bind:value={properties.xanchor} options={config.xAnchors} />
+    <OptionsProperty label="Y Anchor" bind:value={properties.yanchor} options={config.yAnchors} />
+    <OptionsProperty label="Adjust Mode" bind:value={properties.adjust_mode} options={config.adjustModes} />
+    <OptionsProperty label="Clipping Mode" bind:value={properties.clipping_mode} options={config.clippingModes} />
+    <ToggleProperty label="Clipping Inverted" bind:value={properties.clipping_inverted} />
   </div>
   <div class="actions">
-    <Button label="Copy GUI Node" onClick={onCopyGUINode} />
-    <Button label="Export GUI Node" onClick={onExportGUINode} />
-    <Button label="Export GUI Node Bundle" onClick={onExportGUINodeBundle} />
-    <Button label="Reset GUI Node" onClick={onResetGUINode} />
+    <ActionButton label="Copy GUI Node" action="copyGUINodes" />
+    <ActionButton label="Export GUI Node" action="exportGUINodes" />
+    <ActionButton label="Export GUI Node Bundle" action="exportBundle" />
+    <ActionButton label="Fix GUI Node" action="fixGUINodes" disabled={true} />
+    <ActionButton label="Validate GUI Node" action="validateGUINodes" disabled={true} />
+    <ActionButton label="Reset GUI Node" action="resetGUINodes" />
   </div>
 </Section>

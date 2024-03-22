@@ -13,24 +13,30 @@
   for={id}>
     {label}
 </label>
-<div class="widgetTransformation">
-  <span class="widgetComponentLabel">X:</span>
+<div class="widgetSlice9">
+  <span class="widgetComponentLabel">L:</span>
   <input
     class="widgetInput"
     type="number"
     id={id}
     bind:value={value.x}
     {disabled} />
-  <span class="widgetComponentLabel">Y:</span>
+  <span class="widgetComponentLabel">T:</span>
   <input
     class="widgetInput"
     type="number"
     bind:value={value.y}
     {disabled} />
-  <span class="widgetComponentLabel">Z:</span>
+  <span class="widgetComponentLabel">R:</span>
   <input
     class="widgetInput"
     type="number"
     bind:value={value.z}
+    {disabled} />
+  <span class="widgetComponentLabel">B:</span>
+  <input
+    class="widgetInput"
+    type="number"
+    bind:value={value.w}
     {disabled} />
 </div>

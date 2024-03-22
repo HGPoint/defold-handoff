@@ -20,16 +20,19 @@ function archiveAtlases(atlases: SerializedAtlasData[], zip: JSZip) {
   atlases.forEach((atlas) => { archiveAtlas(atlas, folder); })
 }
 
-function archiveGUI(gui: SerializedGUIData[], zip: JSZip) {
-  const [guiNode] = gui;
-  const guiFileName = generateGUIFileName(guiNode.name);
-  zip.file(guiFileName, guiNode.data);
+function archiveGUINode({ name, data }: SerializedGUIData, zip: JSZip) {
+  const guiFileName = generateGUIFileName(name);
+  zip.file(guiFileName, data);
+}
+
+function archiveGUINodes(guiNodes: SerializedGUIData[], zip: JSZip) {
+  guiNodes.forEach((guiNode) => archiveGUINode(guiNode, zip));
 }
 
 export function archiveBundle({ gui, atlases }: BundleData) {
   const zip = new JSZip();
   if (gui) {
-    archiveGUI(gui, zip);
+    archiveGUINodes(gui, zip);
   }
   if (atlases) { 
     archiveAtlases(atlases, zip);

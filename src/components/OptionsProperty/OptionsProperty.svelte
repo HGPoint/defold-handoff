@@ -1,9 +1,10 @@
-<script lang="ts">
+<script lang="ts" generics="T">
   import { generateRandomId } from "utilities/ui";
 
   export let label: string;
-  export let value: string;
-  export let options: Record<string, string>;
+  export let value: T;
+  export let options: Record<string, T>;
+  export let disabled = false;
 
   const id = generateRandomId();
 </script>
@@ -16,8 +17,9 @@
 <select
   class="widgetSelect"
   id={id}
-  bind:value>
-  {#each Object.keys(options) as key}
-    <option value={key}>{options[key]}</option>
-  {/each}
+  bind:value
+  {disabled}>
+    {#each Object.keys(options) as key}
+      <option value={options[key]}>{key}</option>
+    {/each}
 </select>

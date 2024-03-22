@@ -3,6 +3,7 @@
 
   export let label: string;
   export let value: boolean;
+  export let disabled = false;
 
   const id = generateRandomId();
 </script>
@@ -16,4 +17,5 @@
   class="widgetCheckbox"
   type="checkbox"
   id={id}
-  bind:checked={value} />
+  bind:checked={value}
+  {disabled} />

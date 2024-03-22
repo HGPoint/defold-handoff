@@ -48,6 +48,20 @@ button {
   background: #373c41;
 }
 
+button:hover,
+button:active {
+  outline: none;
+  background: #212428;
+}
+
+button:disabled {
+  opacity: 0.5;
+}
+
+button:hover:disabled {
+  background: #373c41;
+}
+
 input {
   display: block;
   width: 100%;
@@ -59,11 +73,20 @@ input {
   background: inherit;
 }
 
-input:focus,
+input:hover,
 input:active {
   border-bottom: 2px solid #fa6731;
   outline: none;
   background: #212428;
+}
+
+input:disabled {
+  opacity: 0.5;
+}
+
+input:hover:disabled {
+  border-bottom: 1px solid #3f444c;
+  background: inherit;
 }
 
 input[type="color"] {
@@ -86,6 +109,7 @@ input[type="checkbox"] {
 }
 
 select {
+  box-sizing: border-box;
   display: block;
   width: 100%;
   height: 2.5em;
@@ -95,18 +119,28 @@ select {
   background: inherit;
 }
 
-select:focus,
+select:hover,
 select:active {
   border-bottom: 2px solid #fa6731;
   outline: none;
   background: #212428;
 }
 
-.widgetLabel {
-  line-height: 2.5;
+select:disabled {
+  opacity: 0.5;
 }
 
-.widgetTransformation {
+select:hover:disabled {
+  border-bottom: 1px solid #3f444c;
+  background: inherit;
+}
+
+.widgetLabel {
+  line-height: 1.5;
+}
+
+.widgetTransformation,
+.widgetSlice9 {
   display: flex;
   align-items: center;
 }
@@ -126,11 +160,15 @@ select:active {
   margin: 0;
 }
 
+.section {
+  width: 100%;
+}
+
 .properties {
   display: grid;
-  grid-template-columns: 90px auto;
-  align-items: start;
   box-sizing: border-box;
+  grid-template-columns: 90px auto;
+  align-items: center;
   width: 100%;
   padding: 10px;
   gap: 7px;
@@ -138,6 +176,8 @@ select:active {
 
 .actions {
   display: grid;
+  box-sizing: border-box;
+  width: 100%;
   padding: 10px;
   gap: 7px;
 }

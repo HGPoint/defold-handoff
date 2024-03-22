@@ -20,10 +20,10 @@ async function findAtlases(atlasIds: string[]): Promise<ComponentSetNode[]> {
 }
 
 export async function exportBundle(layers: FrameNode[]): Promise<BundleData> {
-  const defoldObjectsSet = await generateGUIDataSet(layers);
-  const gui = serializeGUIDataSet(defoldObjectsSet);
-  const atlasIds = defoldObjectsSet.reduce(reduceAtlases, []);
+  const guiNodesData = await generateGUIDataSet(layers);
+  const serializedGUINodesData = serializeGUIDataSet(guiNodesData);
+  const atlasIds = guiNodesData.reduce(reduceAtlases, []);
   const atlasLayers = await findAtlases(atlasIds);
-  const atlases = await exportAtlases(atlasLayers);
-  return { gui, atlases };
+  const serializedAtlasData = await exportAtlases(atlasLayers);
+  return { gui: serializedGUINodesData, atlases: serializedAtlasData };
 }

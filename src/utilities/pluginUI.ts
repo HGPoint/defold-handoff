@@ -1,4 +1,3 @@
-import config from "config/config.json";
 import { exportAtlases, copyComponent, exportComponent, exportResources } from "utilities/resources";
 
 export function isPluginMessage(event: MessageEvent): event is MessageEvent<PluginUIMessage> {
@@ -45,15 +44,3 @@ export function processPluginMessage(type: PluginMessageAction, data?: PluginMes
   }
 }
 
-function pickGUINodePropertyValue<T extends keyof Omit<PluginGUINodeData, "id">>(gui: PluginGUINodeData | undefined, property: T) {
-  return (gui && gui[property]) || config.guiNodeDefaultValues[property];
-}
-
-export function generateGUINodeProperties(gui: PluginGUINodeData | undefined) {
-  return {
-    enabled: pickGUINodePropertyValue(gui, "enabled"),
-    visible: pickGUINodePropertyValue(gui, "visible"),
-    inherit_alpha: pickGUINodePropertyValue(gui, "inherit_alpha"),
-    blend_mode: pickGUINodePropertyValue(gui, "blend_mode"),
-  }
-}

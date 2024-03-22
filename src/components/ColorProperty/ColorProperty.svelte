@@ -1,16 +1,19 @@
 <script lang="ts">
   import { generateRandomId } from "utilities/ui";
-  import { convertHexToRGBA } from "utilities/color";
+  import { convertHexToRGBA, convertRGBAToHex } from "utilities/color";
 
   export let label: string;
-  export let value: string;
-  export let onUpdate: (value: Vector4) => void;
+  export let value: Vector4;
+  export let disabled = false;
 
   const id = generateRandomId();
 
-  function onChange() {
-    const rgba = convertHexToRGBA(value);
-    onUpdate(rgba);
+  $: color = convertRGBAToHex(value);
+
+  function onChange(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const color = input.value;
+    value = convertHexToRGBA(color);
   }
 </script>
 
@@ -23,5 +26,6 @@
   class="widgetColor"
   type="color"
   id={id}
-  bind:value
-  on:change={onChange} />
+  value={color}
+  on:change={onChange}
+  {disabled} />

@@ -25,13 +25,17 @@
     "max_nodes": 512
   },
   "guiNodeDefaultValues": {
+    "scale": { "x": 1, "y": 1, "z": 1, "w": 1 },
     "enabled": true,
     "visible": true,
+    "slice9": { "x": 0, "y": 0, "z": 0, "w": 0 },
     "layer": "",
+    "material": "",
     "inherit_alpha": false,
     "xanchor": "XANCHOR_NONE",
     "yanchor": "YANCHOR_NONE",
     "pivot": "PIVOT_CENTER",
+    "size_mode": "SIZE_MODE_AUTO",
     "adjust_mode": "ADJUST_MODE_FIT",
     "clipping_mode": "CLIPPING_MODE_NONE",
     "clipping_visible": true,
@@ -52,10 +56,44 @@
   },
   "fontFamily": "franxurter",
   "fontSize": 36,
+  "sizeModes": {
+    "Auto": "SIZE_MODE_AUTO",
+    "Manual": "SIZE_MODE_MANUAL" 
+  },
   "blendModes": {
-    "BLEND_MODE_ALPHA": "Alpha",
-    "BLEND_MODE_ADD": "Add",
-    "BLEND_MODE_MULTIPLY": "Multiply",
-    "BLEND_MODE_SCREEN": "Screen"
+    "Alpha": "BLEND_MODE_ALPHA",
+    "Add": "BLEND_MODE_ADD",
+    "Multiply": "BLEND_MODE_MULTIPLY",
+    "Screen": "BLEND_MODE_SCREEN"
+  },
+  "pivots": {
+    "Center": "PIVOT_CENTER",
+    "North / Top": "PIVOT_N",
+    "North East / Top Right": "PIVOT_NE",
+    "East / Right": "PIVOT_E",
+    "South East / Bottom Right": "PIVOT_SE",
+    "South / Bottom": "PIVOT_S",
+    "South West / Bottom Left": "PIVOT_SW",
+    "West / Left": "PIVOT_W",
+    "North West / Top Left": "PIVOT_NW"
+  },
+  "xAnchors": {
+    "None": "XANCHOR_NONE",
+    "Left": "XANCHOR_LEFT",
+    "Right": "XANCHOR_RIGHT"
+  },
+  "yAnchors": {
+    "None": "YANCHOR_NONE",
+    "Top": "YANCHOR_TOP",
+    "Bottom": "YANCHOR_BOTTOM"
+  },
+  "adjustModes": {
+    "Fit": "ADJUST_MODE_FIT",
+    "Zoom": "ADJUST_MODE_ZOOM",
+    "Stretch": "ADJUST_MODE_STRETCH"
+  },
+  "clippingModes": {
+    "None": "CLIPPING_MODE_NONE",
+    "Stencil": "CLIPPING_MODE_STENCIL"
   }
 }

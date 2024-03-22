@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { isPluginMessage, isPluginMessagePayload, isSelectionData, processPluginMessage } from "utilities/plugin";
+  import { isPluginMessage, isPluginMessagePayload, isSelectionData, processPluginMessage } from "utilities/pluginUI";
 
   export let selection: SelectionUIData;
 

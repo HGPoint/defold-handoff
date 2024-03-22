@@ -20,6 +20,17 @@ type PluginGUINodeData = {
   visible?: boolean,
   inherit_alpha?: boolean,
   blend_mode?: GUINodeBlendMode,
+  scale?: Vector4,
+  material?: string,
+  slice9?: Vector4,
+  layer?: string,
+  pivot?: Pivot,
+  size_mode?: SizeMode,
+  xanchor?: XAnchor,
+  yanchor?: YAnchor,
+  adjust_mode?: AdjustMode,
+  clipping_mode?: ClippingMode,
+  clipping_inverted?: boolean,
 }
 
 type PluginData = {
@@ -35,11 +46,15 @@ type PluginMessageAction =
   "guiNodesCopied" |
   "exportGUINodes" |
   "guiNodesExported" |
+  "fixGUINodes" |
+  "validateGUINodes" |
   "resetGUINodes" |
   "updateGUINode" |
   "createAtlas" |
   "exportAtlases" |
   "atlasesExported" |
+  "fixAtlases" |
+  "validateAtlases" |
   "destroyAtlases" |
   "exportBundle" |
   "bundleExported" |

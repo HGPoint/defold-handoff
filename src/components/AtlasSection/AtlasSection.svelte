@@ -1,18 +1,13 @@
 <script lang="ts">
-  import { postMessageToPlugin } from "utilities/plugin";
   import Section from "components/Section";
-  import Button from "components/Button";
-
-  function onExportAtlas() {
-    postMessageToPlugin("exportAtlases");
-  }
-
-  function onDestroyAtlas() {
-    postMessageToPlugin("destroyAtlases");
-  }
+  import ActionButton from "components/ActionButton";
 </script>
 
 <Section>
-  <Button label="Export Atlas" onClick={onExportAtlas} />
-  <Button label="Destroy Atlas" onClick={onDestroyAtlas} />
+  <div class="actions">
+    <ActionButton label="Export Atlas" action="exportAtlases" />
+    <ActionButton label="Fix Atlas" action="fixAtlases" disabled={true} />
+    <ActionButton label="Validate Atlas" action="validateAtlases" disabled={true} />
+    <ActionButton label="Destroy Atlas" action="destroyAtlases" />
+  </div>
 </Section>

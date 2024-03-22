@@ -9,13 +9,17 @@ declare module "config/config.json" {
       max_nodes: number
     }
     guiNodeDefaultValues: {
+      scale: Vector4,
       enabled: boolean,
       visible: boolean,
+      slice9: Vector4,
       layer: string,
+      material: string,
       inherit_alpha: boolean,
       xanchor: XAnchor,
       yanchor: YAnchor,
       pivot: Pivot,
+      size_mode: SizeMode,
       adjust_mode: AdjustMode,
       clipping_mode: ClippingMode,
       clipping_visible: boolean,
@@ -36,9 +40,14 @@ declare module "config/config.json" {
     }
     fontFamily: string
     fontSize: number,
-    blendModes: Record<GUINodeBlendMode, string>
+    sizeModes: Record<string, SizeMode>,
+    blendModes: Record<string, GUINodeBlendMode>,
+    pivots: Record<string, Pivot>,
+    xAnchors: Record<string, XAnchor>,
+    yAnchors: Record<string, YAnchor>,
+    adjustModes: Record<string, AdjustMode>,
+    clippingModes: Record<string, ClippingMode>,
   };
 
   export default value;
 }
-
