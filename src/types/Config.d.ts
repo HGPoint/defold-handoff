@@ -10,6 +10,7 @@ declare module "config/config.json" {
     }
     guiNodeDefaultValues: {
       enabled: boolean,
+      visible: boolean,
       layer: string,
       inherit_alpha: boolean,
       xanchor: XAnchor,
@@ -34,7 +35,8 @@ declare module "config/config.json" {
       sprite_trim_mode: SpriteTrimMode
     }
     fontFamily: string
-    fontSize: number
+    fontSize: number,
+    blendModes: Record<GUINodeBlendMode, string>
   };
 
   export default value;

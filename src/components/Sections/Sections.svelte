@@ -8,7 +8,7 @@
   import LayersSection from "components/LayersSection";
   import StartSection from "components/StartSection";
 
-  export let selection: SelectionData;
+  export let selection: SelectionUIData;
 </script>
 
 {#if areMultipleAtlasesSelected(selection)}
@@ -18,7 +18,7 @@
 {:else if areMultipleGUINodesSelected(selection)}
   <GUINodesSection />
 {:else if isGUINodeSelected(selection)}
-  <GUINodeSection />
+  <GUINodeSection {selection} />
 {:else if areMultipleLayersSelected(selection)}
   <LayersSection />
 {:else if isLayerSelected(selection)}

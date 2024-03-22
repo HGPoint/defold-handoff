@@ -51,13 +51,36 @@
     "root": true,
     "settings": {
       "alias": {
-          "map": [
-          ["components", "./src/components"],
-          ["config", "./src/config"],
-          ["defold", "./src/defold"],
-          ["utilities", "./src/utilities"]
+        "map": [
+          [
+            "components",
+            "./src/components"
+          ],
+          [
+            "config",
+            "./src/config"
+          ],
+          [
+            "defold",
+            "./src/defold"
+          ],
+          [
+            "utilities",
+            "./src/utilities"
+          ],
+          [
+            "style",
+            "./src/styles"
+          ]
         ],
-          "extensions": [".js", ".jsx", ".ts", ".tsx", ".svelte", ".json"]
+        "extensions": [
+          ".js",
+          ".jsx",
+          ".ts",
+          ".tsx",
+          ".svelte",
+          ".json"
+        ]
       }
     },
     "rules": {

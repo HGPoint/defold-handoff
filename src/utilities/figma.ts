@@ -38,27 +38,27 @@ export function hasChildren(layer: BoxLayer) {
   return !!layer.children?.length;
 }
 
-export function isGUINodeSelected(selection: SelectionData) {
+export function isGUINodeSelected(selection: SelectionUIData) {
   return selection?.gui?.length === 1;
 }
 
-export function areMultipleGUINodesSelected(selection: SelectionData) {
+export function areMultipleGUINodesSelected(selection: SelectionUIData) {
   return selection?.gui?.length > 1;
 }
 
-export function isAtlasSelected(selection: SelectionData) {
+export function isAtlasSelected(selection: SelectionUIData) {
   return selection?.atlases?.length === 1;
 }
 
-export function areMultipleAtlasesSelected(selection: SelectionData) {
+export function areMultipleAtlasesSelected(selection: SelectionUIData) {
   return selection?.atlases?.length > 1;
 }
 
-export function isLayerSelected(selection: SelectionData) {
+export function isLayerSelected(selection: SelectionUIData) {
   return selection?.layers?.length === 1;
 }
 
-export function areMultipleLayersSelected(selection: SelectionData) {
+export function areMultipleLayersSelected(selection: SelectionUIData) {
   return selection?.layers?.length > 1;
 }
 
@@ -70,23 +70,21 @@ export async function findMainComponent(layer: InstanceNode) {
   return await layer.getMainComponentAsync();
 }
 
-function pluginDataSetter(key: PluginDataKey, value: PluginDataValue, layer: SceneNode) {
-  layer.setPluginData(key, JSON.stringify(value))
+function pluginDataSetter(key: PluginDataKey, value: PluginData[PluginDataKey], layer: SceneNode) {
+  if (value) {
+    layer.setPluginData(key, JSON.stringify(value))
+  }
 }
 
 export function setPluginData(layer: SceneNode, data: PluginData) {
   Object.entries(data).forEach(([key, value]) => { pluginDataSetter(key as PluginDataKey, value, layer); });
 }
 
-function pluginDataReducer(data: PluginData, key: PluginDataKey, layer: SceneNode) {
+export function getPluginData<T extends PluginDataKey>(layer: SceneNode, key: T): PluginData[T] {
   const value = layer.getPluginData(key);
-  data[key] = (value ? JSON.parse(value) : {}) as PluginDataValue;
-  return data;
-}
-
-export function getPluginData(layer: SceneNode, keys: PluginDataKey[]) {
-  const pluginData: PluginData = {};
-  return keys.reduce((data, key) => pluginDataReducer(data, key, layer), pluginData);
+  if (value) {
+    return JSON.parse(value);
+  }
 }
 
 export function removePluginData(layer: SceneNode, keys: PluginDataKey[]) {
@@ -109,4 +107,12 @@ function selectionReducer(selection: SelectionData, layer: SceneNode): Selection
 export function reduceSelection(): SelectionData {
   const selection: SelectionData = { gui: [], atlases: [], layers: [] }; 
   return figma.currentPage.selection.reduce(selectionReducer, selection);
+}
+
+export function convertSelectionToSelectionUI(selection: SelectionData): SelectionUIData {
+  return {
+    gui: selection.gui.map(layer => getPluginData(layer, "defoldGUINode")),
+    atlases: selection.atlases.map(layer => getPluginData(layer, "defoldAtlas")),
+    layers: selection.layers,
+  }
 }

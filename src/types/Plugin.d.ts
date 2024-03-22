@@ -1,12 +1,13 @@
+ type SelectionUIData = {
+  gui: (PluginGUINodeData | undefined)[];
+  atlases: (PluginAtlasData | undefined)[];
+  layers: SceneNode[];
+}
+
 type SelectionData = {
   gui: FrameNode[];
   atlases: ComponentSetNode[];
   layers: SceneNode[];
-}
-
-type PluginData = {
-  defoldAtlas?: PluginAtlasData,
-  defoldGUINode?: PluginGUINodeData,
 }
 
 type PluginAtlasData = {
@@ -14,32 +15,41 @@ type PluginAtlasData = {
 }
 
 type PluginGUINodeData = {
-  id: string,
+  id?: string,
+  enabled?: boolean,
+  visible?: boolean,
+  inherit_alpha?: boolean,
+  blend_mode?: GUINodeBlendMode,
+}
+
+type PluginData = {
+  defoldAtlas?: PluginAtlasData,
+  defoldGUINode?: PluginGUINodeData,
 }
 
 type PluginDataKey = keyof PluginData;
 
-type PluginDataValue = PluginData[PluginDataKey];
-
 type PluginMessageAction =
   "refreshPlugin" |
-  "createGUINode" |
   "copyGUINodes" |
   "guiNodesCopied" |
   "exportGUINodes" |
   "guiNodesExported" |
-  "exportBundle" |
-  "bundleExported" |
-  "destroyGUINodes" |
+  "resetGUINodes" |
+  "updateGUINode" |
   "createAtlas" |
   "exportAtlases" |
   "atlasesExported" |
   "destroyAtlases" |
+  "exportBundle" |
+  "bundleExported" |
   "selectionChanged"
 
 type PluginMessagePayload = {
   bundle?: BundleData,
-  selection?: SelectionData
+  selection?: SelectionUIData,
+  guiNode?: PluginGUINodeData,
+
 }
 
 type PluginMessage = {

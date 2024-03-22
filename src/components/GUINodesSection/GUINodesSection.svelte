@@ -4,10 +4,10 @@
   import Button from "components/Button";
 
   function onDestroyGUINodes() {
-    postMessageToPlugin("destroyGUINodes");
+    postMessageToPlugin("resetGUINodes");
   }
 </script>
 
 <Section>
-  <Button label="Destroy GUI Nodes Components" onClick={onDestroyGUINodes} />
+  <Button label="Reset GUI Nodes" onClick={onDestroyGUINodes} />
 </Section>

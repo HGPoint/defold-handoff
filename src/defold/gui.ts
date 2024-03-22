@@ -1,22 +1,11 @@
 import { generateGUIDataSet } from "utilities/guiDataGenerators";
 import { serializeGUIDataSet } from "utilities/guiDataSerializers";
-import { setPluginData, removePluginData } from "utilities/figma";
+import { getPluginData, setPluginData, removePluginData } from "utilities/figma";
 
-function generateGUINodePluginData(layer: SceneNode): PluginData {
-  const defoldGUINode = { id: layer.id };
-  return {
-    defoldGUINode
-  };
-}
-
-export function createGUINode(layer: SceneNode): SceneNode {
-  const componentData = generateGUINodePluginData(layer);
-  setPluginData(layer, componentData);
-  return layer;
-}
-
-export function createGUINodes(layers: SceneNode[]): SceneNode[] {
-  return layers.map(createGUINode);
+export function updateGUINode(layer: SceneNode, data: PluginGUINodeData) {
+  const pluginData = getPluginData(layer, "defoldGUINode");
+  const guiNodeData = pluginData ? { defoldGUINode: { ...pluginData, ...data } } : { defoldGUINode: data };
+  setPluginData(layer, guiNodeData);
 }
 
 export async function copyGUINodes(layers: FrameNode[]): Promise<SerializedGUIData[]> {
@@ -31,10 +20,10 @@ export async function exportGUINodes(layers: FrameNode[]): Promise<SerializedGUI
   return serializedGUINodesData;
 }
 
-export function destroyGUINode(layer: SceneNode) {
+export function resetGUINode(layer: SceneNode) {
   removePluginData(layer, ["defoldGUINode"]);
 }
 
-export function destroyGUINodes(layers: SceneNode[]) {
-  layers.forEach(destroyGUINode);
+export function resetGUINodes(layers: SceneNode[]) {
+  layers.forEach((layer) => { resetGUINode(layer) });
 }

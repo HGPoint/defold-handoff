@@ -26,6 +26,7 @@
   },
   "guiNodeDefaultValues": {
     "enabled": true,
+    "visible": true,
     "layer": "",
     "inherit_alpha": false,
     "xanchor": "XANCHOR_NONE",
@@ -50,5 +51,11 @@
     "sprite_trim_mode": "SPRITE_TRIM_MODE_OFF"
   },
   "fontFamily": "franxurter",
-  "fontSize": 36
+  "fontSize": 36,
+  "blendModes": {
+    "BLEND_MODE_ALPHA": "Alpha",
+    "BLEND_MODE_ADD": "Add",
+    "BLEND_MODE_MULTIPLY": "Multiply",
+    "BLEND_MODE_SCREEN": "Screen"
+  }
 }

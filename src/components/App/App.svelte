@@ -1,8 +1,9 @@
 <script lang="ts">
+  import "styles/styles.css";
   import Sections from "components/Sections";
   import PluginSignals from "components/PluginSignals";
 
-  let selection: SelectionData;
+  let selection: SelectionUIData;
 </script>
 
 <Sections {selection} />

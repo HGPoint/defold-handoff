@@ -5,7 +5,7 @@ import { build, context } from "esbuild";
 import esbuildSvelte from "esbuild-svelte"; 
 import sveltePreprocess from "svelte-preprocess";
 
-const HTML_TEMPLATE = `<main id="root" class="root"></main><script>{{script}}</script>`
+const HTML_TEMPLATE = `<style>{{style}}</style><main id="root" class="root"></main><script>{{script}}</script>`
 
 function readFile(filePath) {
   return new Promise((resolve, reject) => {
@@ -31,13 +31,19 @@ function writeFile(filePath, data) {
   });
 }
 
-let inlineScript = {
-  name: 'inline-script',
+let inlineResources = {
+  name: 'inline-resources',
   setup(build) {
     build.onEnd(() => {
-      readFile('./dist/app.js')
+      Promise.all([
+        readFile('./dist/app.js'),
+        readFile('./dist/app.css'),
+      ])
         .then((data) => {
-          const content = HTML_TEMPLATE.replace('{{script}}', data);
+          const [script, styles] = data;
+          const content = HTML_TEMPLATE
+            .replace('{{script}}', script)
+            .replace('{{style}}', styles);
           writeFile('./dist/ui.html', content);
         })
         .catch((err) => {
@@ -67,7 +73,7 @@ const uiConfig = {
     esbuildSvelte({
       preprocess: sveltePreprocess(),
     }),
-    inlineScript,
+    inlineResources,
   ],
   logLevel: "info",
 }

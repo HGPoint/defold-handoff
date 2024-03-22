@@ -1,7 +1,7 @@
 <script lang="ts">
   import { isPluginMessage, isPluginMessagePayload, isSelectionData, processPluginMessage } from "utilities/plugin";
 
-  export let selection: SelectionData;
+  export let selection: SelectionUIData;
 
   function processSelectionChange(data: PluginMessagePayload) {
     const { selection: selectionUpdate } = data;

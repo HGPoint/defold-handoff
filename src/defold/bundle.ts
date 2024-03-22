@@ -25,6 +25,5 @@ export async function exportBundle(layers: FrameNode[]): Promise<BundleData> {
   const atlasIds = defoldObjectsSet.reduce(reduceAtlases, []);
   const atlasLayers = await findAtlases(atlasIds);
   const atlases = await exportAtlases(atlasLayers);
-  figma.notify("Bundle exported");
   return { gui, atlases };
 }

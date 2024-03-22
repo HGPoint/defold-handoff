@@ -30,6 +30,9 @@
       ],
       "utilities": [
         "utilities/*"
+      ],
+      "styles": [
+        "styles/*"
       ]
     },
   }
