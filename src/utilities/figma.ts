@@ -1,13 +1,19 @@
 export function isGUINode(layer: SceneNode) {
-  return !!layer.getPluginData("defoldGUINode");
+  return !!getPluginData(layer, "defoldGUINode");
 }
 
 export function isAtlas(layer: SceneNode): layer is ComponentSetNode {
-  return isFigmaComponentSet(layer) && !!layer.getPluginData("defoldAtlas");
+  return isFigmaComponentSet(layer) && !!getPluginData(layer, "defoldAtlas");
 }
 
 export function isFigmaSceneNode(layer: BaseNode | null ): layer is SceneNode {
-  return !!layer && (layer.type === "FRAME" || layer.type === "INSTANCE" || layer.type === "TEXT");
+  return !!layer && (
+    isFigmaComponent(layer) ||
+    isFigmaComponentSet(layer) ||
+    isFigmaComponentInstance(layer) ||
+    isFigmaFrame(layer) ||
+    isFigmaText(layer)
+  );
 }
 
 export function isFigmaComponent(layer: BaseNode): layer is ComponentNode {
@@ -26,12 +32,16 @@ export function isFigmaFrame(layer: BaseNode): layer is FrameNode {
   return layer.type === "FRAME";
 }
 
+export function isFigmaText(layer: BaseNode): layer is TextNode {
+  return layer.type === "TEXT";
+}
+
 export function isFigmaBox(layer: BaseNode): layer is (FrameNode | InstanceNode) {
   return isFigmaFrame(layer) || isFigmaComponentInstance(layer);
 }
 
-export function isFigmaText(layer: BaseNode): layer is TextNode {
-  return layer.type === "TEXT";
+export function isFigmaExportable(layer: BaseNode): layer is ExportableLayer {
+  return isFigmaBox(layer) || isFigmaText(layer);
 }
 
 export function hasChildren(layer: BoxLayer) {
@@ -71,9 +81,7 @@ export async function findMainComponent(layer: InstanceNode) {
 }
 
 function pluginDataSetter(key: PluginDataKey, value: PluginData[PluginDataKey], layer: SceneNode) {
-  if (value) {
-    layer.setPluginData(key, JSON.stringify(value))
-  }
+  layer.setPluginData(key, JSON.stringify(value))
 }
 
 export function setPluginData(layer: SceneNode, data: PluginData) {

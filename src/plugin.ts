@@ -77,6 +77,8 @@ function onAtlasesExported(atlases: SerializedAtlasData[]) {
 
 function onDestroyAtlases() {
   destroyAtlases(selection.atlases);
+  updateSelection();
+  figma.notify("Atlases destroyed");
 }
 
 function onExportBundle() {
@@ -111,7 +113,7 @@ function processPluginUIMessage(message: PluginMessage) {
 }
 
 function onSelectionChange() {
-  updateSelection()
+  updateSelection();
 }
 
 function onPluginUIMessage(message: PluginMessage) {

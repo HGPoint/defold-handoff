@@ -3,9 +3,12 @@ import { serializeAtlasDataSet } from "utilities/atlasDataSerializers";
 import { isFigmaComponent, setPluginData } from "utilities/figma";
 
 function createAtlasSpriteComponent(layer: SceneNode) {
-  const sprite = isFigmaComponent(layer) ? layer : figma.createComponentFromNode(layer);
+  const alreadyComponent = isFigmaComponent(layer);
+  const sprite = alreadyComponent ? layer : figma.createComponentFromNode(layer);
   sprite.name = `Sprite=${layer.name}`;
-  sprite.locked = true;
+  if (!alreadyComponent) {
+    layer.locked = true;
+  }
   return sprite;
 }
 
@@ -15,7 +18,7 @@ function createAtlasSpritesComponents(layers: SceneNode[]) {
 
 function createAtlasComponent(sprites: ComponentNode[]) {
   const atlas = figma.combineAsVariants(sprites, figma.currentPage);
-  atlas.name = "Atlas";
+  atlas.name = "atlas";
   const data = { id: atlas.id };
   const atlasData = { defoldAtlas: data };
   setPluginData(atlas, atlasData);
@@ -44,6 +47,10 @@ export async function exportAtlases(atlases: ComponentSetNode[]): Promise<Serial
   return serializedAtlasData;
 }
 
-export function destroyAtlases(atlases: SceneNode[]) {
-  console.log(atlases);
+export function destroyAtlas(atlas: ComponentSetNode) {
+  setPluginData(atlas, { defoldAtlas: null });
+}
+
+export function destroyAtlases(atlases: ComponentSetNode[]) {
+  atlases.forEach(destroyAtlas);
 }

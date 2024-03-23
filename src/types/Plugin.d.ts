@@ -1,6 +1,6 @@
  type SelectionUIData = {
-  gui: (PluginGUINodeData | undefined)[];
-  atlases: (PluginAtlasData | undefined)[];
+  gui: (PluginGUINodeData | undefined | null)[];
+  atlases: (PluginAtlasData | undefined | null)[];
   layers: SceneNode[];
 }
 
@@ -34,8 +34,8 @@ type PluginGUINodeData = {
 }
 
 type PluginData = {
-  defoldAtlas?: PluginAtlasData,
-  defoldGUINode?: PluginGUINodeData,
+  defoldAtlas?: PluginAtlasData | null,
+  defoldGUINode?: PluginGUINodeData | null,
 }
 
 type PluginDataKey = keyof PluginData;

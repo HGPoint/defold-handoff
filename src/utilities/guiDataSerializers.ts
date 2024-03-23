@@ -6,11 +6,11 @@ function guiNodeDataSerializer(data: string, guiNodeData: GUINodeData): string {
 }
 
 function textureDataSerializer(data: string, [name, texture]: [string, TextureAtlasData]): string {
-  return `${data}\ntextures\n{\n  name: "${name}"\n  texture: "${texture.path}"\n}`;
+  return `${data}\ntextures\n{\nname:"${name}"\ntexture: "${texture.path}"\n}`;
 }
 
 function fontsDataSerializer(data: string, [name, fontPath]: [string, string]): string {
-  return `${data}\nfonts\n{\n  name: "${name}"\n  font: "${fontPath}"\n}`;
+  return `${data}\nfonts\n{\nname:"${name}"\nfont:"${fontPath}"\n}`;
 }
 
 export function serializeGUIData(guiData: GUIData): SerializedGUIData {
