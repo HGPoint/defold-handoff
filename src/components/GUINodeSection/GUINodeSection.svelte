@@ -20,7 +20,9 @@
 <Section>
   <div class="properties">
     <TransformationProperty label="Scale" bind:value={properties.scale} disabled={true} />
-    <OptionsProperty label="Size Mode" bind:value={properties.size_mode} options={config.sizeModes} />
+    {#if gui.type !== "text"}
+      <OptionsProperty label="Size Mode" bind:value={properties.size_mode} options={config.sizeModes} />
+    {/if}
     <ToggleProperty label="Enabled" bind:value={properties.enabled} />
     <ToggleProperty label="Visible" bind:value={properties.visible} />
     <OptionsProperty label="Material" bind:value={properties.material} options={{}} disabled={true} />

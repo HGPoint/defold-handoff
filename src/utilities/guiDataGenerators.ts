@@ -71,7 +71,7 @@ async function generateFontData(layer: SceneNode, fontData: FontData) {
   }
 }
 
-async function generateGUIData(layer: FrameNode | InstanceNode): Promise<GUIData> {
+async function generateGUIData(layer: ExportableLayer): Promise<GUIData> {
   const { name } = layer;
   const gui = convertGUIData();
   const nodes: GUINodeData[] = [];
@@ -89,7 +89,7 @@ async function generateGUIData(layer: FrameNode | InstanceNode): Promise<GUIData
   };
 }
 
-export async function generateGUIDataSet(layers: FrameNode[]): Promise<GUIData[]> {
+export async function generateGUIDataSet(layers: ExportableLayer[]): Promise<GUIData[]> {
   const guiNodesDataSets = layers.map(generateGUIData);
   return Promise.all(guiNodesDataSets);
 }

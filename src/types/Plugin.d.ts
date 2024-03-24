@@ -36,7 +36,8 @@ type PluginGUINodeData = {
 
 type PluginData = {
   defoldGUINode?: PluginGUINodeData | null,
-  defoldAtlas?: PluginAtlasData,
+  defoldAtlas?: PluginAtlasData | null,
+  defoldSlice9?: boolean | null,
 }
 
 type PluginDataKey = keyof PluginData;

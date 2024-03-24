@@ -98,8 +98,12 @@ function convertSize(layer: ExportableLayer) {
   return vector4(layer.width, layer.height, 0, 1);
 }
 
-function calculateSizeMode(texture?: string): SizeMode {
+function calculateBoxSizeMode(texture?: string): SizeMode {
   return texture ? "SIZE_MODE_AUTO" : "SIZE_MODE_MANUAL";
+}
+
+function calculateTextSizeMode() {
+  return "SIZE_MODE_MANUAL";
 }
 
 function convertBaseTransformations(layer: ExportableLayer, pivot: Pivot, parentSize?: Vector4) {
@@ -288,7 +292,35 @@ function convertTextVisuals(layer: TextLayer) {
     shadow,
     font
   };
+}
 
+function calculateLineBreak(layer: TextLayer) {
+  return layer.textAutoResize === "HEIGHT";
+}
+
+function calculateTextLeading(layer: TextLayer) {
+  if (typeof layer.lineHeight === "number" && typeof layer.fontSize === "number") {
+    return layer.lineHeight / layer.fontSize;
+  }
+  return 1;
+}
+
+function calculateTextTracking(layer: TextLayer) {
+  if (typeof layer.letterSpacing == "number") {
+    return layer.letterSpacing;
+  }
+  return 0
+}
+
+function calculateTextParameters(layer: TextLayer) {
+  const lineBreak = calculateLineBreak(layer);
+  const textLeading = calculateTextLeading(layer);
+  const textTracking = calculateTextTracking(layer);
+  return {
+    line_break: lineBreak,
+    text_leading: textLeading,
+    text_tracking: textTracking,
+  };
 }
 
 function injectGUINodeDefaults() {
@@ -304,7 +336,7 @@ export async function convertBoxGUINodeData(layer: BoxLayer, parentId?: string, 
   const type = calculateType(layer);
   const pivot = calculateBoxPivot(data);
   const visuals = await convertBoxVisuals(layer);
-  const sizeMode = calculateSizeMode(visuals.texture);
+  const sizeMode = calculateBoxSizeMode(visuals.texture);
   const transformations = convertBoxTransformations(layer, pivot, parentSize);
   const parent = convertParent(parentId);
   return {
@@ -326,10 +358,11 @@ export function convertTextGUINodeData(layer: TextLayer, parentId?: string, pare
   const type = calculateType(layer);
   const pivot = calculateTextPivot(layer);
   const visuals = convertTextVisuals(layer);
-  const sizeMode = calculateSizeMode();
+  const sizeMode = calculateTextSizeMode();
   const transformations = convertTextTransformations(layer, pivot, parentSize);
   const parent = convertParent(parentId);
   const text = layer.characters;
+  const textParameters = calculateTextParameters(layer);
   return {
     ...defaults,
     id,
@@ -339,6 +372,7 @@ export function convertTextGUINodeData(layer: TextLayer, parentId?: string, pare
     ...parent,
     ...transformations,
     ...visuals,
+    ...textParameters,
     ...data,
   };
 }

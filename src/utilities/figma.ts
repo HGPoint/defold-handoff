@@ -6,6 +6,17 @@ export function isAtlas(layer: SceneNode): layer is ComponentSetNode {
   return isFigmaComponentSet(layer) && !!getPluginData(layer, "defoldAtlas");
 }
 
+export async function isAtlasSprite(layer: SceneNode): Promise<boolean> {
+  if (isFigmaComponentInstance(layer)) {
+    const mainComponent = await findMainComponent(layer);
+    if (mainComponent) {
+      const { parent } = mainComponent;
+      return isFigmaSceneNode(parent) && isAtlas(parent);
+    }
+  }
+  return false;
+}
+
 export function isFigmaSceneNode(layer: BaseNode | null ): layer is SceneNode {
   return !!layer && (
     isFigmaComponent(layer) ||

@@ -19,7 +19,7 @@ async function findAtlases(atlasIds: string[]): Promise<ComponentSetNode[]> {
   return atlases;
 }
 
-export async function exportBundle(layers: FrameNode[]): Promise<BundleData> {
+export async function exportBundle(layers: ExportableLayer[]): Promise<BundleData> {
   const guiNodesData = await generateGUIDataSet(layers);
   const serializedGUINodesData = serializeGUIDataSet(guiNodesData);
   const atlasIds = guiNodesData.reduce(reduceAtlases, []);
