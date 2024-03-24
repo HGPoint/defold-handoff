@@ -1,4 +1,4 @@
-import { reduceSelection, convertSelectionToSelectionUI } from "utilities/figma";
+import { reduceSelection, convertSelection } from "utilities/figma";
 import { updateGUINode, copyGUINodes, exportGUINodes, resetGUINodes } from "defold/gui";
 import { createAtlas, exportAtlases, destroyAtlases } from "defold/atlas";
 import { exportBundle } from "defold/bundle";
@@ -17,7 +17,7 @@ function isPluginUIShown() {
 
 function updateSelection() {
   selection = reduceSelection();
-  const selectionUI = convertSelectionToSelectionUI(selection);
+  const selectionUI = convertSelection(selection);
   postMessageToPluginUI("selectionChanged", { selection: selectionUI });
 }
 

@@ -55,7 +55,8 @@
     "sprite_trim_mode": "SPRITE_TRIM_MODE_OFF"
   },
   "fontFamily": "franxurter",
-  "fontSize": 36,
+  "fontSize": 38,
+  "fontStrokeRatio": 0.04,
   "sizeModes": {
     "Auto": "SIZE_MODE_AUTO",
     "Manual": "SIZE_MODE_MANUAL" 

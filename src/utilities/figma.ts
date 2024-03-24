@@ -72,8 +72,20 @@ export function areMultipleLayersSelected(selection: SelectionUIData) {
   return selection?.layers?.length > 1;
 }
 
-export function hasSolidFills(fills: readonly Paint[] | typeof figma.mixed): fills is readonly SolidPaint[] {
-  return Array.isArray(fills) && !!fills.length && fills.every(fill => fill.type === "SOLID");
+export function hasSolidFills(fills: readonly Paint[] | typeof figma.mixed) {
+  return Array.isArray(fills) && !!fills.length && fills.some(fill => fill.type === "SOLID");
+}
+
+export function hasSolidStrokes(strokes: readonly Paint[] | typeof figma.mixed) {
+  return Array.isArray(strokes) && !!strokes.length && strokes.some(stroke => stroke.type === "SOLID");
+}
+
+export function isSolidPaint(paint: Paint): paint is SolidPaint {
+  return paint.type === "SOLID";
+}
+
+export function isShadowEffect(effect: Effect): effect is DropShadowEffect {
+  return effect.type === "DROP_SHADOW";
 }
 
 export async function findMainComponent(layer: InstanceNode) {
@@ -117,10 +129,25 @@ export function reduceSelection(): SelectionData {
   return figma.currentPage.selection.reduce(selectionReducer, selection);
 }
 
-export function convertSelectionToSelectionUI(selection: SelectionData): SelectionUIData {
+function convertGUINodeSelection(data: PluginGUINodeData[], layer: ExportableLayer): PluginGUINodeData[] {
+  const pluginData = getPluginData(layer, "defoldGUINode");
+  const type = isFigmaText(layer) ? "text" : "box";
+  data.push({ ...pluginData, type });
+  return data;
+}
+
+function convertAtlasSelection(data: PluginAtlasData[], layer: SceneNode): PluginAtlasData[] {
+  const pluginData = getPluginData(layer, "defoldAtlas");
+  if (pluginData) {
+    data.push(pluginData);
+  }
+  return data;
+}
+
+export function convertSelection(selection: SelectionData): SelectionUIData {
   return {
-    gui: selection.gui.map(layer => getPluginData(layer, "defoldGUINode")),
-    atlases: selection.atlases.map(layer => getPluginData(layer, "defoldAtlas")),
+    gui: selection.gui.reduce(convertGUINodeSelection, []),
+    atlases: selection.atlases.reduce(convertAtlasSelection, []),
     layers: selection.layers,
   }
 }

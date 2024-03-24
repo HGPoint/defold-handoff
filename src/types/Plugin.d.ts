@@ -1,11 +1,11 @@
  type SelectionUIData = {
-  gui: (PluginGUINodeData | undefined | null)[];
-  atlases: (PluginAtlasData | undefined | null)[];
+  gui: PluginGUINodeData[];
+  atlases: PluginAtlasData[];
   layers: SceneNode[];
 }
 
 type SelectionData = {
-  gui: FrameNode[];
+  gui: ExportableLayer[];
   atlases: ComponentSetNode[];
   layers: SceneNode[];
 }
@@ -15,6 +15,7 @@ type PluginAtlasData = {
 }
 
 type PluginGUINodeData = {
+  type?: "box" | "text",
   id?: string,
   enabled?: boolean,
   visible?: boolean,
@@ -34,8 +35,8 @@ type PluginGUINodeData = {
 }
 
 type PluginData = {
-  defoldAtlas?: PluginAtlasData | null,
   defoldGUINode?: PluginGUINodeData | null,
+  defoldAtlas?: PluginAtlasData,
 }
 
 type PluginDataKey = keyof PluginData;

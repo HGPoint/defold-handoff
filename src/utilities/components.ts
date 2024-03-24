@@ -4,7 +4,7 @@ function pickGUINodePropertyValue<T extends keyof Omit<PluginGUINodeData, "id" |
   return (gui && gui[property]) || config.guiNodeDefaultValues[property];
 }
 
-export function generateGUINodeProperties(gui: PluginGUINodeData | undefined) {
+export function generateGUINodeProperties(gui: PluginGUINodeData) {
   return {
     enabled: pickGUINodePropertyValue(gui, "enabled"),
     visible: pickGUINodePropertyValue(gui, "visible"),

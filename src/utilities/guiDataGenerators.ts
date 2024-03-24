@@ -1,10 +1,10 @@
 import config from "config/config.json";
-import { findMainComponent, hasChildren, isAtlas, isFigmaSceneNode, isFigmaComponentInstance, isFigmaBox, isFigmaText } from "utilities/figma";
+import { findMainComponent, hasChildren, isAtlas, isFigmaSceneNode, isFigmaComponentInstance, isFigmaBox, isFigmaText, isFigmaExportable } from "utilities/figma";
 import { vector4 } from "utilities/math";
 import { convertGUIData, convertBoxGUINodeData, convertTextGUINodeData } from "utilities/guiDataConverters";
 import { generateAtlasPath, generateFontPath } from "utilities/path";
 
-async function findGUINodes(layer: SceneNode, guiNodesData: GUINodeData[], atRoot?: boolean, parentId?: string, parentSize?: Vector4) {
+async function generateGUINodeData(layer: ExportableLayer, guiNodesData: GUINodeData[], atRoot?: boolean, parentId?: string, parentSize?: Vector4) {
   if (layer.visible) {
     if (isFigmaBox(layer)) {
       if (!atRoot) {
@@ -15,7 +15,9 @@ async function findGUINodes(layer: SceneNode, guiNodesData: GUINodeData[], atRoo
         const parentId = !atRoot ? layer.name : undefined;
         const parentSize = vector4(layer.width, layer.height, 0, 1);
         for (const child of layer.children) {
-          await findGUINodes(child, guiNodesData, false, parentId, parentSize);
+          if (isFigmaExportable(child)) {
+            await generateGUINodeData(child, guiNodesData, false, parentId, parentSize);
+          }
         }
       }
     } else if (isFigmaText(layer)) {
@@ -25,7 +27,7 @@ async function findGUINodes(layer: SceneNode, guiNodesData: GUINodeData[], atRoo
   }
 }
 
-async function findTextures(layer: SceneNode, texturesData: TextureData) {
+async function generateTextureData(layer: SceneNode, texturesData: TextureData) {
   if (isFigmaBox(layer)) {
     if (isFigmaComponentInstance(layer)) {
       const mainComponent = await findMainComponent(layer);
@@ -46,17 +48,17 @@ async function findTextures(layer: SceneNode, texturesData: TextureData) {
     }
     if (hasChildren(layer)) {
       for (const child of layer.children) {
-        await findTextures(child, texturesData);
+        await generateTextureData(child, texturesData);
       }
     }
   }
 }
 
-async function findFonts(layer: SceneNode, fontData: FontData) {
+async function generateFontData(layer: SceneNode, fontData: FontData) {
   if (isFigmaBox(layer)) {
     if (hasChildren(layer)) {
       for (const child of layer.children) {
-        await findFonts(child, fontData);
+        await generateFontData(child, fontData);
       }
     }
   }
@@ -73,11 +75,11 @@ async function generateGUIData(layer: FrameNode | InstanceNode): Promise<GUIData
   const { name } = layer;
   const gui = convertGUIData();
   const nodes: GUINodeData[] = [];
-  await findGUINodes(layer, nodes, true);
+  await generateGUINodeData(layer, nodes, true);
   const textures: TextureData = {};
-  await findTextures(layer, textures);  
+  await generateTextureData(layer, textures);  
   const fonts = {};
-  await findFonts(layer, fonts);
+  await generateFontData(layer, fonts);
   return {
     name,
     gui,

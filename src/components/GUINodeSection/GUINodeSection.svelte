@@ -28,7 +28,9 @@
     <ToggleProperty label="Inherit Alpha" bind:value={properties.inherit_alpha} />
     <OptionsProperty label="Layer" bind:value={properties.layer} options={{}} disabled={true} />
     <OptionsProperty label="Blend Mode" bind:value={properties.blend_mode} options={config.blendModes} />
-    <OptionsProperty label="Pivot" bind:value={properties.pivot} options={config.pivots} />
+    {#if gui.type !== "text"}
+      <OptionsProperty label="Pivot" bind:value={properties.pivot} options={config.pivots} />
+    {/if}
     <OptionsProperty label="X Anchor" bind:value={properties.xanchor} options={config.xAnchors} />
     <OptionsProperty label="Y Anchor" bind:value={properties.yanchor} options={config.yAnchors} />
     <OptionsProperty label="Adjust Mode" bind:value={properties.adjust_mode} options={config.adjustModes} />
