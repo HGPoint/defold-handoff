@@ -1,3 +1,3 @@
-<section class="section">
+<main class="section">
   <slot />
-</section>
+</main>

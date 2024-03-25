@@ -28,6 +28,9 @@
       "defold": [
         "defold/*"
       ],
+      "state": [
+        "state/*"
+      ],
       "utilities": [
         "utilities/*"
       ],

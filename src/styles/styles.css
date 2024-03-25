@@ -64,6 +64,7 @@ button:hover:disabled {
 
 input {
   display: block;
+  box-sizing: border-box;
   width: 100%;
   height: 2.5em;
   padding: 0 0.5em;
@@ -75,6 +76,7 @@ input {
 
 input:hover,
 input:active {
+  padding: 1px 0.5em 0;
   border-bottom: 2px solid #fa6731;
   outline: none;
   background: #212428;
@@ -116,11 +118,12 @@ select {
   padding: 0 0 0 0.25em;
   border: 1px solid #3f444c;
   color: #b3b9c0;
-  background: inherit;
+  background: #2c2f34;;
 }
 
 select:hover,
 select:active {
+  padding: 1px 0 0 0.25em;
   border-bottom: 2px solid #fa6731;
   outline: none;
   background: #212428;
@@ -176,8 +179,20 @@ select:hover:disabled {
 
 .actions {
   display: grid;
+  grid-template-columns: 1fr;
   box-sizing: border-box;
   width: 100%;
   padding: 10px;
   gap: 7px;
+}
+
+.sectionHeader {
+
+  padding: 0 0 5px;
+  border-bottom: 1px solid currentColor;
+  margin: 0 0 5px;
+}
+
+.properties .sectionHeader {
+  grid-column: span 2;
 }

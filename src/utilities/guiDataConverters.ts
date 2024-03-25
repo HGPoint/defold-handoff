@@ -1,5 +1,6 @@
 import config from "config/config.json";
 import { isAtlas, isFigmaSceneNode, isFigmaText, isFigmaComponentInstance, hasSolidFills, hasSolidStrokes, isSolidPaint, isShadowEffect, findMainComponent, getPluginData } from "utilities/figma";
+import { isSlice9Layer, findPlaceholderLayer } from "utilities/slice9";
 import { vector4 } from "utilities/math";
 
 function calculateId(layer: ExportableLayer) {
@@ -95,6 +96,10 @@ function convertTextScale(layer: TextNode) {
 }
 
 function convertSize(layer: ExportableLayer) {
+  if (isSlice9Layer(layer)) {
+    const placeholder = findPlaceholderLayer(layer);
+    return vector4(placeholder.width, placeholder.height, 0, 1);
+  }
   return vector4(layer.width, layer.height, 0, 1);
 }
 
@@ -383,7 +388,6 @@ function calculateGUIBackgroundColor() {
 
 function injectGUIDefaults() {
   return config.guiDefaultValues;
-
 }
 
 export function convertGUIData(): GUIComponentData {

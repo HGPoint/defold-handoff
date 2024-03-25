@@ -1,12 +1,11 @@
 <script lang="ts">
+  import selectionState from "state/selection"
   import { isPluginMessage, isPluginMessagePayload, isSelectionData, processPluginMessage } from "utilities/pluginUI";
 
-  export let selection: SelectionUIData;
-
   function processSelectionChange(data: PluginMessagePayload) {
-    const { selection: selectionUpdate } = data;
-    if (isSelectionData(selectionUpdate)) {
-      selection = selectionUpdate;
+    const { selection } = data;
+    if (isSelectionData(selection)) {
+      selectionState.set(selection);
     }
   }
 

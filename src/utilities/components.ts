@@ -1,7 +1,14 @@
 import config from "config/config.json";
 
-function pickGUINodePropertyValue<T extends keyof Omit<PluginGUINodeData, "id" | "type">>(gui: PluginGUINodeData | undefined, property: T): NonNullable<PluginGUINodeData[T]> {
-  return (gui && gui[property]) || config.guiNodeDefaultValues[property];
+function pickGUINodePropertyValue<T extends keyof Omit<PluginGUINodeData, "id" | "type" >>(gui: PluginGUINodeData | undefined, property: T): NonNullable<PluginGUINodeData[T]> {
+  if (!gui) {
+    return config.guiNodeDefaultValues[property];
+  }
+  const value = gui[property];
+  if (value != null && value != undefined) {
+    return value;
+  }
+  return config.guiNodeDefaultValues[property];
 }
 
 export function generateGUINodeProperties(gui: PluginGUINodeData) {

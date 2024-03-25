@@ -118,47 +118,6 @@ export function getPluginData<T extends PluginDataKey>(layer: SceneNode, key: T)
   }
 }
 
-export function removePluginData(layer: SceneNode, keys: PluginDataKey[]) {
-  keys.forEach(key => layer.setPluginData(key, ""));
-}
-
-function selectionReducer(selection: SelectionData, layer: SceneNode): SelectionData {
-  if (layer.type !== "GROUP") {
-    if (isAtlas(layer)) {
-      selection.atlases.push(layer);
-    } else if (isFigmaFrame(layer)) {
-      selection.gui.push(layer);
-    } else {
-      selection.layers.push(layer);
-    }
-  }
-  return selection;
-}
-
-export function reduceSelection(): SelectionData {
-  const selection: SelectionData = { gui: [], atlases: [], layers: [] }; 
-  return figma.currentPage.selection.reduce(selectionReducer, selection);
-}
-
-function convertGUINodeSelection(data: PluginGUINodeData[], layer: ExportableLayer): PluginGUINodeData[] {
-  const pluginData = getPluginData(layer, "defoldGUINode");
-  const type = isFigmaText(layer) ? "text" : "box";
-  data.push({ ...pluginData, type });
-  return data;
-}
-
-function convertAtlasSelection(data: PluginAtlasData[], layer: SceneNode): PluginAtlasData[] {
-  const pluginData = getPluginData(layer, "defoldAtlas");
-  if (pluginData) {
-    data.push(pluginData);
-  }
-  return data;
-}
-
-export function convertSelection(selection: SelectionData): SelectionUIData {
-  return {
-    gui: selection.gui.reduce(convertGUINodeSelection, []),
-    atlases: selection.atlases.reduce(convertAtlasSelection, []),
-    layers: selection.layers,
-  }
+export function removePluginData<T extends PluginDataKey>(layer: SceneNode, key: T) {
+  layer.setPluginData(key, "");
 }

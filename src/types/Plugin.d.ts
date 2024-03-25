@@ -60,7 +60,9 @@ type PluginMessageAction =
   "destroyAtlases" |
   "exportBundle" |
   "bundleExported" |
-  "selectionChanged"
+  "selectionChanged" |
+  "showGUINodeData" |
+  "dropGUINodeData"
 
 type PluginMessagePayload = {
   bundle?: BundleData,

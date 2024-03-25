@@ -1,5 +1,7 @@
 import { exportAtlases, copyComponent, exportComponent, exportResources } from "utilities/resources";
 
+let postMessageDebounce: number | null = null;
+
 export function isPluginMessage(event: MessageEvent): event is MessageEvent<PluginUIMessage> {
   return !!event?.data?.pluginMessage;
 }
@@ -13,7 +15,10 @@ export function isSelectionData(selection?: SelectionUIData): selection is Selec
 }
 
 export function postMessageToPlugin(type: PluginMessageAction, data?: PluginMessagePayload) {
-  parent.postMessage({ pluginMessage: { type, data } }, "*");
+  if (postMessageDebounce) {
+    clearTimeout(postMessageDebounce);
+  }
+  postMessageDebounce = setTimeout(() => { parent.postMessage({ pluginMessage: { type, data } }, "*"); }, 100);
 }
 
 function onDefoldAtlasesExported(data: PluginMessagePayload) {

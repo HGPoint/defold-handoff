@@ -57,6 +57,10 @@
             "./src/components"
           ],
           [
+            "state",
+            "./src/state"
+          ],
+          [
             "config",
             "./src/config"
           ],

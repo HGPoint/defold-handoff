@@ -1,4 +1,5 @@
 <script lang="ts">
+  import selectionState from "state/selection";
   import { isLayerSelected, areMultipleAtlasesSelected, areMultipleLayersSelected, isGUINodeSelected, areMultipleGUINodesSelected, isAtlasSelected } from "utilities/figma";
   import AtlasSection from "components/AtlasSection";
   import AtlasesSection from "components/AtlasesSection";
@@ -8,7 +9,9 @@
   import LayersSection from "components/LayersSection";
   import StartSection from "components/StartSection";
 
-  export let selection: SelectionUIData;
+  let selection: SelectionUIData;
+
+  selectionState.subscribe((value) => { selection = value; });
 </script>
 
 {#if areMultipleAtlasesSelected(selection)}
@@ -18,7 +21,7 @@
 {:else if areMultipleGUINodesSelected(selection)}
   <GUINodesSection />
 {:else if isGUINodeSelected(selection)}
-  <GUINodeSection {selection} />
+  <GUINodeSection />
 {:else if areMultipleLayersSelected(selection)}
   <LayersSection />
 {:else if isLayerSelected(selection)}

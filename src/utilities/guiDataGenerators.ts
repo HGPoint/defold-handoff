@@ -2,6 +2,7 @@ import config from "config/config.json";
 import { findMainComponent, hasChildren, isAtlas, isFigmaSceneNode, isFigmaComponentInstance, isFigmaBox, isFigmaText, isFigmaExportable } from "utilities/figma";
 import { vector4 } from "utilities/math";
 import { convertGUIData, convertBoxGUINodeData, convertTextGUINodeData } from "utilities/guiDataConverters";
+import { isSlice9PlaceholderLayer, findOriginalLayer } from "utilities/slice9";
 import { generateAtlasPath, generateFontPath } from "utilities/path";
 
 async function generateGUINodeData(layer: ExportableLayer, guiNodesData: GUINodeData[], atRoot?: boolean, parentId?: string, parentSize?: Vector4) {
@@ -72,14 +73,15 @@ async function generateFontData(layer: SceneNode, fontData: FontData) {
 }
 
 async function generateGUIData(layer: ExportableLayer): Promise<GUIData> {
-  const { name } = layer;
+  const originalLayer = isSlice9PlaceholderLayer(layer) ? findOriginalLayer(layer) : layer;
+  const { name } = originalLayer;
   const gui = convertGUIData();
   const nodes: GUINodeData[] = [];
-  await generateGUINodeData(layer, nodes, true);
+  await generateGUINodeData(originalLayer, nodes, true);
   const textures: TextureData = {};
-  await generateTextureData(layer, textures);  
+  await generateTextureData(originalLayer, textures);  
   const fonts = {};
-  await generateFontData(layer, fonts);
+  await generateFontData(originalLayer, fonts);
   return {
     name,
     gui,

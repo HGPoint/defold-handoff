@@ -1,4 +1,5 @@
-import { reduceSelection, convertSelection } from "utilities/figma";
+import { getPluginData } from "utilities/figma";
+import { reducePluginSelection, convertPluginUISelection } from "utilities/selection";  
 import { updateGUINode, copyGUINodes, exportGUINodes, resetGUINodes } from "defold/gui";
 import { createAtlas, exportAtlases, destroyAtlases } from "defold/atlas";
 import { exportBundle } from "defold/bundle";
@@ -16,8 +17,8 @@ function isPluginUIShown() {
 }
 
 function updateSelection() {
-  selection = reduceSelection();
-  const selectionUI = convertSelection(selection);
+  selection = reducePluginSelection();
+  const selectionUI = convertPluginUISelection(selection);
   postMessageToPluginUI("selectionChanged", { selection: selectionUI });
 }
 
@@ -91,6 +92,10 @@ function onBundleExported(bundle: BundleData) {
   figma.notify("Bundle exported");
 }
 
+function onShowGUINodeData() {
+  selection.gui.forEach(layer => { console.log(getPluginData(layer, "defoldGUINode")) })
+}
+
 function processPluginUIMessage(message: PluginMessage) {
   const { type, data } = message;
   if (type === "copyGUINodes") {
@@ -101,6 +106,8 @@ function processPluginUIMessage(message: PluginMessage) {
     onResetGUINodes();
   } else if (type === "updateGUINode" && data?.guiNode) {
     onUpdateGUINode(data.guiNode);
+  } else if (type === "showGUINodeData") {
+    onShowGUINodeData();
   } else if (type === "createAtlas") {
     onCreateAtlas();
   } else if (type === "exportAtlases") {
