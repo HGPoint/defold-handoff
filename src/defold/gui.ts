@@ -1,6 +1,7 @@
+import config from "config/config.json";
 import { generateGUIDataSet } from "utilities/guiDataGenerators";
 import { serializeGUIDataSet } from "utilities/guiDataSerializers";
-import { getPluginData, setPluginData, removePluginData } from "utilities/figma";
+import { isFigmaText, getPluginData, setPluginData, removePluginData } from "utilities/figma";
 import { refreshSlice9Placeholder, isSlice9PlaceholderLayer, findOriginalLayer } from "utilities/slice9";
 
 export function updateGUINode(layer: SceneNode, data: PluginGUINodeData) {
@@ -31,4 +32,13 @@ export function resetGUINode(layer: SceneNode) {
 
 export function resetGUINodes(layers: SceneNode[]) {
   layers.forEach((layer) => { resetGUINode(layer) });
+}
+
+export function fixTextNode(layer: SceneNode) {
+  if (isFigmaText(layer)) {
+    if (typeof layer.fontSize === "number") {
+      const strokeWeight = layer.fontSize * config.fontStrokeRatio;
+      layer.strokeWeight = strokeWeight;
+    }
+  }
 }

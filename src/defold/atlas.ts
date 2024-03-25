@@ -1,14 +1,12 @@
 import { generateAtlasDataSet } from "utilities/atlasDataGenerators";
 import { serializeAtlasDataSet } from "utilities/atlasDataSerializers";
-import { isFigmaComponent, setPluginData } from "utilities/figma";
+import { setPluginData } from "utilities/figma";
 
 function createAtlasSpriteComponent(layer: SceneNode) {
-  const alreadyComponent = isFigmaComponent(layer);
-  const sprite = alreadyComponent ? layer : figma.createComponentFromNode(layer);
+  const sprite = figma.createComponentFromNode(layer);
   sprite.name = `Sprite=${layer.name}`;
-  if (!alreadyComponent) {
-    layer.locked = true;
-  }
+  sprite.fills = [];
+  layer.locked = true;
   return sprite;
 }
 

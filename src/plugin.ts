@@ -1,6 +1,6 @@
 import { getPluginData } from "utilities/figma";
 import { reducePluginSelection, convertPluginUISelection } from "utilities/selection";  
-import { updateGUINode, copyGUINodes, exportGUINodes, resetGUINodes } from "defold/gui";
+import { updateGUINode, copyGUINodes, exportGUINodes, resetGUINodes, fixTextNode } from "defold/gui";
 import { createAtlas, exportAtlases, destroyAtlases } from "defold/atlas";
 import { exportBundle } from "defold/bundle";
 
@@ -96,6 +96,11 @@ function onShowGUINodeData() {
   selection.gui.forEach(layer => { console.log(getPluginData(layer, "defoldGUINode")) })
 }
 
+function onFixTextNode() {
+  const { gui: [layer] } = selection;
+  fixTextNode(layer);
+}
+
 function processPluginUIMessage(message: PluginMessage) {
   const { type, data } = message;
   if (type === "copyGUINodes") {
@@ -116,6 +121,8 @@ function processPluginUIMessage(message: PluginMessage) {
     onDestroyAtlases();
   } else if (type === "exportBundle") {
     onExportBundle();
+  } else if (type === "fixTextNode") {
+    onFixTextNode();
   }
 }
 

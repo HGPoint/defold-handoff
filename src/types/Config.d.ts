@@ -40,6 +40,7 @@ declare module "config/config.json" {
     }
     fontFamily: string
     fontSize: number,
+    fontStrokeRatio: number,
     sizeModes: Record<string, SizeMode>,
     blendModes: Record<string, GUINodeBlendMode>,
     pivots: Record<string, Pivot>,

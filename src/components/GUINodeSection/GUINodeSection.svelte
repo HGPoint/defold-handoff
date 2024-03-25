@@ -35,6 +35,9 @@
       lastSentProperties = JSON.parse(JSON.stringify(newProperties));
       properties = newProperties;
       type = gui.type;
+    } else {
+      properties = config.guiNodeDefaultValues;
+      type = undefined;
     }
   })
 
@@ -64,6 +67,9 @@
     <ToggleProperty label="Clipping Inverted" bind:value={properties.clipping_inverted} />
   </Properties>
   <Actions>
+    {#if type === "text"}
+      <ActionButton label="Fix Text Node" action="fixTextNode" />
+    {/if}
     <ActionButton label="Copy GUI Node" action="copyGUINodes" />
     <ActionButton label="Export GUI Node" action="exportGUINodes" />
     <ActionButton label="Export GUI Node Bundle" action="exportBundle" />

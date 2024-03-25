@@ -49,10 +49,12 @@ function createSlice9PlaceholderFrame(layer: InstanceNode) {
   const positionX = layer.x;
   const positionY = layer.y;
   const placeholder = figma.createFrame();
-  parent?.appendChild(placeholder);
+  placeholder.name = `${layer.name}-slice9Placeholder`;
   placeholder.x = positionX;
   placeholder.y = positionY;
   placeholder.resize(width, height);
+  placeholder.fills = [];
+  parent?.appendChild(placeholder);
   placeholder.appendChild(layer);
   return placeholder;
 }
@@ -99,7 +101,7 @@ async function createSlice9CenterTopFrame(placeholder: FrameNode, layer: Instanc
     frame.appendChild(clone);
     const bytes = await clone.exportAsync({ format: "PNG" });
     const fillImage = figma.createImage(bytes);
-    frame.fills = [{ type: "IMAGE", scaleMode: "TILE", imageHash: fillImage.hash }];
+    frame.fills = [{ type: "IMAGE", scaleMode: "CROP", imageHash: fillImage.hash }];
     clone.remove();
     placeholder.appendChild(frame);
     frame.name = "slice9Frame-centerTop"
@@ -176,7 +178,7 @@ async function createSlice9CenterFrame(placeholder: FrameNode, layer: InstanceNo
   frame.appendChild(clone);
   const bytes = await clone.exportAsync({ format: "PNG" });
   const fillImage = figma.createImage(bytes);
-  frame.fills = [{ type: "IMAGE", scaleMode: "TILE", imageHash: fillImage.hash }];
+  frame.fills = [{ type: "IMAGE", scaleMode: "CROP", imageHash: fillImage.hash }];
   clone.remove();
   placeholder.appendChild(frame);
   frame.name = "slice9Frame-center"
@@ -252,7 +254,7 @@ async function createSlice9CenterBottomFrame(placeholder: FrameNode, layer: Inst
     frame.appendChild(clone);
     const bytes = await clone.exportAsync({ format: "PNG" });
     const fillImage = figma.createImage(bytes);
-    frame.fills = [{ type: "IMAGE", scaleMode: "TILE", imageHash: fillImage.hash }];
+    frame.fills = [{ type: "IMAGE", scaleMode: "CROP", imageHash: fillImage.hash }];
     clone.remove();
     placeholder.appendChild(frame);
     frame.name = "slice9Frame-centerBottom"
@@ -314,7 +316,6 @@ function createSlice9SliceFrames(placeholder: FrameNode, layer: InstanceNode, sl
 export function createSlice9Placeholder(layer: InstanceNode, slice9: Vector4) {
   const placeholder = createSlice9PlaceholderFrame(layer);
   createSlice9SliceFrames(placeholder, layer, slice9);
-  placeholder.name = `${layer.name}-slice9Placeholder`;
   layer.x = 0;
   layer.y = 0;
   layer.visible = false;

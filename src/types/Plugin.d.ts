@@ -52,6 +52,7 @@ type PluginMessageAction =
   "validateGUINodes" |
   "resetGUINodes" |
   "updateGUINode" |
+  "showGUINodeData" |
   "createAtlas" |
   "exportAtlases" |
   "atlasesExported" |
@@ -61,8 +62,7 @@ type PluginMessageAction =
   "exportBundle" |
   "bundleExported" |
   "selectionChanged" |
-  "showGUINodeData" |
-  "dropGUINodeData"
+  "fixTextNode"
 
 type PluginMessagePayload = {
   bundle?: BundleData,
