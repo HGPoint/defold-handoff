@@ -186,6 +186,11 @@ select:hover:disabled {
   gap: 7px;
 }
 
+.properties + .actions {
+  padding: 0 10px 10px;
+  margin: 20px 0 0;
+}
+
 .sectionHeader {
 
   padding: 0 0 5px;

@@ -48,7 +48,9 @@
     <ToggleProperty label="Enabled" bind:value={properties.enabled} />
     <ToggleProperty label="Visible" bind:value={properties.visible} />
     <OptionsProperty label="Material" bind:value={properties.material} options={{}} disabled={true} />
-    <Slice9Property label="Slice 9" bind:value={properties.slice9} />
+    {#if type !== "text"}
+      <Slice9Property label="Slice 9" bind:value={properties.slice9} />
+    {/if}
     <ToggleProperty label="Inherit Alpha" bind:value={properties.inherit_alpha} />
     <OptionsProperty label="Layer" bind:value={properties.layer} options={{}} disabled={true} />
     <OptionsProperty label="Blend Mode" bind:value={properties.blend_mode} options={config.blendModes} />

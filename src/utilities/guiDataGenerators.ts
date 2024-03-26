@@ -1,5 +1,5 @@
 import config from "config/config.json";
-import { findMainComponent, hasChildren, isAtlas, isFigmaSceneNode, isFigmaComponentInstance, isFigmaBox, isFigmaText, isFigmaExportable } from "utilities/figma";
+import { findMainComponent, hasChildren, isAtlas, isFigmaSceneNode, isFigmaComponentInstance, isFigmaBox, isFigmaText, isExportable } from "utilities/figma";
 import { vector4 } from "utilities/math";
 import { convertGUIData, convertBoxGUINodeData, convertTextGUINodeData } from "utilities/guiDataConverters";
 import { isSlice9PlaceholderLayer, findOriginalLayer } from "utilities/slice9";
@@ -16,7 +16,7 @@ async function generateGUINodeData(layer: ExportableLayer, guiNodesData: GUINode
         const parentId = !atRoot ? layer.name : undefined;
         const parentSize = vector4(layer.width, layer.height, 0, 1);
         for (const child of layer.children) {
-          if (isFigmaExportable(child)) {
+          if (isExportable(child)) {
             await generateGUINodeData(child, guiNodesData, false, parentId, parentSize);
           }
         }

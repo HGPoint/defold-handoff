@@ -1,6 +1,6 @@
 <script lang="ts">
   import selectionState from "state/selection";
-  import { isLayerSelected, areMultipleAtlasesSelected, areMultipleLayersSelected, isGUINodeSelected, areMultipleGUINodesSelected, isAtlasSelected } from "utilities/figma";
+  import { isLayerSelected, areMultipleAtlasesSelected, areMultipleLayersSelected, isGUINodeSelected, areMultipleGUINodesSelected, isAtlasSelected } from "utilities/selection";
   import AtlasSection from "components/AtlasSection";
   import AtlasesSection from "components/AtlasesSection";
   import GUINodeSection from "components/GUINodeSection";

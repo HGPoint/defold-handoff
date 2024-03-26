@@ -1,23 +1,4 @@
-export function isGUINode(layer: SceneNode) {
-  return !!getPluginData(layer, "defoldGUINode");
-}
-
-export function isAtlas(layer: SceneNode): layer is ComponentSetNode {
-  return isFigmaComponentSet(layer) && !!getPluginData(layer, "defoldAtlas");
-}
-
-export async function isAtlasSprite(layer: SceneNode): Promise<boolean> {
-  if (isFigmaComponentInstance(layer)) {
-    const mainComponent = await findMainComponent(layer);
-    if (mainComponent) {
-      const { parent } = mainComponent;
-      return isFigmaSceneNode(parent) && isAtlas(parent);
-    }
-  }
-  return false;
-}
-
-export function isFigmaSceneNode(layer: BaseNode | null ): layer is SceneNode {
+export function isFigmaSceneNode(layer: BaseNode | null): layer is SceneNode {
   return !!layer && (
     isFigmaComponent(layer) ||
     isFigmaComponentSet(layer) ||
@@ -25,6 +6,14 @@ export function isFigmaSceneNode(layer: BaseNode | null ): layer is SceneNode {
     isFigmaFrame(layer) ||
     isFigmaText(layer)
   );
+}
+
+export function isFigmaGroup(layer: BaseNode): layer is GroupNode {
+  return layer.type === "GROUP";
+}
+
+export function isFigmaRemoved(layer: SceneNode): boolean {
+  return layer.removed;
 }
 
 export function isFigmaComponent(layer: BaseNode): layer is ComponentNode {
@@ -51,36 +40,31 @@ export function isFigmaBox(layer: BaseNode): layer is (FrameNode | InstanceNode)
   return isFigmaFrame(layer) || isFigmaComponentInstance(layer);
 }
 
-export function isFigmaExportable(layer: BaseNode): layer is ExportableLayer {
+export function isExportable(layer: BaseNode): layer is ExportableLayer {
   return isFigmaBox(layer) || isFigmaText(layer);
+}
+
+export function isGUINode(layer: SceneNode) {
+  return !!getPluginData(layer, "defoldGUINode");
+}
+
+export function isAtlas(layer: SceneNode): layer is ComponentSetNode {
+  return isFigmaComponentSet(layer) && !!getPluginData(layer, "defoldAtlas");
+}
+
+export async function isAtlasSprite(layer: SceneNode): Promise<boolean> {
+  if (isFigmaComponentInstance(layer)) {
+    const mainComponent = await findMainComponent(layer);
+    if (mainComponent) {
+      const { parent } = mainComponent;
+      return isFigmaSceneNode(parent) && isAtlas(parent);
+    }
+  }
+  return false;
 }
 
 export function hasChildren(layer: BoxLayer) {
   return !!layer.children?.length;
-}
-
-export function isGUINodeSelected(selection: SelectionData) {
-  return selection?.gui?.length === 1;
-}
-
-export function areMultipleGUINodesSelected(selection: SelectionData) {
-  return selection?.gui?.length > 1;
-}
-
-export function isAtlasSelected(selection: SelectionData) {
-  return selection?.atlases?.length === 1;
-}
-
-export function areMultipleAtlasesSelected(selection: SelectionData) {
-  return selection?.atlases?.length > 1;
-}
-
-export function isLayerSelected(selection: SelectionData) {
-  return selection?.layers?.length === 1;
-}
-
-export function areMultipleLayersSelected(selection: SelectionData) {
-  return selection?.layers?.length > 1;
 }
 
 export function hasSolidFills(fills: readonly Paint[] | typeof figma.mixed) {

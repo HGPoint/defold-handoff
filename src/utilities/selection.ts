@@ -2,8 +2,32 @@ import { isSlice9PlaceholderLayer, isSlice9ServiceLayer, findOriginalLayer } fro
 import { isAtlas, isFigmaFrame, isFigmaComponentInstance, isFigmaText, getPluginData } from "utilities/figma";
 
 function isSelectable(layer: SceneNode): boolean {
-  return layer.type !== "GROUP" && !isSlice9ServiceLayer(layer);
-} 
+  return !isSlice9ServiceLayer(layer);
+}
+
+export function isGUINodeSelected(selection: SelectionData | SelectionUIData) {
+  return selection?.gui?.length === 1;
+}
+
+export function areMultipleGUINodesSelected(selection: SelectionData | SelectionUIData) {
+  return selection?.gui?.length > 1;
+}
+
+export function isAtlasSelected(selection: SelectionData | SelectionUIData) {
+  return selection?.atlases?.length === 1;
+}
+
+export function areMultipleAtlasesSelected(selection: SelectionData | SelectionUIData) {
+  return selection?.atlases?.length > 1;
+}
+
+export function isLayerSelected(selection: SelectionData | SelectionUIData) {
+  return selection?.layers?.length === 1;
+}
+
+export function areMultipleLayersSelected(selection: SelectionData | SelectionUIData) {
+  return selection?.layers?.length > 1;
+}
 
 function pluginSelectionReducer(selection: SelectionData, layer: SceneNode): SelectionData {
   if (isSelectable(layer)) {

@@ -1,12 +1,26 @@
 import { generateAtlasDataSet } from "utilities/atlasDataGenerators";
 import { serializeAtlasDataSet } from "utilities/atlasDataSerializers";
-import { setPluginData } from "utilities/figma";
+import { setPluginData, isFigmaRemoved } from "utilities/figma";
 
 function createAtlasSpriteComponent(layer: SceneNode) {
   const sprite = figma.createComponentFromNode(layer);
-  sprite.name = `Sprite=${layer.name}`;
+  sprite.name = `Sprite=${sprite.name}`;
   sprite.fills = [];
-  layer.locked = true;
+  if (!isFigmaRemoved(layer)) {
+    layer.locked = true;
+  }
+  const bounds = sprite.absoluteRenderBounds;
+  if (bounds !== null) {
+    const prevWidth  = sprite.width;
+    const prevHeight = sprite.height;
+    sprite.resizeWithoutConstraints(bounds.width, bounds.height)
+    const changeWidth  = sprite.width - prevWidth;
+    const changeHeight = sprite.height - prevHeight;
+    sprite.children.forEach(child => {
+      child.x += changeWidth / 2;
+      child.y += changeHeight / 2;
+    });
+  }
   return sprite;
 }
 
@@ -23,7 +37,7 @@ function createAtlasComponent(sprites: ComponentNode[]) {
   return atlas;
 }
 
-function styleAtlasComponent(atlas: ComponentSetNode) {
+function styleAtlasComponent(atlas: ComponentSetNode) {  
   atlas.fills = [{ type: "SOLID", color: { r: 1, g: 1, b: 1 } }];
   atlas.clipsContent = false;
   const bounds = atlas.absoluteRenderBounds;
