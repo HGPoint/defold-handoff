@@ -1,5 +1,5 @@
-import { isZeroVector4 } from "utilities/math";
-import { getPluginData, isFigmaComponentInstance, isAtlasSprite, setPluginData, isFigmaFrame } from "utilities/figma";
+import { isZeroVector4, vector4 } from "utilities/math";
+import { getPluginData, removePluginData, isFigmaComponentInstance, isAtlasSprite, setPluginData, isFigmaFrame, isExportable } from "utilities/figma";
 
 export async function canBeSlice9(layer: SceneNode) {
   if (isFigmaComponentInstance(layer)) {
@@ -48,6 +48,7 @@ function createSlice9PlaceholderFrame(layer: InstanceNode) {
   placeholder.x = positionX;
   placeholder.y = positionY;
   placeholder.resize(width, height);
+  placeholder.constraints = { horizontal: "STRETCH", vertical: "STRETCH" };
   placeholder.fills = [];
   parent?.appendChild(placeholder);
   placeholder.appendChild(layer);
@@ -357,6 +358,7 @@ export function removeSlice9Placeholder(layer: InstanceNode) {
         }
       }
       placeholder.remove();
+      removePluginData(layer, "defoldSlice9");
     }
   }
 }
@@ -383,4 +385,47 @@ export async function tryRefreshSlice9Placeholder(layer: SceneNode, slice9: Vect
       createSlice9Placeholder(layer, slice9);
     }
   }
+}
+
+function parseSlice9FrameData(layer: SceneNode): Vector4 {
+  const { width, height, name } = layer;
+  if (name.endsWith("leftTop")) {
+    return vector4(width, height, 0, 0);
+  } else if (name.endsWith("centerTop")) {
+    return vector4(0, height, 0, 0);
+  } else if (name.endsWith("rightTop")) {
+    return vector4(0, height, width, 0);
+  } else if (name.endsWith("leftCenter")) {
+    return vector4(width, 0, 0, 0);
+  } else if (name.endsWith("rightCenter")) {
+    return vector4(0, 0, width, 0);
+  } else if (name.endsWith("leftBottom")) {
+    return vector4(width, 0, 0, height);
+  } else if (name.endsWith("centerBottom")) {
+    return vector4(0, 0, 0, height);
+  } else if (name.endsWith("rightBottom")) {
+    return vector4(0, 0, width, height);
+  }
+  return vector4(0, 0, 0, 0);
+}
+
+export function parseSlice9Data(layer: SceneNode): Vector4 | null {
+  if (isExportable(layer)) {
+    const placeholder = findPlaceholderLayer(layer);
+    if (placeholder) {
+      const slice9 = vector4(0);
+      const { children } = placeholder;
+      for (const child of children) {
+        if (isSlice9ServiceLayer(child)) {
+          const { x, y, z, w } = parseSlice9FrameData(child);
+          slice9.x = x || slice9.x;
+          slice9.y = y || slice9.y;
+          slice9.z = z || slice9.z;
+          slice9.w = w || slice9.w;
+        }
+      }
+      return slice9;
+    }
+  }
+  return null;
 }

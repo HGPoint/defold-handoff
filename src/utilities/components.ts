@@ -1,5 +1,12 @@
 import config from "config/config.json";
 
+function pickGUINodeId(gui: PluginGUINodeData | undefined): string {
+  if (!gui || !gui.id) {
+    return "";
+  }
+  return gui.id;
+}
+
 function pickGUINodePropertyValue<T extends keyof Omit<PluginGUINodeData, "id" | "type" >>(gui: PluginGUINodeData | undefined, property: T): NonNullable<PluginGUINodeData[T]> {
   if (!gui) {
     const defaultValue = config.guiNodeDefaultValues[property];
@@ -24,6 +31,7 @@ function pickGUINodePropertyValue<T extends keyof Omit<PluginGUINodeData, "id" |
 
 export function generateGUINodeProperties(gui: PluginGUINodeData) {
   return {
+    id: pickGUINodeId(gui),
     enabled: pickGUINodePropertyValue(gui, "enabled"),
     visible: pickGUINodePropertyValue(gui, "visible"),
     inherit_alpha: pickGUINodePropertyValue(gui, "inherit_alpha"),

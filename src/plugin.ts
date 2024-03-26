@@ -1,7 +1,7 @@
 import { getPluginData, hasVariantPropertyChanged } from "utilities/figma";
 import { isGUINodeSelected, reducePluginSelection, convertPluginUISelection } from "utilities/selection";  
-import { isSlice9Layer } from "utilities/slice9";
-import { updateGUINode, tryRefreshSlice9Sprite, copyGUINodes, exportGUINodes, resetGUINodes, fixTextNode } from "defold/gui";
+import { isSlice9Layer  } from "utilities/slice9";
+import { updateGUINode, tryRefreshSlice9Sprite, tryRestoreSLice9Node, copyGUINodes, exportGUINodes, resetGUINodes, fixTextNode } from "defold/gui";
 import { createAtlas, exportAtlases, destroyAtlases } from "defold/atlas";
 import { exportBundle } from "defold/bundle";
 
@@ -62,6 +62,7 @@ function onUpdateGUINode(data: PluginGUINodeData) {
 
 function onResetGUINodes() {
   resetGUINodes(selection.gui);
+  updateSelection();
   figma.notify("GUI nodes reset");
 }
 
@@ -107,6 +108,11 @@ function onFixTextNode() {
   fixTextNode(layer);
 }
 
+function onRestoreSlice9Node() {
+  const { gui: [layer] } = selection;
+  tryRestoreSLice9Node(layer);
+}
+
 function processPluginUIMessage(message: PluginMessage) {
   const { type, data } = message;
   if (type === "copyGUINodes") {
@@ -129,6 +135,8 @@ function processPluginUIMessage(message: PluginMessage) {
     onExportBundle();
   } else if (type === "fixTextNode") {
     onFixTextNode();
+  } else if (type === "restoreSlice9Node") {
+    onRestoreSlice9Node();
   }
 }
 

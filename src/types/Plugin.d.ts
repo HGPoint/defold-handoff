@@ -62,7 +62,8 @@ type PluginMessageAction =
   "exportBundle" |
   "bundleExported" |
   "selectionChanged" |
-  "fixTextNode"
+  "fixTextNode" |
+  "restoreSlice9Node"
 
 type PluginMessagePayload = {
   bundle?: BundleData,

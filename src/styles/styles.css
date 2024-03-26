@@ -56,6 +56,7 @@ button:active {
 
 button:disabled {
   opacity: 0.5;
+  cursor: not-allowed;
 }
 
 button:hover:disabled {
@@ -84,6 +85,7 @@ input:active {
 
 input:disabled {
   opacity: 0.5;
+  cursor: not-allowed;
 }
 
 input:hover:disabled {
@@ -131,6 +133,7 @@ select:active {
 
 select:disabled {
   opacity: 0.5;
+  cursor: not-allowed;
 }
 
 select:hover:disabled {
@@ -139,6 +142,7 @@ select:hover:disabled {
 }
 
 .widgetLabel {
+  padding: 0.5em 0 0;
   line-height: 1.5;
 }
 
@@ -146,6 +150,11 @@ select:hover:disabled {
 .widgetSlice9 {
   display: flex;
   align-items: center;
+}
+
+.widgetSlice9 {
+  position: relative;
+  padding: 0 0 calc(2.5em + 7px);
 }
 
 .widgetComponentLabel {
@@ -159,8 +168,15 @@ select:hover:disabled {
   margin: 0 10px 0 0;
 }
 
-.widgetComponentLabel + input:last-child {
+.widgetComponentLabel + input:nth-last-child(2) {
   margin: 0;
+}
+
+.widgetApply {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
 }
 
 .section {
@@ -171,7 +187,7 @@ select:hover:disabled {
   display: grid;
   box-sizing: border-box;
   grid-template-columns: 90px auto;
-  align-items: center;
+  align-items: flex-start;
   width: 100%;
   padding: 10px;
   gap: 7px;

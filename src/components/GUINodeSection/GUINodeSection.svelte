@@ -11,6 +11,7 @@
   import ToggleProperty from "components/ToggleProperty";
   import TransformationProperty from "components/TransformationProperty";
   import Slice9Property from "components/Slice9Property";
+  import TextProperty from "components/TextProperty";
 
   let properties: ReturnType<typeof generateGUINodeProperties>;
   let type: "box" | "text" | undefined;
@@ -41,6 +42,8 @@
 
 <Section>
   <Properties>
+    <TextProperty label="Id" bind:value={properties.id} />
+    <ToggleProperty label="Skip" value={false} disabled={true} />
     <TransformationProperty label="Scale" bind:value={properties.scale} disabled={true} />
     {#if type !== "text"}
       <OptionsProperty label="Size Mode" bind:value={properties.size_mode} options={config.sizeModes} />
@@ -66,6 +69,9 @@
   <Actions>
     {#if type === "text"}
       <ActionButton label="Fix Text Node" action="fixTextNode" />
+    {/if}
+    {#if type !== "text"}
+      <ActionButton label="Restore Slice9" action="restoreSlice9Node" />
     {/if}
     <ActionButton label="Copy GUI Node" action="copyGUINodes" />
     <ActionButton label="Export GUI Node" action="exportGUINodes" />

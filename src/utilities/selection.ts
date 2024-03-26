@@ -51,7 +51,8 @@ export function reducePluginSelection(): SelectionData {
 function guiNodePluginUISelectionConverter(data: PluginGUINodeData[], layer: ExportableLayer): PluginGUINodeData[] {
   const pluginData = getPluginData(layer, "defoldGUINode");
   const type = isFigmaText(layer) ? "text" : "box";
-  data.push({ ...pluginData, type });
+  const id = layer.name;
+  data.push({ ...pluginData, type, id });
   return data;
 }
 

@@ -91,6 +91,12 @@ export async function findMainComponent(layer: InstanceNode) {
   return await layer.getMainComponentAsync();
 }
 
+export function tryUpdateLayerName(layer: SceneNode, name?: string) {
+  if (!!name && layer.name !== name) {
+    layer.name = name;
+  }
+}
+
 function pluginDataSetter(key: PluginDataKey, value: PluginData[PluginDataKey], layer: SceneNode) {
   layer.setPluginData(key, JSON.stringify(value))
 }
@@ -104,6 +110,7 @@ export function getPluginData<T extends PluginDataKey>(layer: SceneNode, key: T)
   if (value) {
     return JSON.parse(value);
   }
+  return null;
 }
 
 export function removePluginData<T extends PluginDataKey>(layer: SceneNode, key: T) {

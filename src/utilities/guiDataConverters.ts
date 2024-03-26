@@ -1,7 +1,7 @@
 import config from "config/config.json";
 import { isAtlas, isFigmaSceneNode, isFigmaText, isFigmaComponentInstance, hasSolidFills, hasSolidStrokes, isSolidPaint, isShadowEffect, findMainComponent, getPluginData } from "utilities/figma";
-import { isSlice9Layer, findPlaceholderLayer } from "utilities/slice9";
-import { vector4 } from "utilities/math";
+import { isSlice9Layer, findPlaceholderLayer, parseSlice9Data } from "utilities/slice9";
+import { isZeroVector4, vector4 } from "utilities/math";
 
 function calculateId(layer: ExportableLayer) {
   return layer.name;
@@ -220,13 +220,6 @@ async function calculateTexture(layer: ExportableLayer) {
   return calculateEmptyTexture();
 }
 
-function calculateSlice9(layer: ExportableLayer, texture?: string) {
-  if (!!texture || isFigmaText(layer)) {
-    return vector4(0);
-  }
-  return vector4(0);
-}
-
 function calculateVisible(layer: ExportableLayer, texture?: string) {
   return !!texture || isFigmaText(layer);
 }
@@ -235,12 +228,10 @@ async function convertBoxVisuals(layer: BoxLayer) {
   const color = calculateColor(layer);
   const texture = await calculateTexture(layer);
   const visible = calculateVisible(layer, texture);
-  const slice9 = calculateSlice9(layer, texture);
   return {
     visible,
     color,
-    texture,
-    slice9
+    texture
   };
 }
 
@@ -288,14 +279,12 @@ function calculateShadow(layer: TextLayer) {
 function convertTextVisuals(layer: TextLayer) {
   const color = calculateColor(layer);
   const visible = calculateVisible(layer);
-  const slice9 = calculateSlice9(layer);
   const font = calculateFont();
   const outline = calculateOutline(layer);
   const shadow = calculateShadow(layer); 
   return {
     visible,
     color,
-    slice9,
     outline,
     shadow,
     font
@@ -331,6 +320,14 @@ function calculateTextParameters(layer: TextLayer) {
   };
 }
 
+function calculateSlice9(layer: BoxLayer, data: PluginGUINodeData | undefined | null) {
+  const parsedSlice9 = parseSlice9Data(layer);
+  if (parsedSlice9 && !isZeroVector4(parsedSlice9)) {
+    return parsedSlice9;
+  }
+  return data?.slice9 || vector4(0)
+}
+
 function injectGUINodeDefaults() {
   return {
     ...config.guiNodeDefaultValues,
@@ -341,6 +338,7 @@ export async function convertBoxGUINodeData(layer: BoxLayer, parentId?: string, 
   const id = calculateId(layer)
   const defaults = injectGUINodeDefaults();
   const data = getPluginData(layer, "defoldGUINode");
+  const slice9 = calculateSlice9(layer, data);
   const type = calculateType(layer);
   const pivot = calculateBoxPivot(data);
   const visuals = await convertBoxVisuals(layer);
@@ -356,6 +354,7 @@ export async function convertBoxGUINodeData(layer: BoxLayer, parentId?: string, 
     ...transformations,
     ...visuals,
     ...data,
+    slice9,
   };
 }
 
