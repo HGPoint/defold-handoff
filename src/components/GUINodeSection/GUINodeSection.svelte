@@ -1,6 +1,6 @@
 <script lang="ts">
-  import selectionState from "state/selection";
   import config from "config/config.json";
+  import selectionState from "state/selection";
   import { postMessageToPlugin } from "utilities/pluginUI";
   import { generateGUINodeProperties } from "utilities/components";
   import Section from "components/Section";
@@ -30,15 +30,10 @@
 
   selectionState.subscribe((value) => {
     const gui = value.gui[0];
-    if (gui) {
-      const newProperties = generateGUINodeProperties(gui);
-      lastSentProperties = JSON.parse(JSON.stringify(newProperties));
-      properties = newProperties;
-      type = gui.type;
-    } else {
-      properties = config.guiNodeDefaultValues;
-      type = undefined;
-    }
+    const newProperties = generateGUINodeProperties(gui);
+    lastSentProperties = JSON.parse(JSON.stringify(newProperties));
+    properties = newProperties;
+    type = gui && gui.type;
   })
 
   $: tryUpdatePlugin(properties);

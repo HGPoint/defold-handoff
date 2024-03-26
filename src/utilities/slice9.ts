@@ -1,5 +1,5 @@
 import { isZeroVector4 } from "utilities/math";
-import { getPluginData, isFigmaComponentInstance, isAtlasSprite, setPluginData, isFigmaExportable, isFigmaFrame } from "utilities/figma";
+import { getPluginData, isFigmaComponentInstance, isAtlasSprite, setPluginData, isFigmaFrame } from "utilities/figma";
 
 export async function canBeSlice9(layer: SceneNode) {
   if (isFigmaComponentInstance(layer)) {
@@ -20,26 +20,21 @@ export function isSlice9ServiceLayer(layer: SceneNode): boolean {
   return layer.name.startsWith("slice9Frame-")
 }
 
-export function removeSlice9Placeholder(layer: InstanceNode) {
-  const { parent: placeholder } = layer;
-  if (placeholder && isSlice9PlaceholderLayer(placeholder)) {
-    const { parent, children } = placeholder;
-    if (parent) {
-      const { x, y, width, height } = placeholder;
-      for (const layer of children) {
-        if (isSlice9ServiceLayer(layer)) {
-          layer.remove();
-        } else {
-          layer.x = x + (width - layer.width) / 2;
-          layer.y = y + (height - layer.height) / 2;
-          layer.locked = false;
-          layer.visible = true;
-          parent.appendChild(layer);
-        }
-      }
-      placeholder.remove();
-    }
+export function findOriginalLayer(placeholder: FrameNode): ExportableLayer {
+  const { children } = placeholder;
+  const layer = children.find(isSlice9Layer);
+  if (!layer) {
+    throw new Error("Original layer not found");
   }
+  return layer;
+}
+
+export function findPlaceholderLayer(layer: ExportableLayer): FrameNode {
+  const { parent: placeholder } = layer;
+  if (!placeholder || !isFigmaFrame(placeholder)) {
+    throw new Error("Placeholder layer not found");
+  }
+  return placeholder;
 }
 
 function createSlice9PlaceholderFrame(layer: InstanceNode) {
@@ -106,6 +101,8 @@ async function createSlice9CenterTopFrame(placeholder: FrameNode, layer: Instanc
     placeholder.appendChild(frame);
     frame.name = "slice9Frame-centerTop"
     frame.locked = true;
+    const frameWidth = placeholder.width - left - right;
+    frame.resize(frameWidth, height);
     return frame;
   }
   return null;
@@ -132,6 +129,8 @@ async function createSlice9RightTopFrame(placeholder: FrameNode, layer: Instance
     placeholder.appendChild(frame);
     frame.name = "slice9Frame-rightTop"
     frame.locked = true;
+    const frameX = placeholder.width - right;
+    frame.x = frameX;
     return frame;
   }
   return null;
@@ -158,6 +157,8 @@ async function createSlice9LeftCenterFrame(placeholder: FrameNode, layer: Instan
     placeholder.appendChild(frame);
     frame.name = "slice9Frame-leftCenter"
     frame.locked = true;
+    const frameHeight = placeholder.height - top - bottom;
+    frame.resize(width, frameHeight);
     return frame;
   }
   return null;
@@ -183,6 +184,9 @@ async function createSlice9CenterFrame(placeholder: FrameNode, layer: InstanceNo
   placeholder.appendChild(frame);
   frame.name = "slice9Frame-center"
   frame.locked = true;
+  const frameWidth = placeholder.width - left - right;
+  const frameHeight = placeholder.height - top - bottom;
+  frame.resize(frameWidth, frameHeight);
   return frame;
 }
 
@@ -207,6 +211,10 @@ async function createSlice9RightCenterFrame(placeholder: FrameNode, layer: Insta
     placeholder.appendChild(frame);
     frame.name = "slice9Frame-rightCenter"
     frame.locked = true;
+    const frameHeight = placeholder.height - top - bottom;
+    const frameX = placeholder.width - right;
+    frame.resize(width, frameHeight);
+    frame.x = frameX;
     return frame;
   }
   return null;
@@ -233,6 +241,8 @@ async function createSlice9LeftBottomFrame(placeholder: FrameNode, layer: Instan
     placeholder.appendChild(frame);
     frame.name = "slice9Frame-leftBottom"
     frame.locked = true;
+    const frameY = placeholder.height - bottom;
+    frame.y = frameY;
     return frame;
   }
   return null;
@@ -259,6 +269,10 @@ async function createSlice9CenterBottomFrame(placeholder: FrameNode, layer: Inst
     placeholder.appendChild(frame);
     frame.name = "slice9Frame-centerBottom"
     frame.locked = true;
+    const frameWidth = placeholder.width - left - right;
+    const frameY = placeholder.height - bottom;
+    frame.resize(frameWidth, height);
+    frame.y = frameY;
     return frame;
   }
   return null;
@@ -285,32 +299,34 @@ async function createSlice9RightBottomFrame(placeholder: FrameNode, layer: Insta
     placeholder.appendChild(frame);
     frame.name = "slice9Frame-rightBottom"
     frame.locked = true;
+    const frameX = placeholder.width - right;
+    const frameY = placeholder.height - bottom;
+    frame.x = frameX;
+    frame.y = frameY;
     return frame;
   }
   return null;
 }
 
 function createSlice9SliceFrames(placeholder: FrameNode, layer: InstanceNode, slice9: Vector4) {
-  const leftTop = createSlice9LeftTopFrame(placeholder, layer, slice9);
-  const centerTop = createSlice9CenterTopFrame(placeholder, layer, slice9);
-  const rightTop = createSlice9RightTopFrame(placeholder, layer, slice9);
-  const leftCenter = createSlice9LeftCenterFrame(placeholder, layer, slice9);
-  const center = createSlice9CenterFrame(placeholder, layer, slice9);
-  const rightCenter = createSlice9RightCenterFrame(placeholder, layer, slice9);
-  const leftBottom = createSlice9LeftBottomFrame(placeholder, layer, slice9);
-  const centerBottom = createSlice9CenterBottomFrame(placeholder, layer, slice9);
-  const rightBottom = createSlice9RightBottomFrame(placeholder, layer, slice9);
-  return {
-    leftTop,
-    centerTop,
-    rightTop,
-    leftCenter,
-    center,
-    rightCenter,
-    leftBottom,
-    centerBottom,
-    rightBottom,
-  };
+  createSlice9LeftTopFrame(placeholder, layer, slice9);
+  createSlice9CenterTopFrame(placeholder, layer, slice9);
+  createSlice9RightTopFrame(placeholder, layer, slice9);
+  createSlice9LeftCenterFrame(placeholder, layer, slice9);
+  createSlice9CenterFrame(placeholder, layer, slice9);
+  createSlice9RightCenterFrame(placeholder, layer, slice9);
+  createSlice9LeftBottomFrame(placeholder, layer, slice9);
+  createSlice9CenterBottomFrame(placeholder, layer, slice9);
+  createSlice9RightBottomFrame(placeholder, layer, slice9);
+}
+
+function removeSlice9SliceFrames(placeholder: FrameNode) {
+  const { children } = placeholder;
+  for (const layer of children) {
+    if (isSlice9ServiceLayer(layer)) {
+      layer.remove();
+    }
+  }
 }
 
 export function createSlice9Placeholder(layer: InstanceNode, slice9: Vector4) {
@@ -323,12 +339,39 @@ export function createSlice9Placeholder(layer: InstanceNode, slice9: Vector4) {
   setPluginData(layer, { defoldSlice9: true });
 }
 
-export function updateSlice9Placeholder(layer: InstanceNode, slice9: Vector4) {
-  removeSlice9Placeholder(layer);
-  createSlice9Placeholder(layer, slice9);
+export function removeSlice9Placeholder(layer: InstanceNode) {
+  const placeholder = findPlaceholderLayer(layer);
+  if (placeholder && isSlice9PlaceholderLayer(placeholder)) {
+    const { parent, children } = placeholder;
+    if (parent) {
+      const { x, y, width, height } = placeholder;
+      for (const layer of children) {
+        if (isSlice9ServiceLayer(layer)) {
+          layer.remove();
+        } else {
+          layer.x = x + (width - layer.width) / 2;
+          layer.y = y + (height - layer.height) / 2;
+          layer.locked = false;
+          layer.visible = true;
+          parent.appendChild(layer);
+        }
+      }
+      placeholder.remove();
+    }
+  }
 }
 
-export async function refreshSlice9Placeholder(layer: SceneNode, slice9: Vector4 | undefined) {
+export function updateSlice9Placeholder(layer: InstanceNode, slice9: Vector4) {
+  const placeholder = findPlaceholderLayer(layer);
+  if (placeholder && isSlice9PlaceholderLayer(placeholder)) {
+    removeSlice9SliceFrames(placeholder);
+    layer.visible = true;
+    createSlice9SliceFrames(placeholder, layer, slice9);
+    layer.visible = false;
+  }
+}
+
+export async function tryRefreshSlice9Placeholder(layer: SceneNode, slice9: Vector4 | undefined) {
   if (slice9) {
     if (isSlice9Layer(layer)) {
       if (isZeroVector4(slice9)) {
@@ -340,25 +383,4 @@ export async function refreshSlice9Placeholder(layer: SceneNode, slice9: Vector4
       createSlice9Placeholder(layer, slice9);
     }
   }
-}
-
-function checkOriginalLayer(layer: SceneNode): layer is ExportableLayer{
-  return !!getPluginData(layer, "defoldSlice9") && isFigmaExportable(layer)
-}
-
-export function findOriginalLayer(placeholder: FrameNode): ExportableLayer {
-  const { children } = placeholder;
-  const layer = children.find(checkOriginalLayer);
-  if (!layer) {
-    throw new Error("Original layer not found");
-  }
-  return layer;
-}
-
-export function findPlaceholderLayer(layer: ExportableLayer): FrameNode {
-  const { parent: placeholder } = layer;
-  if (!placeholder || !isFigmaFrame(placeholder)) {
-    throw new Error("Placeholder layer not found");
-  }
-  return placeholder;
 }

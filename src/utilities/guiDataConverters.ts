@@ -103,7 +103,10 @@ function convertSize(layer: ExportableLayer) {
   return vector4(layer.width, layer.height, 0, 1);
 }
 
-function calculateBoxSizeMode(texture?: string): SizeMode {
+function calculateBoxSizeMode(layer: BoxLayer, texture?: string): SizeMode {
+  if (isSlice9Layer(layer)) {
+    return "SIZE_MODE_MANUAL";
+  }
   return texture ? "SIZE_MODE_AUTO" : "SIZE_MODE_MANUAL";
 }
 
@@ -341,7 +344,7 @@ export async function convertBoxGUINodeData(layer: BoxLayer, parentId?: string, 
   const type = calculateType(layer);
   const pivot = calculateBoxPivot(data);
   const visuals = await convertBoxVisuals(layer);
-  const sizeMode = calculateBoxSizeMode(visuals.texture);
+  const sizeMode = calculateBoxSizeMode(layer, visuals.texture);
   const transformations = convertBoxTransformations(layer, pivot, parentSize);
   const parent = convertParent(parentId);
   return {

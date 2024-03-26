@@ -59,27 +59,27 @@ export function hasChildren(layer: BoxLayer) {
   return !!layer.children?.length;
 }
 
-export function isGUINodeSelected(selection: SelectionUIData) {
+export function isGUINodeSelected(selection: SelectionData) {
   return selection?.gui?.length === 1;
 }
 
-export function areMultipleGUINodesSelected(selection: SelectionUIData) {
+export function areMultipleGUINodesSelected(selection: SelectionData) {
   return selection?.gui?.length > 1;
 }
 
-export function isAtlasSelected(selection: SelectionUIData) {
+export function isAtlasSelected(selection: SelectionData) {
   return selection?.atlases?.length === 1;
 }
 
-export function areMultipleAtlasesSelected(selection: SelectionUIData) {
+export function areMultipleAtlasesSelected(selection: SelectionData) {
   return selection?.atlases?.length > 1;
 }
 
-export function isLayerSelected(selection: SelectionUIData) {
+export function isLayerSelected(selection: SelectionData) {
   return selection?.layers?.length === 1;
 }
 
-export function areMultipleLayersSelected(selection: SelectionUIData) {
+export function areMultipleLayersSelected(selection: SelectionData) {
   return selection?.layers?.length > 1;
 }
 
@@ -97,6 +97,10 @@ export function isSolidPaint(paint: Paint): paint is SolidPaint {
 
 export function isShadowEffect(effect: Effect): effect is DropShadowEffect {
   return effect.type === "DROP_SHADOW";
+}
+
+export function hasVariantPropertyChanged(event: DocumentChangeEvent) {
+  return event.documentChanges.some(change => change.type === "PROPERTY_CHANGE" && change.properties.some(property => (property as NodeChangePropertyExtended) === "variant"))
 }
 
 export async function findMainComponent(layer: InstanceNode) {

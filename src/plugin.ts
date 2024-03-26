@@ -1,6 +1,7 @@
-import { getPluginData } from "utilities/figma";
+import { getPluginData, isGUINodeSelected, hasVariantPropertyChanged } from "utilities/figma";
 import { reducePluginSelection, convertPluginUISelection } from "utilities/selection";  
-import { updateGUINode, copyGUINodes, exportGUINodes, resetGUINodes, fixTextNode } from "defold/gui";
+import { isSlice9Layer } from "utilities/slice9";
+import { updateGUINode, tryRefreshSlice9Sprite, copyGUINodes, exportGUINodes, resetGUINodes, fixTextNode } from "defold/gui";
 import { createAtlas, exportAtlases, destroyAtlases } from "defold/atlas";
 import { exportBundle } from "defold/bundle";
 
@@ -50,7 +51,7 @@ function onGUINodesExported(gui: SerializedGUIData[]) {
 }
 
 function onUpdateGUINode(data: PluginGUINodeData) {
-  const { gui: [ layer ] } = selection; 
+  const { gui: [ layer ] } = selection;
   updateGUINode(layer, data);
 }
 
@@ -126,6 +127,19 @@ function processPluginUIMessage(message: PluginMessage) {
   }
 }
 
+function onSlice9VariantPropertyChange(layer: InstanceNode) {
+  tryRefreshSlice9Sprite(layer);
+}
+
+function processDocumentChange(event: DocumentChangeEvent) {
+  if (isGUINodeSelected(selection)) {
+    const { gui: [layer] } = selection;
+    if (isSlice9Layer(layer) && hasVariantPropertyChanged(event)) {
+      onSlice9VariantPropertyChange(layer);
+    }
+  }
+}
+
 function onSelectionChange() {
   updateSelection();
 }
@@ -134,9 +148,15 @@ function onPluginUIMessage(message: PluginMessage) {
   processPluginUIMessage(message);
 }
 
-function initializePlugin() {
+function onDocumentChange(event: DocumentChangeEvent) {
+  processDocumentChange(event);
+}
+
+async function initializePlugin() {
+  await figma.loadAllPagesAsync();
   figma.showUI(__html__, { width: 400, height: 600 });
   figma.on("selectionchange", onSelectionChange);
+  figma.on("documentchange", onDocumentChange);
   figma.ui.on("message", onPluginUIMessage);
   updateSelection();
 }

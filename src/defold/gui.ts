@@ -2,7 +2,14 @@ import config from "config/config.json";
 import { generateGUIDataSet } from "utilities/guiDataGenerators";
 import { serializeGUIDataSet } from "utilities/guiDataSerializers";
 import { isFigmaText, getPluginData, setPluginData, removePluginData } from "utilities/figma";
-import { refreshSlice9Placeholder, isSlice9PlaceholderLayer, findOriginalLayer } from "utilities/slice9";
+import { tryRefreshSlice9Placeholder, isSlice9PlaceholderLayer, findOriginalLayer } from "utilities/slice9";
+
+export function tryRefreshSlice9Sprite(layer: SceneNode) {
+  const pluginData = getPluginData(layer, "defoldGUINode");
+  if (pluginData) {
+    tryRefreshSlice9Placeholder(layer, pluginData.slice9);
+  }
+}
 
 export function updateGUINode(layer: SceneNode, data: PluginGUINodeData) {
   const originalLayer = isSlice9PlaceholderLayer(layer) ? findOriginalLayer(layer) : layer;
@@ -10,7 +17,7 @@ export function updateGUINode(layer: SceneNode, data: PluginGUINodeData) {
     const pluginData = getPluginData(originalLayer, "defoldGUINode");
     const guiNodeData = pluginData ? { defoldGUINode: { ...pluginData, ...data } } : { defoldGUINode: data };
     setPluginData(originalLayer, guiNodeData);
-    refreshSlice9Placeholder(originalLayer, data.slice9)
+    tryRefreshSlice9Placeholder(originalLayer, data.slice9)
   }
 }
 
