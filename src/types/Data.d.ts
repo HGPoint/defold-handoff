@@ -54,7 +54,7 @@ type GUIComponentDataKey = keyof GUIComponentData;
 type GUIComponentDataValue = GUIComponentData[GUIComponentDataKey];
 
 type GUINodeData = {
-  type: string,
+  type: GUINodeType,
   id: string,
   parent?: string,
   enabled: boolean,
@@ -74,14 +74,14 @@ type GUINodeData = {
   slice9: Vector4,
   layer?: string,
   material?: string,
-  xanchor: string,
-  yanchor: string,
-  pivot: string,
-  adjust_mode: string,
-  clipping_mode: string,
+  xanchor: XAnchor,
+  yanchor: YAnchor,
+  pivot: Pivot,
+  adjust_mode: AdjustMode,
+  clipping_mode: ClippingMode,
   clipping_visible: boolean,
   clipping_inverted: boolean,
-  blend_mode: string,
+  blend_mode: BlendMode,
   custom_type: number,
   template_node_child: boolean,
 }

@@ -17,3 +17,7 @@ export function isVector4(value: object): value is Vector4 {
 export function isZeroVector4(vector: Vector4) {
   return vector.x === 0 && vector.y === 0 && vector.z === 0 && vector.w === 0;
 }
+
+export function addVectors(a: Vector4, b: Vector4): Vector4 {
+  return vector4(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w);
+}

@@ -20,19 +20,19 @@ export function isSlice9ServiceLayer(layer: SceneNode): boolean {
   return layer.name.startsWith("slice9Frame-")
 }
 
-export function findOriginalLayer(placeholder: FrameNode): ExportableLayer {
+export function findOriginalLayer(placeholder: FrameNode): ExportableLayer | null {
   const { children } = placeholder;
   const layer = children.find(isSlice9Layer);
   if (!layer) {
-    throw new Error("Original layer not found");
+    return null;
   }
   return layer;
 }
 
-export function findPlaceholderLayer(layer: ExportableLayer): FrameNode {
+export function findPlaceholderLayer(layer: ExportableLayer): FrameNode | null {
   const { parent: placeholder } = layer;
-  if (!placeholder || !isFigmaFrame(placeholder)) {
-    throw new Error("Placeholder layer not found");
+  if (!placeholder || !isSlice9PlaceholderLayer(placeholder) || !isFigmaFrame(placeholder)) {
+    return null;
   }
   return placeholder;
 }

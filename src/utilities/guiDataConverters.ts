@@ -2,6 +2,7 @@ import config from "config/config.json";
 import { isAtlas, isFigmaSceneNode, isFigmaText, isFigmaComponentInstance, hasSolidFills, hasSolidStrokes, isSolidPaint, isShadowEffect, findMainComponent, getPluginData } from "utilities/figma";
 import { isSlice9Layer, findPlaceholderLayer, parseSlice9Data } from "utilities/slice9";
 import { isZeroVector4, vector4 } from "utilities/math";
+import { calculatePivotedPosition } from "utilities/pivot";
 
 function calculateId(layer: ExportableLayer) {
   return layer.name;
@@ -20,54 +21,29 @@ function convertParent(parentId?: string) {
   return parentId ? { parent: parentId } : {};
 }
 
-function calculatePivotedPosition(centeredPosition: Vector4, layer: ExportableLayer, pivot: Pivot) {
-  const { x, y } = centeredPosition;
-  const { width, height } = layer;
-  const halfWidth = width / 2;
-  const halfHeight = height / 2;
-  if (pivot === "PIVOT_N") {
-    return vector4(x, y + halfHeight, 0, 1);
-  } else if (pivot === "PIVOT_NE") {
-    return vector4(x - halfWidth, y + halfHeight, 0, 1);
-  } else if (pivot === "PIVOT_E") {
-    return vector4(x - halfWidth, y, 0, 1);
-  } else if (pivot === "PIVOT_SE") {
-    return vector4(x - halfWidth, y - halfHeight, 0, 1);
-  } else if (pivot === "PIVOT_S") {
-    return vector4(x, y - halfHeight, 0, 1);
-  } else if (pivot === "PIVOT_SW") {
-    return vector4(x + halfWidth, y - halfHeight, 0, 1);
-  } else if (pivot === "PIVOT_W") {
-    return vector4(x + halfWidth, y, 0, 1);
-  } else if (pivot === "PIVOT_NW") {
-    return vector4(x + halfWidth, y + halfHeight, 0, 1);
-  }
-  return centeredPosition;
-}
-
-function convertRootPosition(layer: ExportableLayer, pivot: Pivot) {
+function convertRootPosition(layer: ExportableLayer, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4) {
   const position = vector4(layer.x, layer.y, 0, 1);
-  const pivotedPosition = calculatePivotedPosition(position, layer, pivot); 
+  const pivotedPosition = calculatePivotedPosition(position, pivot, parentPivot, size, parentSize); 
   return pivotedPosition;
 }
 
-function calculateCenteredPosition(layer: ExportableLayer, parentSize: Vector4) {
-  const x = layer.x + (layer.width / 2) - (parentSize.x / 2);
-  const y = (parentSize.y / 2) - layer.y - (layer.height / 2);
+function calculateCenteredPosition(layer: ExportableLayer, size: Vector4, parentSize: Vector4) {
+  const x = layer.x + (size.x / 2) - (parentSize.x / 2);
+  const y = (parentSize.y / 2) - layer.y - (size.y / 2);
   return vector4(x, y, 0, 1);
 }
 
-function convertChildPosition(layer: ExportableLayer, pivot: Pivot, parentSize: Vector4) {
-  const centeredPosition = calculateCenteredPosition(layer, parentSize);
-  const pivotedPosition = calculatePivotedPosition(centeredPosition, layer, pivot);
+function convertChildPosition(layer: ExportableLayer, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4) {
+  const centeredPosition = calculateCenteredPosition(layer, size, parentSize);
+  const pivotedPosition = calculatePivotedPosition(centeredPosition, pivot, parentPivot, size, parentSize);
   return pivotedPosition;
 }
 
-function convertPosition(layer: ExportableLayer, pivot: Pivot, parentSize?: Vector4) {
+function convertPosition(layer: ExportableLayer, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize?: Vector4) {
   if (!parentSize) {
-    return convertRootPosition(layer, pivot);
+    return convertRootPosition(layer, pivot, parentPivot, size, size);
   }
-  return convertChildPosition(layer, pivot, parentSize);
+  return convertChildPosition(layer, pivot, parentPivot, size, parentSize);
 }
 
 function convertRotation(layer: ExportableLayer) {
@@ -95,12 +71,21 @@ function convertTextScale(layer: TextNode) {
   return calculateTextScale(fontSize);
 }
 
-function convertSize(layer: ExportableLayer) {
+function convertBoxSize(layer: ExportableLayer) {
   if (isSlice9Layer(layer)) {
     const placeholder = findPlaceholderLayer(layer);
-    return vector4(placeholder.width, placeholder.height, 0, 1);
-  }
+    if (placeholder) {
+      return vector4(placeholder.width, placeholder.height, 0, 1);
+    }
+  } 
   return vector4(layer.width, layer.height, 0, 1);
+}
+
+function convertTextSize(layer: TextLayer, scale: Vector4) {
+  const { width, height } = layer;
+  const scaledWidth = width / scale.x;
+  const scaledHeight = height / scale.y;
+  return vector4(scaledWidth, scaledHeight, 0, 1);
 }
 
 function calculateBoxSizeMode(layer: BoxLayer, texture?: string): SizeMode {
@@ -114,32 +99,35 @@ function calculateTextSizeMode() {
   return "SIZE_MODE_MANUAL";
 }
 
-function convertBaseTransformations(layer: ExportableLayer, pivot: Pivot, parentSize?: Vector4) {
-  const position = convertPosition(layer, pivot, parentSize);
+function convertBaseTransformations(layer: ExportableLayer, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize?: Vector4) {
+  const position = convertPosition(layer, pivot, parentPivot, size, parentSize);
   const rotation = convertRotation(layer);
-  const size = convertSize(layer);
   return {
     position,
     rotation,
-    size
   };
 
 }
 
-function convertBoxTransformations(layer: BoxLayer, pivot: Pivot, parentSize?: Vector4) {
-  const baseTransformations = convertBaseTransformations(layer, pivot, parentSize);
+function convertBoxTransformations(layer: BoxLayer, pivot: Pivot, parentPivot: Pivot, parentSize?: Vector4) {
+  const size = convertBoxSize(layer);
+  const baseTransformations = convertBaseTransformations(layer, pivot, parentPivot, size, parentSize);
   const scale = convertBoxScale();
   return {
     ...baseTransformations,
+    size,
     scale,
   };
 }
 
-function convertTextTransformations(layer: TextLayer, pivot: Pivot, parentSize?: Vector4) {
-  const baseTransformations = convertBaseTransformations(layer, pivot, parentSize);
+function convertTextTransformations(layer: TextLayer, pivot: Pivot, parentPivot: Pivot, parentSize?: Vector4) {
   const scale = convertTextScale(layer);
+  const size = convertTextSize(layer, scale);
+  const textBoxSize = convertBoxSize(layer);
+  const baseTransformations = convertBaseTransformations(layer, pivot, parentPivot, textBoxSize, parentSize);
   return {
     ...baseTransformations,
+    size,
     scale,
   };
 }
@@ -334,7 +322,7 @@ function injectGUINodeDefaults() {
   };
 }
 
-export async function convertBoxGUINodeData(layer: BoxLayer, parentId?: string, parentSize?: Vector4): Promise<GUINodeData> {
+export async function convertBoxGUINodeData(layer: BoxLayer, parentPivot: Pivot, parentId?: string, parentSize?: Vector4): Promise<GUINodeData> {
   const id = calculateId(layer)
   const defaults = injectGUINodeDefaults();
   const data = getPluginData(layer, "defoldGUINode");
@@ -343,22 +331,23 @@ export async function convertBoxGUINodeData(layer: BoxLayer, parentId?: string, 
   const pivot = calculateBoxPivot(data);
   const visuals = await convertBoxVisuals(layer);
   const sizeMode = calculateBoxSizeMode(layer, visuals.texture);
-  const transformations = convertBoxTransformations(layer, pivot, parentSize);
+  const transformations = convertBoxTransformations(layer, pivot, parentPivot, parentSize);
   const parent = convertParent(parentId);
   return {
     ...defaults,
+    ...data,
     id,
     type,
-    size_mode: sizeMode,
     ...parent,
     ...transformations,
     ...visuals,
-    ...data,
     slice9,
+    pivot,
+    size_mode: sizeMode,
   };
 }
 
-export function convertTextGUINodeData(layer: TextLayer, parentId?: string, parentSize?: Vector4): GUINodeData {
+export function convertTextGUINodeData(layer: TextLayer, parentPivot: Pivot, parentId?: string, parentSize?: Vector4): GUINodeData {
   const id = calculateId(layer)
   const defaults = injectGUINodeDefaults();
   const data = getPluginData(layer, "defoldGUINode");
@@ -366,21 +355,22 @@ export function convertTextGUINodeData(layer: TextLayer, parentId?: string, pare
   const pivot = calculateTextPivot(layer);
   const visuals = convertTextVisuals(layer);
   const sizeMode = calculateTextSizeMode();
-  const transformations = convertTextTransformations(layer, pivot, parentSize);
+  const transformations = convertTextTransformations(layer, pivot, parentPivot, parentSize);
   const parent = convertParent(parentId);
   const text = layer.characters;
   const textParameters = calculateTextParameters(layer);
   return {
     ...defaults,
+    ...data,
     id,
     type,
     text,
-    size_mode: sizeMode,
     ...parent,
     ...transformations,
     ...visuals,
     ...textParameters,
-    ...data,
+    pivot,
+    size_mode: sizeMode,
   };
 }
 

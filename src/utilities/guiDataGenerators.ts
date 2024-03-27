@@ -1,28 +1,72 @@
 import config from "config/config.json";
-import { findMainComponent, hasChildren, isAtlas, isFigmaSceneNode, isFigmaComponentInstance, isFigmaBox, isFigmaText, isExportable } from "utilities/figma";
+import { setPluginData, findMainComponent, hasChildren, isAtlas, isFigmaSceneNode, isFigmaComponentInstance, isFigmaBox, isFigmaText, isExportable } from "utilities/figma";
 import { vector4 } from "utilities/math";
 import { convertGUIData, convertBoxGUINodeData, convertTextGUINodeData } from "utilities/guiDataConverters";
-import { isSlice9PlaceholderLayer, findOriginalLayer } from "utilities/slice9";
+import { isSlice9PlaceholderLayer, findOriginalLayer, isSlice9Layer, isSlice9ServiceLayer, parseSlice9Data } from "utilities/slice9";
 import { generateAtlasPath, generateFontPath } from "utilities/path";
 
-async function generateGUINodeData(layer: ExportableLayer, guiNodesData: GUINodeData[], atRoot?: boolean, parentId?: string, parentSize?: Vector4) {
-  if (layer.visible) {
-    if (isFigmaBox(layer)) {
-      if (!atRoot) {
-        const guiNodeData = await convertBoxGUINodeData(layer, parentId, parentSize);
-        guiNodesData.push(guiNodeData); 
+async function tryRestoreSlice9Data(layer: ExportableLayer) {
+  if (isFigmaBox(layer)) {
+    if (isSlice9PlaceholderLayer(layer)) {
+      const originalLayer = findOriginalLayer(layer);
+      if (originalLayer) {
+        const slice9 = parseSlice9Data(layer);
+        if (slice9) {
+          setPluginData(originalLayer, { defoldSlice9: true });
+          setPluginData(originalLayer, { defoldGUINode: { slice9 } });
+        }
+      }
+    }
+    if (hasChildren(layer)) {
+      for (const child of layer.children) {
+        if (isFigmaBox(child)) {
+          await tryRestoreSlice9Data(child);
+        }
+      }
+    }
+  }
+}
+
+function calculateParentParameters(layer: ExportableLayer, shouldSkip: boolean, atRoot?: boolean, parentPivot?: Pivot, parentId?: string, parentSize?: Vector4, guiNodeData?: GUINodeData):  { parentId: string | undefined, parentSize: Vector4, parentPivot: Pivot } {
+  if (atRoot) {
+    return {
+      parentId: "",
+      parentSize: vector4(layer.width, layer.height, 0, 1),
+      parentPivot: config.guiNodeDefaultValues.pivot,
+    }
+  } else if (shouldSkip) {
+    return {
+      parentId: parentId,
+      parentSize: parentSize || vector4(layer.width, layer.height, 0, 1),
+      parentPivot: parentPivot || config.guiNodeDefaultValues.pivot,
+    }
+  }
+  return {
+    parentId: layer.name,
+    parentSize: vector4(layer.width, layer.height, 0, 1),
+    parentPivot: guiNodeData ? guiNodeData.pivot : config.guiNodeDefaultValues.pivot,
+  }
+}
+
+async function generateGUINodeData(layer: ExportableLayer, guiNodesData: GUINodeData[], parentPivot: Pivot, atRoot?: boolean, parentId?: string, parentSize?: Vector4) {
+  if (layer.visible || isSlice9Layer(layer)) {
+    if (isFigmaBox(layer) && !isSlice9ServiceLayer(layer)) {
+      const shouldSkip = isSlice9PlaceholderLayer(layer);
+      let guiNodeData: GUINodeData | undefined;
+      if (!atRoot && !shouldSkip) {
+        guiNodeData = await convertBoxGUINodeData(layer, parentPivot, parentId, parentSize);
+        guiNodesData.push(guiNodeData);
       }
       if (hasChildren(layer)) {
-        const parentId = !atRoot ? layer.name : undefined;
-        const parentSize = vector4(layer.width, layer.height, 0, 1);
         for (const child of layer.children) {
-          if (isExportable(child)) {
-            await generateGUINodeData(child, guiNodesData, false, parentId, parentSize);
+          if (isExportable(child) && !isSlice9ServiceLayer(layer)) {
+            ({ parentId, parentSize, parentPivot } = calculateParentParameters(layer, shouldSkip, atRoot, parentPivot, parentId, parentSize, guiNodeData));
+            await generateGUINodeData(child, guiNodesData, parentPivot, false, parentId, parentSize);
           }
         }
       }
     } else if (isFigmaText(layer)) {
-      const guiNodeData = convertTextGUINodeData(layer, parentId, parentSize);
+      const guiNodeData = convertTextGUINodeData(layer, parentPivot, parentId, parentSize);
       guiNodesData.push(guiNodeData);
     }
   }
@@ -73,15 +117,15 @@ async function generateFontData(layer: SceneNode, fontData: FontData) {
 }
 
 async function generateGUIData(layer: ExportableLayer): Promise<GUIData> {
-  const originalLayer = isSlice9PlaceholderLayer(layer) ? findOriginalLayer(layer) : layer;
-  const { name } = originalLayer;
+  tryRestoreSlice9Data(layer);
+  const { name } = layer;
   const gui = convertGUIData();
   const nodes: GUINodeData[] = [];
-  await generateGUINodeData(originalLayer, nodes, true);
+  await generateGUINodeData(layer, nodes, config.guiNodeDefaultValues.pivot, true);
   const textures: TextureData = {};
-  await generateTextureData(originalLayer, textures);  
+  await generateTextureData(layer, textures);  
   const fonts = {};
-  await generateFontData(originalLayer, fonts);
+  await generateFontData(layer, fonts);
   return {
     name,
     gui,

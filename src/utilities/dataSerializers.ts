@@ -16,7 +16,7 @@ function isStringProperty(value: PropertyValue): value is string {
 }
 
 function isQuotedProperty(key: PropertyKey) {
-  return config.constKeys.includes(key);
+  return !config.constKeys.includes(key);
 }
 
 function isVector4Property(value: PropertyValue): value is Vector4 {
