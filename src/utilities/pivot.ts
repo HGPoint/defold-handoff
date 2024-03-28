@@ -35,55 +35,57 @@ export function calculatePivotedPositionInParent(centeredPosition: Vector4, pare
 
 export function calculatePivotedShift(pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4) {
   const { x: width, y: height } = size;
-  const { x: parentWidth, y: parentHeight } = parentSize;
+  const { y: parentHeight } = parentSize;
+  const halfWidth = width / 2;
+  const halfHeight = height / 2;
   let shiftX;
   let shiftY;
   if (isPivotNorth(parentPivot)) {
     if (isPivotNorth(pivot)) {
-      shiftY = 0;
+      shiftY = halfHeight - parentHeight;
     } else if (isPivotSouth(pivot)) {
-      shiftY = parentHeight * -2;
+      shiftY = -parentHeight - halfHeight;
     } else {
-      shiftY = parentHeight * -1.5;
+      shiftY = -parentHeight;
     }
   } else if (isPivotSouth(parentPivot)) {
     if (isPivotNorth(pivot)) {
-      shiftY = parentHeight * 2;
+      shiftY = halfHeight + parentHeight;
     } else if (isPivotSouth(pivot)) {
-      shiftY = 0;
+      shiftY = parentHeight - halfHeight;
     } else {
-      shiftY = parentHeight * 1.5;
+      shiftY = parentHeight
     }
   } else {
     if (isPivotNorth(pivot)) {
-      shiftY = height / 2;
+      shiftY = halfHeight;
     } else if (isPivotSouth(pivot)) {
-      shiftY = height / -2;
+      shiftY = -halfHeight;
     } else {
       shiftY = 0;
     }
   }
   if (isPivotEast(parentPivot)) {
     if (isPivotEast(pivot)) {
-      shiftX = 0;
+      shiftX = halfWidth;
     } else if (isPivotWest(pivot)) {
-      shiftX = parentWidth * -2;
+      shiftX = -halfWidth;
     } else {
-      shiftX = parentWidth * -1.5;
+      shiftX = 0;
     }
   } else if (isPivotWest(parentPivot)) {
     if (isPivotEast(pivot)) {
-      shiftX = parentWidth * 2;
+      shiftX = halfWidth;
     } else if (isPivotWest(pivot)) {
-      shiftX = 0;
+      shiftX = -halfWidth;
     } else {
-      shiftX = parentWidth * 1.5;
+      shiftX = 0;
     }
   } else {
     if (isPivotEast(pivot)) {
-      shiftX = width / 2;
+      shiftX = halfWidth;
     } else if (isPivotWest(pivot)) {
-      shiftX = width / -2;
+      shiftX = -halfWidth;
     } else {
       shiftX = 0;
     }
@@ -91,9 +93,21 @@ export function calculatePivotedShift(pivot: Pivot, parentPivot: Pivot, size: Ve
   return vector4(shiftX, shiftY, 0, 1);
 }
 
+export function calculateRootPosition(layer: ExportableLayer, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4) {
+  const position = vector4(0);
+  const pivotedPosition = calculatePivotedPosition(position, pivot, parentPivot, size, parentSize);
+  return pivotedPosition;
+}
+
+export function calculateCenteredPosition(layer: ExportableLayer, size: Vector4, parentSize: Vector4) {
+  const x = layer.x + (size.x / 2) - (parentSize.x / 2);
+  const y = (parentSize.y / 2) - layer.y - (size.y / 2);
+  return vector4(x, y, 0, 1);
+}
+
 export function calculatePivotedPosition(centeredPosition: Vector4, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4) {
   const position = calculatePivotedPositionInParent(centeredPosition, parentPivot, parentSize);
-  const shift = calculatePivotedShift(pivot, parentPivot, size, parentSize);
-  const pivotedPosition = addVectors(position, shift);
+  const pivotedShift = calculatePivotedShift(pivot, parentPivot, size, parentSize);
+  const pivotedPosition = addVectors(position, pivotedShift);
   return pivotedPosition;
 }

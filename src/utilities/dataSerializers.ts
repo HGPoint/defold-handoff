@@ -32,7 +32,7 @@ function serializeQuotedProperty(property: PropertyKey, value: PropertyValue): s
 }
 
 function serializeVector4Property(property: PropertyKey, value: Vector4): string {
-  return `${property} {\nx:  ${value.x}\n  y: ${value.y}\n  z: ${value.z}\n  w: ${value.w}\n}`;
+  return `${property} {\nx: ${value.x}\ny: ${value.y}\nz: ${value.z}\nw: ${value.w}\n}`;
 }
 
 export function serializeProperty(property: PropertyKey, value: PropertyValue): string {

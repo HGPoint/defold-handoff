@@ -1,4 +1,4 @@
-import { isZeroVector4, vector4 } from "utilities/math";
+import { isZeroVector, vector4 } from "utilities/math";
 import { getPluginData, removePluginData, isFigmaComponentInstance, isAtlasSprite, setPluginData, isFigmaFrame, isExportable } from "utilities/figma";
 
 export async function canBeSlice9(layer: SceneNode) {
@@ -376,12 +376,12 @@ export function updateSlice9Placeholder(layer: InstanceNode, slice9: Vector4) {
 export async function tryRefreshSlice9Placeholder(layer: SceneNode, slice9: Vector4 | undefined) {
   if (slice9) {
     if (isSlice9Layer(layer)) {
-      if (isZeroVector4(slice9)) {
+      if (isZeroVector(slice9)) {
         removeSlice9Placeholder(layer);
       } else {
         updateSlice9Placeholder(layer, slice9);
       }
-    } else if (!isZeroVector4(slice9) && isFigmaComponentInstance(layer) && await canBeSlice9(layer)) {
+    } else if (!isZeroVector(slice9) && isFigmaComponentInstance(layer) && await canBeSlice9(layer)) {
       createSlice9Placeholder(layer, slice9);
     }
   }

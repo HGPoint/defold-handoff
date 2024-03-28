@@ -14,10 +14,22 @@ export function isVector4(value: object): value is Vector4 {
     "w" in value && typeof value.w === "number");
 }
 
-export function isZeroVector4(vector: Vector4) {
+export function isZeroVector(vector: Vector4) {
   return vector.x === 0 && vector.y === 0 && vector.z === 0 && vector.w === 0;
 }
 
-export function addVectors(a: Vector4, b: Vector4): Vector4 {
-  return vector4(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w);
+export function areVectorsEqual(a: Vector4, b: Vector4) {
+  return a.x === b.x && a.y === b.y && a.z === b.z && a.w === b.w;
 }
+
+export function addVectors(a: Vector4, b: Vector4): Vector4 {
+  return vector4(a.x + b.x, a.y + b.y, a.z, a.w);
+}
+
+export function subVectors(a: Vector4, b: Vector4): Vector4 {
+  return vector4(a.x - b.x, a.y - b.y, a.z, a.w);
+}
+
+export function copyVector(vector: Vector4): Vector4 {
+  return vector4(vector.x, vector.y, vector.z, vector.w);
+} 

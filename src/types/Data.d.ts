@@ -81,7 +81,7 @@ type GUINodeData = {
   clipping_mode: ClippingMode,
   clipping_visible: boolean,
   clipping_inverted: boolean,
-  blend_mode: BlendMode,
+  blend_mode: GUINodeBlendMode,
   custom_type: number,
   template_node_child: boolean,
 }
@@ -115,4 +115,14 @@ type SerializedGUIData = {
 type BundleData = {
   gui?: SerializedGUIData[],
   atlases?: SerializedAtlasData[],
+}
+
+type GUINodeDataExportOptions = {
+  layer: ExportableLayer;
+  atRoot: boolean;
+  namePrefix: string;
+  parentId: string;
+  parentPivot: Pivot;
+  parentSize: Vector4;
+  parentShift: Vector4;
 }
