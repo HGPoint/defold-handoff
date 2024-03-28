@@ -1,11 +1,11 @@
 <script lang="ts">
-  import Section from "components/Section";
+  import Page from "components/Page";
   import Actions from "components/Actions";
   import ActionButton from "components/ActionButton";
 </script>
 
-<Section>
+<Page>
   <Actions>
     <ActionButton label="Create Atlas" action="createAtlas" />
   </Actions>
-</Section>
+</Page>

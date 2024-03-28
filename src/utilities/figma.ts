@@ -12,6 +12,10 @@ export function isFigmaGroup(layer: BaseNode): layer is GroupNode {
   return layer.type === "GROUP";
 }
 
+export function isFigmaSection(layer: BaseNode): layer is SectionNode {
+  return layer.type === "SECTION";
+}
+
 export function isFigmaRemoved(layer: SceneNode): boolean {
   return layer.removed;
 }

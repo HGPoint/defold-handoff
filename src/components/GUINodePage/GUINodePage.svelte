@@ -3,9 +3,9 @@
   import selectionState from "state/selection";
   import { postMessageToPlugin } from "utilities/pluginUI";
   import { generateGUINodeProperties } from "utilities/components";
-  import Section from "components/Section";
-  import Actions from "components/Actions";
+  import Page from "components/Page";
   import Properties from "components/Properties";
+  import Actions from "components/Actions";
   import ActionButton from "components/ActionButton";
   import OptionsProperty from "components/OptionsProperty";
   import ToggleProperty from "components/ToggleProperty";
@@ -15,7 +15,6 @@
 
   let properties: ReturnType<typeof generateGUINodeProperties>;
   let type: "box" | "text" | undefined;
-  
   let lastSentProperties: typeof properties;
 
   function shouldSendProperties(updateProperties: typeof properties) {
@@ -40,7 +39,7 @@
   $: tryUpdatePlugin(properties);
 </script>
 
-<Section>
+<Page>
   <Properties>
     <TextProperty label="Id" bind:value={properties.id} />
     <ToggleProperty label="Skip" value={false} disabled={true} />
@@ -78,4 +77,4 @@
     <ActionButton label="Reset GUI Node" action="resetGUINodes" />
     <ActionButton label="Show GUI Node Data" action="showGUINodeData" />
   </Actions>
-</Section>
+</Page>

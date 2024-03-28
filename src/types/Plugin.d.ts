@@ -1,13 +1,21 @@
  type SelectionUIData = {
-  gui: PluginGUINodeData[];
-  atlases: PluginAtlasData[];
-  layers: SceneNode[];
+  gui: PluginGUINodeData[],
+  atlases: PluginAtlasData[],
+  layers: SceneNode[],
+  sections: PluginSectionData[],
 }
 
 type SelectionData = {
-  gui: ExportableLayer[];
-  atlases: ComponentSetNode[];
-  layers: SceneNode[];
+  gui: ExportableLayer[],
+  atlases: ComponentSetNode[],
+  layers: SceneNode[],
+  sections: SectionNode[],
+}
+
+type PluginSectionData = {
+  id: string,
+  bundled: boolean,
+  jumbo: string,
 }
 
 type PluginAtlasData = {
@@ -38,6 +46,7 @@ type PluginData = {
   defoldGUINode?: PluginGUINodeData | null,
   defoldAtlas?: PluginAtlasData | null,
   defoldSlice9?: boolean | null,
+  defoldSection?: PluginSectionData | null,
 }
 
 type PluginDataKey = keyof PluginData;
@@ -63,12 +72,15 @@ type PluginMessageAction =
   "bundleExported" |
   "selectionChanged" |
   "fixTextNode" |
-  "restoreSlice9Node"
+  "restoreSlice9Node" |
+  "updateSection" |
+  "resetSections"
 
 type PluginMessagePayload = {
   bundle?: BundleData,
   selection?: SelectionUIData,
   guiNode?: PluginGUINodeData,
+  section?: PluginSectionData,
 
 }
 
@@ -78,5 +90,5 @@ type PluginMessage = {
 }
 
 type PluginUIMessage = {
-  pluginMessage: PluginMessage
+  pluginMessage: PluginMessage,
 }

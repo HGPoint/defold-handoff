@@ -54,6 +54,10 @@
   "atlasImageDefaultValues": {
     "sprite_trim_mode": "SPRITE_TRIM_MODE_OFF"
   },
+  "sectionDefaultValues": {
+    "bundled": false,
+    "jumbo": ""
+  },
   "fontFamily": "franxurter",
   "fontSize": 38,
   "fontStrokeRatio": 0.04,

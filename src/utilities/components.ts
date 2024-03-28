@@ -1,6 +1,6 @@
 import config from "config/config.json";
 
-function pickGUINodeId(gui: PluginGUINodeData | undefined): string {
+function pickGUINodeId(gui?: PluginGUINodeData): string {
   if (!gui || !gui.id) {
     return "";
   }
@@ -47,5 +47,33 @@ export function generateGUINodeProperties(gui: PluginGUINodeData) {
     slice9: pickGUINodePropertyValue(gui, "slice9"),
     material: pickGUINodePropertyValue(gui, "material"),
     layer: pickGUINodePropertyValue(gui, "layer"),
+  }
+}
+
+function pickSectionId(section?: PluginSectionData) {
+  if (!section || !section.id) {
+    return "";
+  }
+  return section.id;
+}
+
+function pickSectionPropertyValue<T extends keyof Omit<PluginSectionData, "id">>(section: PluginSectionData | undefined, property: T) {
+  if (!section) {
+    const defaultValue = config.sectionDefaultValues[property];
+    return defaultValue;
+  }
+  const value = section[property];
+  if (value != null && value != undefined) {
+    return value;
+  }
+  const defaultValue = config.sectionDefaultValues[property];
+  return defaultValue;
+}
+
+export function generateSectionProperties(section: PluginSectionData) {
+  return {
+    id: pickSectionId(section),
+    bundled: pickSectionPropertyValue(section, "bundled"),
+    jumbo: pickSectionPropertyValue(section, "jumbo"),
   }
 }

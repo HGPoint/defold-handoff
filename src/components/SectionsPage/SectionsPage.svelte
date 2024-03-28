@@ -1,14 +1,15 @@
 <script lang="ts">
-  import Section from "components/Section";
+  import Page from "components/Page";
   import Actions from "components/Actions";
   import ActionButton from "components/ActionButton";
 </script>
 
-<Section>
+<Page>
   <Actions>
     <ActionButton label="Export Atlases" action="exportAtlases" />
     <ActionButton label="Fix Atlases" action="fixAtlases" disabled={true} />
     <ActionButton label="Validate Atlases" action="validateAtlases" disabled={true} />
     <ActionButton label="Destroy Atlases" action="destroyAtlases" />
+    <ActionButton label="Reset Sections" action="resetSections" />
   </Actions>
-</Section>
+</Page>

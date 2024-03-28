@@ -38,6 +38,10 @@ declare module "config/config.json" {
     atlasImageDefaultValues: {
       sprite_trim_mode: SpriteTrimMode
     }
+    sectionDefaultValues: {
+      bundled: boolean,
+      jumbo: string,
+    }
     fontFamily: string
     fontSize: number,
     fontStrokeRatio: number,

@@ -3,9 +3,10 @@ import { isGUINodeSelected, reducePluginSelection, convertPluginUISelection } fr
 import { isSlice9Layer  } from "utilities/slice9";
 import { updateGUINode, tryRefreshSlice9Sprite, tryRestoreSLice9Node, copyGUINodes, exportGUINodes, resetGUINodes, fixTextNode } from "defold/gui";
 import { createAtlas, exportAtlases, destroyAtlases } from "defold/atlas";
+import { updateSection, resetSections } from "defold/section";
 import { exportBundle } from "defold/bundle";
 
-let selection: SelectionData = { gui: [], atlases: [], layers: [] };
+let selection: SelectionData = { gui: [], atlases: [], layers: [], sections: [] };
 
 function postMessageToPluginUI(type: PluginMessageAction, data: PluginMessagePayload) {
   if (isPluginUIShown()) {
@@ -31,7 +32,6 @@ function selectNode(nodes: SceneNode[]) {
 function onSelectionChange() {
   updateSelection();
 }
-
 
 function onCopyGUINodes() {
   copyGUINodes(selection.gui)
@@ -104,13 +104,24 @@ function onShowGUINodeData() {
 }
 
 function onFixTextNode() {
-  const { gui: [layer] } = selection;
+  const { gui: [ layer ] } = selection;
   fixTextNode(layer);
 }
 
 function onRestoreSlice9Node() {
-  const { gui: [layer] } = selection;
+  const { gui: [ layer ] } = selection;
   tryRestoreSLice9Node(layer);
+}
+
+function onUpdateSection(data: PluginSectionData) {
+  const { sections: [ section ] } = selection;
+  updateSection(section, data);
+}
+
+function onResetSections() {
+  resetSections(selection.sections);
+  updateSelection();
+  figma.notify("Sections reset");
 }
 
 function processPluginUIMessage(message: PluginMessage) {
@@ -137,6 +148,10 @@ function processPluginUIMessage(message: PluginMessage) {
     onFixTextNode();
   } else if (type === "restoreSlice9Node") {
     onRestoreSlice9Node();
+  } else if (type === "updateSection" && data?.section) {
+    onUpdateSection(data.section);
+  } else if (type === "resetSections") {
+    onResetSections();
   }
 }
 
