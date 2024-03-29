@@ -1,8 +1,9 @@
 import config from "config/config.json";
-import { generateGUIDataSet } from "utilities/guiDataGenerators";
+import { generateGUIDataSet, generateGUIData } from "utilities/guiDataGenerators";
 import { serializeGUIDataSet } from "utilities/guiDataSerializers";
 import { isFigmaText, getPluginData, setPluginData, removePluginData, tryUpdateLayerName } from "utilities/figma";
 import { tryRefreshSlice9Placeholder, isSlice9PlaceholderLayer, findOriginalLayer, parseSlice9Data } from "utilities/slice9";
+import { extractScheme } from "utilities/scheme";
 
 export function tryRefreshSlice9Sprite(layer: SceneNode) {
   const pluginData = getPluginData(layer, "defoldGUINode");
@@ -34,6 +35,12 @@ export async function copyGUINodes(layers: ExportableLayer[]): Promise<Serialize
   const guiNodesData = await generateGUIDataSet(layers);
   const serializedGUINodesData = serializeGUIDataSet(guiNodesData);
   return serializedGUINodesData;
+}
+
+export async function copyGUINodeScheme(layer: ExportableLayer): Promise<string> {
+  const guiNodesData = await generateGUIData(layer);
+  const scheme = extractScheme(guiNodesData.nodes);
+  return scheme;
 }
 
 export async function exportGUINodes(layers: ExportableLayer[]): Promise<SerializedGUIData[]> {

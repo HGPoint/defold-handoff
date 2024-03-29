@@ -63,9 +63,10 @@ export function reducePluginSelection(): SelectionData {
 
 function guiNodePluginUISelectionConverter(data: PluginGUINodeData[], layer: ExportableLayer): PluginGUINodeData[] {
   const pluginData = getPluginData(layer, "defoldGUINode");
-  const type = isFigmaText(layer) ? "text" : "box";
   const { name: id } = layer;
-  const guiNodeData: PluginGUINodeData = { ...config.guiNodeDefaultValues, ...pluginData, type, id };
+  const type = isFigmaText(layer) ? "text" : "box";
+  const skip = pluginData?.skip || false;
+  const guiNodeData: PluginGUINodeData = { ...config.guiNodeDefaultValues, ...pluginData, id, type, skip };
   data.push(guiNodeData);
   return data;
 }

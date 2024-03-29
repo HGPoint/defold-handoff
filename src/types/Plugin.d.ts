@@ -1,4 +1,4 @@
- type SelectionUIData = {
+type SelectionUIData = {
   gui: PluginGUINodeData[],
   atlases: PluginAtlasData[],
   layers: SceneNode[],
@@ -25,6 +25,7 @@ type PluginAtlasData = {
 type PluginGUINodeData = {
   type?: "box" | "text",
   id?: string,
+  skip?: boolean,
   enabled?: boolean,
   visible?: boolean,
   inherit_alpha?: boolean,
@@ -57,6 +58,8 @@ type PluginMessageAction =
   "guiNodesCopied" |
   "exportGUINodes" |
   "guiNodesExported" |
+  "copyGUINodeScheme" |
+  "guiNodeSchemeCopied" |
   "fixGUINodes" |
   "validateGUINodes" |
   "resetGUINodes" |
@@ -81,7 +84,7 @@ type PluginMessagePayload = {
   selection?: SelectionUIData,
   guiNode?: PluginGUINodeData,
   section?: PluginSectionData,
-
+  scheme?: string,
 }
 
 type PluginMessage = {

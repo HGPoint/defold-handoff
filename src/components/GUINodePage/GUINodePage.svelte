@@ -33,7 +33,7 @@
     const newProperties = generateGUINodeProperties(gui);
     lastSentProperties = JSON.parse(JSON.stringify(newProperties));
     properties = newProperties;
-    type = gui && gui.type;
+    type = gui?.type;
   })
 
   $: tryUpdatePlugin(properties);
@@ -42,7 +42,7 @@
 <Page>
   <Properties>
     <TextProperty label="Id" bind:value={properties.id} />
-    <ToggleProperty label="Skip" value={false} disabled={true} />
+    <ToggleProperty label="Skip" bind:value={properties.skip} />
     <TransformationProperty label="Scale" bind:value={properties.scale} disabled={true} />
     <ToggleProperty label="Enabled" bind:value={properties.enabled} />
     <ToggleProperty label="Visible" bind:value={properties.visible} />
@@ -72,6 +72,7 @@
     <ActionButton label="Copy GUI Node" action="copyGUINodes" />
     <ActionButton label="Export GUI Node" action="exportGUINodes" />
     <ActionButton label="Export GUI Node Bundle" action="exportBundle" />
+    <ActionButton label="Copy GUI Node Scheme" action="copyGUINodeScheme" disabled={true} />
     <ActionButton label="Fix GUI Node" action="fixGUINodes" disabled={true} />
     <ActionButton label="Validate GUI Node" action="validateGUINodes" disabled={true} />
     <ActionButton label="Reset GUI Node" action="resetGUINodes" />

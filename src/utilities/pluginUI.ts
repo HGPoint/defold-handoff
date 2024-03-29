@@ -1,4 +1,4 @@
-import { exportAtlases, copyComponent, exportComponent, exportResources } from "utilities/resources";
+import { exportAtlases, copyComponent, exportComponent, exportResources, copyScheme } from "utilities/resources";
 
 let postMessageDebounce: number | null = null;
 
@@ -7,7 +7,7 @@ export function isPluginMessage(event: MessageEvent): event is MessageEvent<Plug
 }
 
 export function isPluginMessagePayload(data?: PluginMessagePayload): data is PluginMessagePayload {
-  return !!data && typeof data === "object" && ("bundle" in data || "selection" in data);
+  return !!data && typeof data === "object" && ("bundle" in data || "selection" in data || "scheme" in data);
 }
 
 export function isSelectionData(selection?: SelectionUIData): selection is SelectionUIData {
@@ -37,7 +37,12 @@ function onBundleExportedToDefold(data: PluginMessagePayload) {
   exportResources(data);
 }
 
+function onGUINodeSchemeCopied(data: PluginMessagePayload) {
+  copyScheme(data);
+}
+
 export function processPluginMessage(type: PluginMessageAction, data?: PluginMessagePayload) {
+  console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!");
   if (type === "atlasesExported" && data) {
     onDefoldAtlasesExported(data);
   } else if (type === "guiNodesCopied" && data) {
@@ -46,6 +51,8 @@ export function processPluginMessage(type: PluginMessageAction, data?: PluginMes
     onComponentsExportedToDefold(data);
   } else if (type === "bundleExported" && data) {
     onBundleExportedToDefold(data);
+  } else if (type === "guiNodeSchemeCopied" && data) {
+    onGUINodeSchemeCopied(data);
   }
 }
 

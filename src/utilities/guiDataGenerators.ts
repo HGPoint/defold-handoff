@@ -1,12 +1,12 @@
 import config from "config/config.json";
-import { setPluginData, findMainComponent, hasChildren, isAtlas, isFigmaSceneNode, isFigmaComponentInstance, isFigmaBox, isFigmaText, isExportable, isAtlasSprite } from "utilities/figma";
+import { setPluginData, findMainComponent, hasChildren, isAtlas, isAtlasSection, isFigmaSceneNode, isFigmaComponentInstance, isFigmaBox, isFigmaText, isExportable, isAtlasSprite, getPluginData } from "utilities/figma";
 import { vector4, areVectorsEqual, copyVector } from "utilities/math";
 import { convertGUIData, convertBoxGUINodeData, convertTextGUINodeData } from "utilities/guiDataConverters";
 import { isSlice9PlaceholderLayer, findOriginalLayer, isSlice9Layer, isSlice9ServiceLayer, parseSlice9Data } from "utilities/slice9";
 import { generateAtlasPath, generateFontPath } from "utilities/path";
 
-async function isSkippable(layer: ExportableLayer): Promise<boolean> {
-  return isSlice9PlaceholderLayer(layer) || await isSpriteHolderLayer(layer);
+async function isSkippable(layer: ExportableLayer, gUINodeData: GUINodeData): Promise<boolean> {
+  return gUINodeData.skip || isSlice9PlaceholderLayer(layer) || await isSpriteHolderLayer(layer);
 }
 
 async function isSpriteHolderLayer(layer: ExportableLayer): Promise<boolean> {
@@ -60,7 +60,7 @@ function calculateParentParameters(layer: ExportableLayer, shouldSkip: boolean, 
   }
 }
 
-function generateNamePrefix(layer: ExportableLayer, shouldSkip: boolean, options: GUINodeDataExportOptions): string {
+function generateNamePrefix(shouldSkip: boolean, options: GUINodeDataExportOptions): string {
   if (shouldSkip) {
     if (options.namePrefix) {
       return options.namePrefix;
@@ -73,7 +73,7 @@ function generateNamePrefix(layer: ExportableLayer, shouldSkip: boolean, options
 }
 
 function generateParentOptions(layer: ExportableLayer, shouldSkip: boolean, atRoot: boolean, parentOptions: GUINodeDataExportOptions, parentGUINodeData: GUINodeData): GUINodeDataExportOptions {
-  const namePrefix = generateNamePrefix(layer, shouldSkip, parentOptions);
+  const namePrefix = generateNamePrefix(shouldSkip, parentOptions);
   const parentParameters = calculateParentParameters(layer, shouldSkip, atRoot, parentOptions, parentGUINodeData);
   return {
     layer,
@@ -87,8 +87,8 @@ async function generateGUINodeData(options: GUINodeDataExportOptions, guiNodesDa
   const { layer } = options;
   if (layer.visible || isSlice9Layer(layer)) {
     if (isFigmaBox(layer) && !isSlice9ServiceLayer(layer)) {
-      const shouldSkip = await isSkippable(layer);
       const guiNodeData = await convertBoxGUINodeData(layer, options);
+      const shouldSkip = await isSkippable(layer, guiNodeData);
       if (!shouldSkip) {
         guiNodesData.push(guiNodeData);
       }
@@ -108,28 +108,43 @@ async function generateGUINodeData(options: GUINodeDataExportOptions, guiNodesDa
   }
 }
 
-async function generateTextureData(layer: SceneNode, texturesData: TextureData) {
+function generateTextureData(layer: SceneNode, texturesData: TextureData) {
+  const texture = layer.name;
+  if (!texturesData[texture]) {
+    const path = generateAtlasPath(texture);
+    const id = layer.id;
+    texturesData[texture] = {
+      path,
+      id
+    };
+  }
+}
+
+async function generateTexturesData(layer: SceneNode, texturesData: TextureData) {
   if (isFigmaBox(layer)) {
     if (isFigmaComponentInstance(layer)) {
       const mainComponent = await findMainComponent(layer);
       if (mainComponent) {
-        const { parent } = mainComponent;
-        if (isFigmaSceneNode(parent) && isAtlas(parent)) {
-          const texture = parent.name;
-          if (!texturesData[texture]) {
-            const path = generateAtlasPath(texture);
-            const id = parent.id;
-            texturesData[texture] = {
-              path,
-              id
-            };
+        const { parent: atlas } = mainComponent;
+        if (isFigmaSceneNode(atlas) && isAtlas(atlas)) {
+          generateTextureData(atlas, texturesData);
+          const { parent: section } = atlas
+          if (isFigmaSceneNode(section) && isAtlasSection(section)) {
+            const sectionData = getPluginData(section, "defoldSection");
+            if (sectionData?.bundled) {
+              for (const child of section.children) {
+                if (isFigmaSceneNode(child) && isAtlas(child)) {
+                  generateTextureData(child, texturesData);
+                }
+              }
+            }
           }
         }
       }
     }
     if (hasChildren(layer)) {
       for (const child of layer.children) {
-        await generateTextureData(child, texturesData);
+        await generateTexturesData(child, texturesData);
       }
     }
   }
@@ -210,7 +225,7 @@ function guiDataCollapser(collapsedNodes: GUINodeData[], node: GUINodeData, inde
   return collapsedNodes;
 }
 
-async function generateGUIData(layer: ExportableLayer): Promise<GUIData> {
+export async function generateGUIData(layer: ExportableLayer): Promise<GUIData> {
   tryRestoreSlice9Data(layer);
   const { name } = layer;
   const gui = convertGUIData();
@@ -219,7 +234,7 @@ async function generateGUIData(layer: ExportableLayer): Promise<GUIData> {
   await generateGUINodeData(rootOptions, nodes);
   const collapsedNodes = nodes.reduce(guiDataCollapser, [] as GUINodeData[]);
   const textures: TextureData = {};
-  await generateTextureData(layer, textures);  
+  await generateTexturesData(layer, textures);  
   const fonts = {};
   await generateFontData(layer, fonts);
   return {

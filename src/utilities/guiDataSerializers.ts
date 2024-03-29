@@ -1,7 +1,13 @@
 import { propertySerializer } from "utilities/dataSerializers";
 
 function guiNodeDataSerializer(data: string, guiNodeData: GUINodeData): string {
-  const guiNode = Object.entries(guiNodeData).reduce(propertySerializer, "");
+  const donotInclude = ["skip"];
+  const guiNode = Object.entries(guiNodeData).reduce((serializedProperties: string, property) => {
+    if (donotInclude.includes(property[0])) {
+      return serializedProperties;
+    }
+    return propertySerializer(serializedProperties, property)
+  }, "");
   return `${data}\nnodes\n{\n${guiNode}}`;
 }
 

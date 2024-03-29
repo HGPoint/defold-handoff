@@ -7,7 +7,7 @@ function pickGUINodeId(gui?: PluginGUINodeData): string {
   return gui.id;
 }
 
-function pickGUINodePropertyValue<T extends keyof Omit<PluginGUINodeData, "id" | "type" >>(gui: PluginGUINodeData | undefined, property: T): NonNullable<PluginGUINodeData[T]> {
+function pickGUINodePropertyValue<T extends keyof Omit<PluginGUINodeData, "id" | "type" | "skip" >>(gui: PluginGUINodeData | undefined, property: T): NonNullable<PluginGUINodeData[T]> {
   if (!gui) {
     const defaultValue = config.guiNodeDefaultValues[property];
     if (typeof defaultValue === "object") {
@@ -32,6 +32,7 @@ function pickGUINodePropertyValue<T extends keyof Omit<PluginGUINodeData, "id" |
 export function generateGUINodeProperties(gui: PluginGUINodeData) {
   return {
     id: pickGUINodeId(gui),
+    skip: !!gui?.skip,
     enabled: pickGUINodePropertyValue(gui, "enabled"),
     visible: pickGUINodePropertyValue(gui, "visible"),
     inherit_alpha: pickGUINodePropertyValue(gui, "inherit_alpha"),

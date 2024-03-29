@@ -1,7 +1,7 @@
 import { getPluginData, hasVariantPropertyChanged } from "utilities/figma";
 import { isGUINodeSelected, reducePluginSelection, convertPluginUISelection } from "utilities/selection";  
 import { isSlice9Layer  } from "utilities/slice9";
-import { updateGUINode, tryRefreshSlice9Sprite, tryRestoreSLice9Node, copyGUINodes, exportGUINodes, resetGUINodes, fixTextNode } from "defold/gui";
+import { updateGUINode, tryRefreshSlice9Sprite, tryRestoreSLice9Node, copyGUINodes, exportGUINodes, resetGUINodes, fixTextNode, copyGUINodeScheme } from "defold/gui";
 import { createAtlas, exportAtlases, destroyAtlases } from "defold/atlas";
 import { updateSection, resetSections } from "defold/section";
 import { exportBundle } from "defold/bundle";
@@ -59,6 +59,18 @@ function onUpdateGUINode(data: PluginGUINodeData) {
   const { gui: [ layer ] } = selection;
   updateGUINode(layer, data);
 }
+
+function onCopyGUINodeScheme() {
+  const { gui: [ layer ] } = selection;
+  copyGUINodeScheme(layer)
+    .then(onGUINodeSchemeCopied);
+  }
+  
+  function onGUINodeSchemeCopied(scheme: string) {
+    console.log("2222222222222222222222222222222");
+    postMessageToPluginUI("guiNodeSchemeCopied", { scheme })
+    figma.notify("GUI node scheme copied");
+  } 
 
 function onResetGUINodes() {
   resetGUINodes(selection.gui);
@@ -134,6 +146,8 @@ function processPluginUIMessage(message: PluginMessage) {
     onResetGUINodes();
   } else if (type === "updateGUINode" && data?.guiNode) {
     onUpdateGUINode(data.guiNode);
+  } else if (type === "copyGUINodeScheme") {
+    onCopyGUINodeScheme();
   } else if (type === "showGUINodeData") {
     onShowGUINodeData();
   } else if (type === "createAtlas") {

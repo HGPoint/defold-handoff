@@ -314,10 +314,15 @@ function injectGUINodeDefaults() {
   };
 }
 
+function calculateSkip(data: PluginGUINodeData | undefined | null) {
+  return data?.skip || false;
+}
+
 export async function convertBoxGUINodeData(layer: BoxLayer, options: GUINodeDataExportOptions): Promise<GUINodeData> {
   const { namePrefix, parentId, parentPivot, parentSize, parentShift } = options;
   const defaults = injectGUINodeDefaults();
   const data = getPluginData(layer, "defoldGUINode");
+  const skip = calculateSkip(data);
   const id = calculateId(layer, namePrefix)
   const slice9 = calculateSlice9(layer, data);
   const type = calculateType(layer);
@@ -331,6 +336,7 @@ export async function convertBoxGUINodeData(layer: BoxLayer, options: GUINodeDat
     ...data,
     id,
     type,
+    skip,
     ...parent,
     ...transformations,
     ...visuals,
@@ -344,6 +350,7 @@ export function convertTextGUINodeData(layer: TextLayer, options: GUINodeDataExp
   const { namePrefix, parentId, parentPivot, parentSize, parentShift } = options;
   const defaults = injectGUINodeDefaults();
   const data = getPluginData(layer, "defoldGUINode");
+  const skip = calculateSkip(data);
   const id = calculateId(layer, namePrefix)
   const type = calculateType(layer);
   const pivot = calculateTextPivot(layer);
@@ -358,6 +365,7 @@ export function convertTextGUINodeData(layer: TextLayer, options: GUINodeDataExp
     ...data,
     id,
     type,
+    skip,
     text,
     ...parent,
     ...transformations,

@@ -2,7 +2,7 @@ import { archiveBundle } from "utilities/archive";
 import copyOnClipboard from "utilities/clipboard";
 import download from "utilities/download";
 
-function isBundleData(bundle?: BundleData): bundle is BundleData{
+function isBundleData(bundle?: BundleData): bundle is BundleData {
   return !!bundle && ("gui" in bundle || "atlases" in bundle);
 }
 
@@ -68,5 +68,11 @@ export async function exportAtlases({ bundle }: PluginMessagePayload) {
       const blob = await archiveBundle(bundle);
       download(blob, fileName);
     }
+  }
+}
+
+export function copyScheme({ scheme }: PluginMessagePayload) {
+  if (scheme) {
+    copyOnClipboard(scheme);
   }
 }

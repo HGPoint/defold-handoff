@@ -35,8 +35,8 @@
 
 <Page>
   <Properties>
-    <ToggleProperty label="Bundled" bind:value={properties.bundled} />
-    <TextProperty label="Jumbo" bind:value={properties.jumbo} />
+    <ToggleProperty label="Bundled Atlases" bind:value={properties.bundled} />
+    <TextProperty label="Combine As" bind:value={properties.jumbo} />
   </Properties>
   <Actions>
     <ActionButton label="Export Atlases" action="exportAtlases" />

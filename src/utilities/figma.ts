@@ -4,7 +4,8 @@ export function isFigmaSceneNode(layer: BaseNode | null): layer is SceneNode {
     isFigmaComponentSet(layer) ||
     isFigmaComponentInstance(layer) ||
     isFigmaFrame(layer) ||
-    isFigmaText(layer)
+    isFigmaText(layer) ||
+    isFigmaSection(layer) 
   );
 }
 
@@ -54,6 +55,10 @@ export function isGUINode(layer: SceneNode) {
 
 export function isAtlas(layer: SceneNode): layer is ComponentSetNode {
   return isFigmaComponentSet(layer) && !!getPluginData(layer, "defoldAtlas");
+}
+
+export function isAtlasSection(layer: SceneNode): layer is SectionNode {
+  return isFigmaSection(layer) && !!getPluginData(layer, "defoldSection");
 }
 
 export async function isAtlasSprite(layer: SceneNode): Promise<boolean> {

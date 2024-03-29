@@ -59,6 +59,7 @@ type GUINodeData = {
   parent?: string,
   enabled: boolean,
   visible: boolean,
+  skip: boolean,
   position: Vector4,
   rotation: Vector4,
   scale: Vector4,
