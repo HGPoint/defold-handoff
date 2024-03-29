@@ -96,8 +96,8 @@ async function watchProjects() {
 
 async function buildProjects() {
   try {
-    const pluginBuildConfig = { ...figmaPluginConfig };
-    const uiBuildConfig = { ...uiConfig };
+    const pluginBuildConfig = { ...figmaPluginConfig, minifyWhitespace: true };
+    const uiBuildConfig = { ...uiConfig, minifyWhitespace: true };
     await build(pluginBuildConfig);
     await build(uiBuildConfig);
   } catch (error) {
