@@ -5,7 +5,7 @@ import { build, context } from "esbuild";
 import esbuildSvelte from "esbuild-svelte"; 
 import sveltePreprocess from "svelte-preprocess";
 
-const HTML_TEMPLATE = `<style>{{style}}</style><main id="root" class="root"></main><script>{{script}}</script>`
+const HTML_TEMPLATE = `<style>{{style}}</style><div id="root" class="root"></div><script>{{script}}</script>`
 
 function readFile(filePath) {
   return new Promise((resolve, reject) => {
@@ -96,8 +96,10 @@ async function watchProjects() {
 
 async function buildProjects() {
   try {
-    await build(figmaPluginConfig);
-    await build(uiConfig);
+    const pluginBuildConfig = { ...figmaPluginConfig };
+    const uiBuildConfig = { ...uiConfig };
+    await build(pluginBuildConfig);
+    await build(uiBuildConfig);
   } catch (error) {
     console.error("Build failed:", error);
     process.exit(1);
