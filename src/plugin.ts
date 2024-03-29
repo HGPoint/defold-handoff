@@ -67,7 +67,6 @@ function onCopyGUINodeScheme() {
   }
   
   function onGUINodeSchemeCopied(scheme: string) {
-    console.log("2222222222222222222222222222222");
     postMessageToPluginUI("guiNodeSchemeCopied", { scheme })
     figma.notify("GUI node scheme copied");
   } 

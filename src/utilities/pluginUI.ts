@@ -42,7 +42,6 @@ function onGUINodeSchemeCopied(data: PluginMessagePayload) {
 }
 
 export function processPluginMessage(type: PluginMessageAction, data?: PluginMessagePayload) {
-  console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!");
   if (type === "atlasesExported" && data) {
     onDefoldAtlasesExported(data);
   } else if (type === "guiNodesCopied" && data) {
