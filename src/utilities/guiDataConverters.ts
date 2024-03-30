@@ -1,6 +1,7 @@
 import config from "config/config.json";
 import { isAtlas, isFigmaSceneNode, isFigmaText, isFigmaComponentInstance, hasSolidFills, hasSolidStrokes, isSolidPaint, isShadowEffect, findMainComponent, getPluginData } from "utilities/figma";
 import { isSlice9Layer, findPlaceholderLayer, parseSlice9Data } from "utilities/slice9";
+import { calculateAtlasName } from "utilities/atlas";
 import { subVectors, isZeroVector, vector4 } from "utilities/math";
 import { calculatePivotedPosition, calculateCenteredPosition, calculateRootPosition } from "utilities/pivot";
 
@@ -177,10 +178,12 @@ function calculateColor(layer: ExportableLayer) {
   return calculateFillColor(fills);
 }
 
+
+
 function calculateAtlasTexture(atlas: ComponentSetNode, layer: InstanceNode) {
-  const texture = atlas.name;
+  const atlasName = calculateAtlasName(atlas);
   const sprite = layer.variantProperties?.Sprite;
-  return sprite ? `${texture}/${sprite}` : "";
+  return sprite ? `${atlasName}/${sprite}` : "";
 }
 
 function calculateEmptyTexture() {

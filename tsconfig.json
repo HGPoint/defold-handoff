@@ -25,8 +25,8 @@
       "components": [
         "components/*"
       ],
-      "defold": [
-        "defold/*"
+      "handoff": [
+        "handoff/*"
       ],
       "state": [
         "state/*"

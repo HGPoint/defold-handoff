@@ -1,10 +1,10 @@
 import { getPluginData, hasVariantPropertyChanged } from "utilities/figma";
 import { isGUINodeSelected, reducePluginSelection, convertPluginUISelection } from "utilities/selection";  
 import { isSlice9Layer  } from "utilities/slice9";
-import { updateGUINode, tryRefreshSlice9Sprite, tryRestoreSLice9Node, copyGUINodes, exportGUINodes, resetGUINodes, fixTextNode, copyGUINodeScheme } from "defold/gui";
-import { createAtlas, exportAtlases, destroyAtlases } from "defold/atlas";
-import { updateSection, resetSections } from "defold/section";
-import { exportBundle } from "defold/bundle";
+import { updateGUINode, tryRefreshSlice9Sprite, tryRestoreSLice9Node, copyGUINodes, exportGUINodes, resetGUINodes, fixTextNode, copyGUINodeScheme } from "handoff/gui";
+import { createAtlas, exportAtlases, destroyAtlases } from "handoff/atlas";
+import { updateSection, resetSections } from "handoff/section";
+import { exportBundle } from "handoff/bundle";
 
 let selection: SelectionData = { gui: [], atlases: [], layers: [], sections: [] };
 

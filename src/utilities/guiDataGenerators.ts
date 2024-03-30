@@ -108,15 +108,34 @@ async function generateGUINodeData(options: GUINodeDataExportOptions, guiNodesDa
   }
 }
 
-function generateTextureData(layer: SceneNode, texturesData: TextureData) {
-  const texture = layer.name;
-  if (!texturesData[texture]) {
-    const path = generateAtlasPath(texture);
-    const id = layer.id;
-    texturesData[texture] = {
+function generateTextureData(name: string, layer: SceneNode, texturesData: TextureData) {
+  if (!texturesData[name]) {
+    const path = generateAtlasPath(name);
+    const { id } = layer;
+    texturesData[name] = {
       path,
       id
     };
+  }
+}
+
+function updateTextureData(atlas: SceneNode, texturesData: TextureData) {
+  const { parent: section } = atlas
+  if (isFigmaSceneNode(section) && isAtlasSection(section)) {
+    const sectionData = getPluginData(section, "defoldSection");
+    if (sectionData?.bundled) {
+      generateTextureData(atlas.name, atlas, texturesData);
+      for (const child of section.children) {
+        if (isFigmaSceneNode(child) && isAtlas(child)) {
+          generateTextureData(child.name, child, texturesData);
+        }
+      }
+    } else if (sectionData?.jumbo) {
+      const name = sectionData?.jumbo;
+      generateTextureData(name, section, texturesData);
+    }
+  } else {
+    generateTextureData(atlas.name, atlas, texturesData);
   }
 }
 
@@ -127,18 +146,7 @@ async function generateTexturesData(layer: SceneNode, texturesData: TextureData)
       if (mainComponent) {
         const { parent: atlas } = mainComponent;
         if (isFigmaSceneNode(atlas) && isAtlas(atlas)) {
-          generateTextureData(atlas, texturesData);
-          const { parent: section } = atlas
-          if (isFigmaSceneNode(section) && isAtlasSection(section)) {
-            const sectionData = getPluginData(section, "defoldSection");
-            if (sectionData?.bundled) {
-              for (const child of section.children) {
-                if (isFigmaSceneNode(child) && isAtlas(child)) {
-                  generateTextureData(child, texturesData);
-                }
-              }
-            }
-          }
+          updateTextureData(atlas, texturesData);
         }
       }
     }
@@ -234,7 +242,7 @@ export async function generateGUIData(layer: ExportableLayer): Promise<GUIData> 
   await generateGUINodeData(rootOptions, nodes);
   const collapsedNodes = nodes.reduce(guiDataCollapser, [] as GUINodeData[]);
   const textures: TextureData = {};
-  await generateTexturesData(layer, textures);  
+  await generateTexturesData(layer, textures);
   const fonts = {};
   await generateFontData(layer, fonts);
   return {

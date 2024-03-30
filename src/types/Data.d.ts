@@ -12,12 +12,14 @@ type SpriteComponentData = {
 
 type SpriteData = {
   name: string,
+  directory: string,
   sprite: SpriteComponentData,
   data: Uint8Array,
 }
 
 type SerializedSpriteData = {
   name: string,
+  directory: string,
   data: Uint8Array,
 }
 

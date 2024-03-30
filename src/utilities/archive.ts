@@ -2,7 +2,8 @@ import JSZip from "jszip";
 import config from "config/config.json";
 import { generateAtlasFileName, generateGUIFileName, generateSpriteFileName } from "utilities/path";
 
-function archiveAtlasImage({ name, data }: SerializedSpriteData, atlasImagesFolder: JSZip) {
+function archiveAtlasImage({ name, directory, data }: SerializedSpriteData, imagesFolder: JSZip) {
+  const atlasImagesFolder = imagesFolder.folder(directory) || imagesFolder;
   const spriteFileName = generateSpriteFileName(name);
   const blob = new Blob([data], { type: "image/png" });
   atlasImagesFolder.file(spriteFileName, blob);
@@ -11,8 +12,7 @@ function archiveAtlasImage({ name, data }: SerializedSpriteData, atlasImagesFold
 function archiveAtlas({ data, name, images }: SerializedAtlasData, atlasesFolder: JSZip, imagesFolder: JSZip) {
   const atlasFileName = generateAtlasFileName(name);
   atlasesFolder.file(atlasFileName, data);
-  const atlasImagesFolder = imagesFolder.folder(name) || atlasesFolder;
-  images.forEach((image) => archiveAtlasImage(image, atlasImagesFolder));
+  images.forEach((image) => archiveAtlasImage(image, imagesFolder));
 }
 
 function archiveAtlases(atlases: SerializedAtlasData[], assetsFolder: JSZip) {
