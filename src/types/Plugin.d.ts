@@ -26,6 +26,9 @@ type PluginGUINodeData = {
   type?: "box" | "text",
   id?: string,
   skip?: boolean,
+  cloneable?: boolean,
+  wrapper?: boolean,
+  wrapper_padding?: Vector4,
   enabled?: boolean,
   visible?: boolean,
   inherit_alpha?: boolean,
@@ -42,6 +45,8 @@ type PluginGUINodeData = {
   clipping_mode?: ClippingMode,
   clipping_inverted?: boolean,
 }
+
+type NonDefoldProperties = "id" | "type" | "skip" | "cloneable" | "wrapper" | "wrapper_padding";
 
 type PluginData = {
   defoldGUINode?: PluginGUINodeData | null,

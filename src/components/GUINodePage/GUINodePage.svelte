@@ -10,7 +10,7 @@
   import OptionsProperty from "components/OptionsProperty";
   import ToggleProperty from "components/ToggleProperty";
   import TransformationProperty from "components/TransformationProperty";
-  import Slice9Property from "components/Slice9Property";
+  import SidesProperty from "components/SidesProperty";
   import TextProperty from "components/TextProperty";
 
   let properties: ReturnType<typeof generateGUINodeProperties>;
@@ -42,13 +42,12 @@
 <Page>
   <Properties>
     <TextProperty label="Id" bind:value={properties.id} />
-    <ToggleProperty label="Skip" bind:value={properties.skip} />
     <TransformationProperty label="Scale" bind:value={properties.scale} disabled={true} />
     <ToggleProperty label="Enabled" bind:value={properties.enabled} />
     <ToggleProperty label="Visible" bind:value={properties.visible} />
     <OptionsProperty label="Material" bind:value={properties.material} options={{}} disabled={true} />
     {#if type !== "text"}
-      <Slice9Property label="Slice 9" bind:value={properties.slice9} />
+      <SidesProperty label="Slice 9" bind:value={properties.slice9} />
     {/if}
     <ToggleProperty label="Inherit Alpha" bind:value={properties.inherit_alpha} />
     <OptionsProperty label="Layer" bind:value={properties.layer} options={{}} disabled={true} />
@@ -61,6 +60,14 @@
     <OptionsProperty label="Adjust Mode" bind:value={properties.adjust_mode} options={config.adjustModes} />
     <OptionsProperty label="Clipping Mode" bind:value={properties.clipping_mode} options={config.clippingModes} />
     <ToggleProperty label="Clipping Inverted" bind:value={properties.clipping_inverted} />
+  </Properties>
+  <Properties title="Special Properties">
+    <ToggleProperty label="Skip" bind:value={properties.skip} />
+    <ToggleProperty label="Cloneable" bind:value={properties.cloneable} disabled={true} />
+    <ToggleProperty label="Wrapper" bind:value={properties.wrapper} disabled={true} />
+    {#if properties.wrapper}
+      <SidesProperty label="Wrapper Padding" bind:value={properties.wrapper_padding} disabled={true} />
+    {/if}
   </Properties>
   <Actions>
     {#if type === "text"}

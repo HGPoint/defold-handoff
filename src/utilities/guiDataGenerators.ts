@@ -83,13 +83,23 @@ function generateParentOptions(layer: ExportableLayer, shouldSkip: boolean, atRo
   }
 }
 
-async function generateGUINodeData(options: GUINodeDataExportOptions, guiNodesData: GUINodeData[]) {
+async function generateGUINodeData(options: GUINodeDataExportOptions, guiNodesData: GUINodeData[], cloneableComponents?: ComponentNode[]) {
   const { layer } = options;
   if (layer.visible || isSlice9Layer(layer)) {
+    let mainComponent: ComponentNode | null = null;
+    if (isFigmaComponentInstance(layer)) {
+      mainComponent = await findMainComponent(layer);
+    }
     if (isFigmaBox(layer) && !isSlice9ServiceLayer(layer)) {
       const guiNodeData = await convertBoxGUINodeData(layer, options);
       const shouldSkip = await isSkippable(layer, guiNodeData);
       if (!shouldSkip) {
+        if (mainComponent) {
+          if (!cloneableComponents) {
+            cloneableComponents = [];
+          }
+          cloneableComponents.push(mainComponent);
+        }
         guiNodesData.push(guiNodeData);
       }
       if (hasChildren(layer)) {
@@ -97,7 +107,7 @@ async function generateGUINodeData(options: GUINodeDataExportOptions, guiNodesDa
         for (const child of children) {
           if (isExportable(child) && !isSlice9ServiceLayer(layer)) {
             const parentOptions = generateParentOptions(child, shouldSkip, false, options, guiNodeData);
-            await generateGUINodeData(parentOptions, guiNodesData);
+            await generateGUINodeData(parentOptions, guiNodesData, cloneableComponents);
           }
         }
       }

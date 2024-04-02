@@ -1,4 +1,5 @@
 import config from "config/config.json";
+import { vector4 } from "utilities/math";
 
 function pickGUINodeId(gui?: PluginGUINodeData): string {
   if (!gui || !gui.id) {
@@ -7,7 +8,7 @@ function pickGUINodeId(gui?: PluginGUINodeData): string {
   return gui.id;
 }
 
-function pickGUINodePropertyValue<T extends keyof Omit<PluginGUINodeData, "id" | "type" | "skip" >>(gui: PluginGUINodeData | undefined, property: T): NonNullable<PluginGUINodeData[T]> {
+function pickGUINodePropertyValue<T extends keyof Omit<PluginGUINodeData, NonDefoldProperties>>(gui: PluginGUINodeData | undefined, property: T): NonNullable<PluginGUINodeData[T]> {
   if (!gui) {
     const defaultValue = config.guiNodeDefaultValues[property];
     if (typeof defaultValue === "object") {
@@ -33,6 +34,9 @@ export function generateGUINodeProperties(gui: PluginGUINodeData) {
   return {
     id: pickGUINodeId(gui),
     skip: !!gui?.skip,
+    cloneable: !!gui?.cloneable,
+    wrapper: !!gui?.wrapper,
+    wrapper_padding: gui?.wrapper_padding || vector4(0),
     enabled: pickGUINodePropertyValue(gui, "enabled"),
     visible: pickGUINodePropertyValue(gui, "visible"),
     inherit_alpha: pickGUINodePropertyValue(gui, "inherit_alpha"),
