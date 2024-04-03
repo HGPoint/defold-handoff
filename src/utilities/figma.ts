@@ -72,7 +72,7 @@ export async function isAtlasSprite(layer: SceneNode): Promise<boolean> {
   return false;
 }
 
-export function hasChildren(layer: BoxLayer) {
+export function hasChildren(layer: BoxLayer): boolean {
   return !!layer.children?.length;
 }
 
@@ -124,4 +124,39 @@ export function getPluginData<T extends PluginDataKey>(layer: SceneNode, key: T)
 
 export function removePluginData<T extends PluginDataKey>(layer: SceneNode, key: T) {
   layer.setPluginData(key, "");
+}
+
+export function equalComponentProperty(property1: ComponentProperties[keyof ComponentProperties], property2: ComponentProperties[keyof ComponentProperties]) {
+  return (property1.type == "TEXT" && property2.type == "TEXT") || property1.value === property2.value;
+}
+
+export function equalComponentProperties(properties1: ComponentProperties, properties2: ComponentProperties) {
+  if (properties1 == null && properties1 === properties2) {
+    return true;
+  }
+  if (properties1 && properties2) {
+    return Object.keys(properties1).every(key => equalComponentProperty(properties1[key], properties2[key]));
+  }
+  return false;
+}
+
+export function equalExposedComponentProperty(instance1: InstanceNode, instance2: InstanceNode) {
+  return (
+    (!instance1.visible && !instance2.visible) ||
+    (
+      instance1.visible &&
+      instance2.visible &&
+      equalComponentProperties(instance1.componentProperties, instance2.componentProperties)
+    )
+  )
+}
+
+export function equalExposedComponentProperties(exposedInstances1: InstanceNode[], exposedInstances2: InstanceNode[]) {
+  if ((exposedInstances1 == null && exposedInstances1 === exposedInstances2) || (exposedInstances1.length === 0 && exposedInstances1.length === exposedInstances2.length)) {
+    return true;
+  }
+  if (exposedInstances1 && exposedInstances2) {
+    return exposedInstances1.every((instance1, index) => equalExposedComponentProperty(instance1, exposedInstances2[index]));
+  }
+  return false;
 }

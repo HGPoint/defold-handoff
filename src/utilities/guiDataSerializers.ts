@@ -1,7 +1,7 @@
 import { propertySerializer } from "utilities/dataSerializers";
 
 function guiNodeDataSerializer(data: string, guiNodeData: GUINodeData): string {
-  const donotInclude = ["skip", "cloneable", "wrapper", "wrapper_padding"];
+  const donotInclude = ["skip", "cloneable", "wrapper", "wrapper_padding" , "exportable_layer", "children"];
   const guiNode = Object.entries(guiNodeData).reduce((serializedProperties: string, property) => {
     if (donotInclude.includes(property[0])) {
       return serializedProperties;

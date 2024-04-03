@@ -1,5 +1,5 @@
 import config from "config/config.json";
-import { setPluginData, findMainComponent, hasChildren, isAtlas, isAtlasSection, isFigmaSceneNode, isFigmaComponentInstance, isFigmaBox, isFigmaText, isExportable, isAtlasSprite, getPluginData } from "utilities/figma";
+import { setPluginData, findMainComponent, hasChildren, isAtlas, isAtlasSection, isFigmaSceneNode, isFigmaComponentInstance, isFigmaBox, isFigmaText, isExportable, isAtlasSprite, getPluginData, equalComponentProperties, equalExposedComponentProperties } from "utilities/figma";
 import { vector4, areVectorsEqual, copyVector } from "utilities/math";
 import { convertGUIData, convertBoxGUINodeData, convertTextGUINodeData } from "utilities/guiDataConverters";
 import { isSlice9PlaceholderLayer, findOriginalLayer, isSlice9Layer, isSlice9ServiceLayer, parseSlice9Data } from "utilities/slice9";
@@ -32,24 +32,27 @@ function generateRootOptions(layer: ExportableLayer): GUINodeDataExportOptions {
     parentPivot: config.guiNodeDefaultValues.pivot,
     parentSize: vector4(0),
     parentShift: vector4(0),
+    parentChildren: []
   }
 }
 
-function calculateParentParameters(layer: ExportableLayer, shouldSkip: boolean, atRoot: boolean, parentOptions: GUINodeDataExportOptions, guiNodeData: GUINodeData): Pick<GUINodeDataExportOptions, "parentId" | "parentPivot" | "parentSize" | "parentShift"> {
-  const { parentId, parentSize, parentPivot } = parentOptions;
+function calculateParentParameters(layer: ExportableLayer, shouldSkip: boolean, atRoot: boolean, parentOptions: GUINodeDataExportOptions, guiNodeData: GUINodeData): Pick<GUINodeDataExportOptions, "parentId" | "parentPivot" | "parentSize" | "parentShift" | "parentChildren"> {
+  const { parentId, parentSize, parentPivot, parentChildren } = parentOptions;
   if (atRoot) {
     return {
       parentId: "",
       parentSize: vector4(layer.width, layer.height, 0, 1),
       parentPivot: config.guiNodeDefaultValues.pivot,
       parentShift: vector4(0),
+      parentChildren: []
     }
   } else if (shouldSkip) {
     return {
       parentId: parentId,
       parentSize: parentSize,
       parentPivot: parentPivot,
-      parentShift: guiNodeData.position
+      parentShift: guiNodeData.position,
+      parentChildren: parentChildren
     }
   }
   return {
@@ -57,6 +60,7 @@ function calculateParentParameters(layer: ExportableLayer, shouldSkip: boolean, 
     parentSize: guiNodeData.size,
     parentPivot: guiNodeData.pivot,
     parentShift: vector4(0),
+    parentChildren: guiNodeData.children || parentChildren
   }
 }
 
@@ -83,31 +87,57 @@ function generateParentOptions(layer: ExportableLayer, shouldSkip: boolean, atRo
   }
 }
 
-async function generateGUINodeData(options: GUINodeDataExportOptions, guiNodesData: GUINodeData[], cloneableComponents?: ComponentNode[]) {
+function createClone(mainComponent: ComponentNode, clone: InstanceNode): GUINodeCloneData {
+  return {
+    cloneOf: mainComponent,
+    cloneInstance: clone,
+  }
+}
+
+function findClone(data: GUINodeCloneData, mainComponent: ComponentNode, layer: InstanceNode) {
+  return (
+    data.cloneOf === mainComponent &&
+    equalComponentProperties(data.cloneInstance.componentProperties, layer.componentProperties) &&
+    equalExposedComponentProperties(data.cloneInstance.exposedInstances, layer.exposedInstances)
+  );
+}
+
+async function generateGUINodeData(options: GUINodeDataExportOptions, guiNodesData: GUINodeData[], clones?: ReturnType<typeof createClone>[]) {
   const { layer } = options;
   if (layer.visible || isSlice9Layer(layer)) {
-    let mainComponent: ComponentNode | null = null;
-    if (isFigmaComponentInstance(layer)) {
-      mainComponent = await findMainComponent(layer);
-    }
     if (isFigmaBox(layer) && !isSlice9ServiceLayer(layer)) {
-      const guiNodeData = await convertBoxGUINodeData(layer, options);
-      const shouldSkip = await isSkippable(layer, guiNodeData);
-      if (!shouldSkip) {
+      let alreadyCloned = false;
+      const guiNodeData = await convertBoxGUINodeData(layer, options);  
+      if (guiNodeData.cloneable && isFigmaComponentInstance(layer)) {
+        const mainComponent = await findMainComponent(layer);
         if (mainComponent) {
-          if (!cloneableComponents) {
-            cloneableComponents = [];
+          if (clones?.find((clone) => findClone(clone, mainComponent, layer))) {
+            alreadyCloned = true;
+          } else {
+            if (!clones) {
+              clones = [];
+            }
+            const clone = createClone(mainComponent, layer);
+            clones.push(clone);
           }
-          cloneableComponents.push(mainComponent);
         }
-        guiNodesData.push(guiNodeData);
       }
-      if (hasChildren(layer)) {
-        const { children } = layer; 
-        for (const child of children) {
-          if (isExportable(child) && !isSlice9ServiceLayer(layer)) {
-            const parentOptions = generateParentOptions(child, shouldSkip, false, options, guiNodeData);
-            await generateGUINodeData(parentOptions, guiNodesData, cloneableComponents);
+      if (!alreadyCloned) {
+        const shouldSkip = await isSkippable(layer, guiNodeData);
+        if (!shouldSkip) {
+          guiNodesData.push(guiNodeData);
+        }
+        if (hasChildren(layer)) {
+          if (!shouldSkip) {  
+            guiNodeData.children = [];
+          }
+          const { children: layerChildren } = layer; 
+          for (const layerChild of layerChildren) {
+            if (isExportable(layerChild) && !isSlice9ServiceLayer(layer)) {
+              const parentOptions = generateParentOptions(layerChild, shouldSkip, false, options, guiNodeData);
+              const children = guiNodeData.children || parentOptions.parentChildren; 
+              await generateGUINodeData(parentOptions, children, clones);
+            }
           }
         }
       }
@@ -228,19 +258,20 @@ function collapseNodes(parent: GUINodeData, child: GUINodeData) {
   parent.blend_mode = child.blend_mode;
 }
 
-function guiDataCollapser(collapsedNodes: GUINodeData[], node: GUINodeData, index: number, nodes: GUINodeData[]): GUINodeData[] {
-  const { parent: parentId } = node;
-  if (parentId) {
-    const parent = nodes.find(({ id }) => id === parentId);
-    if (parent && canCollapseNodes(parent, node)) {
-      collapseNodes(parent, node);
-    } else {
-      collapsedNodes.push(node);
-    }
-  } else {
+function collapseGUINodeData(nodes: GUINodeData[], collapsedNodes: GUINodeData[]) {
+  for (const node of nodes) {
     collapsedNodes.push(node);
+    if (node.children) {
+      const { children } = node;
+      const collapsableChild = children.find(child => canCollapseNodes(node, child));
+      if (collapsableChild) {
+        collapseNodes(node, collapsableChild);
+        const index = children.indexOf(collapsableChild);
+        children.splice(index, 1);
+      }
+      collapseGUINodeData(children, collapsedNodes);
+    }
   }
-  return collapsedNodes;
 }
 
 export async function generateGUIData(layer: ExportableLayer): Promise<GUIData> {
@@ -249,8 +280,9 @@ export async function generateGUIData(layer: ExportableLayer): Promise<GUIData> 
   const gui = convertGUIData();
   const rootOptions = generateRootOptions(layer);
   const nodes: GUINodeData[] = [];
-  await generateGUINodeData(rootOptions, nodes);
-  const collapsedNodes = nodes.reduce(guiDataCollapser, [] as GUINodeData[]);
+  await generateGUINodeData(rootOptions, nodes, [] as GUINodeCloneData[]);
+  const collapsedNodes: GUINodeData[] = [];
+  collapseGUINodeData(nodes, collapsedNodes);
   const textures: TextureData = {};
   await generateTexturesData(layer, textures);
   const fonts = {};

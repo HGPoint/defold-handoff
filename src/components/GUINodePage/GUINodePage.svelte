@@ -63,7 +63,7 @@
   </Properties>
   <Properties title="Special Properties">
     <ToggleProperty label="Skip" bind:value={properties.skip} />
-    <ToggleProperty label="Cloneable" bind:value={properties.cloneable} disabled={true} />
+    <ToggleProperty label="Cloneable" bind:value={properties.cloneable} />
     <ToggleProperty label="Wrapper" bind:value={properties.wrapper} disabled={true} />
     {#if properties.wrapper}
       <SidesProperty label="Wrapper Padding" bind:value={properties.wrapper_padding} disabled={true} />

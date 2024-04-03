@@ -46,7 +46,7 @@ type PluginGUINodeData = {
   clipping_inverted?: boolean,
 }
 
-type NonDefoldProperties = "id" | "type" | "skip" | "cloneable" | "wrapper" | "wrapper_padding";
+type NonDefoldProperties = "id" | "type" | "skip" | "cloneable" | "wrapper" | "wrapper_padding" | "exportable_layer" | "children";
 
 type PluginData = {
   defoldGUINode?: PluginGUINodeData | null,

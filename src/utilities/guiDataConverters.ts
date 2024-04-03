@@ -306,7 +306,7 @@ function calculateTextParameters(layer: TextLayer) {
   };
 }
 
-function calculateSlice9(layer: BoxLayer, data: PluginGUINodeData | undefined | null) {
+function calculateSlice9(layer: BoxLayer, data?: PluginGUINodeData | null) {
   const parsedSlice9 = parseSlice9Data(layer);
   if (parsedSlice9 && !isZeroVector(parsedSlice9)) {
     return parsedSlice9;
@@ -320,12 +320,13 @@ function injectGUINodeDefaults() {
   };
 }
 
-function calculateSpecialProperties(data: PluginGUINodeData | undefined | null) {
+function calculateSpecialProperties(layer: ExportableLayer, data?: PluginGUINodeData | null) {
   return {
     skip: !!data?.skip,
     cloneable: !!data?.cloneable,
     wrapper: !!data?.wrapper,
     wrapper_padding: data?.wrapper_padding || vector4(0),
+    exportable_layer: layer,
   };
 }
 
@@ -341,7 +342,7 @@ export async function convertBoxGUINodeData(layer: BoxLayer, options: GUINodeDat
   const sizeMode = calculateBoxSizeMode(layer, visuals.texture);
   const transformations = convertBoxTransformations(layer, pivot, parentPivot, parentSize, parentShift);
   const parent = convertParent(parentId, data);
-  const specialProperties = calculateSpecialProperties(data);
+  const specialProperties = calculateSpecialProperties(layer, data);
   return {
     ...defaults,
     ...data,
@@ -370,7 +371,7 @@ export function convertTextGUINodeData(layer: TextLayer, options: GUINodeDataExp
   const parent = convertParent(parentId);
   const text = layer.characters;
   const textParameters = calculateTextParameters(layer);
-  const specialProperties = calculateSpecialProperties(data);
+  const specialProperties = calculateSpecialProperties(layer, data);
   return {
     ...defaults,
     ...data,

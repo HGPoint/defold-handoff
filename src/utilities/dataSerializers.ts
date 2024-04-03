@@ -1,41 +1,38 @@
 import config from "config/config.json";
 
-type PropertyKey = string;
-type PropertyValue = string | number | boolean | Vector4;
-
-function hasValue(value: PropertyValue) {
+function hasValue(value: SerializableGUINodeDataValue) {
   return value !== null && value !== undefined;
 }
 
-function isSimpleProperty(value: PropertyValue): value is number | boolean {
+function isSimpleProperty(value: SerializableGUINodeDataValue): value is number | boolean {
   return typeof value === "number" || typeof value === "boolean";
 }
 
-function isStringProperty(value: PropertyValue): value is string {
+function isStringProperty(value: SerializableGUINodeDataValue): value is string {
   return typeof value === "string";
 }
 
-function isQuotedProperty(key: PropertyKey) {
+function isQuotedProperty(key: SerializableGUINodeDataKey) {
   return !config.constKeys.includes(key);
 }
 
-function isVector4Property(value: PropertyValue): value is Vector4 {
+function isVector4Property(value: SerializableGUINodeDataValue): value is Vector4 {
   return typeof value == "object" &&  "x" in value && "y" in value && "z" in value && "w" in value;
 }
 
-function serializeSimpleProperty(property: PropertyKey, value: PropertyValue): string {
+function serializeSimpleProperty(property: SerializableGUINodeDataKey, value: SerializableGUINodeDataValue): string {
   return `${property}: ${value}`;
 }
 
-function serializeQuotedProperty(property: PropertyKey, value: PropertyValue): string {
+function serializeQuotedProperty(property: SerializableGUINodeDataKey, value: SerializableGUINodeDataValue): string {
   return `${property}: "${value}"`;
 }
 
-function serializeVector4Property(property: PropertyKey, value: Vector4): string {
+function serializeVector4Property(property: SerializableGUINodeDataKey, value: Vector4): string {
   return `${property} {\nx: ${value.x}\ny: ${value.y}\nz: ${value.z}\nw: ${value.w}\n}`;
 }
 
-export function serializeProperty(property: PropertyKey, value: PropertyValue): string {
+export function serializeProperty(property: SerializableGUINodeDataKey, value: SerializableGUINodeDataValue): string {
   if (isSimpleProperty(value)) {
     return serializeSimpleProperty(property, value);
   } else if (isStringProperty(value)) {
@@ -50,7 +47,7 @@ export function serializeProperty(property: PropertyKey, value: PropertyValue): 
   return "";
 }
 
-export function propertySerializer(serializedProperties: string, [property, value]: [PropertyKey, PropertyValue]): string {
+export function propertySerializer(serializedProperties: string, [property, value]: [SerializableGUINodeDataKey, SerializableGUINodeDataValue]): string {
   if (hasValue(value)) {
     return `${serializedProperties}${serializeProperty(property, value)}\n`;
   }

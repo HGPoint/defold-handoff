@@ -61,10 +61,6 @@ type GUINodeData = {
   parent?: string,
   enabled: boolean,
   visible: boolean,
-  skip: boolean,
-  cloneable: boolean,
-  wrapper: boolean,
-  wrapper_padding: Vector4,
   position: Vector4,
   rotation: Vector4,
   scale: Vector4,
@@ -90,11 +86,38 @@ type GUINodeData = {
   blend_mode: GUINodeBlendMode,
   custom_type: number,
   template_node_child: boolean,
+
+  skip: boolean,
+  cloneable: boolean,
+  wrapper: boolean,
+  wrapper_padding: Vector4,
+  exportable_layer: ExportableLayer,
+  children?: GUINodeData[],
 }
 
 type GUINodeDataKey = keyof GUINodeData;
 
 type GUINodeDataValue = GUINodeData[GUINodeDataKey];
+
+type SerializableGUINodeDataKey = keyof Omit<GUINodeData, "skip" | "cloneable" | "wrapper" | "wrapper_padding" | "exportable_layer" | "children">;
+
+type SerializableGUINodeDataValue = GUINodeData[SerializableGUINodeDataKey];
+
+type GUINodeDataExportOptions = {
+  layer: ExportableLayer;
+  atRoot: boolean;
+  namePrefix: string;
+  parentId: string;
+  parentPivot: Pivot;
+  parentSize: Vector4;
+  parentShift: Vector4;
+  parentChildren: GUINodeData[];
+}
+
+type GUINodeCloneData = {
+  cloneOf: ComponentNode,
+  cloneInstance: InstanceNode,
+}
 
 type TextureAtlasData = {
   id: string,
@@ -121,14 +144,4 @@ type SerializedGUIData = {
 type BundleData = {
   gui?: SerializedGUIData[],
   atlases?: SerializedAtlasData[],
-}
-
-type GUINodeDataExportOptions = {
-  layer: ExportableLayer;
-  atRoot: boolean;
-  namePrefix: string;
-  parentId: string;
-  parentPivot: Pivot;
-  parentSize: Vector4;
-  parentShift: Vector4;
 }
