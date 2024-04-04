@@ -1,5 +1,5 @@
 import config from "config/config.json";
-import { isAtlas, isFigmaSceneNode, isFigmaText, isFigmaComponentInstance, hasSolidFills, hasSolidStrokes, isSolidPaint, isShadowEffect, findMainComponent, getPluginData } from "utilities/figma";
+import { isAtlas, isFigmaSceneNode, isFigmaText, isFigmaComponentInstance, hasSolidFills, hasSolidStrokes, isSolidPaint, isShadowEffect, hasFont, findMainComponent, getPluginData } from "utilities/figma";
 import { isSlice9Layer, findPlaceholderLayer, parseSlice9Data } from "utilities/slice9";
 import { calculateAtlasName } from "utilities/atlas";
 import { subVectors, isZeroVector, vector4 } from "utilities/math";
@@ -84,14 +84,20 @@ function convertTextSize(layer: TextLayer, scale: Vector4) {
   return vector4(scaledWidth, scaledHeight, 0, 1);
 }
 
-function calculateBoxSizeMode(layer: BoxLayer, texture?: string): SizeMode {
+function calculateBoxSizeMode(layer: BoxLayer, texture?: string, data?: PluginGUINodeData | null): SizeMode {
+  if (data?.size_mode && data.size_mode !== "PARSED") {
+    return data.size_mode;
+  }
   if (isSlice9Layer(layer)) {
     return "SIZE_MODE_MANUAL";
   }
   return texture ? "SIZE_MODE_AUTO" : "SIZE_MODE_MANUAL";
 }
 
-function calculateTextSizeMode() {
+function calculateTextSizeMode(data?: PluginGUINodeData | null) {
+  if (data?.size_mode && data.size_mode !== "PARSED") {
+    return data.size_mode;
+  }
   return "SIZE_MODE_MANUAL";
 }
 
@@ -221,8 +227,11 @@ async function convertBoxVisuals(layer: BoxLayer) {
   };
 }
 
-function calculateFont() {
-  return config.fontFamily;
+function calculateFont(layer: TextLayer) {
+  if (hasFont(layer.fontName)) {
+    return layer.fontName.family;
+  }
+  return "";
 }
 
 function calculateBaseOutline() {
@@ -265,7 +274,7 @@ function calculateShadow(layer: TextLayer) {
 function convertTextVisuals(layer: TextLayer) {
   const color = calculateColor(layer);
   const visible = calculateVisible(layer);
-  const font = calculateFont();
+  const font = calculateFont(layer);
   const outline = calculateOutline(layer);
   const shadow = calculateShadow(layer); 
   return {
@@ -339,7 +348,7 @@ export async function convertBoxGUINodeData(layer: BoxLayer, options: GUINodeDat
   const type = calculateType(layer);
   const pivot = calculateBoxPivot(data);
   const visuals = await convertBoxVisuals(layer);
-  const sizeMode = calculateBoxSizeMode(layer, visuals.texture);
+  const sizeMode = calculateBoxSizeMode(layer, visuals.texture, data);
   const transformations = convertBoxTransformations(layer, pivot, parentPivot, parentSize, parentShift);
   const parent = convertParent(parentId, data);
   const specialProperties = calculateSpecialProperties(layer, data);
@@ -366,7 +375,7 @@ export function convertTextGUINodeData(layer: TextLayer, options: GUINodeDataExp
   const type = calculateType(layer);
   const pivot = calculateTextPivot(layer);
   const visuals = convertTextVisuals(layer);
-  const sizeMode = calculateTextSizeMode();
+  const sizeMode = calculateTextSizeMode(data);
   const transformations = convertTextTransformations(layer, pivot, parentPivot, parentSize, parentShift);
   const parent = convertParent(parentId);
   const text = layer.characters;

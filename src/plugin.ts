@@ -1,6 +1,7 @@
 import { getPluginData, hasVariantPropertyChanged } from "utilities/figma";
 import { isGUINodeSelected, reducePluginSelection, convertPluginUISelection } from "utilities/selection";  
 import { isSlice9Layer  } from "utilities/slice9";
+import { initializeProject, updateProject } from "handoff/project";
 import { updateGUINode, tryRefreshSlice9Sprite, tryRestoreSLice9Node, copyGUINodes, exportGUINodes, resetGUINodes, fixTextNode, copyGUINodeScheme } from "handoff/gui";
 import { createAtlas, exportAtlases, destroyAtlases } from "handoff/atlas";
 import { updateSection, resetSections } from "handoff/section";
@@ -135,6 +136,11 @@ function onResetSections() {
   figma.notify("Sections reset");
 }
 
+function onUpdateProject(data: Partial<ProjectData>) {
+  updateProject(data);
+  figma.notify("Project updated");
+}
+
 function processPluginUIMessage(message: PluginMessage) {
   const { type, data } = message;
   if (type === "copyGUINodes") {
@@ -165,6 +171,8 @@ function processPluginUIMessage(message: PluginMessage) {
     onUpdateSection(data.section);
   } else if (type === "resetSections") {
     onResetSections();
+  } else if (type === "updateProject" && data?.project) {
+    onUpdateProject(data.project);
   }
 }
 
@@ -189,12 +197,21 @@ function onDocumentChange(event: DocumentChangeEvent) {
   processDocumentChange(event);
 }
 
-async function initializePlugin() {
-  await figma.loadAllPagesAsync();
+function initializeUI() {
   figma.showUI(__html__, { width: 400, height: 600 });
+}
+
+function initializeMessages() {
   figma.on("selectionchange", onSelectionChange);
   figma.on("documentchange", onDocumentChange);
   figma.ui.on("message", onPluginUIMessage);
+}
+
+async function initializePlugin() {
+  await figma.loadAllPagesAsync();
+  initializeProject();
+  initializeMessages();
+  initializeUI();
   updateSelection();
 }
 

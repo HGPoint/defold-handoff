@@ -147,14 +147,30 @@ select:hover:disabled {
 }
 
 .widgetTransformation,
-.widgetSlice9 {
+.widgetSlice9,
+.widgetTextSet
+.widgetTextSetItem {
   display: flex;
   align-items: center;
+}
+
+.widgetTextSetItem > input {
+  flex-grow: 1;
+  width: auto;
+}
+
+.widgetTextSetItem > button {
+  flex-grow: 0;
+  min-width: 0;
 }
 
 .widgetSlice9 {
   position: relative;
   padding: 0 0 calc(2.5em + 7px);
+}
+
+.widgetTextSetItem {
+  margin: 0 0 7px;
 }
 
 .widgetComponentLabel {
@@ -202,7 +218,8 @@ select:hover:disabled {
   gap: 7px;
 }
 
-.properties + .actions {
+.properties + .actions,
+.properties + .properties {
   padding: 0 10px 10px;
   margin: 20px 0 0;
 }

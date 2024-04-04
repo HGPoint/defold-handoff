@@ -6,6 +6,11 @@ type ProjectPathData = {
   spineAssetsPath: string,
 }
 
+type ProjectData = {
+  paths: ProjectPathData,
+  fontFamilies: string[],
+}
+
 type SpriteComponentData = {
   sprite_trim_mode: SpriteTrimMode,
 }
@@ -104,14 +109,14 @@ type SerializableGUINodeDataKey = keyof Omit<GUINodeData, "skip" | "cloneable" |
 type SerializableGUINodeDataValue = GUINodeData[SerializableGUINodeDataKey];
 
 type GUINodeDataExportOptions = {
-  layer: ExportableLayer;
-  atRoot: boolean;
-  namePrefix: string;
-  parentId: string;
-  parentPivot: Pivot;
-  parentSize: Vector4;
-  parentShift: Vector4;
-  parentChildren: GUINodeData[];
+  layer: ExportableLayer,
+  atRoot: boolean,
+  namePrefix: string,
+  parentId: string,
+  parentPivot: Pivot,
+  parentSize: Vector4,
+  parentShift: Vector4,
+  parentChildren: GUINodeData[],
 }
 
 type GUINodeCloneData = {

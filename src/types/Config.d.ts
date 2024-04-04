@@ -1,6 +1,6 @@
 declare module "config/config.json" {
   const value: {
-    paths: Record<string, string>
+    paths: ProjectPathData
     constKeys: string[]
     guiDefaultValues: {
       script: string,
@@ -42,10 +42,10 @@ declare module "config/config.json" {
       bundled: boolean,
       jumbo: string,
     }
-    fontFamily: string
+    fontFamilies: string[],
     fontSize: number,
     fontStrokeRatio: number,
-    sizeModes: Record<string, SizeMode>,
+    sizeModes: Record<string, SizeMode | "PARSED">,
     blendModes: Record<string, GUINodeBlendMode>,
     pivots: Record<string, Pivot>,
     xAnchors: Record<string, XAnchor>,

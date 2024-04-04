@@ -1,5 +1,5 @@
 import JSZip from "jszip";
-import config from "config/config.json";
+import { projectConfig } from "handoff/project";
 import { generateAtlasFileName, generateGUIFileName, generateSpriteFileName } from "utilities/path";
 
 function archiveAtlasImage({ name, directory, data }: SerializedSpriteData, imagesFolder: JSZip) {
@@ -16,8 +16,8 @@ function archiveAtlas({ data, name, images }: SerializedAtlasData, atlasesFolder
 }
 
 function archiveAtlases(atlases: SerializedAtlasData[], assetsFolder: JSZip) {
-  const imagesFolder = assetsFolder.folder(config.paths.imageAssetsPath) || assetsFolder;
-  const atlasesFolder = assetsFolder.folder(config.paths.atlasAssetsPath) || assetsFolder;
+  const imagesFolder = assetsFolder.folder(projectConfig.paths.imageAssetsPath) || assetsFolder;
+  const atlasesFolder = assetsFolder.folder(projectConfig.paths.atlasAssetsPath) || assetsFolder;
   atlases.forEach((atlas) => { archiveAtlas(atlas, atlasesFolder, imagesFolder); })
 }
 
@@ -36,7 +36,7 @@ export function archiveBundle({ gui, atlases }: BundleData) {
     archiveGUINodes(gui, zip);
   }
   if (atlases) {
-    const folder = zip.folder(config.paths.assetsPath) || zip;
+    const folder = zip.folder(projectConfig.paths.assetsPath) || zip;
     archiveAtlases(atlases, folder);
   }
   return zip.generateAsync({ type: "blob" })

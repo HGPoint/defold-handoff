@@ -1,17 +1,17 @@
-import config from "config/config.json";
+import { projectConfig } from "handoff/project";
 
 export function generateImageAssetsPath(atlas: string): string {
-  return `/${config.paths.assetsPath}/${config.paths.imageAssetsPath}/${atlas}`;
+  return `/${projectConfig.paths.assetsPath}/${projectConfig.paths.imageAssetsPath}/${atlas}`;
 }
 
 export function generateAtlasPath(atlas: string): string {
   const fileName = generateAtlasFileName(atlas);
-  return `/${config.paths.assetsPath}/${config.paths.atlasAssetsPath}/${fileName}`;
+  return `/${projectConfig.paths.assetsPath}/${projectConfig.paths.atlasAssetsPath}/${fileName}`;
 }
 
 export function generateFontPath(font: string): string {
   const fileName = generateFontFileName(font);
-  return `/${config.paths.assetsPath}/${config.paths.fontAssetsPath}/${fileName}`;
+  return `/${projectConfig.paths.assetsPath}/${projectConfig.paths.fontAssetsPath}/${fileName}`;
 }
 
 export function generateSpritePath(atlasPath: string, spriteName: string): string {

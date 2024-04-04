@@ -1,4 +1,5 @@
 import config from "config/config.json";
+import { projectConfig } from "handoff/project";
 import { setPluginData, findMainComponent, hasChildren, isAtlas, isAtlasSection, isFigmaSceneNode, isFigmaComponentInstance, isFigmaBox, isFigmaText, isExportable, isAtlasSprite, getPluginData, equalComponentProperties, equalExposedComponentProperties } from "utilities/figma";
 import { vector4, areVectorsEqual, copyVector } from "utilities/math";
 import { convertGUIData, convertBoxGUINodeData, convertTextGUINodeData } from "utilities/guiDataConverters";
@@ -207,11 +208,13 @@ async function generateFontData(layer: SceneNode, fontData: FontData) {
     }
   }
   if (isFigmaText(layer)) {
-    const font = config.fontFamily;
-    const path = generateFontPath(font);
-    if (!fontData[font]) {
-      fontData[font] = path;
+    for (const font of projectConfig.fontFamilies) {
+      const path = generateFontPath(font);
+      if (!fontData[font]) {
+        fontData[font] = path;
+      }
     }
+    return;
   }
 }
 

@@ -1,38 +1,38 @@
 import config from "config/config.json";
 
-function hasValue(value: SerializableGUINodeDataValue) {
+function hasValue<T>(value: T[keyof T]) {
   return value !== null && value !== undefined;
 }
 
-function isSimpleProperty(value: SerializableGUINodeDataValue): value is number | boolean {
+function isSimpleProperty<T>(value: T[keyof T]): value is T[keyof T] & (number | boolean) {
   return typeof value === "number" || typeof value === "boolean";
 }
 
-function isStringProperty(value: SerializableGUINodeDataValue): value is string {
+function isStringProperty<T>(value: T[keyof T]): value is T[keyof T] & string {
   return typeof value === "string";
 }
 
-function isQuotedProperty(key: SerializableGUINodeDataKey) {
-  return !config.constKeys.includes(key);
+function isQuotedProperty<T>(key: (keyof T)) {
+  return typeof key === "string" && !config.constKeys.includes(key);
 }
 
-function isVector4Property(value: SerializableGUINodeDataValue): value is Vector4 {
-  return typeof value == "object" &&  "x" in value && "y" in value && "z" in value && "w" in value;
+function isVector4Property<T>(value: T[keyof T]): value is T[keyof T] & Vector4 {
+  return !!value && typeof value == "object" &&  "x" in value && "y" in value && "z" in value && "w" in value;
 }
 
-function serializeSimpleProperty(property: SerializableGUINodeDataKey, value: SerializableGUINodeDataValue): string {
-  return `${property}: ${value}`;
+function serializeSimpleProperty<T>(property: keyof T, value: number | boolean | string): string {
+  return `${property.toString()}: ${value}`;
 }
 
-function serializeQuotedProperty(property: SerializableGUINodeDataKey, value: SerializableGUINodeDataValue): string {
-  return `${property}: "${value}"`;
+function serializeQuotedProperty<T>(property: keyof T, value: string): string {
+  return `${property.toString()}: "${value}"`;
 }
 
-function serializeVector4Property(property: SerializableGUINodeDataKey, value: Vector4): string {
-  return `${property} {\nx: ${value.x}\ny: ${value.y}\nz: ${value.z}\nw: ${value.w}\n}`;
+function serializeVector4Property<T>(property: keyof T, value: Vector4): string {
+  return `${property.toString()} {\nx: ${value.x}\ny: ${value.y}\nz: ${value.z}\nw: ${value.w}\n}`;
 }
 
-export function serializeProperty(property: SerializableGUINodeDataKey, value: SerializableGUINodeDataValue): string {
+export function serializeProperty<T>(property: keyof T, value: T[keyof T]): string {
   if (isSimpleProperty(value)) {
     return serializeSimpleProperty(property, value);
   } else if (isStringProperty(value)) {
@@ -47,7 +47,7 @@ export function serializeProperty(property: SerializableGUINodeDataKey, value: S
   return "";
 }
 
-export function propertySerializer(serializedProperties: string, [property, value]: [SerializableGUINodeDataKey, SerializableGUINodeDataValue]): string {
+export function propertySerializer<T>(serializedProperties: string, [property, value]: [keyof T, T[keyof T]]): string {
   if (hasValue(value)) {
     return `${serializedProperties}${serializeProperty(property, value)}\n`;
   }

@@ -3,6 +3,7 @@ type SelectionUIData = {
   atlases: PluginAtlasData[],
   layers: SceneNode[],
   sections: PluginSectionData[],
+  project: ProjectData,
 }
 
 type SelectionData = {
@@ -38,7 +39,7 @@ type PluginGUINodeData = {
   slice9?: Vector4,
   layer?: string,
   pivot?: Pivot,
-  size_mode?: SizeMode,
+  size_mode?: SizeMode | "PARSED",
   xanchor?: XAnchor,
   yanchor?: YAnchor,
   adjust_mode?: AdjustMode,
@@ -53,6 +54,7 @@ type PluginData = {
   defoldAtlas?: PluginAtlasData | null,
   defoldSlice9?: boolean | null,
   defoldSection?: PluginSectionData | null,
+  defoldProject?: ProjectData | null,
 }
 
 type PluginDataKey = keyof PluginData;
@@ -82,7 +84,8 @@ type PluginMessageAction =
   "fixTextNode" |
   "restoreSlice9Node" |
   "updateSection" |
-  "resetSections"
+  "resetSections" |
+  "updateProject"
 
 type PluginMessagePayload = {
   bundle?: BundleData,
@@ -90,6 +93,7 @@ type PluginMessagePayload = {
   guiNode?: PluginGUINodeData,
   section?: PluginSectionData,
   scheme?: string,
+  project?: Partial<ProjectData>,
 }
 
 type PluginMessage = {

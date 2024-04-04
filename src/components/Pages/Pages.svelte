@@ -9,7 +9,7 @@
   import LayersPage from "components/LayersPage";
   import SectionPage from "components/SectionPage";
   import SectionsPage from "components/SectionsPage";
-  import StartPage from "components/StartPage";
+  import ProjectPage from "components/ProjectPage";
 
   let selection: SelectionUIData;
 
@@ -33,5 +33,5 @@
 {:else if isLayerSelected(selection)}
   <LayerPage />
 {:else}
-  <StartPage />
+  <ProjectPage />
 {/if}

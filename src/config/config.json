@@ -35,7 +35,7 @@
     "xanchor": "XANCHOR_NONE",
     "yanchor": "YANCHOR_NONE",
     "pivot": "PIVOT_CENTER",
-    "size_mode": "SIZE_MODE_AUTO",
+    "size_mode": "PARSED",
     "adjust_mode": "ADJUST_MODE_FIT",
     "clipping_mode": "CLIPPING_MODE_NONE",
     "clipping_visible": true,
@@ -58,10 +58,11 @@
     "bundled": false,
     "jumbo": ""
   },
-  "fontFamily": "franxurter",
+  "fontFamilies": [],
   "fontSize": 38,
   "fontStrokeRatio": 0.04,
   "sizeModes": {
+    "Parsed": "PARSED",
     "Auto": "SIZE_MODE_AUTO",
     "Manual": "SIZE_MODE_MANUAL" 
   },
@@ -73,14 +74,14 @@
   },
   "pivots": {
     "Center": "PIVOT_CENTER",
-    "North / Top": "PIVOT_N",
-    "North East / Top Right": "PIVOT_NE",
-    "East / Right": "PIVOT_E",
-    "South East / Bottom Right": "PIVOT_SE",
-    "South / Bottom": "PIVOT_S",
-    "South West / Bottom Left": "PIVOT_SW",
-    "West / Left": "PIVOT_W",
-    "North West / Top Left": "PIVOT_NW"
+    "North (Top)": "PIVOT_N",
+    "North East (Top Right)": "PIVOT_NE",
+    "East (Right)": "PIVOT_E",
+    "South East (Bottom Right)": "PIVOT_SE",
+    "South (Bottom)": "PIVOT_S",
+    "South West (Bottom Left)": "PIVOT_SW",
+    "West (Left)": "PIVOT_W",
+    "North West (Top Left)": "PIVOT_NW"
   },
   "xAnchors": {
     "None": "XANCHOR_NONE",

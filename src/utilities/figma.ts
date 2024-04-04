@@ -92,6 +92,10 @@ export function isShadowEffect(effect: Effect): effect is DropShadowEffect {
   return effect.type === "DROP_SHADOW";
 }
 
+export function hasFont(fontName: FontName | typeof figma.mixed): fontName is FontName {
+  return typeof fontName === "object" && !!fontName.family;
+}
+
 export function hasVariantPropertyChanged(event: DocumentChangeEvent) {
   return event.documentChanges.some(change => change.type === "PROPERTY_CHANGE" && change.properties.some(property => (property as NodeChangePropertyExtended) === "variant"))
 }
@@ -106,15 +110,15 @@ export function tryUpdateLayerName(layer: SceneNode, name?: string) {
   }
 }
 
-function pluginDataSetter(key: PluginDataKey, value: PluginData[PluginDataKey], layer: SceneNode) {
+function pluginDataSetter(key: PluginDataKey, value: PluginData[PluginDataKey], layer: BaseNode) {
   layer.setPluginData(key, JSON.stringify(value))
 }
 
-export function setPluginData(layer: SceneNode, data: PluginData) {
+export function setPluginData(layer: BaseNode, data: PluginData) {
   Object.entries(data).forEach(([key, value]) => { pluginDataSetter(key as PluginDataKey, value, layer); });
 }
 
-export function getPluginData<T extends PluginDataKey>(layer: SceneNode, key: T): PluginData[T] {
+export function getPluginData<T extends PluginDataKey>(layer: BaseNode, key: T): PluginData[T] {
   const value = layer.getPluginData(key);
   if (value) {
     return JSON.parse(value);

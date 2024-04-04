@@ -1,4 +1,5 @@
 import config from "config/config.json";
+import { projectConfig } from "handoff/project";
 import { isSlice9PlaceholderLayer, isSlice9ServiceLayer, findOriginalLayer } from "utilities/slice9";
 import { isAtlas, isFigmaFrame, isFigmaSection, isFigmaComponentInstance, isFigmaText, getPluginData } from "utilities/figma";
 
@@ -93,5 +94,6 @@ export function convertPluginUISelection(selection: SelectionData): SelectionUID
     atlases: selection.atlases.reduce(atlasPluginUISelectionConverter, []),
     layers: selection.layers,
     sections: selection.sections.reduce(sectionPluginUISelectionConverter, []),
+    project: projectConfig,
   }
 }
