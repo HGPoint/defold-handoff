@@ -1,7 +1,7 @@
 import config from "config/config.json";
 import { projectConfig } from "handoff/project";
 import { setPluginData, findMainComponent, hasChildren, isAtlas, isAtlasSection, isFigmaSceneNode, isFigmaComponentInstance, isFigmaBox, isFigmaText, isExportable, isAtlasSprite, getPluginData, equalComponentProperties, equalExposedComponentProperties } from "utilities/figma";
-import { vector4, areVectorsEqual, copyVector } from "utilities/math";
+import { vector4, areVectorsEqual, copyVector, addVectors } from "utilities/math";
 import { convertGUIData, convertBoxGUINodeData, convertTextGUINodeData } from "utilities/guiDataConverters";
 import { isSlice9PlaceholderLayer, findOriginalLayer, isSlice9Layer, isSlice9ServiceLayer, parseSlice9Data } from "utilities/slice9";
 import { generateAtlasPath, generateFontPath } from "utilities/path";
@@ -37,22 +37,14 @@ function generateRootOptions(layer: ExportableLayer): GUINodeDataExportOptions {
   }
 }
 
-function calculateParentParameters(layer: ExportableLayer, shouldSkip: boolean, atRoot: boolean, parentOptions: GUINodeDataExportOptions, guiNodeData: GUINodeData): Pick<GUINodeDataExportOptions, "parentId" | "parentPivot" | "parentSize" | "parentShift" | "parentChildren"> {
-  const { parentId, parentSize, parentPivot, parentChildren } = parentOptions;
-  if (atRoot) {
-    return {
-      parentId: "",
-      parentSize: vector4(layer.width, layer.height, 0, 1),
-      parentPivot: config.guiNodeDefaultValues.pivot,
-      parentShift: vector4(0),
-      parentChildren: []
-    }
-  } else if (shouldSkip) {
+function calculateParentParameters(shouldSkip: boolean, parentOptions: GUINodeDataExportOptions, guiNodeData: GUINodeData): Pick<GUINodeDataExportOptions, "parentId" | "parentPivot" | "parentSize" | "parentShift" | "parentChildren"> {
+  const { parentId, parentSize, parentPivot, parentShift, parentChildren } = parentOptions;
+  if (shouldSkip) {
     return {
       parentId: parentId,
       parentSize: parentSize,
       parentPivot: parentPivot,
-      parentShift: guiNodeData.position,
+      parentShift: addVectors(parentShift, guiNodeData.figma_position),
       parentChildren: parentChildren
     }
   }
@@ -61,7 +53,7 @@ function calculateParentParameters(layer: ExportableLayer, shouldSkip: boolean, 
     parentSize: guiNodeData.size,
     parentPivot: guiNodeData.pivot,
     parentShift: vector4(0),
-    parentChildren: guiNodeData.children || parentChildren
+    parentChildren: guiNodeData.children
   }
 }
 
@@ -79,7 +71,7 @@ function generateNamePrefix(shouldSkip: boolean, options: GUINodeDataExportOptio
 
 function generateParentOptions(layer: ExportableLayer, shouldSkip: boolean, atRoot: boolean, parentOptions: GUINodeDataExportOptions, parentGUINodeData: GUINodeData): GUINodeDataExportOptions {
   const namePrefix = generateNamePrefix(shouldSkip, parentOptions);
-  const parentParameters = calculateParentParameters(layer, shouldSkip, atRoot, parentOptions, parentGUINodeData);
+  const parentParameters = calculateParentParameters(shouldSkip, parentOptions, parentGUINodeData);
   return {
     layer,
     atRoot,
@@ -129,14 +121,14 @@ async function generateGUINodeData(options: GUINodeDataExportOptions, guiNodesDa
           guiNodesData.push(guiNodeData);
         }
         if (hasChildren(layer)) {
-          if (!shouldSkip) {  
+          const { children: layerChildren } = layer; 
+          if (!shouldSkip) {
             guiNodeData.children = [];
           }
-          const { children: layerChildren } = layer; 
           for (const layerChild of layerChildren) {
             if (isExportable(layerChild) && !isSlice9ServiceLayer(layer)) {
               const parentOptions = generateParentOptions(layerChild, shouldSkip, false, options, guiNodeData);
-              const children = guiNodeData.children || parentOptions.parentChildren; 
+              const children = !shouldSkip ? guiNodeData.children :  parentOptions.parentChildren; 
               await generateGUINodeData(parentOptions, children, clones);
             }
           }

@@ -2,7 +2,7 @@ import config from "config/config.json";
 import { isAtlas, isFigmaSceneNode, isFigmaText, isFigmaComponentInstance, hasSolidFills, hasSolidStrokes, isSolidPaint, isShadowEffect, hasFont, findMainComponent, getPluginData } from "utilities/figma";
 import { isSlice9Layer, findPlaceholderLayer, parseSlice9Data } from "utilities/slice9";
 import { calculateAtlasName } from "utilities/atlas";
-import { subVectors, isZeroVector, vector4 } from "utilities/math";
+import { isZeroVector, vector4 } from "utilities/math";
 import { calculatePivotedPosition, calculateCenteredPosition, calculateRootPosition } from "utilities/pivot";
 
 function calculateId(layer: ExportableLayer, namePrefix?: string) {
@@ -34,8 +34,10 @@ function convertParent(parentId?: string, data?: PluginGUINodeData | null) {
 function convertChildPosition(layer: ExportableLayer, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4, parentShift: Vector4) {
   const centeredPosition = calculateCenteredPosition(layer, size, parentSize);
   const pivotedPosition = calculatePivotedPosition(centeredPosition, pivot, parentPivot, size, parentSize);
-  const shiftedPosition = subVectors(pivotedPosition, parentShift);
-  return shiftedPosition;
+  const shiftedX = pivotedPosition.x + parentShift.x;
+  const shiftedY = pivotedPosition.y - parentShift.y;
+  const shiftedPosition = vector4(shiftedX, shiftedY, 0, 1);
+  return shiftedPosition; 
 }
 
 function convertPosition(layer: ExportableLayer, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4, parentShift: Vector4) {
@@ -43,6 +45,10 @@ function convertPosition(layer: ExportableLayer, pivot: Pivot, parentPivot: Pivo
     return calculateRootPosition(layer, pivot, parentPivot, size, size);
   }
   return convertChildPosition(layer, pivot, parentPivot, size, parentSize, parentShift);
+}
+
+function convertFigmaPosition(layer: ExportableLayer) {
+  return vector4(layer.x, layer.y, 0, 1);
 }
 
 function convertRotation(layer: ExportableLayer) {
@@ -105,11 +111,13 @@ function calculateTextSizeMode(data?: PluginGUINodeData | null) {
 }
 
 function convertBaseTransformations(layer: ExportableLayer, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4, parentShift: Vector4) {
+  const figmaPosition = convertFigmaPosition(layer);
   const position = convertPosition(layer, pivot, parentPivot, size, parentSize, parentShift);
   const rotation = convertRotation(layer);
   return {
     position,
     rotation,
+    figma_position: figmaPosition,
   };
 
 }
@@ -215,14 +223,17 @@ async function calculateTexture(layer: ExportableLayer) {
   return calculateEmptyTexture();
 }
 
-function calculateVisible(layer: ExportableLayer, texture?: string) {
-  return !!texture || isFigmaText(layer);
+function calculateVisible(layer: ExportableLayer, data?: PluginGUINodeData | null) {
+  if (data?.visible !== undefined) {
+    return data.visible;
+  }
+  return config.guiNodeDefaultValues.visible;
 }
 
-async function convertBoxVisuals(layer: BoxLayer) {
+async function convertBoxVisuals(layer: BoxLayer, data?: PluginGUINodeData | null) {
   const color = calculateColor(layer);
   const texture = await calculateTexture(layer);
-  const visible = calculateVisible(layer, texture);
+  const visible = calculateVisible(layer, data);
   return {
     visible,
     color,
@@ -274,12 +285,12 @@ function calculateShadow(layer: TextLayer) {
   return calculateBaseShadow();
 }
 
-function convertTextVisuals(layer: TextLayer) {
+function convertTextVisuals(layer: TextLayer, data?: PluginGUINodeData | null) {
   const color = calculateColor(layer);
-  const visible = calculateVisible(layer);
+  const visible = calculateVisible(layer, data);
   const font = calculateFont(layer);
   const outline = calculateOutline(layer);
-  const shadow = calculateShadow(layer); 
+  const shadow = calculateShadow(layer);
   return {
     visible,
     color,
@@ -353,7 +364,7 @@ export async function convertBoxGUINodeData(layer: BoxLayer, options: GUINodeDat
   const slice9 = calculateSlice9(layer, data);
   const type = calculateType(layer, data);
   const pivot = calculateBoxPivot(data);
-  const visuals = await convertBoxVisuals(layer);
+  const visuals = await convertBoxVisuals(layer, data);
   const sizeMode = calculateBoxSizeMode(layer, visuals.texture, data);
   const transformations = convertBoxTransformations(layer, pivot, parentPivot, parentSize, parentShift);
   const parent = convertParent(parentId, data);
@@ -380,7 +391,7 @@ export function convertTextGUINodeData(layer: TextLayer, options: GUINodeDataExp
   const id = calculateId(layer, namePrefix)
   const type = calculateType(layer, data);
   const pivot = calculateTextPivot(layer);
-  const visuals = convertTextVisuals(layer);
+  const visuals = convertTextVisuals(layer, data);
   const sizeMode = calculateTextSizeMode(data);
   const transformations = convertTextTransformations(layer, pivot, parentPivot, parentSize, parentShift);
   const parent = convertParent(parentId);

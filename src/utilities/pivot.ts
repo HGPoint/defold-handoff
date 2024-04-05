@@ -99,10 +99,28 @@ export function calculateRootPosition(layer: ExportableLayer, pivot: Pivot, pare
   return pivotedPosition;
 }
 
+function calculateCenter(x: number, y: number, width: number, height: number, degrees: number) {
+  const radians = degrees * Math.PI / 180;
+  const upperRightX = x + width * Math.cos(radians);
+  const upperRightY = y - width * Math.sin(radians);
+  const lowerLeftX = x + height * Math.sin(radians);
+  const lowerLeftY = y + height * Math.cos(radians);
+  const lowerRightX = upperRightX + height * Math.sin(radians);
+  const lowerRightY = upperRightY + height * Math.cos(radians);
+  const centerX = (x + lowerRightX + upperRightX + lowerLeftX) / 4;
+  const centerY = (y + lowerRightY + upperRightY + lowerLeftY) / 4;
+  return vector4(centerX, centerY, 0, 1);
+}
+
 export function calculateCenteredPosition(layer: ExportableLayer, size: Vector4, parentSize: Vector4) {
-  const x = layer.x + (size.x / 2) - (parentSize.x / 2);
-  const y = (parentSize.y / 2) - layer.y - (size.y / 2);
-  return vector4(x, y, 0, 1);
+  const { x, y } = calculateCenter(layer.x, layer.y, size.x, size.y, layer.rotation);
+  const centeredX = x - (parentSize.x / 2);
+  const centeredY = (parentSize.y / 2) - y;
+  return vector4(centeredX, centeredY, 0, 1);
+
+  // const x = layer.x + (size.x / 2) - (parentSize.x / 2);
+  // const y = (parentSize.y / 2) - layer.y - (size.y / 2);
+  // return vector4(x, y, 0, 1);s
 }
 
 export function calculatePivotedPosition(centeredPosition: Vector4, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4) {

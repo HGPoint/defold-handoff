@@ -100,10 +100,11 @@ type GUINodeData = {
   wrapper: boolean,
   wrapper_padding: Vector4,
   exportable_layer: ExportableLayer,
-  children?: GUINodeData[],
+  figma_position: Vector4,
+  children: GUINodeData[],
 }
 
-type GUINodeNonDefoldProperties = "skip" | "cloneable" | "template" | "template_path" | "template_name" | "wrapper" | "wrapper_padding" | "exportable_layer" | "children";
+type GUINodeNonDefoldProperties = "skip" | "cloneable" | "template" | "template_path" | "template_name" | "wrapper" | "wrapper_padding" | "exportable_layer" | "figma_position" | "children";
 
 type GUINodeDataKey = keyof GUINodeData;
 
