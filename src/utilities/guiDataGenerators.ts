@@ -236,7 +236,7 @@ function canCollapseNodes(parent: GUINodeData, child: GUINodeData): boolean {
   return (
     areVectorsEqual(parent.size, child.size) &&
     parent.type === child.type &&
-    !parent.visible &&
+    !parent.texture &&
     child.visible &&
     !!child.texture
   );
