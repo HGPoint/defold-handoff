@@ -65,9 +65,16 @@ export function reducePluginSelection(): SelectionData {
 function guiNodePluginUISelectionConverter(data: PluginGUINodeData[], layer: ExportableLayer): PluginGUINodeData[] {
   const pluginData = getPluginData(layer, "defoldGUINode");
   const { name: id } = layer;
-  const type = isFigmaText(layer) ? "text" : "box";
-  const skip = pluginData?.skip || false;
-  const guiNodeData: PluginGUINodeData = { ...config.guiNodeDefaultValues, ...pluginData, id, type, skip };
+  const type = isFigmaText(layer) ? "TYPE_TEXT" : "TYPE_BOX";
+  const template_name = pluginData?.template_name || id;
+  const guiNodeData: Required<PluginGUINodeData> = {
+    ...config.guiNodeDefaultValues,
+    ...config.guiNodeDefaultSpecialValues,
+    ...pluginData,
+    template_name,
+    id,
+    type
+  };
   data.push(guiNodeData);
   return data;
 }
@@ -83,7 +90,11 @@ function atlasPluginUISelectionConverter(data: PluginAtlasData[], layer: SceneNo
 function sectionPluginUISelectionConverter(data: PluginSectionData[], layer: SectionNode): PluginSectionData[] {
   const pluginData = getPluginData(layer, "defoldSection");
   const { name: id } = layer;
-  const sectionData: PluginSectionData = { ...config.sectionDefaultValues, ...pluginData, id };
+  const sectionData: Required<PluginSectionData> = {
+    ...config.sectionDefaultValues,
+    ...pluginData,
+    id
+  };
   data.push(sectionData);
   return data;
 }

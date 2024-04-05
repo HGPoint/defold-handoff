@@ -17,7 +17,10 @@ function calculateColorValue(paint: SolidPaint) {
   return vector4(r, g, b, a);
 }
 
-function calculateType(layer: ExportableLayer): GUINodeType {
+function calculateType(layer: ExportableLayer, data?: PluginGUINodeData | null): GUINodeType {
+  if (data?.template) {
+    return "TYPE_TEMPLATE";
+  }
   return isFigmaText(layer) ? "TYPE_TEXT" : "TYPE_BOX";
 }
 
@@ -329,10 +332,13 @@ function injectGUINodeDefaults() {
   };
 }
 
-function calculateSpecialProperties(layer: ExportableLayer, data?: PluginGUINodeData | null) {
+function calculateSpecialProperties(layer: ExportableLayer, id: string, data?: PluginGUINodeData | null) {
   return {
     skip: !!data?.skip,
     cloneable: !!data?.cloneable,
+    template: !!data?.template,
+    template_path: data?.template_path || config.guiNodeDefaultSpecialValues.template_path,
+    template_name: data?.template_name || id,
     wrapper: !!data?.wrapper,
     wrapper_padding: data?.wrapper_padding || vector4(0),
     exportable_layer: layer,
@@ -345,13 +351,13 @@ export async function convertBoxGUINodeData(layer: BoxLayer, options: GUINodeDat
   const data = getPluginData(layer, "defoldGUINode");
   const id = calculateId(layer, namePrefix)
   const slice9 = calculateSlice9(layer, data);
-  const type = calculateType(layer);
+  const type = calculateType(layer, data);
   const pivot = calculateBoxPivot(data);
   const visuals = await convertBoxVisuals(layer);
   const sizeMode = calculateBoxSizeMode(layer, visuals.texture, data);
   const transformations = convertBoxTransformations(layer, pivot, parentPivot, parentSize, parentShift);
   const parent = convertParent(parentId, data);
-  const specialProperties = calculateSpecialProperties(layer, data);
+  const specialProperties = calculateSpecialProperties(layer, id, data);
   return {
     ...defaults,
     ...data,
@@ -372,7 +378,7 @@ export function convertTextGUINodeData(layer: TextLayer, options: GUINodeDataExp
   const defaults = injectGUINodeDefaults();
   const data = getPluginData(layer, "defoldGUINode");
   const id = calculateId(layer, namePrefix)
-  const type = calculateType(layer);
+  const type = calculateType(layer, data);
   const pivot = calculateTextPivot(layer);
   const visuals = convertTextVisuals(layer);
   const sizeMode = calculateTextSizeMode(data);
@@ -380,7 +386,7 @@ export function convertTextGUINodeData(layer: TextLayer, options: GUINodeDataExp
   const parent = convertParent(parentId);
   const text = layer.characters;
   const textParameters = calculateTextParameters(layer);
-  const specialProperties = calculateSpecialProperties(layer, data);
+  const specialProperties = calculateSpecialProperties(layer, id, data);
   return {
     ...defaults,
     ...data,

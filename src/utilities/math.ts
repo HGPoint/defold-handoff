@@ -5,9 +5,10 @@ export function vector4(x: number, y?: number, z?: number, w?: number): Vector4 
   return { x, y, z, w };
 }
 
-export function isVector4(value: object): value is Vector4 {
+export function isVector4(value: unknown): value is Vector4 {
   return (
     !!value &&
+    typeof value === "object" &&
     "x" in value && typeof value.x === "number" &&
     "y" in value && typeof value.y === "number" &&
     "z" in value && typeof value.z === "number" &&

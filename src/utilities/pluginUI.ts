@@ -2,6 +2,10 @@ import { exportAtlases, copyComponent, exportComponent, exportResources, copySch
 
 let postMessageDebounce: number | null = null;
 
+export function generateRandomId(): string {
+  return Math.random().toString(36).substring(2, 9);
+}
+
 export function isPluginMessage(event: MessageEvent): event is MessageEvent<PluginUIMessage> {
   return !!event?.data?.pluginMessage;
 }

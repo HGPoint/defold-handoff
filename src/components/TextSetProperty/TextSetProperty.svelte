@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { generateRandomId } from "utilities/ui";
+  import { generateRandomId } from "utilities/pluginUI";
   import Button from "components/Button";
 
   export let label: string;

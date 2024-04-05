@@ -28,6 +28,15 @@ declare module "config/config.json" {
       custom_type: 0,
       template_node_child: boolean
     }
+    guiNodeDefaultSpecialValues: {
+      skip: boolean,
+      cloneable: boolean,
+      template: boolean,
+      template_path: string,
+      template_name: string,
+      wrapper: boolean,
+      wrapper_padding: Vector4
+    }
     atlasDefaultValues: {
       margin: number,
       extrude_borders: number,
@@ -51,7 +60,7 @@ declare module "config/config.json" {
     xAnchors: Record<string, XAnchor>,
     yAnchors: Record<string, YAnchor>,
     adjustModes: Record<string, AdjustMode>,
-    clippingModes: Record<string, ClippingMode>,
+    clippingModes: Record<string, ClippingMode>
   };
 
   export default value;

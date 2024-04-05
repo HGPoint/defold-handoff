@@ -44,6 +44,15 @@
     "custom_type": 0,
     "template_node_child": false
   },
+  "guiNodeDefaultSpecialValues": {
+    "skip": false,
+    "cloneable": false,
+    "template": false,
+    "template_path": "common/view",
+    "template_name": "",
+    "wrapper": false,
+    "wrapper_padding": null
+  },
   "atlasDefaultValues": {
     "margin": 0,
     "extrude_borders": 2,

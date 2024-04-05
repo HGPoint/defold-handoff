@@ -21,9 +21,9 @@ function archiveAtlases(atlases: SerializedAtlasData[], assetsFolder: JSZip) {
   atlases.forEach((atlas) => { archiveAtlas(atlas, atlasesFolder, imagesFolder); })
 }
 
-function archiveGUINode({ name, data }: SerializedGUIData, zip: JSZip) {
+function archiveGUINode({ name, data }: SerializedGUIData, assetsFolder: JSZip) {
   const guiFileName = generateGUIFileName(name);
-  zip.file(guiFileName, data);
+  assetsFolder.file(guiFileName, data);
 }
 
 function archiveGUINodes(guiNodes: SerializedGUIData[], assetsFolder: JSZip) {

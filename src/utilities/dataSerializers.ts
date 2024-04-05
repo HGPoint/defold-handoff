@@ -49,7 +49,8 @@ export function serializeProperty<T>(property: keyof T, value: T[keyof T]): stri
 
 export function propertySerializer<T>(serializedProperties: string, [property, value]: [keyof T, T[keyof T]]): string {
   if (hasValue(value)) {
-    return `${serializedProperties}${serializeProperty(property, value)}\n`;
+    const serializedProperty = serializeProperty(property, value);
+    return `${serializedProperties}${serializedProperty}\n`;
   }
   return serializedProperties;
 }

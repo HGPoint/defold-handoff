@@ -1,7 +1,6 @@
 <script lang="ts">
   import selectionState from "state/selection";
   import { postMessageToPlugin } from "utilities/pluginUI";
-  import { generateSectionProperties } from "utilities/components";
   import Page from "components/Page";
   import Properties from "components/Properties";
   import Actions from "components/Actions";
@@ -9,25 +8,29 @@
   import ToggleProperty from "components/ToggleProperty";
   import TextProperty from "components/TextProperty";
 
-  let properties: ReturnType<typeof generateSectionProperties>;
-  let lastSentProperties: typeof properties;
+  let properties: Required<PluginSectionData> | null;
+  let lastSentProperties: Required<PluginSectionData> | null;
 
-  function shouldSendProperties(updateProperties: typeof properties) {
+  function shouldSendProperties(updateProperties: PluginSectionData | null) {
     return JSON.stringify(lastSentProperties) !== JSON.stringify(updateProperties);
   }
 
-  function tryUpdatePlugin(updateProperties: typeof properties) {
-    if (shouldSendProperties(updateProperties)) {
-      postMessageToPlugin("updateSection", { section: { ...updateProperties } });
+  function tryUpdatePlugin(updateProperties: PluginSectionData | null) {
+    if (properties && shouldSendProperties(updateProperties)) {
+      postMessageToPlugin("updateSection", { section: { ...JSON.parse(JSON.stringify(updateProperties)) } });
       lastSentProperties = JSON.parse(JSON.stringify(updateProperties));
     }
   }
 
   selectionState.subscribe((value) => {
-    const sections = value.sections[0];
-    const newProperties = generateSectionProperties(sections);
-    lastSentProperties = JSON.parse(JSON.stringify(newProperties));
-    properties = newProperties;
+    const [ sections ] = value.sections;
+    if (sections) {
+      const newProperties = JSON.parse(JSON.stringify(sections));
+      lastSentProperties = JSON.parse(JSON.stringify(newProperties));
+      properties = newProperties;
+    } else {
+      properties = null;
+    }
   })
 
   $: tryUpdatePlugin(properties);

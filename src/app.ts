@@ -1,4 +1,4 @@
-import App from "./components/App/App.svelte"
+import App from "components/App/App.svelte"
 
 const target = document.getElementById("root");
 const app = target ? new App({ target }) : null;

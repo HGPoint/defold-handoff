@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { generateRandomId } from "utilities/ui";
+  import { generateRandomId } from "utilities/pluginUI";
   import { convertHexToRGBA, convertRGBAToHex } from "utilities/color";
 
   export let label: string;

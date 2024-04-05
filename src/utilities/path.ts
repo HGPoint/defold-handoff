@@ -19,6 +19,11 @@ export function generateSpritePath(atlasPath: string, spriteName: string): strin
   return `${atlasPath}/${fileName}`;
 }
 
+export function generateTemplatePath(templatePath: string, templateName: string): string {
+  const fileName = generateGUIFileName(templateName);
+  return `${templatePath}/${fileName}`;
+}
+
 export function generateGUIFileName(guiNodeName: string): string {
   return `${guiNodeName}.gui`;
 }

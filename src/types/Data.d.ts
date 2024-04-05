@@ -77,7 +77,7 @@ type GUINodeData = {
   outline?: Vector4,
   shadow?: Vector4,
   texture?: string,
-  size_mode: string,
+  size_mode: SizeMode,
   slice9: Vector4,
   layer?: string,
   material?: string,
@@ -94,17 +94,22 @@ type GUINodeData = {
 
   skip: boolean,
   cloneable: boolean,
+  template: boolean,
+  template_path: string,
+  template_name: string,
   wrapper: boolean,
   wrapper_padding: Vector4,
   exportable_layer: ExportableLayer,
   children?: GUINodeData[],
 }
 
+type GUINodeNonDefoldProperties = "skip" | "cloneable" | "template" | "template_path" | "template_name" | "wrapper" | "wrapper_padding" | "exportable_layer" | "children";
+
 type GUINodeDataKey = keyof GUINodeData;
 
 type GUINodeDataValue = GUINodeData[GUINodeDataKey];
 
-type SerializableGUINodeDataKey = keyof Omit<GUINodeData, "skip" | "cloneable" | "wrapper" | "wrapper_padding" | "exportable_layer" | "children">;
+type SerializableGUINodeDataKey = keyof Omit<GUINodeData, GUINodeNonDefoldProperties>;
 
 type SerializableGUINodeDataValue = GUINodeData[SerializableGUINodeDataKey];
 

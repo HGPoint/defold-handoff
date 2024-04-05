@@ -24,12 +24,8 @@ type PluginAtlasData = {
 }
 
 type PluginGUINodeData = {
-  type?: "box" | "text",
   id?: string,
-  skip?: boolean,
-  cloneable?: boolean,
-  wrapper?: boolean,
-  wrapper_padding?: Vector4,
+  type?: GUINodeType,
   enabled?: boolean,
   visible?: boolean,
   inherit_alpha?: boolean,
@@ -45,9 +41,15 @@ type PluginGUINodeData = {
   adjust_mode?: AdjustMode,
   clipping_mode?: ClippingMode,
   clipping_inverted?: boolean,
-}
 
-type NonDefoldProperties = "id" | "type" | "skip" | "cloneable" | "wrapper" | "wrapper_padding" | "exportable_layer" | "children";
+  skip?: boolean,
+  cloneable?: boolean,
+  template?: boolean,
+  template_path?: string,
+  template_name?: string,
+  wrapper?: boolean,
+  wrapper_padding?: Vector4,
+}
 
 type PluginData = {
   defoldGUINode?: PluginGUINodeData | null,

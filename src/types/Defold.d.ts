@@ -9,7 +9,7 @@ type AdjustReference = "ADJUST_REFERENCE_PARENT";
 
 type SizeMode = "SIZE_MODE_AUTO" | "SIZE_MODE_MANUAL";
 
-type GUINodeType = "TYPE_TEXT" | "TYPE_BOX";
+type GUINodeType = "TYPE_TEXT" | "TYPE_BOX" | "TYPE_TEMPLATE";
 
 type XAnchor = "XANCHOR_NONE" | "XANCHOR_LEFT" | "XANCHOR_RIGHT";
 
