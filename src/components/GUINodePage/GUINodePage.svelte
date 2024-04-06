@@ -15,6 +15,7 @@
 
   let properties: Required<PluginGUINodeData> | null;
   let lastSentProperties: Required<PluginGUINodeData> | null;
+  let fontFamilies: Record<string, string> = {};
 
   function shouldSendProperties(updateProperties: PluginGUINodeData | null) {
     return JSON.stringify(lastSentProperties) !== JSON.stringify(updateProperties);
@@ -29,13 +30,16 @@
 
   selectionState.subscribe((selection) => {
     if (selection) {
-      const { gui: [ gui ] } = selection;
+      const { gui: [ gui ], project } = selection;
       if (gui) {
         const newProperties = JSON.parse(JSON.stringify(gui));
         lastSentProperties = JSON.parse(JSON.stringify(newProperties));
         properties = newProperties;
       } else {
         properties = null;
+      }
+      if (project) {
+        fontFamilies = project.fontFamilies.reduce((fonts, font) => ({ ...fonts, [font]: font }), {})
       }
     }
   })
@@ -51,6 +55,9 @@
       <OptionsProperty label="Size Mode" bind:value={properties.size_mode} options={config.sizeModes} />
       <ToggleProperty label="Enabled" bind:value={properties.enabled} />
       <ToggleProperty label="Visible" bind:value={properties.visible} />
+      {#if isTextGUINode(properties.type)}
+        <OptionsProperty label="Font" bind:value={properties.font} options={fontFamilies} />
+      {/if}
       <OptionsProperty label="Material" bind:value={properties.material} options={{}} disabled={true} />
       {#if isBoxGUINode(properties.type)}
         <SidesProperty label="Slice 9" bind:value={properties.slice9} />
@@ -87,15 +94,15 @@
       {#if isBoxGUINode(properties.type)}
         <ActionButton label="Restore Slice9" action="restoreSlice9Node" />
       {/if}
-      <ActionButton label="Fix GUI Node" action="fixGUINodes" disabled={true} />
+      <ActionButton label="Fix GUI Node" action="fixGUINodes" />
+      <ActionButton label="Validate GUI Node" action="validateGUINodes" disabled={true} />
+      <ActionButton label="Reset GUI Node" action="resetGUINodes" />
     </Actions>
     <Actions>
       <ActionButton label="Copy GUI Node" action="copyGUINodes" />
       <ActionButton label="Export GUI Node" action="exportGUINodes" />
       <ActionButton label="Export GUI Node Bundle" action="exportBundle" />
       <ActionButton label="Copy GUI Node Scheme" action="copyGUINodeScheme" />
-      <ActionButton label="Validate GUI Node" action="validateGUINodes" disabled={true} />
-      <ActionButton label="Reset GUI Node" action="resetGUINodes" />
       <ActionButton label="Show GUI Node Data" action="showGUINodeData" />
     </Actions>
   </Page>

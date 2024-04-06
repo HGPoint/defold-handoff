@@ -1,9 +1,10 @@
 import config from "config/config.json";
-import { isAtlas, isFigmaSceneNode, isFigmaText, isFigmaComponentInstance, hasSolidFills, hasSolidStrokes, isSolidPaint, isShadowEffect, hasFont, findMainComponent, getPluginData } from "utilities/figma";
+import { findTexture } from "utilities/gui";
+import { isFigmaText, hasSolidFills, hasSolidStrokes, isSolidPaint, isShadowEffect, getPluginData } from "utilities/figma";
 import { isSlice9Layer, findPlaceholderLayer, parseSlice9Data } from "utilities/slice9";
-import { calculateAtlasName } from "utilities/atlas";
 import { isZeroVector, vector4 } from "utilities/math";
 import { calculatePivotedPosition, calculateCenteredPosition, calculateRootPosition } from "utilities/pivot";
+import { inferBoxSizeMode, inferTextSizeMode, inferBoxVisible, inferTextVisible, inferFont } from "utilities/inference";
 
 function calculateId(layer: ExportableLayer, namePrefix?: string) {
   if (namePrefix) {
@@ -97,17 +98,14 @@ function calculateBoxSizeMode(layer: BoxLayer, texture?: string, data?: PluginGU
   if (data?.size_mode && data.size_mode !== "PARSED") {
     return data.size_mode;
   }
-  if (isSlice9Layer(layer)) {
-    return "SIZE_MODE_MANUAL";
-  }
-  return texture ? "SIZE_MODE_AUTO" : "SIZE_MODE_MANUAL";
+  return inferBoxSizeMode(layer, texture);
 }
 
 function calculateTextSizeMode(data?: PluginGUINodeData | null) {
   if (data?.size_mode && data.size_mode !== "PARSED") {
     return data.size_mode;
   }
-  return "SIZE_MODE_MANUAL";
+  return inferTextSizeMode();
 }
 
 function convertBaseTransformations(layer: ExportableLayer, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4, parentShift: Vector4) {
@@ -198,42 +196,24 @@ function calculateColor(layer: ExportableLayer) {
   return calculateFillColor(fills);
 }
 
-
-
-function calculateAtlasTexture(atlas: ComponentSetNode, layer: InstanceNode) {
-  const atlasName = calculateAtlasName(atlas);
-  const sprite = layer.variantProperties?.Sprite;
-  return sprite ? `${atlasName}/${sprite}` : "";
-}
-
-function calculateEmptyTexture() {
-  return "";
-}
-
-async function calculateTexture(layer: ExportableLayer) {
-  if (isFigmaComponentInstance(layer)) {
-    const mainComponent = await findMainComponent(layer);
-    if (mainComponent) {
-      const { parent } = mainComponent;
-      if (isFigmaSceneNode(parent) && isAtlas(parent)) {
-        return calculateAtlasTexture(parent, layer);
-      }
-    }
-  }
-  return calculateEmptyTexture();
-}
-
-function calculateVisible(layer: ExportableLayer, data?: PluginGUINodeData | null) {
+function calculateBoxVisible(layer: BoxLayer, texture?: string, data?: PluginGUINodeData | null) {
   if (data?.visible !== undefined) {
     return data.visible;
   }
-  return config.guiNodeDefaultValues.visible;
+  return inferBoxVisible(layer, texture);
+}
+
+function calculateTextVisible(layer: TextLayer, data?: PluginGUINodeData | null) {
+  if (data?.visible !== undefined) {
+    return data.visible;
+  }
+  return inferTextVisible();
 }
 
 async function convertBoxVisuals(layer: BoxLayer, data?: PluginGUINodeData | null) {
   const color = calculateColor(layer);
-  const texture = await calculateTexture(layer);
-  const visible = calculateVisible(layer, data);
+  const texture = await findTexture(layer);
+  const visible = calculateBoxVisible(layer, texture, data);
   return {
     visible,
     color,
@@ -241,11 +221,11 @@ async function convertBoxVisuals(layer: BoxLayer, data?: PluginGUINodeData | nul
   };
 }
 
-function calculateFont(layer: TextLayer) {
-  if (hasFont(layer.fontName)) {
-    return layer.fontName.family;
+function calculateFont(layer: TextLayer, data?: PluginGUINodeData | null) {
+  if (data?.font !== undefined) {
+    return data.font;
   }
-  return "";
+  return inferFont(layer);
 }
 
 function calculateBaseOutline() {
@@ -287,8 +267,8 @@ function calculateShadow(layer: TextLayer) {
 
 function convertTextVisuals(layer: TextLayer, data?: PluginGUINodeData | null) {
   const color = calculateColor(layer);
-  const visible = calculateVisible(layer, data);
-  const font = calculateFont(layer);
+  const visible = calculateTextVisible(layer, data);
+  const font = calculateFont(layer, data);
   const outline = calculateOutline(layer);
   const shadow = calculateShadow(layer);
   return {

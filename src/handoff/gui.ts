@@ -1,9 +1,9 @@
-import config from "config/config.json";
 import { generateGUIDataSet, generateGUIData } from "utilities/guiDataGenerators";
 import { serializeGUIDataSet } from "utilities/guiDataSerializers";
 import { isFigmaText, getPluginData, setPluginData, removePluginData, tryUpdateLayerName } from "utilities/figma";
 import { tryRefreshSlice9Placeholder, isSlice9PlaceholderLayer, findOriginalLayer, parseSlice9Data } from "utilities/slice9";
 import { extractScheme } from "utilities/scheme";
+import { inferTextNode, inferGUINodes } from "utilities/inference";
 
 export function tryRefreshSlice9Sprite(layer: SceneNode) {
   const pluginData = getPluginData(layer, "defoldGUINode");
@@ -49,6 +49,16 @@ export async function exportGUINodes(layers: ExportableLayer[]): Promise<Seriali
   return serializedGUINodesData;
 }
 
+export function fixGUINodes(layers: SceneNode[]) {
+  inferGUINodes(layers);
+}
+
+export function fixTextNode(layer: SceneNode) {
+  if (isFigmaText(layer)) {
+    inferTextNode(layer);
+  }
+}
+
 export function resetGUINode(layer: SceneNode) {
   removePluginData(layer, "defoldGUINode");
   removePluginData(layer, "defoldSlice9");
@@ -56,13 +66,4 @@ export function resetGUINode(layer: SceneNode) {
 
 export function resetGUINodes(layers: SceneNode[]) {
   layers.forEach((layer) => { resetGUINode(layer) });
-}
-
-export function fixTextNode(layer: SceneNode) {
-  if (isFigmaText(layer)) {
-    if (typeof layer.fontSize === "number") {
-      const strokeWeight = layer.fontSize * config.fontStrokeRatio;
-      layer.strokeWeight = strokeWeight;
-    }
-  }
 }

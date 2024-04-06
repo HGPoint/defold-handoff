@@ -95,48 +95,50 @@ function findClone(data: GUINodeCloneData, mainComponent: ComponentNode, layer: 
   );
 }
 
-async function generateGUINodeData(options: GUINodeDataExportOptions, guiNodesData: GUINodeData[], clones?: ReturnType<typeof createClone>[]) {
-  const { layer } = options;
-  if (layer.visible || isSlice9Layer(layer)) {
-    if (isFigmaBox(layer) && !isSlice9ServiceLayer(layer)) {
-      let alreadyCloned = false;
-      const guiNodeData = await convertBoxGUINodeData(layer, options);  
-      if (guiNodeData.cloneable && isFigmaComponentInstance(layer)) {
-        const mainComponent = await findMainComponent(layer);
-        if (mainComponent) {
-          if (clones?.find((clone) => findClone(clone, mainComponent, layer))) {
-            alreadyCloned = true;
-          } else {
-            if (!clones) {
-              clones = [];
+async function generateGUINodeData(options: GUINodeDataExportOptions, guiNodesData?: GUINodeData[], clones?: ReturnType<typeof createClone>[]) {
+  if (guiNodesData) {
+    const { layer } = options;
+    if (layer.visible || isSlice9Layer(layer)) {
+      if (isFigmaBox(layer) && !isSlice9ServiceLayer(layer)) {
+        let alreadyCloned = false;
+        const guiNodeData = await convertBoxGUINodeData(layer, options);  
+        if (guiNodeData.cloneable && isFigmaComponentInstance(layer)) {
+          const mainComponent = await findMainComponent(layer);
+          if (mainComponent) {
+            if (clones?.find((clone) => findClone(clone, mainComponent, layer))) {
+              alreadyCloned = true;
+            } else {
+              if (!clones) {
+                clones = [];
+              }
+              const clone = createClone(mainComponent, layer);
+              clones.push(clone);
             }
-            const clone = createClone(mainComponent, layer);
-            clones.push(clone);
           }
         }
-      }
-      if (!alreadyCloned) {
-        const shouldSkip = await isSkippable(layer, guiNodeData);
-        if (!shouldSkip) {
-          guiNodesData.push(guiNodeData);
-        }
-        if (hasChildren(layer)) {
-          const { children: layerChildren } = layer; 
+        if (!alreadyCloned) {
+          const shouldSkip = await isSkippable(layer, guiNodeData);
           if (!shouldSkip) {
-            guiNodeData.children = [];
+            guiNodesData.push(guiNodeData);
           }
-          for (const layerChild of layerChildren) {
-            if (isExportable(layerChild) && !isSlice9ServiceLayer(layer)) {
-              const parentOptions = generateParentOptions(layerChild, shouldSkip, false, options, guiNodeData);
-              const children = !shouldSkip ? guiNodeData.children :  parentOptions.parentChildren; 
-              await generateGUINodeData(parentOptions, children, clones);
+          if (hasChildren(layer)) {
+            const { children: layerChildren } = layer; 
+            if (!shouldSkip) {
+              guiNodeData.children = [];
+            }
+            for (const layerChild of layerChildren) {
+              if (isExportable(layerChild) && !isSlice9ServiceLayer(layer)) {
+                const parentOptions = generateParentOptions(layerChild, shouldSkip, false, options, guiNodeData);
+                const children = !shouldSkip ? guiNodeData.children :  parentOptions.parentChildren;
+                await generateGUINodeData(parentOptions, children, clones);
+              }
             }
           }
         }
+      } else if (isFigmaText(layer)) {
+        const guiNodeData = convertTextGUINodeData(layer, options);
+        guiNodesData.push(guiNodeData);
       }
-    } else if (isFigmaText(layer)) {
-      const guiNodeData = convertTextGUINodeData(layer, options);
-      guiNodesData.push(guiNodeData);
     }
   }
 }

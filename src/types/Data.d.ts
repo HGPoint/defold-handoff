@@ -101,7 +101,7 @@ type GUINodeData = {
   wrapper_padding: Vector4,
   exportable_layer: ExportableLayer,
   figma_position: Vector4,
-  children: GUINodeData[],
+  children?: GUINodeData[],
 }
 
 type GUINodeNonDefoldProperties = "skip" | "cloneable" | "template" | "template_path" | "template_name" | "wrapper" | "wrapper_padding" | "exportable_layer" | "figma_position" | "children";
@@ -122,7 +122,7 @@ type GUINodeDataExportOptions = {
   parentPivot: Pivot,
   parentSize: Vector4,
   parentShift: Vector4,
-  parentChildren: GUINodeData[],
+  parentChildren?: GUINodeData[],
 }
 
 type GUINodeCloneData = {

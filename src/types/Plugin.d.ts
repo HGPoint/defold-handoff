@@ -41,6 +41,7 @@ type PluginGUINodeData = {
   adjust_mode?: AdjustMode,
   clipping_mode?: ClippingMode,
   clipping_inverted?: boolean,
+  font?: string,
 
   skip?: boolean,
   cloneable?: boolean,

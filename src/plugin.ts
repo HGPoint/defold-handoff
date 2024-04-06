@@ -2,7 +2,7 @@ import { getPluginData, hasVariantPropertyChanged } from "utilities/figma";
 import { isGUINodeSelected, reducePluginSelection, convertPluginUISelection } from "utilities/selection";  
 import { isSlice9Layer  } from "utilities/slice9";
 import { initializeProject, updateProject } from "handoff/project";
-import { updateGUINode, tryRefreshSlice9Sprite, tryRestoreSLice9Node, copyGUINodes, exportGUINodes, resetGUINodes, fixTextNode, copyGUINodeScheme } from "handoff/gui";
+import { updateGUINode, tryRefreshSlice9Sprite, tryRestoreSLice9Node, copyGUINodes, exportGUINodes, resetGUINodes, fixTextNode, fixGUINodes, copyGUINodeScheme } from "handoff/gui";
 import { createAtlas, exportAtlases, destroyAtlases } from "handoff/atlas";
 import { updateSection, resetSections } from "handoff/section";
 import { exportBundle } from "handoff/bundle";
@@ -78,6 +78,11 @@ function onResetGUINodes() {
   figma.notify("GUI nodes reset");
 }
 
+function onFixGUINodes() {
+  fixGUINodes(selection.gui);
+  figma.notify("GUI nodes fixed");
+}
+
 function onCreateAtlas() {
   const atlas = createAtlas(selection.layers);
   selectNode([atlas]);
@@ -149,6 +154,8 @@ function processPluginUIMessage(message: PluginMessage) {
     onExportGUINodes();
   } else if (type === "resetGUINodes") {
     onResetGUINodes();
+  } else if (type === "fixGUINodes") {
+    onFixGUINodes();
   } else if (type === "updateGUINode" && data?.guiNode) {
     onUpdateGUINode(data.guiNode);
   } else if (type === "copyGUINodeScheme") {

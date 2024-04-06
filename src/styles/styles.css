@@ -184,7 +184,8 @@ select:hover:disabled {
   margin: 0 10px 0 0;
 }
 
-.widgetComponentLabel + input:nth-last-child(2) {
+.widgetComponentLabel + input:nth-last-child(2),
+.widgetComponentLabel + input:last-child {
   margin: 0;
 }
 

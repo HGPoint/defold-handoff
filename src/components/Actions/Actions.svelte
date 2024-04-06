@@ -1,5 +1,5 @@
 <script lang="ts">
-  export let title = "Action"
+  export let title = "Actions"
 </script>
 
 <section class="actions">
