@@ -2,6 +2,7 @@
   import selectionState from "state/selection";
   import { postMessageToPlugin } from "utilities/pluginUI";
   import Page from "components/Page";
+  import DimensionsProperty from "components/DimensionsProperty";
   import Properties from "components/Properties";
   import TextProperty from "components/TextProperty";
   import TextSetProperty from "components/TextSetProperty";
@@ -23,7 +24,11 @@
   selectionState.subscribe((selection) => {
     if (selection) {
       const { project } = selection;
-      const newProjectConfig = { paths: { ...project.paths }, fontFamilies: [ ...project.fontFamilies ] };
+      const newProjectConfig = {
+        screenSize: { ...project.screenSize },
+        paths: { ...project.paths },
+        fontFamilies: [ ...project.fontFamilies ]
+      };
       lastSentProjectConfig = JSON.parse(JSON.stringify(newProjectConfig));
       projectConfig = newProjectConfig;
     }
@@ -34,6 +39,9 @@
 
 {#if projectConfig}
   <Page>
+    <Properties title="Project Screen Properties">
+      <DimensionsProperty label="Screen Size" bind:value={projectConfig.screenSize} />
+    </Properties>
     <Properties title="Project Path Properties">
       <TextProperty label="Assets Path" bind:value={projectConfig.paths.assetsPath} />
       <TextProperty label="Atlases Path" bind:value={projectConfig.paths.atlasAssetsPath} />

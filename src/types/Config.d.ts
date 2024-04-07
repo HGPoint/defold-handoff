@@ -1,5 +1,6 @@
 declare module "config/config.json" {
   const value: {
+    screenSize: Vector4,
     paths: ProjectPathData
     constKeys: string[]
     guiDefaultValues: {
@@ -29,6 +30,7 @@ declare module "config/config.json" {
       template_node_child: boolean
     }
     guiNodeDefaultSpecialValues: {
+      screen: boolean,
       skip: boolean,
       cloneable: boolean,
       template: boolean,

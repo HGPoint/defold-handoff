@@ -43,6 +43,7 @@ type PluginGUINodeData = {
   clipping_inverted?: boolean,
   font?: string,
 
+  screen?: boolean,
   skip?: boolean,
   cloneable?: boolean,
   template?: boolean,
@@ -76,10 +77,11 @@ type PluginMessageAction =
   "updateGUINode" |
   "showGUINodeData" |
   "createAtlas" |
-  "addAtlas" |
+  "addSprites" |
   "exportAtlases" |
   "atlasesExported" |
   "fixAtlases" |
+  "sortAtlases" |
   "validateAtlases" |
   "destroyAtlases" |
   "exportBundle" |

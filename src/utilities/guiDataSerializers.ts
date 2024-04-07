@@ -3,6 +3,7 @@ import { isTemplateGUINode } from "utilities/gui";
 import { generateTemplatePath } from "utilities/path";
 
 const EXCLUDED_PROPERTY_KEYS = [
+  "screen",
   "skip",
   "cloneable",
   "template",

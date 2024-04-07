@@ -1,5 +1,6 @@
 import { generateAtlasDataSet } from "utilities/atlasDataGenerators";
 import { serializeAtlasDataSet } from "utilities/atlasDataSerializers";
+import { packSprites } from "utilities/atlas";
 import { setPluginData, isFigmaRemoved, isFigmaComponent } from "utilities/figma";
 
 function fitSpriteComponent(sprite: ComponentNode) {
@@ -49,7 +50,7 @@ function fitAtlasComponent(atlas: ComponentSetNode) {
 }
 
 function styleAtlasComponent(atlas: ComponentSetNode) {  
-  atlas.fills = [{ type: "SOLID", color: { r: 1, g: 1, b: 1 } }];
+  atlas.fills = [{ type: "SOLID", color: { r: 0.73, g: 0.77, b: 0.79 } }];
   atlas.clipsContent = false;
   fitAtlasComponent(atlas);
 }
@@ -66,7 +67,7 @@ function appendSpriteComponents(atlas: ComponentSetNode, sprites: ComponentNode[
   fitAtlasComponent(atlas);
 }
 
-export function addAtlas(atlas: ComponentSetNode, layers: SceneNode[]) {
+export function addSprites(atlas: ComponentSetNode, layers: SceneNode[]) {
   const sprites = createAtlasSpriteComponents(layers);
   appendSpriteComponents(atlas, sprites);
 }
@@ -111,4 +112,12 @@ export function fixAtlas(atlas: ComponentSetNode) {
 
 export function fixAtlases(atlases: ComponentSetNode[]) {
   atlases.forEach(fixAtlas);
+}
+
+export function sortAtlas(atlas: ComponentSetNode) {
+  packSprites(atlas);
+}
+
+export function sortAtlases(atlases: ComponentSetNode[]) {
+  atlases.forEach(sortAtlas);
 }

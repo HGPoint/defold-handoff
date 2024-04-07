@@ -7,6 +7,7 @@
 <Page>
   <Actions title="Tools">
     <ActionButton label="Fix Atlases" action="fixAtlases" disabled={true} />
+    <ActionButton label="Sort Atlases" action="sortAtlases" />
     <ActionButton label="Validate Atlases" action="validateAtlases" disabled={true} />
   </Actions>
   <Actions>

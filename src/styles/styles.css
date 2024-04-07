@@ -149,7 +149,8 @@ select:hover:disabled {
 .widgetTransformation,
 .widgetSlice9,
 .widgetTextSet
-.widgetTextSetItem {
+.widgetTextSetItem,
+.widgetDimensions {
   display: flex;
   align-items: center;
 }

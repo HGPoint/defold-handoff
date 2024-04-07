@@ -75,6 +75,7 @@
       <ToggleProperty label="Clipping Inverted" bind:value={properties.clipping_inverted} />
     </Properties>
     <Properties title="Special Properties">
+      <ToggleProperty label="On Screen" bind:value={properties.screen} />
       <ToggleProperty label="Skip" bind:value={properties.skip} />
       <ToggleProperty label="Extract" bind:value={properties.cloneable} />
       <ToggleProperty label="Template" bind:value={properties.template} />

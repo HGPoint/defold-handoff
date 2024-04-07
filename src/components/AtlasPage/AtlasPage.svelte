@@ -13,9 +13,10 @@
 <Page>
   <Actions title="Tools">
     {#if isLayerSelected(selection) || areMultipleLayersSelected(selection)}
-      <ActionButton label="Add to Atlas" action="addAtlas" />
+      <ActionButton label="Add Sprites to Atlas" action="addSprites" />
     {/if}
     <ActionButton label="Fix Atlas" action="fixAtlases" />
+    <ActionButton label="Sort Atlas" action="sortAtlases" />
     <ActionButton label="Validate Atlas" action="validateAtlases" disabled={true} />
   </Actions>
   <Actions>

@@ -1,3 +1,4 @@
+import { projectConfig } from "handoff/project";
 import { vector4, addVectors } from "utilities/math";
 
 export function isPivotNorth(pivot: Pivot) {
@@ -93,8 +94,15 @@ export function calculatePivotedShift(pivot: Pivot, parentPivot: Pivot, size: Ve
   return vector4(shiftX, shiftY, 0, 1);
 }
 
-export function calculateRootPosition(layer: ExportableLayer, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4) {
-  const position = vector4(0);
+function calculateCenteredRootPosition(data?: PluginGUINodeData | null) {
+  if (data?.screen) {
+    return vector4(projectConfig.screenSize.x / 2, projectConfig.screenSize.y / 2, 0, 0);
+  }
+  return vector4(0);
+}
+
+export function calculateRootPosition(layer: ExportableLayer, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4, data?: PluginGUINodeData | null) {
+  const position = calculateCenteredRootPosition(data);
   const pivotedPosition = calculatePivotedPosition(position, pivot, parentPivot, size, parentSize);
   return pivotedPosition;
 }
@@ -117,10 +125,6 @@ export function calculateCenteredPosition(layer: ExportableLayer, size: Vector4,
   const centeredX = x - (parentSize.x / 2);
   const centeredY = (parentSize.y / 2) - y;
   return vector4(centeredX, centeredY, 0, 1);
-
-  // const x = layer.x + (size.x / 2) - (parentSize.x / 2);
-  // const y = (parentSize.y / 2) - layer.y - (size.y / 2);
-  // return vector4(x, y, 0, 1);s
 }
 
 export function calculatePivotedPosition(centeredPosition: Vector4, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4) {

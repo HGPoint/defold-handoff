@@ -1,4 +1,10 @@
 {
+  "screenSize": {
+    "x": 1136,
+    "y": 640,
+    "z": 0,
+    "w": 0
+  },
   "paths": {
     "assetsPath": "assets",
     "atlasAssetsPath": "atlases",
@@ -45,6 +51,7 @@
     "template_node_child": false
   },
   "guiNodeDefaultSpecialValues": {
+    "screen": false,
     "skip": false,
     "cloneable": false,
     "template": false,

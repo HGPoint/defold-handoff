@@ -7,6 +7,7 @@ type ProjectPathData = {
 }
 
 type ProjectData = {
+  screenSize: Vector4,
   paths: ProjectPathData,
   fontFamilies: string[],
 }
@@ -104,7 +105,7 @@ type GUINodeData = {
   children?: GUINodeData[],
 }
 
-type GUINodeNonDefoldProperties = "skip" | "cloneable" | "template" | "template_path" | "template_name" | "wrapper" | "wrapper_padding" | "exportable_layer" | "figma_position" | "children";
+type GUINodeNonDefoldProperties = "screen" | "skip" | "cloneable" | "template" | "template_path" | "template_name" | "wrapper" | "wrapper_padding" | "exportable_layer" | "figma_position" | "children";
 
 type GUINodeDataKey = keyof GUINodeData;
 
