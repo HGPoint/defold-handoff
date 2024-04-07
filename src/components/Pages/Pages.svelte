@@ -16,14 +16,14 @@
   selectionState.subscribe((value) => { selection = value; });
 </script>
 
-{#if areMultipleAtlasesSelected(selection)}
-  <AtlasesPage />
-{:else if isAtlasSelected(selection)}
-  <AtlasPage />
-{:else if areMultipleSectionsSelected(selection)}
+{#if areMultipleSectionsSelected(selection)}
   <SectionsPage />
 {:else if isSectionSelected(selection)}
   <SectionPage />
+{:else if areMultipleAtlasesSelected(selection)}
+  <AtlasesPage />
+{:else if isAtlasSelected(selection)}
+  <AtlasPage />
 {:else if areMultipleGUINodesSelected(selection)}
   <GUINodesPage />
 {:else if isGUINodeSelected(selection)}

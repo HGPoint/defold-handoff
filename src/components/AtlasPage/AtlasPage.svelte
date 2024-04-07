@@ -1,14 +1,25 @@
 <script lang="ts">
+  import selectionState from "state/selection";
   import Page from "components/Page";
   import Actions from "components/Actions";
   import ActionButton from "components/ActionButton";
+    import { isLayerSelected, areMultipleLayersSelected } from "utilities/selection";
+
+  let selection: SelectionUIData;
+
+  selectionState.subscribe((value) => { selection = value; });
 </script>
 
 <Page>
+  <Actions title="Tools">
+    {#if isLayerSelected(selection) || areMultipleLayersSelected(selection)}
+      <ActionButton label="Add to Atlas" action="addAtlas" />
+    {/if}
+    <ActionButton label="Fix Atlas" action="fixAtlases" />
+    <ActionButton label="Validate Atlas" action="validateAtlases" disabled={true} />
+  </Actions>
   <Actions>
     <ActionButton label="Export Atlas" action="exportAtlases" />
-    <ActionButton label="Fix Atlas" action="fixAtlases" disabled={true} />
-    <ActionButton label="Validate Atlas" action="validateAtlases" disabled={true} />
     <ActionButton label="Destroy Atlas" action="destroyAtlases" />
   </Actions>
 </Page>

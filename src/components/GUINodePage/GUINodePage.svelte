@@ -76,7 +76,7 @@
     </Properties>
     <Properties title="Special Properties">
       <ToggleProperty label="Skip" bind:value={properties.skip} />
-      <ToggleProperty label="Cloneable" bind:value={properties.cloneable} />
+      <ToggleProperty label="Extract" bind:value={properties.cloneable} />
       <ToggleProperty label="Template" bind:value={properties.template} />
       {#if properties.template}
         <TextProperty label="Template Name" bind:value={properties.template_name} />
@@ -88,22 +88,21 @@
       {/if}
     </Properties>
     <Actions title="Tools">
+      <ActionButton label="Infer Properties" action="fixGUINodes" />
       {#if isTextGUINode(properties.type)}
-        <ActionButton label="Fix Text Node" action="fixTextNode" />
+        <ActionButton label="Fix Text" action="fixTextNode" />
       {/if}
       {#if isBoxGUINode(properties.type)}
-        <ActionButton label="Restore Slice9" action="restoreSlice9Node" />
+        <ActionButton label="Refresh Slice9" action="restoreSlice9Node" />
       {/if}
-      <ActionButton label="Fix GUI Node" action="fixGUINodes" />
-      <ActionButton label="Validate GUI Node" action="validateGUINodes" disabled={true} />
+      <ActionButton label="Validate GUI" action="validateGUINodes" disabled={true} />
       <ActionButton label="Reset GUI Node" action="resetGUINodes" />
     </Actions>
     <Actions>
-      <ActionButton label="Copy GUI Node" action="copyGUINodes" />
-      <ActionButton label="Export GUI Node" action="exportGUINodes" />
-      <ActionButton label="Export GUI Node Bundle" action="exportBundle" />
-      <ActionButton label="Copy GUI Node Scheme" action="copyGUINodeScheme" />
-      <ActionButton label="Show GUI Node Data" action="showGUINodeData" />
+      <ActionButton label="Export GUI" action="exportGUINodes" />
+      <ActionButton label="Export Bundle" action="exportBundle" />
+      <ActionButton label="Copy GUI" action="copyGUINodes" />
+      <ActionButton label="Copy GUI Scheme" action="copyGUINodeScheme" />
     </Actions>
   </Page>
 {/if}

@@ -42,12 +42,14 @@
       <ToggleProperty label="Bundled Atlases" bind:value={properties.bundled} />
       <TextProperty label="Combine As" bind:value={properties.jumbo} />
     </Properties>
+    <Actions title="Tools">
+      <ActionButton label="Fix Atlases" action="fixAtlases" />
+      <ActionButton label="Validate Atlases" action="validateAtlases" disabled={true} />
+      <ActionButton label="Reset Section" action="resetSections" />
+    </Actions>
     <Actions>
       <ActionButton label="Export Atlases" action="exportAtlases" />
-      <ActionButton label="Fix Atlases" action="fixAtlases" disabled={true} />
-      <ActionButton label="Validate Atlases" action="validateAtlases" disabled={true} />
       <ActionButton label="Destroy Atlases" action="destroyAtlases" />
-      <ActionButton label="Reset Section" action="resetSections" />
     </Actions>
   </Page>
 {/if}

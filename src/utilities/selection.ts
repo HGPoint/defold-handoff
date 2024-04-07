@@ -67,7 +67,7 @@ function guiNodePluginUISelectionConverter(data: PluginGUINodeData[], layer: Exp
   const { name: id } = layer;
   const type = isFigmaText(layer) ? "TYPE_TEXT" : "TYPE_BOX";
   const template_name = pluginData?.template_name || id;
-  const guiNodeData: Required<PluginGUINodeData> = {
+  const guiNodeData: PluginGUINodeData = {
     ...config.guiNodeDefaultValues,
     ...config.guiNodeDefaultSpecialValues,
     ...pluginData,
@@ -90,7 +90,7 @@ function atlasPluginUISelectionConverter(data: PluginAtlasData[], layer: SceneNo
 function sectionPluginUISelectionConverter(data: PluginSectionData[], layer: SectionNode): PluginSectionData[] {
   const pluginData = getPluginData(layer, "defoldSection");
   const { name: id } = layer;
-  const sectionData: Required<PluginSectionData> = {
+  const sectionData: PluginSectionData = {
     ...config.sectionDefaultValues,
     ...pluginData,
     id
@@ -107,4 +107,12 @@ export function convertPluginUISelection(selection: SelectionData): SelectionUID
     sections: selection.sections.reduce(sectionPluginUISelectionConverter, []),
     project: projectConfig,
   }
+}
+
+export function reduceAtlases(selection: SelectionData): ComponentSetNode[] {
+  const atlases = selection.sections.reduce((atlases, section) => {
+    const sectionAtlases = section.children.filter((child): child is ComponentSetNode => isAtlas(child) && !atlases.includes(child));
+    return [ ...atlases, ...sectionAtlases ]
+  },  [...selection.atlases ] as ComponentSetNode[]);
+  return atlases;
 }

@@ -1,6 +1,21 @@
 import { generateAtlasDataSet } from "utilities/atlasDataGenerators";
 import { serializeAtlasDataSet } from "utilities/atlasDataSerializers";
-import { setPluginData, isFigmaRemoved } from "utilities/figma";
+import { setPluginData, isFigmaRemoved, isFigmaComponent } from "utilities/figma";
+
+function fitSpriteComponent(sprite: ComponentNode) {
+  const bounds = sprite.absoluteRenderBounds;
+  if (bounds !== null) {
+    const prevWidth = sprite.width;
+    const prevHeight = sprite.height;
+    sprite.resizeWithoutConstraints(bounds.width, bounds.height)
+    const changeWidth = sprite.width - prevWidth;
+    const changeHeight = sprite.height - prevHeight;
+    sprite.children.forEach(child => {
+      child.x += changeWidth / 2;
+      child.y += changeHeight / 2;
+    });
+  }
+}
 
 function createAtlasSpriteComponent(layer: SceneNode) {
   const sprite = figma.createComponentFromNode(layer);
@@ -9,22 +24,11 @@ function createAtlasSpriteComponent(layer: SceneNode) {
   if (!isFigmaRemoved(layer)) {
     layer.locked = true;
   }
-  const bounds = sprite.absoluteRenderBounds;
-  if (bounds !== null) {
-    const prevWidth  = sprite.width;
-    const prevHeight = sprite.height;
-    sprite.resizeWithoutConstraints(bounds.width, bounds.height)
-    const changeWidth  = sprite.width - prevWidth;
-    const changeHeight = sprite.height - prevHeight;
-    sprite.children.forEach(child => {
-      child.x += changeWidth / 2;
-      child.y += changeHeight / 2;
-    });
-  }
+  fitSpriteComponent(sprite);
   return sprite;
 }
 
-function createAtlasSpritesComponents(layers: SceneNode[]) {
+function createAtlasSpriteComponents(layers: SceneNode[]) {
   return layers.map(createAtlasSpriteComponent);
 }
 
@@ -37,20 +41,34 @@ function createAtlasComponent(sprites: ComponentNode[]) {
   return atlas;
 }
 
-function styleAtlasComponent(atlas: ComponentSetNode) {  
-  atlas.fills = [{ type: "SOLID", color: { r: 1, g: 1, b: 1 } }];
-  atlas.clipsContent = false;
+function fitAtlasComponent(atlas: ComponentSetNode) {
   const bounds = atlas.absoluteRenderBounds;
   if (bounds !== null) {
     atlas.resizeWithoutConstraints(bounds.width, bounds.height);
   }
 }
 
+function styleAtlasComponent(atlas: ComponentSetNode) {  
+  atlas.fills = [{ type: "SOLID", color: { r: 1, g: 1, b: 1 } }];
+  atlas.clipsContent = false;
+  fitAtlasComponent(atlas);
+}
+
 export function createAtlas(layers: SceneNode[]) {
-  const sprites = createAtlasSpritesComponents(layers);
+  const sprites = createAtlasSpriteComponents(layers);
   const atlas = createAtlasComponent(sprites);
   styleAtlasComponent(atlas);
   return atlas;
+}
+
+function appendSpriteComponents(atlas: ComponentSetNode, sprites: ComponentNode[]) {
+  sprites.forEach(atlas.appendChild);
+  fitAtlasComponent(atlas);
+}
+
+export function addAtlas(atlas: ComponentSetNode, layers: SceneNode[]) {
+  const sprites = createAtlasSpriteComponents(layers);
+  appendSpriteComponents(atlas, sprites);
 }
 
 export async function exportAtlases(atlases: ComponentSetNode[]): Promise<SerializedAtlasData[]> {
@@ -65,4 +83,32 @@ export function destroyAtlas(atlas: ComponentSetNode) {
 
 export function destroyAtlases(atlases: ComponentSetNode[]) {
   atlases.forEach(destroyAtlas);
+}
+
+function fixSpriteName(sprite: SceneNode) {
+  const [ , name ] = sprite.name.split("=");
+  if (name) {
+    sprite.name = `Sprite=${name}`;
+  }
+}
+
+function fixSpriteComponent(sprite: SceneNode) {
+  if (isFigmaComponent(sprite)) {
+    fixSpriteName(sprite);
+    const [ layer ] = sprite.children;
+    if (!isFigmaRemoved(layer)) {
+      layer.locked = true;
+    }
+    fitSpriteComponent(sprite);
+  }
+}
+
+export function fixAtlas(atlas: ComponentSetNode) {
+  styleAtlasComponent(atlas);
+  fitAtlasComponent(atlas);
+  atlas.children.forEach(fixSpriteComponent);
+}
+
+export function fixAtlases(atlases: ComponentSetNode[]) {
+  atlases.forEach(fixAtlas);
 }

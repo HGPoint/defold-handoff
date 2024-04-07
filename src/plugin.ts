@@ -1,9 +1,9 @@
 import { getPluginData, hasVariantPropertyChanged } from "utilities/figma";
-import { isGUINodeSelected, reducePluginSelection, convertPluginUISelection } from "utilities/selection";  
+import { isGUINodeSelected, reducePluginSelection, convertPluginUISelection, reduceAtlases } from "utilities/selection";  
 import { isSlice9Layer  } from "utilities/slice9";
 import { initializeProject, updateProject } from "handoff/project";
 import { updateGUINode, tryRefreshSlice9Sprite, tryRestoreSLice9Node, copyGUINodes, exportGUINodes, resetGUINodes, fixTextNode, fixGUINodes, copyGUINodeScheme } from "handoff/gui";
-import { createAtlas, exportAtlases, destroyAtlases } from "handoff/atlas";
+import { createAtlas, addAtlas, fixAtlases, exportAtlases, destroyAtlases } from "handoff/atlas";
 import { updateSection, resetSections } from "handoff/section";
 import { exportBundle } from "handoff/bundle";
 
@@ -89,8 +89,22 @@ function onCreateAtlas() {
   figma.notify("Atlas created");
 }
 
+function onAddAtlas() {
+  const [ atlas ] = selection.atlases
+  addAtlas(atlas, selection.layers);
+  selectNode([atlas]);
+  figma.notify("Added to atlas");
+}
+
+function onFixAtlases() {
+  const atlases = reduceAtlases(selection);
+  fixAtlases(atlases);
+  figma.notify("Atlases fixed");
+}
+
 function onExportAtlases() {
-  exportAtlases(selection.atlases)
+  const atlases = reduceAtlases(selection);
+  exportAtlases(atlases)
   .then(onAtlasesExported);
 }
 
@@ -101,7 +115,8 @@ function onAtlasesExported(atlases: SerializedAtlasData[]) {
 }
 
 function onDestroyAtlases() {
-  destroyAtlases(selection.atlases);
+  const atlases = reduceAtlases(selection);
+  destroyAtlases(atlases);
   updateSelection();
   figma.notify("Atlases destroyed");
 }
@@ -164,6 +179,10 @@ function processPluginUIMessage(message: PluginMessage) {
     onShowGUINodeData();
   } else if (type === "createAtlas") {
     onCreateAtlas();
+  } else if (type === "addAtlas") {
+    onAddAtlas();
+  } else if (type === "fixAtlases") {
+    onFixAtlases();
   } else if (type === "exportAtlases") {
     onExportAtlases();
   } else if (type === "destroyAtlases") {
