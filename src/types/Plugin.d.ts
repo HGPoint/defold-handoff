@@ -57,6 +57,7 @@ type PluginData = {
   defoldGUINode?: PluginGUINodeData | null,
   defoldAtlas?: PluginAtlasData | null,
   defoldSlice9?: boolean | null,
+  defoldScale?: boolean | null,
   defoldSection?: PluginSectionData | null,
   defoldProject?: ProjectData | null,
 }

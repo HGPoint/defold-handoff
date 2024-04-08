@@ -165,9 +165,10 @@ select:hover:disabled {
   min-width: 0;
 }
 
-.widgetSlice9 {
+.widgetSlice9,
+.widgetTransformation {
   position: relative;
-  padding: 0 0 calc(2.5em + 7px);
+  padding: 0 0 calc(2.5em + 5px);
 }
 
 .widgetTextSetItem {

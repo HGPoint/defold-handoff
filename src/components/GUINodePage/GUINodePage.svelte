@@ -51,7 +51,7 @@
   <Page>
     <Properties>
       <TextProperty label="Id" bind:value={properties.id} />
-      <TransformationProperty label="Scale" bind:value={properties.scale} disabled={true} />
+      <TransformationProperty label="Scale" bind:value={properties.scale} />
       <OptionsProperty label="Size Mode" bind:value={properties.size_mode} options={config.sizeModes} />
       <ToggleProperty label="Enabled" bind:value={properties.enabled} />
       <ToggleProperty label="Visible" bind:value={properties.visible} />

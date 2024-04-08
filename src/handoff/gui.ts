@@ -2,6 +2,7 @@ import { generateGUIDataSet, generateGUIData } from "utilities/guiDataGenerators
 import { serializeGUIDataSet } from "utilities/guiDataSerializers";
 import { isFigmaText, getPluginData, setPluginData, removePluginData, tryUpdateLayerName } from "utilities/figma";
 import { tryRefreshSlice9Placeholder, isSlice9PlaceholderLayer, findOriginalLayer, parseSlice9Data } from "utilities/slice9";
+import { tryRefreshScalePlaceholder } from "utilities/scale";
 import { extractScheme } from "utilities/scheme";
 import { inferTextNode, inferGUINodes } from "utilities/inference";
 
@@ -12,7 +13,7 @@ export function tryRefreshSlice9Sprite(layer: SceneNode) {
   }
 }
 
-export function tryRestoreSLice9Node(layer: SceneNode) {
+export function tryRestoreSlice9Node(layer: SceneNode) {
   const slice9 = parseSlice9Data(layer);
   if (slice9) {
     setPluginData(layer, { defoldSlice9: true });
@@ -28,6 +29,7 @@ export function updateGUINode(layer: SceneNode, data: PluginGUINodeData) {
     setPluginData(originalLayer, guiNodeData);
     tryUpdateLayerName(originalLayer, data.id);
     tryRefreshSlice9Placeholder(originalLayer, data.slice9)
+    tryRefreshScalePlaceholder(layer, data.scale);
   }
 }
 

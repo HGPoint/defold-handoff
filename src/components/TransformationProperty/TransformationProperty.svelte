@@ -5,7 +5,13 @@
   export let value: Vector4;
   export let disabled = false;
 
+    let editedValue = { ...value };
+
   const id = generateRandomId();
+
+  function onApplyClick() {
+    value = { ...editedValue };
+  }
 </script>
 
 <label
@@ -19,18 +25,23 @@
     class="widgetInput"
     type="number"
     id={id}
-    bind:value={value.x}
+    bind:value={editedValue.x}
     {disabled} />
   <span class="widgetComponentLabel">Y:</span>
   <input
     class="widgetInput"
     type="number"
-    bind:value={value.y}
+    bind:value={editedValue.y}
     {disabled} />
   <span class="widgetComponentLabel">Z:</span>
   <input
     class="widgetInput"
     type="number"
-    bind:value={value.z}
+    bind:value={editedValue.z}
     {disabled} />
+  <button
+    class="widgetApply"
+    on:click={onApplyClick}>
+    Apply
+  </button>
 </div>

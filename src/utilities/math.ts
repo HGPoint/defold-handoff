@@ -19,6 +19,10 @@ export function isZeroVector(vector: Vector4) {
   return vector.x === 0 && vector.y === 0 && vector.z === 0 && vector.w === 0;
 }
 
+export function isOneScaleVector(vector: Vector4) {
+  return vector.x === 1 && vector.y === 1;
+}
+
 export function areVectorsEqual(a: Vector4, b: Vector4) {
   return a.x === b.x && a.y === b.y && a.z === b.z && a.w === b.w;
 }

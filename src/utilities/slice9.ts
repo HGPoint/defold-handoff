@@ -1,13 +1,6 @@
 import { isZeroVector, vector4 } from "utilities/math";
 import { getPluginData, removePluginData, isFigmaComponentInstance, isAtlasSprite, setPluginData, isFigmaFrame, isExportable } from "utilities/figma";
 
-export async function canBeSlice9(layer: SceneNode) {
-  if (isFigmaComponentInstance(layer)) {
-    return await isAtlasSprite(layer);
-  }
-  return false;
-}
-
 export function isSlice9Layer(layer: SceneNode): layer is InstanceNode {
   return isFigmaComponentInstance(layer) && !!getPluginData(layer, "defoldSlice9");
 }
@@ -381,7 +374,7 @@ export async function tryRefreshSlice9Placeholder(layer: SceneNode, slice9: Vect
       } else {
         updateSlice9Placeholder(layer, slice9);
       }
-    } else if (!isZeroVector(slice9) && isFigmaComponentInstance(layer) && await canBeSlice9(layer)) {
+    } else if (!isZeroVector(slice9) && isFigmaComponentInstance(layer) && await isAtlasSprite(layer)) {
       createSlice9Placeholder(layer, slice9);
     }
   }

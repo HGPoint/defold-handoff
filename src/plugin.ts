@@ -2,7 +2,7 @@ import { getPluginData, hasVariantPropertyChanged } from "utilities/figma";
 import { isGUINodeSelected, reducePluginSelection, convertPluginUISelection, reduceAtlases } from "utilities/selection";  
 import { isSlice9Layer  } from "utilities/slice9";
 import { initializeProject, updateProject } from "handoff/project";
-import { updateGUINode, tryRefreshSlice9Sprite, tryRestoreSLice9Node, copyGUINodes, exportGUINodes, resetGUINodes, fixTextNode, fixGUINodes, copyGUINodeScheme } from "handoff/gui";
+import { updateGUINode, tryRefreshSlice9Sprite, tryRestoreSlice9Node, copyGUINodes, exportGUINodes, resetGUINodes, fixTextNode, fixGUINodes, copyGUINodeScheme } from "handoff/gui";
 import { createAtlas, addSprites, fixAtlases, sortAtlases, exportAtlases, destroyAtlases, tryRestoreAtlases } from "handoff/atlas";
 import { updateSection, resetSections } from "handoff/section";
 import { exportBundle } from "handoff/bundle";
@@ -154,7 +154,7 @@ function onFixTextNode() {
 
 function onRestoreSlice9Node() {
   const { gui: [ layer ] } = selection;
-  tryRestoreSLice9Node(layer);
+  tryRestoreSlice9Node(layer);
   updateSelection();
 }
 
