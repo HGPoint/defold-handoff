@@ -1,7 +1,7 @@
 import { generateAtlasDataSet } from "utilities/atlasDataGenerators";
 import { serializeAtlasDataSet } from "utilities/atlasDataSerializers";
 import { packSprites } from "utilities/atlas";
-import { setPluginData, isFigmaRemoved, isFigmaComponent } from "utilities/figma";
+import { setPluginData, isFigmaRemoved, isFigmaComponent, isFigmaComponentSet } from "utilities/figma";
 
 function fitSpriteComponent(sprite: ComponentNode) {
   const bounds = sprite.absoluteRenderBounds;
@@ -33,12 +33,16 @@ function createAtlasSpriteComponents(layers: SceneNode[]) {
   return layers.map(createAtlasSpriteComponent);
 }
 
+function createAtlasData(layer: ComponentSetNode) {
+  const data = { id: layer.id };
+  const atlasData = { defoldAtlas: data };
+  setPluginData(layer, atlasData);
+}
+
 function createAtlasComponent(sprites: ComponentNode[]) {
   const atlas = figma.combineAsVariants(sprites, figma.currentPage);
   atlas.name = "atlas";
-  const data = { id: atlas.id };
-  const atlasData = { defoldAtlas: data };
-  setPluginData(atlas, atlasData);
+  createAtlasData(atlas);
   return atlas;
 }
 
@@ -120,4 +124,14 @@ export function sortAtlas(atlas: ComponentSetNode) {
 
 export function sortAtlases(atlases: ComponentSetNode[]) {
   atlases.forEach(sortAtlas);
+}
+
+export function tryRestoreAtlas(layer: SceneNode) {
+  if (isFigmaComponentSet(layer)) {
+    createAtlasData(layer);
+  }
+} 
+
+export function tryRestoreAtlases(layers: SceneNode[]) {
+  layers.forEach(tryRestoreAtlas);
 }

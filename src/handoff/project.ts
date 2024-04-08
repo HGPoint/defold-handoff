@@ -41,7 +41,6 @@ export function initializeProject() {
   if (projectData) {
     updateProjectData(projectData);
   }
-  console.log(projectConfig);
 }
 
 export function updateProject(data: Partial<ProjectData>) {

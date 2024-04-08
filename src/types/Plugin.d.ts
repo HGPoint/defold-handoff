@@ -77,6 +77,7 @@ type PluginMessageAction =
   "updateGUINode" |
   "showGUINodeData" |
   "createAtlas" |
+  "restoreAtlases" |
   "addSprites" |
   "exportAtlases" |
   "atlasesExported" |

@@ -3,7 +3,7 @@ import { isGUINodeSelected, reducePluginSelection, convertPluginUISelection, red
 import { isSlice9Layer  } from "utilities/slice9";
 import { initializeProject, updateProject } from "handoff/project";
 import { updateGUINode, tryRefreshSlice9Sprite, tryRestoreSLice9Node, copyGUINodes, exportGUINodes, resetGUINodes, fixTextNode, fixGUINodes, copyGUINodeScheme } from "handoff/gui";
-import { createAtlas, addSprites, fixAtlases, sortAtlases, exportAtlases, destroyAtlases } from "handoff/atlas";
+import { createAtlas, addSprites, fixAtlases, sortAtlases, exportAtlases, destroyAtlases, tryRestoreAtlases } from "handoff/atlas";
 import { updateSection, resetSections } from "handoff/section";
 import { exportBundle } from "handoff/bundle";
 
@@ -89,6 +89,12 @@ function onCreateAtlas() {
   figma.notify("Atlas created");
 }
 
+function onRestoreAtlases() {
+  tryRestoreAtlases(selection.layers);
+  updateSelection();
+  figma.notify("Atlases restored");
+}
+
 function onAddSprites() {
   const [ atlas ] = selection.atlases
   addSprites(atlas, selection.layers);
@@ -149,6 +155,7 @@ function onFixTextNode() {
 function onRestoreSlice9Node() {
   const { gui: [ layer ] } = selection;
   tryRestoreSLice9Node(layer);
+  updateSelection();
 }
 
 function onUpdateSection(data: PluginSectionData) {
@@ -185,6 +192,8 @@ function processPluginUIMessage(message: PluginMessage) {
     onShowGUINodeData();
   } else if (type === "createAtlas") {
     onCreateAtlas();
+  } else if (type === "restoreAtlases") {
+    onRestoreAtlases();
   } else if (type === "addSprites") {
     onAddSprites();
   } else if (type === "fixAtlases") {

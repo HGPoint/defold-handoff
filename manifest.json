@@ -1,6 +1,6 @@
 {
-  "name": "Figma Defold Handoff",
-  "id": "1348841716600635717",
+  "name": "Defold Handoff",
+  "id": "1359029081454325668",
   "api": "1.0.0",
   "main": "dist/plugin.js",
   "capabilities": [],

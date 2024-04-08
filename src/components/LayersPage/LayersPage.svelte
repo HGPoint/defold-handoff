@@ -7,5 +7,6 @@
 <Page>
   <Actions>
     <ActionButton label="Create Atlas" action="createAtlas" />
+    <ActionButton label="Restore Atlases" action="restoreAtlases" />
   </Actions>
 </Page>

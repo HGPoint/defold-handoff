@@ -1,4 +1,4 @@
-import { calculateAtlasName } from "utilities/atlas";
+import { calculateAtlasTexture, calculateEmptyTexture } from "utilities/atlas";
 import { findMainComponent, isFigmaComponentInstance, isFigmaSceneNode, isAtlas } from "utilities/figma";
 
 export function isTemplateGUINode(type: GUINodeType) {
@@ -11,16 +11,6 @@ export function isTextGUINode(type: GUINodeType) {
 
 export function isBoxGUINode(type: GUINodeType) {
   return type === "TYPE_BOX";
-}
-
-function calculateAtlasTexture(atlas: ComponentSetNode, layer: InstanceNode) {
-  const atlasName = calculateAtlasName(atlas);
-  const sprite = layer.variantProperties?.Sprite;
-  return sprite ? `${atlasName}/${sprite}` : "";
-}
-
-function calculateEmptyTexture() {
-  return "";
 }
 
 export async function findTexture(layer: ExportableLayer) {

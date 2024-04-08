@@ -11,6 +11,16 @@ export function calculateAtlasName(atlas: ComponentSetNode) {
   return atlas.name;
 }
 
+export function calculateAtlasTexture(atlas: ComponentSetNode, layer: InstanceNode) {
+  const atlasName = calculateAtlasName(atlas);
+  const sprite = layer.variantProperties?.Sprite;
+  return sprite ? `${atlasName}/${sprite}` : "";
+}
+
+export function calculateEmptyTexture() {
+  return "";
+}
+
 function sortSpritesByHeight(sprite1: SceneNode, sprite2: SceneNode) {
   return sprite2.height - sprite1.height;
 }
