@@ -1,5 +1,6 @@
 declare module "config/config.json" {
   const value: {
+    ui: Required<UIData>,
     screenSize: Vector4,
     paths: ProjectPathData
     constKeys: string[]

@@ -31,10 +31,13 @@ body {
 
 .root {
   display: inherit;
+  box-sizing: border-box;
   width: inherit;
   min-height: inherit;
+  flex-direction: inherit;
   justify-items: inherit;
   align-items: inherit;
+  padding: 47px 0 0;
 }
 
 button {
@@ -46,6 +49,7 @@ button {
   margin: 0;
   color: #8f9296;
   background: #373c41;
+  cursor: pointer;
 }
 
 button:hover,
@@ -208,7 +212,7 @@ select:hover:disabled {
   grid-template-columns: 90px auto;
   align-items: flex-start;
   width: 100%;
-  padding: 10px;
+  padding: 0 10px 10px;
   gap: 7px;
 }
 
@@ -217,18 +221,18 @@ select:hover:disabled {
   grid-template-columns: 1fr;
   box-sizing: border-box;
   width: 100%;
-  padding: 10px;
+  padding: 0 10px 10px;
   gap: 7px;
 }
 
 .properties + .actions,
 .properties + .properties {
-  padding: 0 10px 10px;
   margin: 20px 0 0;
 }
 
 .sectionHeader {
-
+  position: relative;
+  height: 32px;
   padding: 0 0 5px;
   border-bottom: 1px solid currentColor;
   margin: 0 0 5px;
@@ -236,4 +240,64 @@ select:hover:disabled {
 
 .properties .sectionHeader {
   grid-column: span 2;
+}
+
+.sectionToggle {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  color: inherit;
+  background: none;
+  text-align: left;
+}
+
+.sectionToggle::before {
+  content: "-";
+  display: block;
+  width: 15px;
+  height: 15px;
+  margin: 0 7px 0 0;
+  font-size: 1.5em;
+  line-height: 0.65em;
+  text-align: center;
+  vertical-align: middle;
+  cursor: pointer;
+  color: #373c41;
+  background: #b3b9c0;
+}
+
+.sectionToggle-is-collapsed::before {
+  content: "+";
+  font-size: 1.65em;
+  line-height: 0.8em;
+}
+
+.sectionToggle:hover {
+  background: none;
+}
+
+.controls {
+  position: fixed;
+  z-index: 100;
+  top: 0;
+  left: 0;
+  display: flex;
+  box-sizing: border-box;
+  justify-content: flex-end;
+  width: 100%;
+  padding: 10px;
+  background: #2c2f34;
+}
+
+.controlToggle {
+  min-width: 75px;
+  height: 2em;
+  color: #373c41;
+  background: #8f9296;
+}
+
+.controlToggle:hover {
+  background: #b3b9c0;
 }

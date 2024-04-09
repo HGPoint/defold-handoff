@@ -5,12 +5,12 @@
 </script>
 
 <Page>
-  <Actions title="Tools">
+  <Actions title="Tools" collapseKey="guiNodesToolsCollapsed">
     <ActionButton label="Infer Properties" action="fixGUINodes" />
     <ActionButton label="Validate GUI" action="validateGUINodes" disabled={true} />
     <ActionButton label="Reset GUI Nodes" action="resetGUINodes" />
   </Actions>
-  <Actions>
+  <Actions collapseKey="guiNodesActionsCollapsed">
     <ActionButton label="Export GUI" action="exportGUINodes" />
     <ActionButton label="Export Bundles" action="exportBundle" />
   </Actions>

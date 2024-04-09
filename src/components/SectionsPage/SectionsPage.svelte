@@ -5,12 +5,12 @@
 </script>
 
 <Page>
-  <Actions title="Tools">
+  <Actions title="Tools" collapseKey="sectionsToolsCollapsed">
     <ActionButton label="Fix Atlases" action="fixAtlases" />
     <ActionButton label="Validate Atlases" action="validateAtlases" disabled={true} />
     <ActionButton label="Reset Sections" action="resetSections" />
   </Actions>
-  <Actions>
+  <Actions collapseKey="sectionsToolsCollapsed">
     <ActionButton label="Export Atlases" action="exportAtlases" />
     <ActionButton label="Destroy Atlases" action="destroyAtlases" />
   </Actions>

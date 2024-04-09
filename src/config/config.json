@@ -1,4 +1,24 @@
 {
+  "ui": {
+    "collapsed": false,
+    "guiNodePropertiesCollapsed": false,
+    "guiNodeSpecialPropertiesCollapsed": false,
+    "guiNodeToolsCollapsed": false,
+    "guiNodeActionsCollapsed": false,
+    "guiNodesToolsCollapsed": false,
+    "guiNodesActionsCollapsed": false,
+    "atlasToolsCollapsed": false,
+    "atlasActionsCollapsed": false,
+    "atlasesToolsCollapsed": false,
+    "atlasesActionsCollapsed": false,
+    "sectionAtlasPropertiesCollapsed": false,
+    "sectionToolsCollapsed": false,
+    "sectionActionsCollapsed": false,
+    "sectionsToolsCollapsed": false,
+    "sectionsActionsCollapsed": false,
+    "layerActionsCollapsed": false,
+    "layersActionsCollapsed": false
+  },
   "screenSize": {
     "x": 1136,
     "y": 640,

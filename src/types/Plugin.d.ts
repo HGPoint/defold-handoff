@@ -93,7 +93,9 @@ type PluginMessageAction =
   "restoreSlice9Node" |
   "updateSection" |
   "resetSections" |
-  "updateProject"
+  "updateProject" | 
+  "collapseUI" |
+  "expandUI"
 
 type PluginMessagePayload = {
   bundle?: BundleData,

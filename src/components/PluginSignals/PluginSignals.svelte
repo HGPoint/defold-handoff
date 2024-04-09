@@ -5,7 +5,7 @@
   function processSelectionChange(data: PluginMessagePayload) {
     const { selection } = data;
     if (isSelectionData(selection)) {
-      selectionState.set(selection);
+      $selectionState = selection;
     }
   }
 

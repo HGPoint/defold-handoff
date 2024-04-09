@@ -11,7 +11,7 @@
 </script>
 
 <Page>
-  <Actions title="Tools">
+  <Actions title="Tools" collapseKey="atlasToolsCollapsed">
     {#if isLayerSelected(selection) || areMultipleLayersSelected(selection)}
       <ActionButton label="Add Sprites to Atlas" action="addSprites" />
     {/if}
@@ -19,7 +19,7 @@
     <ActionButton label="Sort Atlas" action="sortAtlases" />
     <ActionButton label="Validate Atlas" action="validateAtlases" disabled={true} />
   </Actions>
-  <Actions>
+  <Actions collapseKey="atlasActionsCollapsed">
     <ActionButton label="Export Atlas" action="exportAtlases" />
     <ActionButton label="Destroy Atlas" action="destroyAtlases" />
   </Actions>

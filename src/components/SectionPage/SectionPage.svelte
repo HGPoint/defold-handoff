@@ -38,16 +38,16 @@
 
 {#if properties}
   <Page>
-    <Properties title="Atlas Section Properties">
+    <Properties title="Atlas Section Properties" collapseKey="sectionAtlasPropertiesCollapsed">
       <ToggleProperty label="Bundled Atlases" bind:value={properties.bundled} />
       <TextProperty label="Combine As" bind:value={properties.jumbo} />
     </Properties>
-    <Actions title="Tools">
+    <Actions title="Tools" collapseKey="sectionToolsCollapsed">
       <ActionButton label="Fix Atlases" action="fixAtlases" />
       <ActionButton label="Validate Atlases" action="validateAtlases" disabled={true} />
       <ActionButton label="Reset Section" action="resetSections" />
     </Actions>
-    <Actions>
+    <Actions collapseKey="sectionActionsCollapsed">
       <ActionButton label="Export Atlases" action="exportAtlases" />
       <ActionButton label="Destroy Atlases" action="destroyAtlases" />
     </Actions>

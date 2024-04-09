@@ -5,7 +5,7 @@
 </script>
 
 <Page>
-  <Actions>
+  <Actions collapseKey="layerActionsCollapsed">
     <ActionButton label="Restore Atlas" action="restoreAtlases" />
   </Actions>
 </Page>

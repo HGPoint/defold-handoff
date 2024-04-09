@@ -49,7 +49,7 @@
 
 {#if properties}
   <Page>
-    <Properties>
+    <Properties collapseKey="guiNodePropertiesCollapsed">
       <TextProperty label="Id" bind:value={properties.id} />
       <TransformationProperty label="Scale" bind:value={properties.scale} />
       <OptionsProperty label="Size Mode" bind:value={properties.size_mode} options={config.sizeModes} />
@@ -74,7 +74,7 @@
       <OptionsProperty label="Clipping Mode" bind:value={properties.clipping_mode} options={config.clippingModes} />
       <ToggleProperty label="Clipping Inverted" bind:value={properties.clipping_inverted} />
     </Properties>
-    <Properties title="Special Properties">
+    <Properties title="Special Properties" collapseKey="guiNodeSpecialPropertiesCollapsed">
       <ToggleProperty label="On Screen" bind:value={properties.screen} />
       <ToggleProperty label="Skip" bind:value={properties.skip} />
       <ToggleProperty label="Extract" bind:value={properties.cloneable} />
@@ -88,7 +88,7 @@
         <SidesProperty label="Wrapper Padding" bind:value={properties.wrapper_padding} disabled={true} />
       {/if}
     </Properties>
-    <Actions title="Tools">
+    <Actions title="Tools" collapseKey="guiNodeToolsCollapsed">
       <ActionButton label="Infer Properties" action="fixGUINodes" />
       {#if isTextGUINode(properties.type)}
         <ActionButton label="Fix Text" action="fixTextNode" />
@@ -99,7 +99,7 @@
       <ActionButton label="Validate GUI" action="validateGUINodes" disabled={true} />
       <ActionButton label="Reset GUI Node" action="resetGUINodes" />
     </Actions>
-    <Actions>
+    <Actions collapseKey="guiNodeActionsCollapsed">
       <ActionButton label="Export GUI" action="exportGUINodes" />
       <ActionButton label="Export Bundle" action="exportBundle" />
       <ActionButton label="Copy GUI" action="copyGUINodes" />

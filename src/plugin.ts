@@ -216,6 +216,12 @@ function processPluginUIMessage(message: PluginMessage) {
     onResetSections();
   } else if (type === "updateProject" && data?.project) {
     onUpdateProject(data.project);
+  } else if (type === "collapseUI") {
+    console.log("!!!!!!!!!!!!")
+    collapseUI();
+  } else if (type === "expandUI") {
+    console.log("0000000000000000000000")
+    expandUI();
   }
 }
 
@@ -238,6 +244,14 @@ function processDocumentChange(event: DocumentChangeEvent) {
 
 function onDocumentChange(event: DocumentChangeEvent) {
   processDocumentChange(event);
+}
+
+function collapseUI() {
+  figma.ui.resize(400, 47);
+}
+
+function expandUI() {
+  figma.ui.resize(400, 600);
 }
 
 function initializeUI() {
