@@ -13,38 +13,13 @@
   import SidesProperty from "components/SidesProperty";
   import TextProperty from "components/TextProperty";
 
-  let properties: Required<PluginGUINodeData> | null;
-  let lastSentProperties: Required<PluginGUINodeData> | null;
-  let fontFamilies: Record<string, string> = {};
-
-  function shouldSendProperties(updateProperties: PluginGUINodeData | null) {
-    return JSON.stringify(lastSentProperties) !== JSON.stringify(updateProperties);
+  function updatePlugin(updatedProperties: PluginGUINodeData | null) {
+    postMessageToPlugin("updateGUINode", { guiNode: { ...JSON.parse(JSON.stringify(updatedProperties)) } });
   }
 
-  function tryUpdatePlugin(updateProperties: PluginGUINodeData | null) {
-    if (shouldSendProperties(updateProperties)) {
-      postMessageToPlugin("updateGUINode", { guiNode: { ...JSON.parse(JSON.stringify(updateProperties)) } });
-      lastSentProperties = JSON.parse(JSON.stringify(updateProperties));
-    }
-  }
-
-  selectionState.subscribe((selection) => {
-    if (selection) {
-      const { gui: [ gui ], project } = selection;
-      if (gui) {
-        const newProperties = JSON.parse(JSON.stringify(gui));
-        lastSentProperties = JSON.parse(JSON.stringify(newProperties));
-        properties = newProperties;
-      } else {
-        properties = null;
-      }
-      if (project) {
-        fontFamilies = project.fontFamilies.reduce((fonts, font) => ({ ...fonts, [font]: font }), {})
-      }
-    }
-  })
-
-  $: tryUpdatePlugin(properties);
+  $: properties = $selectionState.gui[0];
+  $: fontFamilies = $selectionState.project.fontFamilies.reduce((fonts, font) => ({ ...fonts, [font]: font }), {});
+  $: updatePlugin(properties);
 </script>
 
 {#if properties}

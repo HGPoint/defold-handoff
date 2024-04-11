@@ -1,4 +1,7 @@
+type UIMode = "developer" | "designer";
+
 type UIData = Partial<{
+  mode: UIMode,
   collapsed: boolean,
   guiNodePropertiesCollapsed: boolean,
   guiNodeSpecialPropertiesCollapsed: boolean,

@@ -8,6 +8,16 @@
   "editorType": [
     "figma"
   ],
+  "menu": [
+    {
+      "name": "Developer Mode",
+      "command": "developer"
+    }, 
+    {
+      "name": "Designer Mode",
+      "command": "designer"
+    }
+  ],
   "ui": "dist/ui.html",
   "networkAccess": {
     "allowedDomains": [
@@ -15,4 +25,4 @@
     ]
   },
   "documentAccess": "dynamic-page"
-}
+} 

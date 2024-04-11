@@ -30,6 +30,7 @@ type PluginGUINodeData = {
   visible?: boolean,
   inherit_alpha?: boolean,
   blend_mode?: GUINodeBlendMode,
+  size?: Vector4,
   scale?: Vector4,
   material?: string,
   slice9?: Vector4,
@@ -43,6 +44,7 @@ type PluginGUINodeData = {
   clipping_inverted?: boolean,
   font?: string,
 
+  image?: Uint8Array,
   screen?: boolean,
   skip?: boolean,
   cloneable?: boolean,
@@ -89,6 +91,7 @@ type PluginMessageAction =
   "exportBundle" |
   "bundleExported" |
   "selectionChanged" |
+  "modeChanged" |
   "fixTextNode" |
   "restoreSlice9Node" |
   "updateSection" |
@@ -100,6 +103,7 @@ type PluginMessageAction =
 type PluginMessagePayload = {
   bundle?: BundleData,
   selection?: SelectionUIData,
+  mode?: UIMode,
   guiNode?: PluginGUINodeData,
   section?: PluginSectionData,
   scheme?: string,

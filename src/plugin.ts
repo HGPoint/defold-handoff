@@ -217,10 +217,8 @@ function processPluginUIMessage(message: PluginMessage) {
   } else if (type === "updateProject" && data?.project) {
     onUpdateProject(data.project);
   } else if (type === "collapseUI") {
-    console.log("!!!!!!!!!!!!")
     collapseUI();
   } else if (type === "expandUI") {
-    console.log("0000000000000000000000")
     expandUI();
   }
 }
@@ -255,7 +253,8 @@ function expandUI() {
 }
 
 function initializeUI() {
-  figma.showUI(__html__, { width: 400, height: 600 });
+  const html = __html__.replace("{{defoldHandoffUIMode}}", `"${figma.command}"`);
+  figma.showUI(html, { width: 400, height: 600 });
 }
 
 function initializeMessages() {

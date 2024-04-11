@@ -150,6 +150,10 @@ select:hover:disabled {
   line-height: 1.5;
 }
 
+.slice9Editor .widgetLabel {
+  grid-column: span 3;
+}
+
 .widgetTransformation,
 .widgetSlice9,
 .widgetTextSet
@@ -197,9 +201,14 @@ select:hover:disabled {
 
 .widgetApply {
   position: absolute;
+  right: 0;
   bottom: 0;
   left: 0;
-  width: 100%;
+}
+
+.slice9Editor .widgetApply {
+  right: 10px;
+  left: 10px;
 }
 
 .page {
@@ -300,4 +309,116 @@ select:hover:disabled {
 
 .controlToggle:hover {
   background: #b3b9c0;
+}
+
+.slice9Editor {
+  position: relative;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: 3.5em 1fr 3.5em;
+  gap: 5px;
+  align-items: center;
+  width: 100%;
+  padding: 10px 10px calc(2.5em + 5px);
+}
+
+.slice9ImageHolder {
+  grid-row: 3;
+  grid-column: 2;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+} 
+
+.slice9Image {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+.slice9Input {
+  width: 3.5em;
+  text-align: center;
+}
+
+.slice9Input:nth-child(2) {
+  grid-row: 3;
+  grid-column: 1;
+}
+
+.slice9Input:nth-child(3) {;
+  justify-self: center;
+  grid-column: 2;
+}
+
+.slice9Input:nth-child(4) {
+  grid-row: 3;
+  grid-column: 3;
+}
+
+.slice9Input:nth-child(5) {
+  justify-self: center;
+  grid-column: 2;
+}
+
+.slice9borderTop,
+.slice9borderBottom,
+.slice9borderLeft,
+.slice9borderRight {
+  content: "";
+  display: block;
+  background: #fa6731;
+}
+
+.slice9borderTop,
+.slice9borderBottom {
+  position: absolute;
+  width: 100%;
+  height: 1px;
+}
+
+.slice9borderTop::before,
+.slice9borderBottom::before {
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  transform: translateY(-50%);
+}
+
+.slice9borderTop {
+  top: 0;
+  left: 0;
+}
+
+.slice9borderBottom {
+  bottom: 0;
+  left: 0;
+}
+
+.slice9borderLeft,
+.slice9borderRight {
+  position: absolute;
+  width: 1px;
+  height: 100%;
+}
+
+.slice9borderLeft::before,
+.slice9borderRight::before {
+  top: 0;
+  left: 50%;
+  width: 4px;
+  height: 100%;
+  transform: translateX(-50%);
+}
+
+.slice9borderLeft {
+  top: 0;
+  left: 0;
+}
+
+.slice9borderRight {
+  top: 0;
+  right: 0;
 }

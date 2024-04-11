@@ -1,0 +1,1 @@
+export { default } from "./Slice9Editor.svelte";

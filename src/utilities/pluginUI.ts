@@ -18,6 +18,10 @@ export function isSelectionData(selection?: SelectionUIData): selection is Selec
   return !!selection && "gui" in selection && "atlases" in selection && "layers" in selection;
 }
 
+export function isUIMode(mode?: string): mode is UIMode {
+  return mode === null || (!!mode && (mode === "developer" || mode === "designer"));
+}
+
 export function postMessageToPlugin(type: PluginMessageAction, data?: PluginMessagePayload) {
   if (postMessageDebounce) {
     clearTimeout(postMessageDebounce);
@@ -58,4 +62,3 @@ export function processPluginMessage(type: PluginMessageAction, data?: PluginMes
     onGUINodeSchemeCopied(data);
   }
 }
-

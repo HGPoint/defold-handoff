@@ -48,6 +48,6 @@
   <button
     class="widgetApply"
     on:click={onApplyClick}>
-    Apply
+      Apply
   </button>
 </div>

@@ -5,7 +5,7 @@ import { build, context } from "esbuild";
 import esbuildSvelte from "esbuild-svelte"; 
 import sveltePreprocess from "svelte-preprocess";
 
-const HTML_TEMPLATE = `<style>{{style}}</style><div id="root" class="root"></div><script>{{script}}</script>`
+const HTML_TEMPLATE = `<style>{{style}}</style><div id="root" class="root"></div><script>const defoldHandoffUIMode={{defoldHandoffUIMode}};{{script}}</script>`
 
 function readFile(filePath) {
   return new Promise((resolve, reject) => {

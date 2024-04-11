@@ -4,15 +4,11 @@
   import Actions from "components/Actions";
   import ActionButton from "components/ActionButton";
     import { isLayerSelected, areMultipleLayersSelected } from "utilities/selection";
-
-  let selection: SelectionUIData;
-
-  selectionState.subscribe((value) => { selection = value; });
 </script>
 
 <Page>
   <Actions title="Tools" collapseKey="atlasToolsCollapsed">
-    {#if isLayerSelected(selection) || areMultipleLayersSelected(selection)}
+    {#if isLayerSelected($selectionState) || areMultipleLayersSelected($selectionState)}
       <ActionButton label="Add Sprites to Atlas" action="addSprites" />
     {/if}
     <ActionButton label="Fix Atlas" action="fixAtlases" />

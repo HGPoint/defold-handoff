@@ -77,11 +77,11 @@ export function hasChildren(layer: BoxLayer): boolean {
 }
 
 export function hasSolidFills(fills: readonly Paint[] | typeof figma.mixed) {
-  return Array.isArray(fills) && !!fills.length && fills.some(fill => fill.type === "SOLID");
+  return typeof fills === "object" && !!fills.length && fills.some(fill => fill.type === "SOLID");
 }
 
 export function hasSolidStrokes(strokes: readonly Paint[] | typeof figma.mixed) {
-  return Array.isArray(strokes) && !!strokes.length && strokes.some(stroke => stroke.type === "SOLID");
+  return typeof strokes == "object" && !!strokes.length && strokes.some(stroke => stroke.type === "SOLID");
 }
 
 export function isSolidPaint(paint: Paint): paint is SolidPaint {
