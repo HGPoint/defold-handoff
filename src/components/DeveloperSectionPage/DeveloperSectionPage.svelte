@@ -8,12 +8,18 @@
   import ToggleProperty from "components/ToggleProperty";
   import TextProperty from "components/TextProperty";
 
-  function tryUpdatePlugin(updateProperties: PluginSectionData | null) {
+  let properties: PluginSectionData;
+
+  function updatePlugin(updateProperties: PluginSectionData | null) {
     postMessageToPlugin("updateSection", { section: { ...JSON.parse(JSON.stringify(updateProperties)) } });
   }
 
-  $: properties = $selectionState.sections[0];
-  $: tryUpdatePlugin(properties);
+  function updateData(selection: SelectionUIData) {
+    ({ sections: [ properties ] } = $selectionState);
+  }
+
+  $: updateData($selectionState);
+  $: updatePlugin(properties);
 </script>
 
 {#if properties}

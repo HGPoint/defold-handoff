@@ -1,35 +1,35 @@
 <script lang="ts">
   import selectionState from "state/selection";
   import { isLayerSelected, areMultipleAtlasesSelected, areMultipleLayersSelected, isGUINodeSelected, areMultipleGUINodesSelected, isAtlasSelected, areMultipleSectionsSelected, isSectionSelected } from "utilities/selection";
-  import AtlasPage from "components/AtlasPage";
-  import AtlasesPage from "components/AtlasesPage";
-  import GUINodePage from "components/GUINodePage";
-  import GUINodesPage from "components/GUINodesPage";
-  import LayerPage from "components/LayerPage";
-  import LayersPage from "components/LayersPage";
-  import SectionPage from "components/SectionPage";
-  import SectionsPage from "components/SectionsPage";
-  import ProjectPage from "components/ProjectPage";
+  import DeveloperAtlasPage from "components/DeveloperAtlasPage";
+  import DeveloperAtlasesPage from "components/DeveloperAtlasesPage";
+  import DeveloperGUINodePage from "components/DeveloperGUINodePage";
+  import DeveloperGUINodesPage from "components/DeveloperGUINodesPage";
+  import DeveloperLayerPage from "components/DeveloperLayerPage";
+  import DeveloperLayersPage from "components/DeveloperLayersPage";
+  import DeveloperSectionPage from "components/DeveloperSectionPage";
+  import DeveloperSectionsPage from "components/DeveloperSectionsPage";
+  import DeveloperProjectPage from "components/DeveloperProjectPage";
 </script>
 
 {#if $selectionState}
   {#if areMultipleSectionsSelected($selectionState)}
-    <SectionsPage />
+    <DeveloperSectionsPage />
   {:else if isSectionSelected($selectionState)}
-    <SectionPage />
+    <DeveloperSectionPage />
   {:else if areMultipleAtlasesSelected($selectionState)}
-    <AtlasesPage />
+    <DeveloperAtlasesPage />
   {:else if isAtlasSelected($selectionState)}
-    <AtlasPage />
+    <DeveloperAtlasPage />
   {:else if areMultipleGUINodesSelected($selectionState)}
-    <GUINodesPage />
+    <DeveloperGUINodesPage />
   {:else if isGUINodeSelected($selectionState)}
-    <GUINodePage />
+    <DeveloperGUINodePage />
   {:else if areMultipleLayersSelected($selectionState)}
-    <LayersPage />
+    <DeveloperLayersPage />
   {:else if isLayerSelected($selectionState)}
-    <LayerPage />
+    <DeveloperLayerPage />
   {:else}
-    <ProjectPage />
+    <DeveloperProjectPage />
   {/if}
 {/if}

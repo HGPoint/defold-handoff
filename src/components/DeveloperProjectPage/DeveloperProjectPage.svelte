@@ -9,16 +9,20 @@
 
   let project: ProjectData;
 
-  function tryUpdatePlugin(updatedProject: ProjectData) {
+  function updatePlugin(updatedProject: ProjectData) {
     postMessageToPlugin("updateProject", { project: { ...updatedProject } });
   }
 
-  $: project = $selectionState.project;
-  $: tryUpdatePlugin(project);
+  function updateData(selection: SelectionUIData) {
+    ({ project } = $selectionState);
+  }
+
+  $: updateData($selectionState);
+  $: updatePlugin(project);  
 </script>
 
 {#if project}
-  <Page>
+  <Page>  
     <Properties title="Project Screen Properties">
       <DimensionsProperty label="Screen Size" bind:value={project.screenSize} />
     </Properties>

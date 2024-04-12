@@ -1,7 +1,5 @@
 import { exportAtlases, copyComponent, exportComponent, exportResources, copyScheme } from "utilities/resources";
 
-let postMessageDebounce: number | null = null;
-
 export function generateRandomId(): string {
   return Math.random().toString(36).substring(2, 9);
 }
@@ -27,10 +25,7 @@ export function isUpdatedSelection(currentSelection: SelectionUIData, selection:
 }
 
 export function postMessageToPlugin(type: PluginMessageAction, data?: PluginMessagePayload) {
-  if (postMessageDebounce) {
-    clearTimeout(postMessageDebounce);
-  }
-  postMessageDebounce = setTimeout(() => { parent.postMessage({ pluginMessage: { type, data } }, "*"); }, 100);
+  parent.postMessage({ pluginMessage: { type, data } }, "*");
 }
 
 function onDefoldAtlasesExported(data: PluginMessagePayload) {

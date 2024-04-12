@@ -213,6 +213,7 @@ select:hover:disabled {
 .slice9Editor .widgetApply {
   right: 10px;
   left: 10px;
+  bottom: 10px;
 }
 
 .page {
@@ -323,7 +324,7 @@ select:hover:disabled {
   gap: 5px;
   align-items: center;
   width: 100%;
-  padding: 10px 10px calc(2.5em + 5px);
+  padding: 10px 10px calc(2.5em + 5px + 10px);
 }
 
 .slice9ImageHolder {

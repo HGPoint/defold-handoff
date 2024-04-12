@@ -187,6 +187,7 @@ async function onRequestImage() {
 
 function processPluginUIMessage(message: PluginMessage) {
   const { type, data } = message;
+  console.log(type);
   if (type === "copyGUINodes") {
     onCopyGUINodes();
   } else if (type === "exportGUINodes") {
@@ -262,6 +263,7 @@ function collapseUI() {
 }
 
 function expandUI() {
+  console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
   figma.ui.resize(400, 600);
 }
 

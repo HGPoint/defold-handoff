@@ -8,7 +8,7 @@
   export let disabled = false;
 
   let editedValue: Vector4 = { ...value }
-  let image: string | null = null;
+  let image: string;
   let size: Vector4 = vector4(0);
   let borderTransforms: Vector4 = vector4(0);
 
@@ -66,7 +66,7 @@
       img.addEventListener('load', onLoad);
       img.src = url;
     } else {
-      image = null;
+      image = "";
     }
   }
 

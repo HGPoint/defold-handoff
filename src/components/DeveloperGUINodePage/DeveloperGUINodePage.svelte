@@ -13,12 +13,19 @@
   import SidesProperty from "components/SidesProperty";
   import TextProperty from "components/TextProperty";
 
+  let properties: PluginGUINodeData;
+  let fontFamilies: Record<string, string>;
+
   function updatePlugin(updatedProperties: PluginGUINodeData | null) {
     postMessageToPlugin("updateGUINode", { guiNode: { ...JSON.parse(JSON.stringify(updatedProperties)) } });
   }
 
-  $: properties = $selectionState.gui[0];
-  $: fontFamilies = $selectionState.project.fontFamilies.reduce((fonts, font) => ({ ...fonts, [font]: font }), {});
+  function updateData(selection: SelectionUIData) {
+    ({ gui: [ properties ] } = $selectionState);
+    fontFamilies = $selectionState.project.fontFamilies.reduce((fonts, font) => ({ ...fonts, [font]: font }), {});
+  }
+
+  $: updateData($selectionState);
   $: updatePlugin(properties);
 </script>
 
@@ -69,7 +76,7 @@
         <ActionButton label="Fix Text" action="fixTextNode" />
       {/if}
       {#if isBoxGUINode(properties.type)}
-        <ActionButton label="Refresh Slice9" action="restoreSlice9Node" />
+        <ActionButton label="Refresh Slice 9" action="restoreSlice9Node" />
       {/if}
       <ActionButton label="Validate GUI" action="validateGUINodes" disabled={true} />
       <ActionButton label="Reset GUI Node" action="resetGUINodes" />

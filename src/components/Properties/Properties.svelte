@@ -2,7 +2,7 @@
   import uiState from "state/ui"
 
   export let title = "Properties"
-  export let collapseKey: keyof UIData | null = null
+  export let collapseKey: keyof Omit<UIData, "mode" | "collapsed"> | undefined = undefined;
 
   function onCollapseClick() {
     if (collapseKey) {
