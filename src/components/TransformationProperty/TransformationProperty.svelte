@@ -5,13 +5,19 @@
   export let value: Vector4;
   export let disabled = false;
 
-    let editedValue = { ...value };
-
   const id = generateRandomId();
+
+  let editedValue: Vector4 = { ...value };
 
   function onApplyClick() {
     value = { ...editedValue };
   }
+
+  function refreshEditedValue(updatedValue: Vector4) {
+    editedValue = { ...updatedValue }
+  }
+
+  $: refreshEditedValue(value);
 </script>
 
 <label

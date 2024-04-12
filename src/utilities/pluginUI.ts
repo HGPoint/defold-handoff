@@ -11,7 +11,7 @@ export function isPluginMessage(event: MessageEvent): event is MessageEvent<Plug
 }
 
 export function isPluginMessagePayload(data?: PluginMessagePayload): data is PluginMessagePayload {
-  return !!data && typeof data === "object" && ("bundle" in data || "selection" in data || "scheme" in data);
+  return !!data && typeof data === "object" && ("bundle" in data || "selection" in data || "scheme" in data || "image" in data);
 }
 
 export function isSelectionData(selection?: SelectionUIData): selection is SelectionUIData {
@@ -20,6 +20,10 @@ export function isSelectionData(selection?: SelectionUIData): selection is Selec
 
 export function isUIMode(mode?: string): mode is UIMode {
   return mode === null || (!!mode && (mode === "developer" || mode === "designer"));
+}
+
+export function isUpdatedSelection(currentSelection: SelectionUIData, selection: SelectionUIData): boolean {
+  return JSON.stringify(currentSelection) !== JSON.stringify(selection);
 }
 
 export function postMessageToPlugin(type: PluginMessageAction, data?: PluginMessagePayload) {

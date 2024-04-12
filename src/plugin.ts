@@ -2,7 +2,7 @@ import { getPluginData, hasVariantPropertyChanged } from "utilities/figma";
 import { isGUINodeSelected, reducePluginSelection, convertPluginUISelection, reduceAtlases } from "utilities/selection";  
 import { isSlice9Layer  } from "utilities/slice9";
 import { initializeProject, updateProject } from "handoff/project";
-import { updateGUINode, tryRefreshSlice9Sprite, tryRestoreSlice9Node, copyGUINodes, exportGUINodes, resetGUINodes, fixTextNode, fixGUINodes, copyGUINodeScheme } from "handoff/gui";
+import { updateGUINode, tryRefreshSlice9Sprite, tryRestoreSlice9Node, copyGUINodes, exportGUINodes, resetGUINodes, fixTextNode, fixGUINodes, copyGUINodeScheme, tryExtractImage } from "handoff/gui";
 import { createAtlas, addSprites, fixAtlases, sortAtlases, exportAtlases, destroyAtlases, tryRestoreAtlases } from "handoff/atlas";
 import { updateSection, resetSections } from "handoff/section";
 import { exportBundle } from "handoff/bundle";
@@ -174,6 +174,17 @@ function onUpdateProject(data: Partial<ProjectData>) {
   figma.notify("Project updated");
 }
 
+async function onRequestImage() {
+  const { gui: [layer] } = selection;
+  if (layer) {
+    const image = await tryExtractImage(layer);
+    if (image) {
+      postMessageToPluginUI("requestedImage", { image });
+    }
+  }
+  
+}
+
 function processPluginUIMessage(message: PluginMessage) {
   const { type, data } = message;
   if (type === "copyGUINodes") {
@@ -220,6 +231,8 @@ function processPluginUIMessage(message: PluginMessage) {
     collapseUI();
   } else if (type === "expandUI") {
     expandUI();
+  } else if (type === "requestImage") {
+    onRequestImage();
   }
 }
 

@@ -1,6 +1,6 @@
 import { generateGUIDataSet, generateGUIData } from "utilities/guiDataGenerators";
 import { serializeGUIDataSet } from "utilities/guiDataSerializers";
-import { isFigmaText, getPluginData, setPluginData, removePluginData, tryUpdateLayerName } from "utilities/figma";
+import { isFigmaText, getPluginData, setPluginData, removePluginData, tryUpdateLayerName, isFigmaComponentInstance, findMainComponent, isFigmaSceneNode, isAtlas } from "utilities/figma";
 import { tryRefreshSlice9Placeholder, isSlice9PlaceholderLayer, findOriginalLayer, parseSlice9Data } from "utilities/slice9";
 import { tryRefreshScalePlaceholder } from "utilities/scale";
 import { extractScheme } from "utilities/scheme";
@@ -68,4 +68,21 @@ export function resetGUINode(layer: SceneNode) {
 
 export function resetGUINodes(layers: SceneNode[]) {
   layers.forEach((layer) => { resetGUINode(layer) });
+}
+
+export async function tryExtractImage(layer: SceneNode): Promise<Uint8Array | null> {
+  if (isFigmaComponentInstance(layer)) {
+    const mainComponent = await findMainComponent(layer);
+    if (mainComponent) {
+      const { parent } = mainComponent;
+      if (isFigmaSceneNode(parent) && isAtlas(parent)) {
+        const { visible } = layer;
+        layer.visible = true;
+        const image = await layer.exportAsync({ format: "PNG" });
+        layer.visible = visible;
+        return image;
+      }
+    }
+  }
+  return null;
 }

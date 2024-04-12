@@ -1,12 +1,14 @@
 <script lang="ts">
   import uiState from "state/ui"
   import selectionState from "state/selection"
-  import { isPluginMessage, isPluginMessagePayload, isSelectionData, isUIMode, processPluginMessage } from "utilities/pluginUI";
+  import imageState from "state/image";
+  import { isPluginMessage, isPluginMessagePayload, isSelectionData, isUpdatedSelection, isUIMode, processPluginMessage } from "utilities/pluginUI";
 
   function processSelectionChange(data: PluginMessagePayload) {
     const { selection } = data;
-    if (isSelectionData(selection)) {
+    if (isSelectionData(selection) && isUpdatedSelection($selectionState, selection)) {
       $selectionState = selection;
+      $imageState = null;
     }
   }
 
@@ -14,6 +16,13 @@
     const { mode } = data;
     if (isUIMode(mode)) {
       $uiState.mode = mode;
+    }
+  }
+
+  function processRequestedImage(data: PluginMessagePayload) {
+    const { image } = data;
+    if (image) {
+      $imageState = image;
     }
   }
 
@@ -25,6 +34,8 @@
           processSelectionChange(data)
         } else if (type === "modeChanged") {
           processModeChange(data);
+        } else if (type === "requestedImage") {
+          processRequestedImage(data);
         } else {
           processPluginMessage(type, data)
         }
