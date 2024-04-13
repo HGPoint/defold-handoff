@@ -92,6 +92,7 @@ type PluginMessageAction =
   "modeChanged" |
   "fixTextNode" |
   "restoreSlice9Node" |
+  "refreshSlice9Nodes" |
   "updateSection" |
   "resetSections" |
   "updateProject" | 

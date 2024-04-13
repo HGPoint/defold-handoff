@@ -8,6 +8,7 @@ import { updateSection, resetSections } from "handoff/section";
 import { exportBundle } from "handoff/bundle";
 
 let selection: SelectionData = { gui: [], atlases: [], layers: [], sections: [] };
+let lastExtractedImage: string;
 
 function postMessageToPluginUI(type: PluginMessageAction, data: PluginMessagePayload) {
   if (isPluginUIShown()) {
@@ -20,6 +21,7 @@ function isPluginUIShown() {
 }
 
 function updateSelection() {
+  lastExtractedImage = "";
   selection = reducePluginSelection();
   const selectionUI = convertPluginUISelection(selection);
   postMessageToPluginUI("selectionChanged", { selection: selectionUI });
@@ -158,6 +160,10 @@ function onRestoreSlice9Node() {
   updateSelection();
 }
 
+function onRefreshSlice9Nodes() {
+
+}
+
 function onUpdateSection(data: PluginSectionData) {
   const { sections: [ section ] } = selection;
   updateSection(section, data);
@@ -176,18 +182,17 @@ function onUpdateProject(data: Partial<ProjectData>) {
 
 async function onRequestImage() {
   const { gui: [layer] } = selection;
-  if (layer) {
+  if (layer && layer.id !== lastExtractedImage) {
+    lastExtractedImage = layer.id;
     const image = await tryExtractImage(layer);
     if (image) {
       postMessageToPluginUI("requestedImage", { image });
     }
   }
-  
 }
 
 function processPluginUIMessage(message: PluginMessage) {
   const { type, data } = message;
-  console.log(type);
   if (type === "copyGUINodes") {
     onCopyGUINodes();
   } else if (type === "exportGUINodes") {
@@ -222,6 +227,8 @@ function processPluginUIMessage(message: PluginMessage) {
     onFixTextNode();
   } else if (type === "restoreSlice9Node") {
     onRestoreSlice9Node();
+  } else if (type === "refreshSlice9Nodes") {
+    onRefreshSlice9Nodes();
   } else if (type === "updateSection" && data?.section) {
     onUpdateSection(data.section);
   } else if (type === "resetSections") {
@@ -263,7 +270,6 @@ function collapseUI() {
 }
 
 function expandUI() {
-  console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
   figma.ui.resize(400, 600);
 }
 

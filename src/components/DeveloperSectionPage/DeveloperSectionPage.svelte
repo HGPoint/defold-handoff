@@ -8,25 +8,37 @@
   import ToggleProperty from "components/ToggleProperty";
   import TextProperty from "components/TextProperty";
 
-  let properties: PluginSectionData;
+  let { sections: [ section ] } = $selectionState;
+  let lastSentUpdate = JSON.stringify(section);
 
+  function shouldSendUpdate() {
+    const sectionString = JSON.stringify(section);
+    if (sectionString !== lastSentUpdate) {
+      lastSentUpdate = sectionString;
+      return true;
+    }
+    return false;
+  }
+  
   function updatePlugin(updateProperties: PluginSectionData | null) {
-    postMessageToPlugin("updateSection", { section: { ...JSON.parse(JSON.stringify(updateProperties)) } });
+    if (shouldSendUpdate()) {
+      postMessageToPlugin("updateSection", { section });
+    }
   }
 
   function updateData(selection: SelectionUIData) {
-    ({ sections: [ properties ] } = $selectionState);
+    ({ sections: [ section ] } = $selectionState);
   }
 
   $: updateData($selectionState);
-  $: updatePlugin(properties);
+  $: updatePlugin(section);
 </script>
 
-{#if properties}
+{#if section}
   <Page>
     <Properties title="Atlas Section Properties" collapseKey="sectionAtlasPropertiesCollapsed">
-      <ToggleProperty label="Bundled Atlases" bind:value={properties.bundled} />
-      <TextProperty label="Combine As" bind:value={properties.jumbo} />
+      <ToggleProperty label="Bundled Atlases" bind:value={section.bundled} />
+      <TextProperty label="Combine As" bind:value={section.jumbo} />
     </Properties>
     <Actions title="Tools" collapseKey="sectionToolsCollapsed">
       <ActionButton label="Fix Atlases" action="fixAtlases" />

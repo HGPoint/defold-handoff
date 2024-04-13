@@ -6,28 +6,41 @@
   import Actions from "components/Actions";
   import ActionButton from "components/ActionButton";
 
-  let gui: PluginGUINodeData;
+  let { gui: [ guiNode ] } = $selectionState
+  let lastRequestedImageGUI = JSON.stringify(guiNode);
+
+  function shouldRequestImage() {
+    if (guiNode !== null) {
+      const guiNodeString = JSON.stringify(guiNode);
+      if (guiNodeString !== lastRequestedImageGUI) {
+        lastRequestedImageGUI = guiNodeString;
+        return true;
+      }
+    }
+    return false;
+  }
 
   function requestImage(guiData: PluginGUINodeData | null) {
-    if (gui) {
+    if (guiNode) {
       postMessageToPlugin("requestImage")
     }
   }
 
   function updateData(selection: SelectionUIData) {
-    ({ gui: [ gui ] } = $selectionState);
+    ({ gui: [ guiNode ] } = $selectionState);
   }
 
   $: updateData($selectionState);
-  $: requestImage(gui);
+  $: requestImage(guiNode);
 </script>
 
-<Slice9Editor label={gui.id} bind:value={gui.slice9} />
+<Slice9Editor label={guiNode.id} bind:value={guiNode.slice9} />
 <Actions title="Tools" collapseKey="guiNodeToolsCollapsed">
-  {#if isTextGUINode(gui.type)}
+  {#if isTextGUINode(guiNode.type)}
     <ActionButton label="Fix Text" action="fixTextNode" />
   {/if}
-  {#if isBoxGUINode(gui.type)}
-    <ActionButton label="Refresh Slice 9" action="restoreSlice9Node" />
+  <ActionButton label="Refresh Slice 9" action="refreshSlice9Nodes" />
+  {#if isBoxGUINode(guiNode.type)}
+    <ActionButton label="Restore Slice 9" action="restoreSlice9Node" />
   {/if}
 </Actions>

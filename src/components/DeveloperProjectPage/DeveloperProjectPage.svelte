@@ -7,10 +7,22 @@
   import TextProperty from "components/TextProperty";
   import TextSetProperty from "components/TextSetProperty";
 
-  let project: ProjectData;
+  let { project } = $selectionState
+  let lastSentUpdate = JSON.stringify(project);
+
+  function shouldSendUpdate() {
+    const projectString = JSON.stringify(project);
+    if (projectString !== lastSentUpdate) {
+      lastSentUpdate = projectString;
+      return true;
+    }
+    return false;
+  }
 
   function updatePlugin(updatedProject: ProjectData) {
-    postMessageToPlugin("updateProject", { project: { ...updatedProject } });
+    if (shouldSendUpdate()) {
+      postMessageToPlugin("updateProject", { project });
+    }
   }
 
   function updateData(selection: SelectionUIData) {
