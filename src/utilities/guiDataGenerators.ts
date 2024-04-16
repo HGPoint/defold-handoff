@@ -1,5 +1,6 @@
 import config from "config/config.json";
 import { projectConfig } from "handoff/project";
+import { getDefoldGUINodePluginData } from "utilities/gui";
 import { setPluginData, findMainComponent, hasChildren, isAtlas, isAtlasSection, isFigmaSceneNode, isFigmaComponentInstance, isFigmaBox, isFigmaText, isExportable, isAtlasSprite, getPluginData, equalComponentProperties, equalExposedComponentProperties } from "utilities/figma";
 import { vector4, areVectorsEqual, copyVector, addVectors } from "utilities/math";
 import { convertGUIData, convertBoxGUINodeData, convertTextGUINodeData } from "utilities/guiDataConverters";
@@ -220,7 +221,8 @@ async function tryRestoreSlice9Data(layer: ExportableLayer) {
         const slice9 = parseSlice9Data(layer);
         if (slice9) {
           setPluginData(originalLayer, { defoldSlice9: true });
-          setPluginData(originalLayer, { defoldGUINode: { slice9 } });
+          const data = getDefoldGUINodePluginData(originalLayer);
+          setPluginData(originalLayer, { defoldGUINode: { ...data, slice9 } });
         }
       }
     }

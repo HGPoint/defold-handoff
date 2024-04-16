@@ -1,5 +1,4 @@
 import config from "config/config.json";
-import { vector4 } from "utilities/math";
 import { isSlice9PlaceholderLayer, isSlice9ServiceLayer, findOriginalLayer } from "utilities/slice9";
 import { isAtlas, isFigmaFrame, isFigmaSection, isFigmaComponentInstance, isFigmaText, getPluginData } from "utilities/figma";
 import { projectConfig } from "handoff/project";
@@ -68,15 +67,13 @@ function guiNodePluginUISelectionConverter(data: PluginGUINodeData[], layer: Exp
   const { name: id } = layer;
   const type = isFigmaText(layer) ? "TYPE_TEXT" : "TYPE_BOX";
   const template_name = pluginData?.template_name || id;
-  const size = vector4(layer.width, layer.height, 0, 0);
   const guiNodeData: PluginGUINodeData = {
     ...config.guiNodeDefaultValues,
     ...config.guiNodeDefaultSpecialValues,
     ...pluginData,
     template_name,
     id,
-    type,
-    size,
+    type
   };
   data.push(guiNodeData);
   return data;

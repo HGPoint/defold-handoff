@@ -1,23 +1,18 @@
 import { generateGUIDataSet, generateGUIData } from "utilities/guiDataGenerators";
 import { serializeGUIDataSet } from "utilities/guiDataSerializers";
+import { getDefoldGUINodePluginData } from "utilities/gui";
 import { isFigmaText, getPluginData, setPluginData, removePluginData, tryUpdateLayerName, isFigmaComponentInstance, findMainComponent, isFigmaSceneNode, isAtlas } from "utilities/figma";
 import { tryRefreshSlice9Placeholder, isSlice9PlaceholderLayer, findOriginalLayer, parseSlice9Data } from "utilities/slice9";
 import { tryRefreshScalePlaceholder } from "utilities/scale";
 import { extractScheme } from "utilities/scheme";
 import { inferTextNode, inferGUINodes } from "utilities/inference";
 
-export function tryRefreshSlice9Sprite(layer: SceneNode) {
-  const pluginData = getPluginData(layer, "defoldGUINode");
-  if (pluginData) {
-    tryRefreshSlice9Placeholder(layer, pluginData.slice9);
-  }
-}
-
 export function tryRestoreSlice9Node(layer: SceneNode) {
   const slice9 = parseSlice9Data(layer);
   if (slice9) {
     setPluginData(layer, { defoldSlice9: true });
-    setPluginData(layer, { defoldGUINode: { slice9 } });
+    const data = getDefoldGUINodePluginData(layer);
+    setPluginData(layer, { defoldGUINode: { ...data, slice9 } });
   }
 }
 

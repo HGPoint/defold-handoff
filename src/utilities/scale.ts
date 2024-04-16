@@ -6,11 +6,11 @@ function isScaleLayer(layer: SceneNode) {
 }
 
 function removeScalePlaceholder(layer: SceneNode) {
-
+  console.log(layer.name);
 }
 
 function updateScalePlaceholder(layer: SceneNode, scale: Vector4) {
-
+  console.log(layer.name, scale);
 }
 
 async function createScaleFrame(placeholder: FrameNode, layer: SceneNode, scale: Vector4) {

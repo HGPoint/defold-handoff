@@ -87,9 +87,8 @@
       {#if isTextGUINode(guiNode.type)}
       <ActionButton label="Fix Text" action="fixTextNode" />
       {/if}
-      <ActionButton label="Refresh Slice 9" action="refreshSlice9Nodes" />
       {#if isBoxGUINode(guiNode.type)}
-      <ActionButton label="Restore Slice 9" action="restoreSlice9Node" />
+      <ActionButton label="Refresh Slice 9" action="restoreSlice9Node" />
       {/if}
       <ActionButton label="Validate GUI" action="validateGUINodes" disabled={true} />
       <ActionButton label="Reset GUI Node" action="resetGUINodes" />

@@ -118,10 +118,11 @@ export function setPluginData(layer: BaseNode, data: PluginData) {
   Object.entries(data).forEach(([key, value]) => { pluginDataSetter(key as PluginDataKey, value, layer); });
 }
 
-export function getPluginData<T extends PluginDataKey>(layer: BaseNode, key: T): PluginData[T] {
+export function getPluginData<T extends PluginDataKey>(layer: BaseNode, key: T): PluginData[T] | null {
   const value = layer.getPluginData(key);
   if (value) {
-    return JSON.parse(value);
+    const data: PluginData[T] = JSON.parse(value);
+    return data;
   }
   return null;
 }

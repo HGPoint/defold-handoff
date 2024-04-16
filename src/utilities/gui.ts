@@ -1,5 +1,7 @@
+import config from "config/config.json";
 import { calculateAtlasTexture, calculateEmptyTexture } from "utilities/atlas";
-import { findMainComponent, isFigmaComponentInstance, isFigmaSceneNode, isAtlas } from "utilities/figma";
+import { getPluginData, findMainComponent, isFigmaComponentInstance, isFigmaSceneNode, isAtlas } from "utilities/figma";
+import { inferGUINodeType } from "utilities/inference";
 
 export function isTemplateGUINode(type: GUINodeType) {
   return type === "TYPE_TEMPLATE";
@@ -24,4 +26,17 @@ export async function findTexture(layer: ExportableLayer) {
     }
   }
   return calculateEmptyTexture();
+}
+
+export function getDefoldGUINodePluginData(layer: SceneNode) {
+  const pluginData = getPluginData(layer, "defoldGUINode");
+  const id = pluginData?.id || layer.name;
+  const type = pluginData?.type || inferGUINodeType(layer);
+  return {
+    ...config.guiNodeDefaultValues,
+    ...config.guiNodeDefaultSpecialValues,
+    ...pluginData,
+    id,
+    type,
+  }
 }

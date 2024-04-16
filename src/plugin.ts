@@ -1,8 +1,8 @@
 import { getPluginData, hasVariantPropertyChanged } from "utilities/figma";
 import { isGUINodeSelected, reducePluginSelection, convertPluginUISelection, reduceAtlases } from "utilities/selection";  
-import { isSlice9Layer  } from "utilities/slice9";
+import { isSlice9Layer, tryRefreshSlice9Sprite  } from "utilities/slice9";
 import { initializeProject, updateProject } from "handoff/project";
-import { updateGUINode, tryRefreshSlice9Sprite, tryRestoreSlice9Node, copyGUINodes, exportGUINodes, resetGUINodes, fixTextNode, fixGUINodes, copyGUINodeScheme, tryExtractImage } from "handoff/gui";
+import { updateGUINode, tryRestoreSlice9Node, copyGUINodes, exportGUINodes, resetGUINodes, fixTextNode, fixGUINodes, copyGUINodeScheme, tryExtractImage } from "handoff/gui";
 import { createAtlas, addSprites, fixAtlases, sortAtlases, exportAtlases, destroyAtlases, tryRestoreAtlases } from "handoff/atlas";
 import { updateSection, resetSections } from "handoff/section";
 import { exportBundle } from "handoff/bundle";
@@ -160,10 +160,6 @@ function onRestoreSlice9Node() {
   updateSelection();
 }
 
-function onRefreshSlice9Nodes() {
-
-}
-
 function onUpdateSection(data: PluginSectionData) {
   const { sections: [ section ] } = selection;
   updateSection(section, data);
@@ -227,8 +223,6 @@ function processPluginUIMessage(message: PluginMessage) {
     onFixTextNode();
   } else if (type === "restoreSlice9Node") {
     onRestoreSlice9Node();
-  } else if (type === "refreshSlice9Nodes") {
-    onRefreshSlice9Nodes();
   } else if (type === "updateSection" && data?.section) {
     onUpdateSection(data.section);
   } else if (type === "resetSections") {

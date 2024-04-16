@@ -39,8 +39,7 @@
   {#if isTextGUINode(guiNode.type)}
     <ActionButton label="Fix Text" action="fixTextNode" />
   {/if}
-  <ActionButton label="Refresh Slice 9" action="refreshSlice9Nodes" />
   {#if isBoxGUINode(guiNode.type)}
-    <ActionButton label="Restore Slice 9" action="restoreSlice9Node" />
+    <ActionButton label="Refresh Slice 9" action="restoreSlice9Node" />
   {/if}
 </Actions>

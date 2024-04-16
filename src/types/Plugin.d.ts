@@ -41,7 +41,7 @@ type PluginGUINodeData = {
   adjust_mode: AdjustMode,
   clipping_mode: ClippingMode,
   clipping_inverted: boolean,
-  font: string,
+  font?: string,
 
   screen: boolean,
   skip: boolean,
@@ -92,7 +92,6 @@ type PluginMessageAction =
   "modeChanged" |
   "fixTextNode" |
   "restoreSlice9Node" |
-  "refreshSlice9Nodes" |
   "updateSection" |
   "resetSections" |
   "updateProject" | 

@@ -5,6 +5,13 @@ import { getPluginData, setPluginData, isFigmaBox, isFigmaText, hasFont } from "
 import { isSlice9Layer } from "utilities/slice9";
 import { tryFindFont } from "utilities/font";
 
+export function inferGUINodeType(layer: SceneNode) {
+  if (isFigmaText(layer)) {
+    return "TYPE_TEXT";
+  }
+  return "TYPE_BOX";
+}
+
 export function inferFont(layer: TextNode) {
   if (hasFont(layer.fontName)) {
     const { family: fontFamily } = layer.fontName;
@@ -37,8 +44,14 @@ export function inferTextNode(layer: TextNode) {
   const visible = inferTextVisible();
   const font = inferFont(layer);
   const pluginData = getPluginData(layer, "defoldGUINode");
+  const id = pluginData?.id || layer.name;
+  const type = pluginData?.type || "TYPE_TEXT";
   const data = {
+    ...config.guiNodeDefaultValues,
+    ...config.guiNodeDefaultSpecialValues,
     ...pluginData,
+    id,
+    type,
     visible,
     size_mode: sizeMode,
     font,
@@ -63,8 +76,14 @@ export async function inferGUINode(layer: BoxLayer) {
   const sizeMode = inferBoxSizeMode(layer, texture);
   const visible = inferBoxVisible(layer, texture);
   const pluginData = getPluginData(layer, "defoldGUINode");
+  const id = pluginData?.id || layer.name;
+  const type = pluginData?.type || "TYPE_TEXT";
   const data = {
+    ...config.guiNodeDefaultValues,
+    ...config.guiNodeDefaultSpecialValues,
     ...pluginData,
+    id,
+    type,
     visible,
     size_mode: sizeMode,
   };

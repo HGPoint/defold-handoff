@@ -302,16 +302,16 @@ async function createSlice9RightBottomFrame(placeholder: FrameNode, layer: Insta
   return null;
 }
 
-function createSlice9SliceFrames(placeholder: FrameNode, layer: InstanceNode, slice9: Vector4) {
-  createSlice9LeftTopFrame(placeholder, layer, slice9);
-  createSlice9CenterTopFrame(placeholder, layer, slice9);
-  createSlice9RightTopFrame(placeholder, layer, slice9);
-  createSlice9LeftCenterFrame(placeholder, layer, slice9);
-  createSlice9CenterFrame(placeholder, layer, slice9);
-  createSlice9RightCenterFrame(placeholder, layer, slice9);
-  createSlice9LeftBottomFrame(placeholder, layer, slice9);
-  createSlice9CenterBottomFrame(placeholder, layer, slice9);
-  createSlice9RightBottomFrame(placeholder, layer, slice9);
+async function createSlice9SliceFrames(placeholder: FrameNode, layer: InstanceNode, slice9: Vector4) {
+  await createSlice9LeftTopFrame(placeholder, layer, slice9);
+  await createSlice9CenterTopFrame(placeholder, layer, slice9);
+  await createSlice9RightTopFrame(placeholder, layer, slice9);
+  await createSlice9LeftCenterFrame(placeholder, layer, slice9);
+  await createSlice9CenterFrame(placeholder, layer, slice9);
+  await createSlice9RightCenterFrame(placeholder, layer, slice9);
+  await createSlice9LeftBottomFrame(placeholder, layer, slice9);
+  await createSlice9CenterBottomFrame(placeholder, layer, slice9);
+  await createSlice9RightBottomFrame(placeholder, layer, slice9);
 }
 
 function removeSlice9SliceFrames(placeholder: FrameNode) {
@@ -323,9 +323,9 @@ function removeSlice9SliceFrames(placeholder: FrameNode) {
   }
 }
 
-export function createSlice9Placeholder(layer: InstanceNode, slice9: Vector4) {
+export async function createSlice9Placeholder(layer: InstanceNode, slice9: Vector4) {
   const placeholder = createSlice9PlaceholderFrame(layer);
-  createSlice9SliceFrames(placeholder, layer, slice9);
+  await createSlice9SliceFrames(placeholder, layer, slice9);
   layer.x = 0;
   layer.y = 0;
   layer.visible = false;
@@ -356,12 +356,12 @@ export function removeSlice9Placeholder(layer: InstanceNode) {
   }
 }
 
-export function updateSlice9Placeholder(layer: InstanceNode, slice9: Vector4) {
+export async function updateSlice9Placeholder(layer: InstanceNode, slice9: Vector4) {
   const placeholder = findPlaceholderLayer(layer);
   if (placeholder && isSlice9PlaceholderLayer(placeholder)) {
     removeSlice9SliceFrames(placeholder);
     layer.visible = true;
-    createSlice9SliceFrames(placeholder, layer, slice9);
+    await createSlice9SliceFrames(placeholder, layer, slice9);
     layer.visible = false;
   }
 }
@@ -377,6 +377,13 @@ export async function tryRefreshSlice9Placeholder(layer: SceneNode, slice9: Vect
     } else if (!isZeroVector(slice9) && isFigmaComponentInstance(layer) && await isAtlasSprite(layer)) {
       createSlice9Placeholder(layer, slice9);
     }
+  }
+}
+
+export async function tryRefreshSlice9Sprite(layer: SceneNode) {
+  const pluginData = getPluginData(layer, "defoldGUINode");
+  if (pluginData) {
+    await tryRefreshSlice9Placeholder(layer, pluginData.slice9);
   }
 }
 
