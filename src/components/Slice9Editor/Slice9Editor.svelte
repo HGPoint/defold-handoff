@@ -19,18 +19,18 @@
   }
 
   function onHorizontalClick() {
-    const halfPosition = size.x / 2 - 1;
+    const halfPosition = Math.floor(size.x / 2) - 1;
     editedValue = vector4(halfPosition, 0, halfPosition, 0);
   }
 
   function onVerticalClick() {
-    const halfPosition = size.y / 2 - 1;
+    const halfPosition = Math.floor(size.y / 2) - 1;
     editedValue = vector4(0, halfPosition, 0, halfPosition);
   }
 
   function on4WayClick() {
-    const halfPositionX = size.x / 2 - 1;
-    const halfPositionY = size.y / 2 - 1;
+    const halfPositionX = Math.floor(size.x / 2) - 1;
+    const halfPositionY = Math.floor(size.y / 2) - 1;
     editedValue = vector4(halfPositionX, halfPositionY, halfPositionX, halfPositionY);
   }
 

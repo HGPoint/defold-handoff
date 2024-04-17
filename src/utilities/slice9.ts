@@ -45,7 +45,8 @@ function createSlice9PlaceholderFrame(layer: InstanceNode) {
   placeholder.fills = [];
   parent?.appendChild(placeholder);
   placeholder.appendChild(layer);
-  return placeholder;
+  layer.constraints = { horizontal: "MIN", vertical: "MIN" };
+  return placeholder
 }
 
 async function createSlice9LeftTopFrame(placeholder: FrameNode, layer: InstanceNode, slice9: Vector4) {

@@ -7,15 +7,13 @@
   import ActionButton from "components/ActionButton";
 
   let { gui: [ guiNode ] } = $selectionState
-  let lastRequestedImageGUI = JSON.stringify(guiNode);
+  let lastSentUpdate = JSON.stringify(guiNode);
 
-  function shouldRequestImage() {
-    if (guiNode !== null) {
-      const guiNodeString = JSON.stringify(guiNode);
-      if (guiNodeString !== lastRequestedImageGUI) {
-        lastRequestedImageGUI = guiNodeString;
-        return true;
-      }
+  function shouldSendUpdate() {
+    const guiNodeString = JSON.stringify(guiNode);
+    if (guiNodeString !== lastSentUpdate) {
+      lastSentUpdate = guiNodeString;
+      return true;
     }
     return false;
   }
@@ -26,11 +24,18 @@
     }
   }
 
+    function updatePlugin(updatedProperties: PluginGUINodeData | null) {
+    if (shouldSendUpdate()) {
+      postMessageToPlugin("updateGUINode", { guiNode });
+    }
+  }
+
   function updateData(selection: SelectionUIData) {
     ({ gui: [ guiNode ] } = $selectionState);
   }
 
   $: updateData($selectionState);
+  $: updatePlugin(guiNode);
   $: requestImage(guiNode);
 </script>
 
