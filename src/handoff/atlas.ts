@@ -67,7 +67,7 @@ export function createAtlas(layers: SceneNode[]) {
 }
 
 function appendSpriteComponents(atlas: ComponentSetNode, sprites: ComponentNode[]) {
-  sprites.forEach(atlas.appendChild);
+  sprites.forEach((sprite) => { atlas.appendChild(sprite); });
   fitAtlasComponent(atlas);
 }
 
@@ -124,6 +124,10 @@ export function sortAtlas(atlas: ComponentSetNode) {
 
 export function sortAtlases(atlases: ComponentSetNode[]) {
   atlases.forEach(sortAtlas);
+}
+
+export function fitAtlases(atlases: ComponentSetNode[]) {
+  atlases.forEach(fitAtlasComponent);
 }
 
 export function tryRestoreAtlas(layer: SceneNode) {

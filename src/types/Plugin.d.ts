@@ -84,6 +84,7 @@ type PluginMessageAction =
   "atlasesExported" |
   "fixAtlases" |
   "sortAtlases" |
+  "fitAtlases" |
   "validateAtlases" |
   "destroyAtlases" |
   "exportBundle" |

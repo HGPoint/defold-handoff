@@ -13,6 +13,7 @@
     {/if}
     <ActionButton label="Fix Atlas" action="fixAtlases" />
     <ActionButton label="Sort Atlas" action="sortAtlases" />
+    <ActionButton label="Fit Atlas" action="fitAtlases" />
     <ActionButton label="Validate Atlas" action="validateAtlases" disabled={true} />
   </Actions>
   <Actions collapseKey="atlasActionsCollapsed">

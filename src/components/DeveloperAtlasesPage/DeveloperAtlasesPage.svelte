@@ -8,6 +8,7 @@
   <Actions title="Tools" collapseKey="atlasesActionsCollapsed">
     <ActionButton label="Fix Atlases" action="fixAtlases" />
     <ActionButton label="Sort Atlases" action="sortAtlases" />
+    <ActionButton label="Fit Atlases" action="fitAtlases" />
     <ActionButton label="Validate Atlases" action="validateAtlases" disabled={true} />
   </Actions>
   <Actions collapseKey="atlasesToolsCollapsed">
