@@ -39,8 +39,8 @@ function generateRootOptions(layer: ExportableLayer): GUINodeDataExportOptions {
 }
 
 function calculateParentParameters(shouldSkip: boolean, parentOptions: GUINodeDataExportOptions, guiNodeData: GUINodeData): Pick<GUINodeDataExportOptions, "parentId" | "parentPivot" | "parentSize" | "parentShift" | "parentChildren"> {
-  const { parentId, parentSize, parentPivot, parentShift, parentChildren } = parentOptions;
   if (shouldSkip) {
+    const { parentId, parentSize, parentPivot, parentShift, parentChildren } = parentOptions;
     return {
       parentId: parentId,
       parentSize: parentSize,
