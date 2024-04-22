@@ -16,7 +16,7 @@ async function isSpriteHolderLayer(layer: ExportableLayer): Promise<boolean> {
     if (layer.children.length === 1) {
       const [child] = layer.children;
       if (!isSlice9PlaceholderLayer(child)) {
-        const sameSize = layer.width === child.width && layer.height == child.height;
+        const sameSize = layer.width === child.width && layer.height == child.height;        
         return sameSize && await isAtlasSprite(child);
       }
       return true;
@@ -65,18 +65,34 @@ function generateNamePrefix(shouldSkip: boolean, options: GUINodeDataExportOptio
     }
     return "";
   } else if (isFigmaComponentInstance(options.layer)) {
+    if (options.namePrefix) {
+      return `${options.namePrefix}${options.layer.name}_`;
+    }
     return `${options.layer.name}_`;
+  }
+  if (options.namePrefix) {
+    return options.namePrefix;
   }
   return "";
 }
 
-function generateParentOptions(layer: ExportableLayer, shouldSkip: boolean, atRoot: boolean, parentOptions: GUINodeDataExportOptions, parentGUINodeData: GUINodeData): GUINodeDataExportOptions {
+async function generateForcedName(layer: ExportableLayer): Promise<string | undefined> {
+  const { parent } = layer;
+  if (parent && isExportable(parent) && await isSpriteHolderLayer(parent)) {
+    return parent.name
+  }
+  return undefined;
+}
+
+async function generateParentOptions(layer: ExportableLayer, shouldSkip: boolean, atRoot: boolean, parentOptions: GUINodeDataExportOptions, parentGUINodeData: GUINodeData): Promise<GUINodeDataExportOptions> {
   const namePrefix = generateNamePrefix(shouldSkip, parentOptions);
+  const forcedName = await generateForcedName(layer);
   const parentParameters = calculateParentParameters(shouldSkip, parentOptions, parentGUINodeData);
   return {
     layer,
     atRoot,
     namePrefix,
+    forcedName,
     ...parentParameters,
   }
 }
@@ -122,15 +138,15 @@ async function generateGUINodeData(options: GUINodeDataExportOptions, guiNodesDa
           if (!shouldSkip) {
             guiNodesData.push(guiNodeData);
           }
-          if (hasChildren(layer)) {
+          if (hasChildren(layer) && !guiNodeData.template && !await isAtlasSprite(layer)) {
             const { children: layerChildren } = layer; 
             if (!shouldSkip) {
               guiNodeData.children = [];
             }
             for (const layerChild of layerChildren) {
               if (isExportable(layerChild) && !isSlice9ServiceLayer(layer)) {
-                const parentOptions = generateParentOptions(layerChild, shouldSkip, false, options, guiNodeData);
-                const children = !shouldSkip ? guiNodeData.children :  parentOptions.parentChildren;
+                const parentOptions = await generateParentOptions(layerChild, shouldSkip, shouldSkip && options.atRoot, options, guiNodeData);
+                const children = !shouldSkip ? guiNodeData.children :  guiNodesData;
                 await generateGUINodeData(parentOptions, children, clones);
               }
             }

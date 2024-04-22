@@ -94,15 +94,20 @@ export function calculatePivotedShift(pivot: Pivot, parentPivot: Pivot, size: Ve
   return vector4(shiftX, shiftY, 0, 1);
 }
 
-function calculateCenteredRootPosition(data?: PluginGUINodeData | null) {
+function calculateCenteredRootPosition(layer: ExportableLayer, size: Vector4, parentSize: Vector4, data?: PluginGUINodeData | null) {
   if (data?.screen) {
-    return vector4(projectConfig.screenSize.x / 2, projectConfig.screenSize.y / 2, 0, 0);
+    const { x, y } = calculateCenteredPosition(layer, size, projectConfig.screenSize);
+    const halfWidth = projectConfig.screenSize.x / 2;
+    const halfHeight = projectConfig.screenSize.y / 2;
+    const rootX = x + halfWidth;
+    const rootY = y + halfHeight;
+    return vector4(rootX, rootY, 0, 0);
   }
   return vector4(0);
 }
 
 export function calculateRootPosition(layer: ExportableLayer, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4, data?: PluginGUINodeData | null) {
-  const position = calculateCenteredRootPosition(data);
+  const position = calculateCenteredRootPosition(layer, size, parentSize, data);
   const pivotedPosition = calculatePivotedPosition(position, pivot, parentPivot, size, parentSize);
   return pivotedPosition;
 }

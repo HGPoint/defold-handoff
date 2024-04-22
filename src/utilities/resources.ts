@@ -37,12 +37,33 @@ export function exportComponent({ bundle }: PluginMessagePayload) {
   }
 }
 
+function guiNodesFileNameReducer(fileName: string, { name }: SerializedGUIData) {
+  return `${fileName}${!fileName ? "" : "-"}${name}`
+}
+
+function generateGUINodesFileName(gui: SerializedGUIData[]) {
+  const suffix = gui.length > 1 ? "nodes" : "node";
+  const fileName = gui.reduce(guiNodesFileNameReducer, "");
+  return `${fileName}.${suffix}.zip`;
+}
+
+export async function exportComponents({ bundle }: PluginMessagePayload) {
+  if (isBundleData(bundle)) {
+    const { gui } = bundle;
+    if (isSerializedGUIData(gui)) {
+      const fileName = generateGUINodesFileName(gui);
+      const blob = await archiveBundle(bundle);
+      download(blob, fileName);
+    }
+  }
+}
+
 export async function exportResources({ bundle }: PluginMessagePayload) {
   if (isBundleData(bundle)) {
     const { gui } = bundle;
     if (isSerializedGUIData(gui)) {
       const [{ name: bundleName }] = gui;
-      const fileName = `${bundleName}.bundle.zip`;
+      const fileName = `${bundleName}.resources.zip`;
       const blob = await archiveBundle(bundle);
       download(blob, fileName);
     }
@@ -57,7 +78,6 @@ function generateAtlasesFileName(atlases: AtlasData[] | SerializedAtlasData[]) {
   const suffix = atlases.length > 1 ? "atlases" : "atlas";
   const fileName = atlases.reduce(atlasesFileNameReducer, "");
   return `${fileName}.${suffix}.zip`;
-
 }
 
 export async function exportAtlases({ bundle }: PluginMessagePayload) {

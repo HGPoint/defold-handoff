@@ -119,6 +119,7 @@ type GUINodeDataExportOptions = {
   layer: ExportableLayer,
   atRoot: boolean,
   namePrefix: string,
+  forcedName?: string,
   parentId: string,
   parentPivot: Pivot,
   parentSize: Vector4,

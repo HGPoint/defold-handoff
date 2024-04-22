@@ -45,7 +45,7 @@
   <Page>
     <Properties collapseKey="guiNodePropertiesCollapsed">
       <TextProperty label="Id" bind:value={guiNode.id} />
-      <TransformationProperty label="Scale" bind:value={guiNode.scale} />
+      <TransformationProperty label="Scale" bind:value={guiNode.scale} disabled={true} />
       <OptionsProperty label="Size Mode" bind:value={guiNode.size_mode} options={config.sizeModes} />
       <ToggleProperty label="Enabled" bind:value={guiNode.enabled} />
       <ToggleProperty label="Visible" bind:value={guiNode.visible} />

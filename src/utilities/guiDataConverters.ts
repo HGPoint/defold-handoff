@@ -6,11 +6,12 @@ import { isZeroVector, vector4 } from "utilities/math";
 import { calculatePivotedPosition, calculateCenteredPosition, calculateRootPosition } from "utilities/pivot";
 import { inferBoxSizeMode, inferTextSizeMode, inferBoxVisible, inferTextVisible, inferFont } from "utilities/inference";
 
-function calculateId(layer: ExportableLayer, namePrefix?: string) {
+function calculateId(layer: ExportableLayer, forcedName?: string, namePrefix?: string) {
+  const name = forcedName || layer.name;
   if (namePrefix) {
-    return `${namePrefix}${layer.name}`;
+    return `${namePrefix}${name}`;
   }
-  return layer.name;
+  return name;
 }
 
 function calculateColorValue(paint: SolidPaint) {
@@ -43,7 +44,7 @@ function convertChildPosition(layer: ExportableLayer, pivot: Pivot, parentPivot:
 
 function convertPosition(layer: ExportableLayer, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4, parentShift: Vector4, data?: PluginGUINodeData | null) {
   if (isZeroVector(parentSize)) {
-    return calculateRootPosition(layer, pivot, parentPivot, size, size, data);
+    return calculateRootPosition(layer, pivot, parentPivot, size, parentSize, data);
   }
   return convertChildPosition(layer, pivot, parentPivot, size, parentSize, parentShift);
 }
@@ -338,10 +339,10 @@ function calculateSpecialProperties(layer: ExportableLayer, id: string, data?: P
 }
 
 export async function convertBoxGUINodeData(layer: BoxLayer, options: GUINodeDataExportOptions): Promise<GUINodeData> {
-  const { namePrefix, parentId, parentPivot, parentSize, parentShift } = options;
+  const { namePrefix, forcedName, parentId, parentPivot, parentSize, parentShift } = options;
   const defaults = injectGUINodeDefaults();
   const data = getPluginData(layer, "defoldGUINode");
-  const id = calculateId(layer, namePrefix)
+  const id = calculateId(layer, forcedName, namePrefix)
   const slice9 = calculateSlice9(layer, data);
   const type = calculateType(layer, data);
   const pivot = calculateBoxPivot(data);
@@ -366,10 +367,10 @@ export async function convertBoxGUINodeData(layer: BoxLayer, options: GUINodeDat
 }
 
 export function convertTextGUINodeData(layer: TextLayer, options: GUINodeDataExportOptions): GUINodeData {
-  const { namePrefix, parentId, parentPivot, parentSize, parentShift } = options;
+  const { namePrefix, forcedName, parentId, parentPivot, parentSize, parentShift } = options;
   const defaults = injectGUINodeDefaults();
   const data = getPluginData(layer, "defoldGUINode");
-  const id = calculateId(layer, namePrefix)
+  const id = calculateId(layer, forcedName, namePrefix)
   const type = calculateType(layer, data);
   const pivot = calculateTextPivot(layer);
   const visuals = convertTextVisuals(layer, data);

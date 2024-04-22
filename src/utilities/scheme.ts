@@ -3,5 +3,5 @@ export function extractScheme(nodes: GUINodeData[]): string {
     const { id } = node;
     return `${scheme}\n  ${id.toUpperCase()} = "${id}";`;
   }, "");
-  return `local scheme = {\n${schemeNodes}\n}`;
+  return `local scheme = {${schemeNodes}\n}`;
 }

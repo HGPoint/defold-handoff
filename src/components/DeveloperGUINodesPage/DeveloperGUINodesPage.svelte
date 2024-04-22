@@ -12,6 +12,6 @@
   </Actions>
   <Actions collapseKey="guiNodesActionsCollapsed">
     <ActionButton label="Export GUI" action="exportGUINodes" />
-    <ActionButton label="Export Bundles" action="exportBundle" />
+    <ActionButton label="Export Bundle" action="exportBundle" />
   </Actions>
 </Page>
