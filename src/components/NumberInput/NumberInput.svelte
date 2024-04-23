@@ -21,28 +21,27 @@
     return clamp(value, min, max);
   }
 
-  function refreshEditedValue() {
+  function recalculateValue() {
     const result = calculateResult();
-
-    editedValue = result.toString();
+    value = result;
   }
 
   function bumpValue(amount: number, shift: boolean) {
     const multiplier = shift ? 10 : 1;
-    editedValue = (value + amount * multiplier).toString();
+    value += amount * multiplier;
   }
 
-  function updateValue(editedValue: string) {
-    value = calculateResult();
+  function refreshEditedValue(updatedValue: number) {
+    editedValue = updatedValue.toString();
   }
 
   function onBlur() {
-    refreshEditedValue();
+    recalculateValue();
   }
 
   function onKeyDown(event: KeyboardEvent) {
     if (event.key === "Enter") {
-      refreshEditedValue();
+      recalculateValue();
     } else if (event.key === "ArrowUp") {
       bumpValue(1, event.shiftKey);
     } else if (event.key === "ArrowDown") {
@@ -50,7 +49,7 @@
     }
   }
 
-  $: updateValue(editedValue);
+  $: refreshEditedValue(value);
 </script>
 
 <input
