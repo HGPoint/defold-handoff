@@ -5,6 +5,7 @@
   "main": "dist/plugin.js",
   "capabilities": [],
   "enableProposedApi": false,
+  "documentAccess": "dynamic-page",
   "editorType": [
     "figma"
   ],
@@ -23,6 +24,5 @@
     "allowedDomains": [
       "none"
     ]
-  },
-  "documentAccess": "dynamic-page"
+  }
 } 
