@@ -53,7 +53,7 @@ function fitAtlasComponent(atlas: ComponentSetNode) {
   }
 }
 
-async function styleAtlasComponent(atlas: ComponentSetNode) {
+async function createAtlasBackground(atlas: ComponentSetNode) {
   const frame = figma.createFrame();
   frame.resize(2, 2);
   frame.fills = [{ type: "SOLID", color: { r: 0.70, g: 0.73, b: 0.75 } }];
@@ -72,8 +72,13 @@ async function styleAtlasComponent(atlas: ComponentSetNode) {
   const bytes = await frame.exportAsync({ format: "PNG" });
   const fillImage = figma.createImage(bytes);
   atlas.fills = [{ type: "IMAGE", scaleMode: "TILE", scalingFactor: 15, imageHash: fillImage.hash }];
+  frame.remove();
+}
+
+async function styleAtlasComponent(atlas: ComponentSetNode) {
   atlas.clipsContent = false;
   fitAtlasComponent(atlas);
+  await createAtlasBackground(atlas);
 }
 
 export function createAtlas(layers: SceneNode[]) {
