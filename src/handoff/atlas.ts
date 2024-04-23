@@ -53,8 +53,25 @@ function fitAtlasComponent(atlas: ComponentSetNode) {
   }
 }
 
-function styleAtlasComponent(atlas: ComponentSetNode) {  
-  atlas.fills = [{ type: "SOLID", color: { r: 0.73, g: 0.77, b: 0.79 } }];
+async function styleAtlasComponent(atlas: ComponentSetNode) {
+  const frame = figma.createFrame();
+  frame.resize(2, 2);
+  frame.fills = [{ type: "SOLID", color: { r: 0.70, g: 0.73, b: 0.75 } }];
+  const rectTopLeft = figma.createRectangle();
+  rectTopLeft.resize(1, 1);
+  rectTopLeft.fills = [{ type: "SOLID", color: { r: 0.56, g: 0.57, b: 0.59 } }];
+  rectTopLeft.x = 0;
+  rectTopLeft.y = 0;
+  frame.appendChild(rectTopLeft);
+  const rectBottomRight = figma.createRectangle();
+  rectBottomRight.resize(1, 1);
+  rectBottomRight.fills = [{ type: "SOLID", color: { r: 0.56, g: 0.57, b: 0.59 } }];
+  rectBottomRight.x = 1;
+  rectBottomRight.y = 1;
+  frame.appendChild(rectBottomRight);
+  const bytes = await frame.exportAsync({ format: "PNG" });
+  const fillImage = figma.createImage(bytes);
+  atlas.fills = [{ type: "IMAGE", scaleMode: "TILE", scalingFactor: 15, imageHash: fillImage.hash }];
   atlas.clipsContent = false;
   fitAtlasComponent(atlas);
 }

@@ -138,7 +138,7 @@ async function generateGUINodeData(options: GUINodeDataExportOptions, guiNodesDa
           if (!shouldSkip) {
             guiNodesData.push(guiNodeData);
           }
-          if (hasChildren(layer) && !guiNodeData.template && !await isAtlasSprite(layer)) {
+          if (hasChildren(layer) && (!guiNodeData.template || options.atRoot) && !await isAtlasSprite(layer)) {
             const { children: layerChildren } = layer; 
             if (!shouldSkip) {
               guiNodeData.children = [];

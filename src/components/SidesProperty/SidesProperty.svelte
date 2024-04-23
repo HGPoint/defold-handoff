@@ -1,5 +1,6 @@
 <script lang="ts">
   import { generateRandomId } from "utilities/pluginUI";
+  import NumberInput from "components/NumberInput";
 
   export let label: string;
   export let value: Vector4;
@@ -27,28 +28,20 @@
 </label>
 <div class="widgetSlice9">
   <span class="widgetComponentLabel">L:</span>
-  <input
-    class="widgetInput"
-    type="number"
-    id={id}
+  <NumberInput
+    {id}
     bind:value={editedValue.x}
     {disabled} />
   <span class="widgetComponentLabel">T:</span>
-  <input
-    class="widgetInput"
-    type="number"
+  <NumberInput
     bind:value={editedValue.y}
     {disabled} />
   <span class="widgetComponentLabel">R:</span>
-  <input
-    class="widgetInput"
-    type="number"
+  <NumberInput
     bind:value={editedValue.z}
     {disabled} />
   <span class="widgetComponentLabel">B:</span>
-  <input
-    class="widgetInput"
-    type="number"
+  <NumberInput
     bind:value={editedValue.w}
     {disabled} />
   <button

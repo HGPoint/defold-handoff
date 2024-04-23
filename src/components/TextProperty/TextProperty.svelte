@@ -16,6 +16,6 @@
 <input
   class="widgetInput"
   type="text"
-  id={id}
+  {id}
   bind:value
   {disabled} />

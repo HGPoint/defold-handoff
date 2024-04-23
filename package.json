@@ -1,6 +1,6 @@
 {
   "name": "figma-defold-handoff",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Figma to Defold handoff tool",
   "main": "dist/code.js",
   "scripts": {
@@ -13,7 +13,8 @@
   "author": "",
   "license": "",
   "dependencies": {
-    "jszip": "^3.10.1"
+    "jszip": "^3.10.1",
+    "math-expression-evaluator": "^2.0.5"
   },
   "devDependencies": {
     "@figma/eslint-plugin-figma-plugins": "*",

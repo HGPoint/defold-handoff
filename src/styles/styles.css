@@ -343,11 +343,10 @@ select:hover:disabled {
   display: block;
   position: absolute;
   z-index: -1;
-  top: 50%;
-  left: 50%;
+  top: 0;
+  left: 0;
   width: 600px;
   height: 600px;
-  margin: -300px 0 0 -300px;
   background-image:
     linear-gradient(45deg, #b3b9c0 25%, transparent 25%, transparent 75%, #b3b9c0 75%),
     linear-gradient(45deg, #b3b9c0 25%, transparent 25%, transparent 75%, #b3b9c0 75%),
@@ -371,27 +370,27 @@ select:hover:disabled {
   object-fit: contain;
 }
 
-.slice9Input {
+.slice9Editor .widgetInput {
   width: 3.5em;
   text-align: center;
 }
 
-.slice9Input:nth-child(2) {
+.slice9Editor .widgetInput:nth-child(2) {
   grid-row: 3;
   grid-column: 1;
 }
 
-.slice9Input:nth-child(3) {;
+.slice9Editor .widgetInput:nth-child(3) {
   justify-self: center;
   grid-column: 2;
 }
 
-.slice9Input:nth-child(4) {
+.slice9Editor .widgetInput:nth-child(4) {
   grid-row: 3;
   grid-column: 3;
 }
 
-.slice9Input:nth-child(5) {
+.slice9Editor .widgetInput:nth-child(5) {
   justify-self: center;
   grid-column: 2;
 }

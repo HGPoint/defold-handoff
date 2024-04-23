@@ -19,8 +19,8 @@ function calculateColorValue(paint: SolidPaint) {
   return vector4(r, g, b, a);
 }
 
-function calculateType(layer: ExportableLayer, data?: PluginGUINodeData | null): GUINodeType {
-  if (data?.template) {
+function calculateType(layer: ExportableLayer, data?: PluginGUINodeData | null, atRoot?: boolean): GUINodeType {
+  if (data?.template && !atRoot) {
     return "TYPE_TEMPLATE";
   }
   return isFigmaText(layer) ? "TYPE_TEXT" : "TYPE_BOX";
@@ -344,7 +344,7 @@ export async function convertBoxGUINodeData(layer: BoxLayer, options: GUINodeDat
   const data = getPluginData(layer, "defoldGUINode");
   const id = calculateId(layer, forcedName, namePrefix)
   const slice9 = calculateSlice9(layer, data);
-  const type = calculateType(layer, data);
+  const type = calculateType(layer, data, atRoot);
   const pivot = calculateBoxPivot(data);
   const visuals = await convertBoxVisuals(layer, data);
   const sizeMode = calculateBoxSizeMode(layer, visuals.texture, data);

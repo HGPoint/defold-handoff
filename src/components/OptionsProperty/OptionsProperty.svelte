@@ -16,7 +16,7 @@
 </label>
 <select
   class="widgetSelect"
-  id={id}
+  {id}
   bind:value
   {disabled}>
     {#each Object.keys(options) as key}

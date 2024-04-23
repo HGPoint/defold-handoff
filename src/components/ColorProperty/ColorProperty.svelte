@@ -25,7 +25,7 @@
 <input
   class="widgetColor"
   type="color"
-  id={id}
+  {id}
   value={color}
   on:change={onChange}
   {disabled} />

@@ -37,4 +37,8 @@ export function subVectors(a: Vector4, b: Vector4): Vector4 {
 
 export function copyVector(vector: Vector4): Vector4 {
   return vector4(vector.x, vector.y, vector.z, vector.w);
-} 
+}
+
+export function clamp(value: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, value));
+}

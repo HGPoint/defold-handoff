@@ -2,6 +2,7 @@
   import imageState from "state/image";
   import { vector4 } from "utilities/math";
   import { generateRandomId } from "utilities/pluginUI";
+  import NumberInput from "components/NumberInput";
 
   export let value: Vector4;
   export let label: string;
@@ -82,33 +83,25 @@
       Slice 9
   </label>
   {#if image}
-    <input
-      id={id}
-      class="slice9Input"
-      type="number"
-      min="0"
+    <NumberInput
+      {id}
+      min={0}
       max={size.x}
       bind:value={editedValue.x}
       {disabled} />
-    <input
-      class="slice9Input"
-      type="number"
-      min="0"
-      max={size.y}
+    <NumberInput
+      min={0}
+      max={size.x}
       bind:value={editedValue.y}
       {disabled} />
-    <input
-      class="slice9Input"
-      type="number"
-      min="0"
+    <NumberInput
+      min={0}
       max={size.x}
       bind:value={editedValue.z}
       {disabled} />
-    <input
-      class="slice9Input"
-      type="number"
-      min="0"
-      max={size.y}
+    <NumberInput
+      min={0}
+      max={size.x}
       bind:value={editedValue.w}
       {disabled} />
     <div class="slice9ImageHolder">

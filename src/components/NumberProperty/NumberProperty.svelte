@@ -1,5 +1,6 @@
 <script lang="ts">
   import { generateRandomId } from "utilities/pluginUI";
+  import NumberInput from "components/NumberInput";
 
   export let label: string;
   export let value: number;
@@ -13,9 +14,7 @@
   for={id}>
     {label}
 </label>
-<input
-  class="widgetInput"
-  type="number"
-  id={id}
-  bind:value
-  {disabled} />
+<NumberInput
+  {id}
+  value={value}
+  disabled={disabled} />

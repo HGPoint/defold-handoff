@@ -63,7 +63,7 @@ function onUpdateGUINode(data: PluginGUINodeData) {
   updateGUINode(layer, data);
 }
 
-function onCopyGUINodeScheme() {
+async function onCopyGUINodeScheme() {
   const { gui: [ layer ] } = selection;
   copyGUINodeScheme(layer)
     .then(onGUINodeSchemeCopied);

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { generateRandomId } from "utilities/pluginUI";
-
+  import NumberInput from "components/NumberInput";
+  
   export let label: string;
   export let value: Vector4;
   export let disabled = false;
@@ -27,22 +28,16 @@
 </label>
 <div class="widgetTransformation">
   <span class="widgetComponentLabel">X:</span>
-  <input
-    class="widgetInput"
-    type="number"
-    id={id}
+  <NumberInput
+    {id}
     bind:value={editedValue.x}
     {disabled} />
   <span class="widgetComponentLabel">Y:</span>
-  <input
-    class="widgetInput"
-    type="number"
+  <NumberInput
     bind:value={editedValue.y}
     {disabled} />
   <span class="widgetComponentLabel">Z:</span>
-  <input
-    class="widgetInput"
-    type="number"
+  <NumberInput
     bind:value={editedValue.z}
     {disabled} />
   <button

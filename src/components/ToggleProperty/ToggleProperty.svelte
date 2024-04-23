@@ -16,6 +16,6 @@
 <input
   class="widgetCheckbox"
   type="checkbox"
-  id={id}
+  {id}
   bind:checked={value}
   {disabled} />
