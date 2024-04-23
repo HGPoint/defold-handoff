@@ -3,16 +3,25 @@ import { calculateAtlasTexture, calculateEmptyTexture } from "utilities/atlas";
 import { getPluginData, findMainComponent, isFigmaComponentInstance, isFigmaSceneNode, isAtlas } from "utilities/figma";
 import { inferGUINodeType } from "utilities/inference";
 
-export function isTemplateGUINode(type: GUINodeType) {
+export function isTemplateGUINodeType(type: GUINodeType) {
   return type === "TYPE_TEMPLATE";
 }
 
-export function isTextGUINode(type: GUINodeType) {
+export function isTextGUINodeType(type: GUINodeType) {
   return type === "TYPE_TEXT";
 }
 
-export function isBoxGUINode(type: GUINodeType) {
+export function isBoxGUINodeType(type: GUINodeType) {
   return type === "TYPE_BOX";
+}
+
+export function isTemplateGUINode(layer: ExportableLayer) {
+  const pluginData = getPluginData(layer, "defoldGUINode");
+  if (pluginData) {
+    const { template } = pluginData;
+    return template;
+  }
+  return false;
 }
 
 export async function findTexture(layer: ExportableLayer) {

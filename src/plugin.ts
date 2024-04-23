@@ -1,5 +1,5 @@
 import { getPluginData, hasVariantPropertyChanged } from "utilities/figma";
-import { isGUINodeSelected, reducePluginSelection, convertPluginUISelection, reduceAtlases } from "utilities/selection";  
+import { isGUINodeSelected, reducePluginSelection, convertPluginUISelection, reduceAtlases, reduceGUINodes } from "utilities/selection";  
 import { isSlice9Layer, tryRefreshSlice9Sprite  } from "utilities/slice9";
 import { initializeProject, updateProject } from "handoff/project";
 import { updateGUINode, tryRestoreSlice9Node, copyGUINodes, exportGUINodes, resetGUINodes, fixTextNode, fixGUINodes, copyGUINodeScheme, tryExtractImage } from "handoff/gui";
@@ -142,7 +142,8 @@ function onDestroyAtlases() {
 }
 
 function onExportBundle() {
-  exportBundle(selection.gui)
+  const nodes = reduceGUINodes(selection);
+  exportBundle(nodes)
     .then(onBundleExported);
 }
 

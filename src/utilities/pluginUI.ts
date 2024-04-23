@@ -1,4 +1,4 @@
-import { exportAtlases, copyComponent, exportComponents, exportResources, copyScheme } from "utilities/resources";
+import { exportAtlases, copyComponent, exportGUI, exportResources, copyScheme } from "utilities/resources";
 
 export function generateRandomId(): string {
   return Math.random().toString(36).substring(2, 9);
@@ -37,7 +37,7 @@ function onComponentsCopiedToDefold(data: PluginMessagePayload) {
 }
 
 function onComponentsExportedToDefold(data: PluginMessagePayload) {
-  exportComponents(data);
+  exportGUI(data);
 }
 
 function onBundleExportedToDefold(data: PluginMessagePayload) {

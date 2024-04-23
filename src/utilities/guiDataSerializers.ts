@@ -1,5 +1,5 @@
 import { propertySerializer } from "utilities/dataSerializers";
-import { isTemplateGUINode } from "utilities/gui";
+import { isTemplateGUINodeType } from "utilities/gui";
 import { generateTemplatePath } from "utilities/path";
 
 const EXCLUDED_PROPERTY_KEYS = [
@@ -39,7 +39,7 @@ const EXCLUDED_TEMPLATE_PROPERTY_KEYS = [
 ];
 
 function guiNodeSerializer(data: string, guiNodeData: GUINodeData): string {
-  if (isTemplateGUINode(guiNodeData.type)) {
+  if (isTemplateGUINodeType(guiNodeData.type)) {
     const node = Object.entries(guiNodeData).reduce((serializedProperties: string, property) => {
       const [ key ] = property; 
       if (key === "template") {

@@ -1,6 +1,6 @@
 <script lang="ts">
   import selectionState from "state/selection";
-  import { isTextGUINode, isBoxGUINode } from "utilities/gui";
+  import { isTextGUINodeType, isBoxGUINodeType } from "utilities/gui";
   import { postMessageToPlugin } from "utilities/pluginUI";
   import Slice9Editor from "components/Slice9Editor";
   import Actions from "components/Actions";
@@ -41,10 +41,10 @@
 
 <Slice9Editor label={guiNode.id} bind:value={guiNode.slice9} />
 <Actions title="Tools" collapseKey="guiNodeToolsCollapsed">
-  {#if isTextGUINode(guiNode.type)}
+  {#if isTextGUINodeType(guiNode.type)}
     <ActionButton label="Fix Text" action="fixTextNode" />
   {/if}
-  {#if isBoxGUINode(guiNode.type)}
+  {#if isBoxGUINodeType(guiNode.type)}
     <ActionButton label="Refresh Slice 9" action="restoreSlice9Node" />
   {/if}
 </Actions>

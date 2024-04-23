@@ -2,7 +2,7 @@
   import config from "config/config.json";
   import selectionState from "state/selection";
   import { postMessageToPlugin } from "utilities/pluginUI";
-  import { isTextGUINode, isBoxGUINode } from "utilities/gui";
+  import { isTextGUINodeType, isBoxGUINodeType } from "utilities/gui";
   import Page from "components/Page";
   import Properties from "components/Properties";
   import Actions from "components/Actions";
@@ -49,17 +49,17 @@
       <OptionsProperty label="Size Mode" bind:value={guiNode.size_mode} options={config.sizeModes} />
       <ToggleProperty label="Enabled" bind:value={guiNode.enabled} />
       <ToggleProperty label="Visible" bind:value={guiNode.visible} />
-      {#if isTextGUINode(guiNode.type)}
+      {#if isTextGUINodeType(guiNode.type)}
         <OptionsProperty label="Font" bind:value={guiNode.font} options={fontFamilies} />
       {/if}
       <OptionsProperty label="Material" bind:value={guiNode.material} options={{}} disabled={true} />
-      {#if isBoxGUINode(guiNode.type)}
+      {#if isBoxGUINodeType(guiNode.type)}
         <SidesProperty label="Slice 9" bind:value={guiNode.slice9} />
       {/if}
       <ToggleProperty label="Inherit Alpha" bind:value={guiNode.inherit_alpha} />
       <OptionsProperty label="Layer" bind:value={guiNode.layer} options={{}} disabled={true} />
       <OptionsProperty label="Blend Mode" bind:value={guiNode.blend_mode} options={config.blendModes} />
-      {#if isBoxGUINode(guiNode.type)}
+      {#if isBoxGUINodeType(guiNode.type)}
         <OptionsProperty label="Pivot" bind:value={guiNode.pivot} options={config.pivots} />
       {/if}
       <OptionsProperty label="X Anchor" bind:value={guiNode.xanchor} options={config.xAnchors} />
@@ -84,10 +84,10 @@
     </Properties>
     <Actions title="Tools" collapseKey="guiNodeToolsCollapsed">
       <ActionButton label="Infer Properties" action="fixGUINodes" />
-      {#if isTextGUINode(guiNode.type)}
+      {#if isTextGUINodeType(guiNode.type)}
       <ActionButton label="Fix Text" action="fixTextNode" />
       {/if}
-      {#if isBoxGUINode(guiNode.type)}
+      {#if isBoxGUINodeType(guiNode.type)}
       <ActionButton label="Refresh Slice 9" action="restoreSlice9Node" />
       {/if}
       <ActionButton label="Validate GUI" action="validateGUINodes" disabled={true} />
