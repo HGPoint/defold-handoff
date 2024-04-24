@@ -33,7 +33,7 @@ function generateRootOptions(layer: ExportableLayer): GUINodeDataExportOptions {
     parentId: "",
     parentPivot: config.guiNodeDefaultValues.pivot,
     parentSize: vector4(0),
-    parentShift: vector4(0),
+    parentShift: vector4(-layer.x, -layer.y, 0, 0),
     parentChildren: []
   }
 }
