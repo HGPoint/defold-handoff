@@ -1,7 +1,16 @@
+/**
+ * Utility module for handling GUI node data serialization.
+ * @packageDocumentation
+ */
+
 import { propertySerializer } from "utilities/dataSerializers";
 import { isTemplateGUINodeType } from "utilities/gui";
 import { generateTemplatePath } from "utilities/path";
 
+/**
+ * An array containing keys of properties to be excluded during serialization.
+ * @constant
+ */
 const EXCLUDED_PROPERTY_KEYS = [
   "screen",
   "skip",
@@ -16,6 +25,10 @@ const EXCLUDED_PROPERTY_KEYS = [
   "children"
 ];
 
+/**
+ * An array containing keys of properties to be excluded during template serialization.
+ * @constant
+ */
 const EXCLUDED_TEMPLATE_PROPERTY_KEYS = [
   "visible",
   "text",
@@ -38,6 +51,12 @@ const EXCLUDED_TEMPLATE_PROPERTY_KEYS = [
   ...EXCLUDED_PROPERTY_KEYS,
 ];
 
+/**
+ * Serializes GUI node data.
+ * @param {string} data - Serialized data.
+ * @param {GUINodeData} guiNodeData - GUI node data to be serialized.
+ * @returns {string} Serialized GUI node data.
+ */
 function guiNodeSerializer(data: string, guiNodeData: GUINodeData): string {
   if (isTemplateGUINodeType(guiNodeData.type)) {
     const node = Object.entries(guiNodeData).reduce((serializedProperties: string, property) => {
@@ -72,6 +91,11 @@ function fontsDataSerializer(data: string, [name, fontPath]: [string, string]): 
   return `${data}\nfonts\n{\nname:"${name}"\nfont:"${fontPath}"\n}`;
 }
 
+/**
+ * Serializes GUI node data.
+ * @param guiData - GUI node data to be serialized.
+ * @returns Serialized GUI node data.
+ */
 export function serializeGUIData(guiData: GUIData): SerializedGUIData {
   const { name } = guiData;
   const gui = Object.entries(guiData.gui).reduce(propertySerializer, "");
@@ -85,6 +109,11 @@ export function serializeGUIData(guiData: GUIData): SerializedGUIData {
   };
 }
 
+/**
+ * Serializes an array of GUI node data.
+ * @param guiDataSet - Array of GUI node data to be serialized.
+ * @returns Array of serialized GUI node data.
+ */
 export function serializeGUIDataSet(guiDataSet: GUIData[]): SerializedGUIData[] {
   return guiDataSet.map(serializeGUIData);
 }

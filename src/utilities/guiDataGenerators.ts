@@ -1,3 +1,8 @@
+/**
+ * Utility module for generating GUI data.
+ * @packageDocumentation
+ */
+
 import config from "config/config.json";
 import { projectConfig } from "handoff/project";
 import { getDefoldGUINodePluginData } from "utilities/gui";
@@ -7,10 +12,21 @@ import { convertGUIData, convertBoxGUINodeData, convertTextGUINodeData } from "u
 import { isSlice9PlaceholderLayer, findOriginalLayer, isSlice9Layer, isSlice9ServiceLayer, parseSlice9Data } from "utilities/slice9";
 import { generateAtlasPath, generateFontPath } from "utilities/path";
 
+/**
+ * Checks if a layer is skippable based on export settings and type.
+ * @param layer - The Figma layer to check.
+ * @param gUINodeData - GUI node data of the layer.
+ * @returns True if the layer is skippable, otherwise false.
+ */
 async function isSkippable(layer: ExportableLayer, gUINodeData: GUINodeData): Promise<boolean> {
   return gUINodeData.skip || isSlice9PlaceholderLayer(layer) || await isSpriteHolderLayer(layer);
 }
 
+/**
+ * Checks if a layer is a sprite holder (layer is an instance of an atlas component set).
+ * @param layer - The Figma layer to check.
+ * @returns True if the layer is a sprite holder, otherwise false.
+ */
 async function isSpriteHolderLayer(layer: ExportableLayer): Promise<boolean> {
   if (isFigmaComponentInstance(layer)) {
     if (layer.children.length === 1) {
@@ -25,6 +41,11 @@ async function isSpriteHolderLayer(layer: ExportableLayer): Promise<boolean> {
   return false;
 }
 
+/**
+ * Generates options for exporting the root GUI node data.
+ * @param layer - The Figma layer at the root.
+ * @returns Options for exporting the root GUI node data.
+ */
 function generateRootOptions(layer: ExportableLayer): GUINodeDataExportOptions {
   return {
     layer,
@@ -38,6 +59,14 @@ function generateRootOptions(layer: ExportableLayer): GUINodeDataExportOptions {
   }
 }
 
+/**
+ * Resolves parent parameters the GUI node.
+ * @param shouldSkip - Indicates if the node should be skipped.
+ * @param parentOptions - Parent GUI node export options.
+ * @param guiNodeData - GUI node data.
+ * @returns Resolved parent parameters.
+ * TODO: Rename the function to resolveParentParameters.
+ */
 function calculateParentParameters(shouldSkip: boolean, parentOptions: GUINodeDataExportOptions, guiNodeData: GUINodeData): Pick<GUINodeDataExportOptions, "parentId" | "parentPivot" | "parentSize" | "parentShift" | "parentChildren"> {
   if (shouldSkip) {
     const { parentId, parentSize, parentPivot, parentShift, parentChildren } = parentOptions;
@@ -58,6 +87,12 @@ function calculateParentParameters(shouldSkip: boolean, parentOptions: GUINodeDa
   }
 }
 
+/**
+ * Generates a prefix for the node name.
+ * @param shouldSkip - Indicates if the node should be skipped.
+ * @param options - Export options.
+ * @returns The generated name prefix.
+ */
 function generateNamePrefix(shouldSkip: boolean, options: GUINodeDataExportOptions): string {
   if (shouldSkip) {
     if (options.namePrefix) {
@@ -76,6 +111,11 @@ function generateNamePrefix(shouldSkip: boolean, options: GUINodeDataExportOptio
   return "";
 }
 
+/**
+ * Tries to generate a forced name for a layer.
+ * @param layer - The Figma layer.
+ * @returns Forced name if found, otherwise undefined.
+ */
 async function generateForcedName(layer: ExportableLayer): Promise<string | undefined> {
   const { parent } = layer;
   if (parent && isExportable(parent) && await isSpriteHolderLayer(parent)) {
@@ -84,6 +124,15 @@ async function generateForcedName(layer: ExportableLayer): Promise<string | unde
   return undefined;
 }
 
+/**
+ * Generates options for exporting GUI node data for a parent node.
+ * @param  layer - The Figma layer.
+ * @param  shouldSkip - Indicates if the layer should be skipped.
+ * @param  atRoot - Indicates if the layer is at the root.
+ * @param  parentOptions - Parent GUI node export options.
+ * @param  parentGUINodeData - GUI node data of the parent node.
+ * @returns Parent options.
+ */
 async function generateParentOptions(layer: ExportableLayer, shouldSkip: boolean, atRoot: boolean, parentOptions: GUINodeDataExportOptions, parentGUINodeData: GUINodeData): Promise<GUINodeDataExportOptions> {
   const namePrefix = generateNamePrefix(shouldSkip, parentOptions);
   const forcedName = await generateForcedName(layer);
@@ -97,6 +146,12 @@ async function generateParentOptions(layer: ExportableLayer, shouldSkip: boolean
   }
 }
 
+/**
+ * Creates data for a clone of a Figma component.
+ * @param mainComponent - The main Figma component.
+ * @param clone - The clone of the component.
+ * @returns Data for the clone.
+ */
 function createClone(mainComponent: ComponentNode, clone: InstanceNode): GUINodeCloneData {
   return {
     cloneOf: mainComponent,
@@ -104,6 +159,13 @@ function createClone(mainComponent: ComponentNode, clone: InstanceNode): GUINode
   }
 }
 
+/**
+ * Checks if a matching clone is found.
+ * @param data - Clone data to compare.
+ * @param mainComponent - The main Figma component.
+ * @param layer - The Figma instance layer.
+ * @returns True if a matching clone is found, otherwise false.
+ */
 function findClone(data: GUINodeCloneData, mainComponent: ComponentNode, layer: InstanceNode) {
   return (
     data.cloneOf === mainComponent &&
@@ -112,15 +174,29 @@ function findClone(data: GUINodeCloneData, mainComponent: ComponentNode, layer: 
   );
 }
 
+/**
+ * Generates GUI node data recursively for a given layer.
+ * @param options - Export options for the GUI node.
+ * @param guiNodesData - Array to collect GUI node data.
+ * @param clones - Array to collect clones.
+ */
 async function generateGUINodeData(options: GUINodeDataExportOptions, guiNodesData?: GUINodeData[], clones?: ReturnType<typeof createClone>[]) {
+  // Check if GUI node data array is provided
   if (guiNodesData) {
+    // Retrieve the Figma layer from export options
     const { layer } = options;
+    // Check if the layer is visible or a slice 9 layer
     if (layer.visible || isSlice9Layer(layer)) {
+      // Process Figma box layers that are not slice 9 service layers
       if (isFigmaBox(layer) && !isSlice9ServiceLayer(layer)) {
         let alreadyCloned = false;
+        // Convert Figma box layer into GUI node data
         const guiNodeData = await convertBoxGUINodeData(layer, options);  
+        // Check if the layer is cloneable and a Figma component instance
         if (guiNodeData.cloneable && isFigmaComponentInstance(layer)) {
+          // Find the main component of the instance
           const mainComponent = await findMainComponent(layer);
+          // Check if the layer has already been cloned
           if (mainComponent) {
             if (clones?.find((clone) => findClone(clone, mainComponent, layer))) {
               alreadyCloned = true;
@@ -128,31 +204,45 @@ async function generateGUINodeData(options: GUINodeDataExportOptions, guiNodesDa
               if (!clones) {
                 clones = [];
               }
+              // Create clone data and add it to the clones array
               const clone = createClone(mainComponent, layer);
               clones.push(clone);
             }
           }
         }
+        // If not already cloned, proceed with processing the layer
         if (!alreadyCloned) {
+          // Check if the layer should be skipped based on export settings
           const shouldSkip = await isSkippable(layer, guiNodeData);
+          // If not skipped, add GUI node data to the array
           if (!shouldSkip) {
             guiNodesData.push(guiNodeData);
           }
+          // Process children if the layer has any, and it's not a template or at the root level
           if (hasChildren(layer) && (!guiNodeData.template || options.atRoot) && !await isAtlasSprite(layer)) {
             const { children: layerChildren } = layer; 
+            // If not skipped, initialize children array in GUI node data
             if (!shouldSkip) {
               guiNodeData.children = [];
             }
+            // Process each child recursively
             for (const layerChild of layerChildren) {
+              // Check if the child is exportable and not a slice 9 service layer
               if (isExportable(layerChild) && !isSlice9ServiceLayer(layer)) {
+                // Generate parent options for the child
                 const parentOptions = await generateParentOptions(layerChild, shouldSkip, shouldSkip && options.atRoot, options, guiNodeData);
+                // Determine the array to collect children GUI node data based on skip status
                 const children = !shouldSkip ? guiNodeData.children :  guiNodesData;
+                // Recursively generate GUI node data for the child
                 await generateGUINodeData(parentOptions, children, clones);
               }
             }
           }
         }
-      } else if (isFigmaText(layer)) {
+      } 
+      // Process Figma text layers
+      else if (isFigmaText(layer)) {
+        // Convert Figma text layer into GUI node data and add to the array
         const guiNodeData = convertTextGUINodeData(layer, options);
         guiNodesData.push(guiNodeData);
       }
@@ -160,6 +250,12 @@ async function generateGUINodeData(options: GUINodeDataExportOptions, guiNodesDa
   }
 }
 
+/**
+ * Generates texture data for a given layer.
+ * @param name - The name of the texture.
+ * @param layer - The Figma layer.
+ * @param texturesData - Object to store texture data.
+ */
 function generateTextureData(name: string, layer: SceneNode, texturesData: TextureData) {
   if (!texturesData[name]) {
     const path = generateAtlasPath(name);
@@ -171,6 +267,11 @@ function generateTextureData(name: string, layer: SceneNode, texturesData: Textu
   }
 }
 
+/**
+ * Updates texture data for an atlas node.
+ * @param atlas - The atlas layer.
+ * @param texturesData - Object to store texture data.
+ */
 function updateTextureData(atlas: SceneNode, texturesData: TextureData) {
   const { parent: section } = atlas
   if (isFigmaSceneNode(section) && isAtlasSection(section)) {
@@ -191,6 +292,11 @@ function updateTextureData(atlas: SceneNode, texturesData: TextureData) {
   }
 }
 
+/**
+ * Generates texture data recursively for a given Figma layer and stores it in the provided texture data object.
+ * @param layer - The Figma layer.
+ * @param texturesData - Object to store texture data.
+ */
 async function generateTexturesData(layer: SceneNode, texturesData: TextureData) {
   if (isFigmaBox(layer)) {
     if (isFigmaComponentInstance(layer)) {
@@ -210,6 +316,12 @@ async function generateTexturesData(layer: SceneNode, texturesData: TextureData)
   }
 }
 
+/**
+ * Generates font data recursively for a given Figma layer and stores it in the provided font data object. If the layer is a text layer, generates font paths for each font family defined in the project configuration.
+ * @async
+ * @param layer - The Figma layer to generate font data for.
+ * @param fontData - The object to store the generated font data.
+ */
 async function generateFontData(layer: SceneNode, fontData: FontData) {
   if (isFigmaBox(layer)) {
     if (hasChildren(layer)) {
@@ -229,6 +341,10 @@ async function generateFontData(layer: SceneNode, fontData: FontData) {
   }
 }
 
+/**
+ * Tries to restore slice9 data for a given box layer and its children.
+ * @param layer - The Figma layer to try restoring slice 9 data for.
+ */
 async function tryRestoreSlice9Data(layer: ExportableLayer) {
   if (isFigmaBox(layer)) {
     if (isSlice9PlaceholderLayer(layer)) {
@@ -252,6 +368,12 @@ async function tryRestoreSlice9Data(layer: ExportableLayer) {
   }
 }
 
+/**
+ * Checks if a child node can be collapsed into its parent based on certain criteria.
+ * @param parent - The parent GUI node.
+ * @param child - The child GUI node.
+ * @returns True if the child node can be collapsed into the parent, otherwise false.
+ */
 function canCollapseNodes(parent: GUINodeData, child: GUINodeData): boolean {
   return (
     areVectorsEqual(parent.size, child.size) &&
@@ -262,6 +384,11 @@ function canCollapseNodes(parent: GUINodeData, child: GUINodeData): boolean {
   );
 }
 
+/**
+ * Collapses a child GUI node into its parent node by transferring certain properties.
+ * @param parent - The parent GUI node to collapse into.
+ * @param child - The child GUI node to collapse.
+ */
 function collapseNodes(parent: GUINodeData, child: GUINodeData) {
   parent.visible = true;
   parent.texture = child.texture;
@@ -273,6 +400,11 @@ function collapseNodes(parent: GUINodeData, child: GUINodeData) {
   parent.blend_mode = child.blend_mode;
 }
 
+/**
+ * Recursively collapses GUI node data by merging collapsible child nodes into their parent nodes.
+ * @param nodes - The array of GUI node data to collapse.
+ * @param collapsedNodes - An array to collect the collapsed GUI node data.
+ */
 function collapseGUINodeData(nodes: GUINodeData[], collapsedNodes: GUINodeData[]) {
   for (const node of nodes) {
     collapsedNodes.push(node);
@@ -289,6 +421,12 @@ function collapseGUINodeData(nodes: GUINodeData[], collapsedNodes: GUINodeData[]
   }
 }
 
+/**
+ * Generates GUI data for a given Figma layer, including GUI node data, textures, and fonts.
+ * @async
+ * @param layer - The Figma layer to generate GUI data for.
+ * @returns GUI data.
+ */
 export async function generateGUIData(layer: ExportableLayer): Promise<GUIData> {
   tryRestoreSlice9Data(layer);
   const { name } = layer;

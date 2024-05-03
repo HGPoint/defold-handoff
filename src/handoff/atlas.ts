@@ -1,8 +1,17 @@
+/**
+ * Module for handling Defold atlases in Figma.
+ * @packageDocumentation
+ */
+
 import { generateAtlasDataSet } from "utilities/atlasDataGenerators";
 import { serializeAtlasDataSet } from "utilities/atlasDataSerializers";
 import { packSprites } from "utilities/atlas";
 import { setPluginData, isFigmaRemoved, isFigmaComponent, isFigmaComponentSet } from "utilities/figma";
 
+/**
+ * Fits a sprite component to its render bounds and re-positions it accordingly.
+ * @param sprite - The sprite component to fit.
+ */
 function fitSpriteComponent(sprite: ComponentNode) {
   const bounds = sprite.absoluteRenderBounds;
   if (bounds !== null) {
@@ -18,6 +27,11 @@ function fitSpriteComponent(sprite: ComponentNode) {
   }
 }
 
+/**
+ * Creates a sprite component from a given Figma layer.
+ * @param layer - Figma layer to create the sprite from.
+ * @returns Sprite component.
+ */
 function createAtlasSpriteComponent(layer: SceneNode) {
   const sprite = figma.createComponentFromNode(layer);
   sprite.name = `Sprite=${sprite.name}`;
@@ -29,16 +43,30 @@ function createAtlasSpriteComponent(layer: SceneNode) {
   return sprite;
 }
 
+/**
+ * Creates sprite components from an array of (selected) Figma layers.
+ * @param layers - Figma layers to create sprite components from.
+ * @returns An array of sprite components.
+ */
 function createAtlasSpriteComponents(layers: SceneNode[]) {
   return layers.map(createAtlasSpriteComponent);
 }
 
+/**
+ * Binds atlas data for a given Figma component set node.
+ * @param layer - Figma layer to bind atlas data to.
+ */
 function createAtlasData(layer: ComponentSetNode) {
   const data = { id: layer.id };
   const atlasData = { defoldAtlas: data };
   setPluginData(layer, atlasData);
 }
 
+/**
+ * Creates an atlas component from an array of sprite components. Sprites are combined as Figma component variants into the Figma component set node.
+ * @param sprites - The sprite components to combine into an atlas.
+ * @returns The atlas component.
+ */
 function createAtlasComponent(sprites: ComponentNode[]) {
   const atlas = figma.combineAsVariants(sprites, figma.currentPage);
   atlas.name = "atlas";
@@ -46,6 +74,10 @@ function createAtlasComponent(sprites: ComponentNode[]) {
   return atlas;
 }
 
+/**
+ * Fits an atlas component to its render bounds.
+ * @param atlas - The atlas component to fit.
+ */
 function fitAtlasComponent(atlas: ComponentSetNode) {
   const bounds = atlas.absoluteRenderBounds;
   if (bounds !== null) {
@@ -53,6 +85,10 @@ function fitAtlasComponent(atlas: ComponentSetNode) {
   }
 }
 
+/**
+ * Creates a checkered pattern background for an atlas component.
+ * @param atlas - The atlas component to create a background for.
+ */
 async function createAtlasBackground(atlas: ComponentSetNode) {
   const frame = figma.createFrame();
   frame.resize(2, 2);
@@ -75,12 +111,21 @@ async function createAtlasBackground(atlas: ComponentSetNode) {
   frame.remove();
 }
 
+/**
+ * Applies default styling to an atlas component.
+ * @param atlas - The atlas component to style.
+ */
 async function styleAtlasComponent(atlas: ComponentSetNode) {
   atlas.clipsContent = false;
   fitAtlasComponent(atlas);
   await createAtlasBackground(atlas);
 }
 
+/**
+ * Creates an atlas component from an array of Figma layers.
+ * @param layers - Figma layers to create the atlas from.
+ * @returns The atlas component.
+ */
 export function createAtlas(layers: SceneNode[]) {
   const sprites = createAtlasSpriteComponents(layers);
   const atlas = createAtlasComponent(sprites);
@@ -88,30 +133,57 @@ export function createAtlas(layers: SceneNode[]) {
   return atlas;
 }
 
+/**
+ * Appends new sprite components to an atlas component. The atlas component is then fitted to include new sprite components.
+ * @param atlas - The atlas component to append the sprite components to.
+ * @param sprites - Figma layers to append as sprite components.
+ */
 function appendSpriteComponents(atlas: ComponentSetNode, sprites: ComponentNode[]) {
   sprites.forEach((sprite) => { atlas.appendChild(sprite); });
   fitAtlasComponent(atlas);
 }
 
+/**
+ * Adds sprite components to an atlas component.
+ * @param atlas - The atlas component to add the sprite components to.
+ * @param layers - Figma layers to add as sprite components.
+ */
 export function addSprites(atlas: ComponentSetNode, layers: SceneNode[]) {
   const sprites = createAtlasSpriteComponents(layers);
   appendSpriteComponents(atlas, sprites);
 }
 
+/**
+ * Exports serialized atlases from an array of atlas components.
+ * @param atlases - The atlas components to export.
+ * @returns An array of serialized atlas data.
+ */
 export async function exportAtlases(atlases: ComponentSetNode[]): Promise<SerializedAtlasData[]> {
   const atlasData = await generateAtlasDataSet(atlases);
   const serializedAtlasData = serializeAtlasDataSet(atlasData);
   return serializedAtlasData;
 }
 
+/**
+ * Destroys an atlas component.
+ * @param atlas - The atlas component to destroy.
+ */
 export function destroyAtlas(atlas: ComponentSetNode) {
   setPluginData(atlas, { defoldAtlas: null });
 }
 
+/**
+ * Destroys an array of atlas components.
+ * @param atlases - The atlas components to destroy.
+ */
 export function destroyAtlases(atlases: ComponentSetNode[]) {
   atlases.forEach(destroyAtlas);
 }
 
+/**
+ * Fixes the name of a sprite component.
+ * @param sprite - The sprite component.
+ */
 function fixSpriteName(sprite: SceneNode) {
   const [ , name ] = sprite.name.split("=");
   if (name) {
@@ -119,6 +191,10 @@ function fixSpriteName(sprite: SceneNode) {
   }
 }
 
+/**
+ * Fixes a sprite component. This includes fixing the sprite name and re-sizing the sprite component.
+ * @param sprite - The sprite component to fix. 
+ */
 function fixSpriteComponent(sprite: SceneNode) {
   if (isFigmaComponent(sprite)) {
     fixSpriteName(sprite);
@@ -130,34 +206,62 @@ function fixSpriteComponent(sprite: SceneNode) {
   }
 }
 
+/**
+ * Fixes an atlas component. This includes styling and fitting the atlas component, and fixing sprite components within the atlas.
+ * @param atlas - The atlas component to fix.
+ */
 export function fixAtlas(atlas: ComponentSetNode) {
   styleAtlasComponent(atlas);
   fitAtlasComponent(atlas);
   atlas.children.forEach(fixSpriteComponent);
 }
 
+/**
+ * Fixes an array of atlas components.
+ * @param atlases - The atlas components to fix.
+ */
 export function fixAtlases(atlases: ComponentSetNode[]) {
   atlases.forEach(fixAtlas);
 }
 
+/**
+ * Sorts sprites within an atlas component
+ * @param atlas - The atlas component to sort.
+ */
 export function sortAtlas(atlas: ComponentSetNode) {
   packSprites(atlas);
 }
 
+/**
+ * Sorts an array of atlas components.
+ * @param atlases - The atlas components to sort.
+ */
 export function sortAtlases(atlases: ComponentSetNode[]) {
   atlases.forEach(sortAtlas);
 }
 
+/**
+ * Fits an array of atlas components.
+ * @param atlases - The atlas components to fit.
+ */
 export function fitAtlases(atlases: ComponentSetNode[]) {
   atlases.forEach(fitAtlasComponent);
 }
 
+/**
+ * Tries to restore atlas data for a given Figma layer.
+ * @param layer - Figma layer to try to restore atlas data for.
+ */
 export function tryRestoreAtlas(layer: SceneNode) {
   if (isFigmaComponentSet(layer)) {
     createAtlasData(layer);
   }
-} 
+}
 
+/**
+ * Tries to restore atlas data for an array of Figma layers.
+ * @param layers - Figma layers to try to restore atlas data for.
+ */
 export function tryRestoreAtlases(layers: SceneNode[]) {
   layers.forEach(tryRestoreAtlas);
 }

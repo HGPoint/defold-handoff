@@ -1,29 +1,69 @@
+/**
+ * Utility moule for handling plugin UI.
+ * @packageDocumentation
+ */
+
 import { exportAtlases, copyComponent, exportGUI, exportResources, copyScheme } from "utilities/resources";
 
+/**
+ * Generates a random alphanumeric ID.
+ * @returns A random alphanumeric ID.
+ */
 export function generateRandomId(): string {
   return Math.random().toString(36).substring(2, 9);
 }
 
+/**
+ * Checks if the event contains a plugin message.
+ * @param event - The event to check.
+ * @returns A boolean indicating if the event contains a plugin message.
+ */
 export function isPluginMessage(event: MessageEvent): event is MessageEvent<PluginUIMessage> {
   return !!event?.data?.pluginMessage;
 }
 
+/**
+ * Checks if the data contains a valid plugin message payload.
+ * @param data - The data to check.
+ * @returns A boolean indicating if the data contains a valid plugin message payload.
+ */
 export function isPluginMessagePayload(data?: PluginMessagePayload): data is PluginMessagePayload {
   return !!data && typeof data === "object" && ("bundle" in data || "selection" in data || "scheme" in data || "image" in data);
 }
 
+/**
+ * Checks if the selection data is valid.
+ * @param selection - The selection data to check.
+ * @returns A boolean indicating if the selection data is valid.
+ */
 export function isSelectionData(selection?: SelectionUIData): selection is SelectionUIData {
   return !!selection && "gui" in selection && "atlases" in selection && "layers" in selection;
 }
 
+/**
+ * Checks if the UI mode is valid.
+ * @param mode - The UI mode to check.
+ * @returns A boolean indicating if the UI mode is valid.
+ */
 export function isUIMode(mode?: string): mode is UIMode {
   return mode === null || (!!mode && (mode === "developer" || mode === "designer"));
 }
 
+/**
+ * Checks if the selection has been updated.
+ * @param currentSelection - The current selection.
+ * @param selection - The new selection.
+ * @returns A boolean indicating if the selection has been updated.
+ */
 export function isUpdatedSelection(currentSelection: SelectionUIData, selection: SelectionUIData): boolean {
   return JSON.stringify(currentSelection) !== JSON.stringify(selection);
 }
 
+/**
+ * Posts a message to the plugin.
+ * @param type - The type of plugin message.
+ * @param data - The data associated with the message.
+ */
 export function postMessageToPlugin(type: PluginMessageAction, data?: PluginMessagePayload) {
   parent.postMessage({ pluginMessage: { type, data } }, "*");
 }
@@ -48,6 +88,11 @@ function onGUINodeSchemeCopied(data: PluginMessagePayload) {
   copyScheme(data);
 }
 
+/**
+ * Processes a plugin message and triggers corresponding actions.
+ * @param type - The type of plugin message.
+ * @param data - The data associated with the message.
+ */
 export function processPluginMessage(type: PluginMessageAction, data?: PluginMessagePayload) {
   if (type === "atlasesExported" && data) {
     onDefoldAtlasesExported(data);

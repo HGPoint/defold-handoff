@@ -1,3 +1,8 @@
+/**
+ * Entry point for the plugin. Facilitates the exchange of data between the Figma document and the plugin UI.
+ * @packageDocumentation
+ */
+
 import { getPluginData, hasVariantPropertyChanged } from "utilities/figma";
 import { isGUINodeSelected, reducePluginSelection, convertPluginUISelection, reduceAtlases, reduceGUINodes } from "utilities/selection";  
 import { isSlice9Layer, tryRefreshSlice9Sprite  } from "utilities/slice9";
@@ -10,16 +15,28 @@ import { exportBundle } from "handoff/bundle";
 let selection: SelectionData = { gui: [], atlases: [], layers: [], sections: [] };
 let lastExtractedImage: string;
 
+/**
+ * Posts a message to the plugin UI.
+ * @param type - The message type.
+ * @param data - The message data.
+ */
 function postMessageToPluginUI(type: PluginMessageAction, data: PluginMessagePayload) {
   if (isPluginUIShown()) {
     figma.ui.postMessage({ type, data });
   }
 }
 
+/**
+ * Checks if the plugin UI is shown.
+ * @returns A boolean indicating if the plugin UI is shown.
+ */
 function isPluginUIShown() {
   return figma.ui;
 }
 
+/**
+ * Updates the selection data and sends it to the plugin UI.
+ */
 function updateSelection() {
   lastExtractedImage = "";
   selection = reducePluginSelection();
@@ -27,6 +44,10 @@ function updateSelection() {
   postMessageToPluginUI("selectionChanged", { selection: selectionUI });
 }
 
+/**
+ * Selects the specified nodes in the Figma document.
+ * @param nodes - The nodes to select.
+ */
 function selectNode(nodes: SceneNode[]) {
   figma.currentPage.selection = nodes;
   figma.viewport.scrollAndZoomIntoView(nodes);
@@ -194,6 +215,10 @@ async function onRequestImage() {
   }
 }
 
+/**
+ * Processes a message from the plugin UI.
+ * @param message - The message from the plugin UI.
+ */
 function processPluginUIMessage(message: PluginMessage) {
   const { type, data } = message;
   if (type === "copyGUINodes") {
@@ -255,6 +280,10 @@ function onSlice9VariantPropertyChange(layer: InstanceNode) {
   tryRefreshSlice9Sprite(layer);
 }
 
+/**
+ * Processes a document change event.
+ * @param event - The document change event.
+ */
 function processDocumentChange(event: DocumentChangeEvent) {
   if (isGUINodeSelected(selection)) {
     const { gui: [layer] } = selection;
@@ -268,25 +297,40 @@ function onDocumentChange(event: DocumentChangeEvent) {
   processDocumentChange(event);
 }
 
+/**
+ * Collapses the plugin UI.
+ */
 function collapseUI() {
   figma.ui.resize(400, 47);
 }
 
+/**
+ * Expands the plugin UI.
+ */
 function expandUI() {
   figma.ui.resize(400, 600);
 }
 
+/**
+ * Initializes the plugin UI.
+ */
 function initializeUI() {
   const html = __html__.replace("{{defoldHandoffUIMode}}", `"${figma.command}"`);
   figma.showUI(html, { width: 400, height: 600 });
 }
 
+/**
+ * Initializes the plugin message listeners.
+ */
 function initializeMessages() {
   figma.on("selectionchange", onSelectionChange);
   figma.on("documentchange", onDocumentChange);
   figma.ui.on("message", onPluginUIMessage);
 }
 
+/**
+ * Initializes the plugin.
+ */
 async function initializePlugin() {
   await figma.loadAllPagesAsync();
   initializeProject();

@@ -1,3 +1,8 @@
+/**
+ * Utility module for handling GUI node data conversion.
+ * @packageDocumentation
+ */
+
 import config from "config/config.json";
 import { findTexture } from "utilities/gui";
 import { isFigmaText, hasSolidFills, hasSolidStrokes, isSolidPaint, isShadowEffect, getPluginData } from "utilities/figma";
@@ -6,6 +11,14 @@ import { isZeroVector, vector4 } from "utilities/math";
 import { calculatePivotedPosition, calculateCenteredPosition, calculateRootPosition } from "utilities/pivot";
 import { inferBoxSizeMode, inferTextSizeMode, inferBoxVisible, inferTextVisible, inferFont } from "utilities/inference";
 
+/**
+ * Generates the ID for a given layer, optionally with a forced name and name prefix.
+ * @param layer - The Figma layer for which to calculate the ID.
+ * @param forcedName - A forced name for the ID.
+ * @param namePrefix - A prefix to prepend to the ID.
+ * @returns The generated ID for the layer.
+ * TODO: Rename to generateId
+ */
 function calculateId(layer: ExportableLayer, forcedName?: string, namePrefix?: string) {
   const name = forcedName || layer.name;
   if (namePrefix) {
@@ -14,11 +27,23 @@ function calculateId(layer: ExportableLayer, forcedName?: string, namePrefix?: s
   return name;
 }
 
+/**
+ * Calculates the RGBA color value for a given solid paint.
+ * @param paint - The solid paint to calculate the color value for.
+ * @returns The RGBA color value.
+ */
 function calculateColorValue(paint: SolidPaint) {
   const { color: { r, g, b, }, opacity: a } = paint;
   return vector4(r, g, b, a);
 }
 
+/**
+ * Calculates type for a given layer based on its type and plugin data.
+ * @param layer - The Figma layer to calculate the type for.
+ * @param data - The plugin data associated with the layer.
+ * @param atRoot - Indicates whether the layer is at the root level.
+ * @returns The calculated type for the layer.
+ */
 function calculateType(layer: ExportableLayer, data?: PluginGUINodeData | null, atRoot?: boolean): GUINodeType {
   if (data?.template && !atRoot) {
     return "TYPE_TEMPLATE";

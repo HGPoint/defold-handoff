@@ -1,5 +1,15 @@
+/**
+ * Utility module for handling color operations.
+ * @packageDocumentation
+ */
+
 import { vector4 } from "utilities/math";
 
+/**
+ * Converts a hexadecimal color representation to RGBA format.
+ * @param hex - The hexadecimal color string.
+ * @returns The RGBA color vector.
+ */
 export function convertHexToRGBA(hex: string): Vector4 {
   hex = hex.replace("#", "");
   const r = parseInt(hex.substring(0, 2), 16) / 255;
@@ -9,6 +19,11 @@ export function convertHexToRGBA(hex: string): Vector4 {
   return vector4(r, g, b, a);
 }
 
+/**
+ * Converts an RGBA color representation to hexadecimal format.
+ * @param rgba - The RGBA color vector.
+ * @returns The hexadecimal color string.
+ */
 export function convertRGBAToHex(rgba: Vector4): string {
   const r = Math.round(rgba.x * 255).toString(16).padStart(2, "0");
   const g = Math.round(rgba.y * 255).toString(16).padStart(2, "0");
