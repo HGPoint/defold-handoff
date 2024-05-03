@@ -1,4 +1,20 @@
-# Figma Defold Handoff
+# [Defold Handoff](https://www.figma.com/community/plugin/1359029081454325668/defold-handoff)
+
+With this plugin, you can easily manage GUI template designs and atlases, streamlining the resource handoff process for the Defold game engine. It features a robust customization system for GUI nodes, a Slice 9 generator/editor, and various support utilities and export tools.
+
+**Atlases:**
+
+- Create and manage sprite atlases directly within your Figma project.
+- Bundle or combine atlases for streamlined export.
+- Export atlases and image resources for your Defold project with a single click.
+
+**GUI Nodes:**
+
+- Design Defold GUI templates as simple frames in Figma.
+- Fully leverage Figma's design tools without any limitations from Defold's side.
+- Edit additional GUI node properties using the custom editor.
+- Export GUI templates as they are, or bundled with atlases and other resources.
+- Includes additional support utilities for developers.
 
 ## Code Structure
 
