@@ -83,10 +83,24 @@ function guiNodeSerializer(data: string, guiNodeData: GUINodeData): string {
   }
 }
 
+/**
+ * Serializes texture data.
+ * @param data - Serialized data.
+ * @param name - Name of the texture.
+ * @param texture - Texture data.
+ * @returns Serialized texture data.
+ */
 function textureDataSerializer(data: string, [name, texture]: [string, TextureAtlasData]): string {
   return `${data}\ntextures\n{\nname:"${name}"\ntexture:"${texture.path}"\n}`;
 }
 
+/**
+ * Serializes font data.
+ * @param data - Serialized data.
+ * @param name - Name of the font.
+ * @param fontPath - Path to the font.
+ * @returns Serialized font data.
+ */
 function fontsDataSerializer(data: string, [name, fontPath]: [string, string]): string {
   return `${data}\nfonts\n{\nname:"${name}"\nfont:"${fontPath}"\n}`;
 }

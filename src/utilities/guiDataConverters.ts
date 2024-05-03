@@ -58,6 +58,16 @@ function convertParent(parentId?: string, data?: PluginGUINodeData | null) {
   return parentId ? { parent: parentId } : {};
 }
 
+/**
+ * Converts the position of a child layer relative to its parent.
+ * @param layer - The ExportableLayer to convert position for.
+ * @param pivot - The pivot point of the child layer.
+ * @param parentPivot - The pivot point of the parent layer.
+ * @param size - The size of the child layer.
+ * @param parentSize - The size of the parent layer.
+ * @param parentShift - The shift vector of the parent layer.
+ * @returns The converted position vector of the child layer.
+ */
 function convertChildPosition(layer: ExportableLayer, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4, parentShift: Vector4) {
   const centeredPosition = calculateCenteredPosition(layer, size, parentSize);
   const pivotedPosition = calculatePivotedPosition(centeredPosition, pivot, parentPivot, size, parentSize);
@@ -67,6 +77,18 @@ function convertChildPosition(layer: ExportableLayer, pivot: Pivot, parentPivot:
   return shiftedPosition; 
 }
 
+/**
+ * Converts the position of a layer relative to its parent or to the root.
+ * @param layer - The layer to convert position for.
+ * @param pivot - The pivot point of the layer.
+ * @param parentPivot - The pivot point of the parent layer.
+ * @param size - The size of the layer.
+ * @param parentSize - The size of the parent layer.
+ * @param parentShift - The position shift of the parent layer.
+ * @param atRoot - Indicates if the layer is at the root level.
+ * @param data - GUI node data.
+ * @returns The converted position vector of the layer.
+ */
 function convertPosition(layer: ExportableLayer, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4, parentShift: Vector4, atRoot: boolean, data?: PluginGUINodeData | null) {
   if (atRoot) {
     return calculateRootPosition(layer, pivot, parentPivot, size, parentSize, parentShift, data);
@@ -74,27 +96,55 @@ function convertPosition(layer: ExportableLayer, pivot: Pivot, parentPivot: Pivo
   return convertChildPosition(layer, pivot, parentPivot, size, parentSize, parentShift);
 }
 
+/**
+ * Converts the position of a layer from Figma coordinates to vector4 format.
+ * @param layer - The Figma layer to convert position for.
+ * @returns The converted position vector of the layer.
+ */
 function convertFigmaPosition(layer: ExportableLayer) {
   return vector4(layer.x, layer.y, 0, 1);
 }
 
+/**
+ * Converts the rotation of a layer into a vector4 format.
+ * @param layer - The Figma layer to convert rotation for.
+ * @returns The converted rotation vector of the layer.
+ */
 function convertRotation(layer: ExportableLayer) {
   return vector4(0, 0, layer.rotation, 1);
 }
 
+/**
+ * Converts the box scale of a layer into a vector4 format.
+ * @returns The converted box scale vector.
+ */
 function convertBoxScale() {
   return vector4(1);
 }
 
+/**
+ * Calculates the mixed text scale based on the font size.
+ * @returns The calculated mixed text scale vector.
+ */
 function calculateMixedTextScale() {
   return vector4(1);
 }
 
+/**
+ * Calculates the text scale based on the font size and the default font size.
+ * @param fontSize - The font size of the text layer.
+ * @returns The calculated text scale vector.
+ */
 function calculateTextScale(fontSize: number) {
   const scale = fontSize / config.fontSize;
   return vector4(scale, scale, scale, 1);
 }
 
+/**
+ * Converts the text scale of a text layer into a vector4 format.
+ * @param layer - The text layer to convert text scale for.
+ * @returns The converted text scale vector.
+ */
 function convertTextScale(layer: TextNode) {
   const { fontSize } = layer;
   if (typeof fontSize !== "number") {
@@ -103,6 +153,11 @@ function convertTextScale(layer: TextNode) {
   return calculateTextScale(fontSize);
 }
 
+/**
+ * Converts the size of a Figma layer into a vector4 format.
+ * @param layer - The Figma layer to convert size for.
+ * @returns The converted size vector of the box layer.
+ */
 function convertBoxSize(layer: ExportableLayer) {
   if (isSlice9Layer(layer)) {
     const placeholder = findPlaceholderLayer(layer);
@@ -113,6 +168,12 @@ function convertBoxSize(layer: ExportableLayer) {
   return vector4(layer.width, layer.height, 0, 1);
 }
 
+/**
+ * Converts the size of a text layer into a vector4 format.
+ * @param layer - The text layer to convert size for.
+ * @param scale - The scale vector of the text layer.
+ * @returns The converted size of the text layer.
+ */
 function convertTextSize(layer: TextLayer, scale: Vector4) {
   const { width, height } = layer;
   const scaledWidth = width / scale.x;
@@ -120,6 +181,13 @@ function convertTextSize(layer: TextLayer, scale: Vector4) {
   return vector4(scaledWidth, scaledHeight, 0, 1);
 }
 
+/**
+ * Resolves the size mode for a Figma layer.
+ * @param layer - The Figma layer to calculate size mode for.
+ * @param texture - The texture associated with the layer.
+ * @param data - GUI node data.
+ * @returns The calculated size mode for the Figma layer.
+ */
 function calculateBoxSizeMode(layer: BoxLayer, texture?: string, data?: PluginGUINodeData | null): SizeMode {
   if (data?.size_mode && data.size_mode !== "PARSED") {
     return data.size_mode;
@@ -127,6 +195,11 @@ function calculateBoxSizeMode(layer: BoxLayer, texture?: string, data?: PluginGU
   return inferBoxSizeMode(layer, texture);
 }
 
+/**
+ * Calculates the size mode for a text layer.
+ * @param data - GUI node data.
+ * @returns The calculated size mode for the text layer.
+ */
 function calculateTextSizeMode(data?: PluginGUINodeData | null) {
   if (data?.size_mode && data.size_mode !== "PARSED") {
     return data.size_mode;
@@ -134,6 +207,18 @@ function calculateTextSizeMode(data?: PluginGUINodeData | null) {
   return inferTextSizeMode();
 }
 
+/**
+ * Converts the base transformations of a layer into vector4 format.
+ * @param layer - The Figma layer to convert base transformations for.
+ * @param pivot - The pivot point of the layer.
+ * @param parentPivot - The pivot point of the parent layer.
+ * @param size - The size of the layer.
+ * @param parentSize - The size of the parent layer.
+ * @param parentShift - The shift of the parent layer.
+ * @param atRoot - Indicates if the layer is at the root level.
+ * @param data - GUI node data.
+ * @returns The converted base transformations of the layer.
+ */
 function convertBaseTransformations(layer: ExportableLayer, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4, parentShift: Vector4, atRoot: boolean, data?: PluginGUINodeData | null) {
   const figmaPosition = convertFigmaPosition(layer);
   const position = convertPosition(layer, pivot, parentPivot, size, parentSize, parentShift, atRoot, data);
@@ -146,6 +231,17 @@ function convertBaseTransformations(layer: ExportableLayer, pivot: Pivot, parent
 
 }
 
+/**
+ * Converts the transformations of a Figma layer into vector4 format.
+ * @param layer - The Figma layer to convert transformations for.
+ * @param pivot - The pivot point of the layer.
+ * @param parentPivot - The pivot point of the parent layer.
+ * @param parentSize - The size of the parent layer.
+ * @param parentShift - The shift of the parent layer.
+ * @param atRoot - Indicates if the layer is at the root level.
+ * @param data - GUI node data.
+ * @returns The converted transformations of the Figma layer.
+ */
 function convertBoxTransformations(layer: BoxLayer, pivot: Pivot, parentPivot: Pivot, parentSize: Vector4, parentShift: Vector4, atRoot: boolean, data?: PluginGUINodeData | null) {
   const size = convertBoxSize(layer);
   const baseTransformations = convertBaseTransformations(layer, pivot, parentPivot, size, parentSize, parentShift, atRoot, data);
@@ -157,6 +253,17 @@ function convertBoxTransformations(layer: BoxLayer, pivot: Pivot, parentPivot: P
   };
 }
 
+/**
+ * Converts the transformations of a text layer into vector4 format.
+ * @param layer - The text layer to convert transformations for.
+ * @param pivot - The pivot point of the layer.
+ * @param parentPivot - The pivot point of the parent layer.
+ * @param parentSize - The size of the parent layer.
+ * @param parentShift - The shift vector of the parent layer.
+ * @param atRoot - Indicates if the layer is at the root level.
+ * @param data - GUI node data.
+ * @returns The converted transformations of the text layer.
+ */
 function convertTextTransformations(layer: TextLayer, pivot: Pivot, parentPivot: Pivot, parentSize: Vector4, parentShift: Vector4, atRoot: boolean, data?: PluginGUINodeData | null) {
   const scale = convertTextScale(layer);
   const size = convertTextSize(layer, scale);
@@ -169,6 +276,12 @@ function convertTextTransformations(layer: TextLayer, pivot: Pivot, parentPivot:
   };
 }
 
+/**
+ * Resolve the pivot point for a Figma layer.
+ * @param data - GUI node data.
+ * @returns The resolved pivot point for the Figma layer.
+ * TODO: Rename to resolveBoxPivot
+ */
 function calculateBoxPivot(data?: PluginGUINodeData | null) {
   const pivot = data?.pivot;
   if (pivot) {
@@ -177,6 +290,12 @@ function calculateBoxPivot(data?: PluginGUINodeData | null) {
   return config.guiNodeDefaultValues.pivot;
 }
 
+/**
+ * Resolve the pivot point for a text layer.
+ * @param layer - The text layer to calculate pivot point for.
+ * @returns The resolved pivot point for the text layer.
+ * TODO: Rename to resolveTextPivot
+ */
 function calculateTextPivot(layer: TextLayer): Pivot {
   const alignVertical = layer.textAlignVertical;
   const alignHorizontal = layer.textAlignHorizontal;
@@ -200,10 +319,22 @@ function calculateTextPivot(layer: TextLayer): Pivot {
   return "PIVOT_CENTER";
 }
 
+/**
+ * Resolve the base color for a layer.
+ * @returns The resolved base color.
+ * TODO: Rename to resolveBaseColor
+ */
 function calculateBaseColor() {
   return vector4(1);
 }
 
+/**
+ * Resolve the fill color for a layer.
+ * @param fills - The array of paint fills applied to the layer.
+ * @returns The resolved fill color vector.
+ * TODO: Rename to resolveFillColor
+ * TODO: Write a separate function for resolving a transparent fill color (use instead of calculateBaseOutline)
+ */
 function calculateFillColor(fills: readonly Paint[] | typeof figma.mixed) {
   if (Array.isArray(fills)) {
     const fill: SolidPaint | undefined = fills.find(isSolidPaint);
@@ -214,6 +345,12 @@ function calculateFillColor(fills: readonly Paint[] | typeof figma.mixed) {
   return calculateBaseOutline();
 }
 
+/**
+ * Resolve the color for a layer.
+ * @param layer - The layer to calculate color for.
+ * @returns The resolved color vector.
+ * TODO: Rename to resolveColor
+ */
 function calculateColor(layer: ExportableLayer) {
   const { fills } = layer;
   if (!hasSolidFills(fills)) {
@@ -222,6 +359,14 @@ function calculateColor(layer: ExportableLayer) {
   return calculateFillColor(fills);
 }
 
+/**
+ * Resolves the visibility of a Figma layer.
+ * @param layer - The Figma layer to calculate visibility for.
+ * @param texture - The texture associated with the layer.
+ * @param data - GUI node data.
+ * @returns The resolved visibility for the Figma layer.
+ * TODO: Rename to resolveBoxVisible
+ */
 function calculateBoxVisible(layer: BoxLayer, texture?: string, data?: PluginGUINodeData | null) {
   if (data?.visible !== undefined) {
     return data.visible;
@@ -229,6 +374,13 @@ function calculateBoxVisible(layer: BoxLayer, texture?: string, data?: PluginGUI
   return inferBoxVisible(layer, texture);
 }
 
+/**
+ * Resolves the visibility of a text layer.
+ * @param layer - The text layer to calculate visibility for.
+ * @param data - GUI node data.
+ * @returns The resolved visibility for the text layer.
+ * TODO: Rename to resolveTextVisible
+ */
 function calculateTextVisible(layer: TextLayer, data?: PluginGUINodeData | null) {
   if (data?.visible !== undefined) {
     return data.visible;
@@ -236,6 +388,12 @@ function calculateTextVisible(layer: TextLayer, data?: PluginGUINodeData | null)
   return inferTextVisible();
 }
 
+/**
+ * Converts the visual properties of a Figma layer.
+ * @param layer - The Figma layer to convert visual properties for.
+ * @param data - GUI node data.
+ * @returns The converted visual properties of the Figma layer.
+ */
 async function convertBoxVisuals(layer: BoxLayer, data?: PluginGUINodeData | null) {
   const color = calculateColor(layer);
   const texture = await findTexture(layer);
@@ -247,6 +405,13 @@ async function convertBoxVisuals(layer: BoxLayer, data?: PluginGUINodeData | nul
   };
 }
 
+/**
+ * Resolves the font for a text layer.
+ * @param layer - The text layer to calculate font for.
+ * @param data - PluginGUINodeData object containing additional data.
+ * @returns The resolved font for the text layer.
+ * TODO: Rename to resolveFont
+ */
 function calculateFont(layer: TextLayer, data?: PluginGUINodeData | null) {
   if (data?.font !== undefined) {
     return data.font;
@@ -254,10 +419,21 @@ function calculateFont(layer: TextLayer, data?: PluginGUINodeData | null) {
   return inferFont(layer);
 }
 
+/**
+ * Resolves the base outline color.
+ * @returns The resolved base outline color.
+ * TODO: Rename to resolveBaseOutline
+ */
 function calculateBaseOutline() {
   return vector4(1, 1, 1, 0);
 }
 
+/**
+ * Resolves the outline color for a text layer.
+ * @param strokes - The array of strokes applied to the layer.
+ * @returns The resolved outline color.
+ * TODO: Rename to resolveOutlineColor
+ */
 function calculateOutlineColor(strokes: readonly Paint[]) {
   const stroke: SolidPaint | undefined = strokes.find(isSolidPaint);
   if (stroke) {
@@ -266,6 +442,11 @@ function calculateOutlineColor(strokes: readonly Paint[]) {
   return calculateBaseOutline();
 }
 
+/**
+ * Resolves the outline for a text layer.
+ * @param layer - The text layer to calculate outline for.
+ * @returns The resolved outline.
+ */
 function calculateOutline(layer: TextLayer) {
   const { strokes } = layer;
   if (hasSolidStrokes(strokes)) {
@@ -274,15 +455,32 @@ function calculateOutline(layer: TextLayer) {
   return calculateBaseOutline();
 }
 
+/**
+ * Resolves the base shadow.
+ * @returns The resolved base shadow.
+ * TODO: Rename to resolveBaseShadow
+ */
 function calculateBaseShadow() {
   return vector4(1, 1, 1, 0);
 }
 
+/**
+ * Resolves the shadow for a text layer.
+ * @param effect - The drop shadow effect applied to the layer.
+ * @returns The resolved shadow.
+ * TODO: Rename to resolveShadowColor
+ */
 function calculateShadowColor(effect: DropShadowEffect) {
   const { color: { r, g, b, a } } = effect;
   return vector4(r, g, b, a);
 }
 
+/**
+ * Resolves the shadow for a text layer.
+ * @param layer - The text layer to resolve a shadow for.
+ * @returns The resolved shadow.
+ * TODO: Rename to resolveShadow
+ */
 function calculateShadow(layer: TextLayer) {
   const effect = layer.effects.find(isShadowEffect);
   if (effect) {
@@ -291,6 +489,12 @@ function calculateShadow(layer: TextLayer) {
   return calculateBaseShadow();
 }
 
+/**
+ * Converts the visual properties of a text layer.
+ * @param layer - The text layer to convert visual properties for.
+ * @param data - GUI node data.
+ * @returns The converted visual properties of the text layer.
+ */
 function convertTextVisuals(layer: TextLayer, data?: PluginGUINodeData | null) {
   const color = calculateColor(layer);
   const visible = calculateTextVisible(layer, data);
@@ -306,10 +510,20 @@ function convertTextVisuals(layer: TextLayer, data?: PluginGUINodeData | null) {
   };
 }
 
+/**
+ * Resolves whether the text has line breaks.
+ * @param layer - The text layer to resolve line break for.
+ * @returns True if the text has line breaks, otherwise false.
+ */
 function calculateLineBreak(layer: TextLayer) {
   return layer.textAutoResize === "HEIGHT";
 }
 
+/**
+ * Calculates the leading (line height) of the text.
+ * @param layer - The text layer to calculate leading for.
+ * @returns The calculated text leading.
+ */
 function calculateTextLeading(layer: TextLayer) {
   if (typeof layer.lineHeight === "number" && typeof layer.fontSize === "number") {
     return layer.lineHeight / layer.fontSize;
@@ -317,6 +531,11 @@ function calculateTextLeading(layer: TextLayer) {
   return 1;
 }
 
+/**
+ * Calculates the tracking (letter spacing) of the text.
+ * @param layer - The text layer to calculate tracking for.
+ * @returns The calculated text tracking.
+ */
 function calculateTextTracking(layer: TextLayer) {
   if (typeof layer.letterSpacing == "number") {
     return layer.letterSpacing;
@@ -324,6 +543,11 @@ function calculateTextTracking(layer: TextLayer) {
   return 0
 }
 
+/**
+ * Calculates properties related to text layout.
+ * @param layer - The text layer to calculate properties for.
+ * @returns Calculated text properties of the text layer.
+ */
 function calculateTextParameters(layer: TextLayer) {
   const lineBreak = calculateLineBreak(layer);
   const textLeading = calculateTextLeading(layer);
@@ -335,6 +559,13 @@ function calculateTextParameters(layer: TextLayer) {
   };
 }
 
+/**
+ * Resolves the slice9 data for a Figma layer.
+ * @param layer - The Figma layer to resolve slice9 data for.
+ * @param data - GUI node data.
+ * @returns The resolved slice9 data for the Figma layer.
+ * TODO: Rename to resolveSlice9
+ */
 function calculateSlice9(layer: BoxLayer, data?: PluginGUINodeData | null) {
   const parsedSlice9 = parseSlice9Data(layer);
   if (parsedSlice9 && !isZeroVector(parsedSlice9)) {
@@ -343,12 +574,24 @@ function calculateSlice9(layer: BoxLayer, data?: PluginGUINodeData | null) {
   return data?.slice9 || vector4(0)
 }
 
+/**
+ * Injects default GUI node values.
+ * @returns Default GUI node values.
+ */
 function injectGUINodeDefaults() {
   return {
     ...config.guiNodeDefaultValues,
   };
 }
 
+/**
+ * Resolves special properties of a layer.
+ * @param layer - The layer to calculate special properties for.
+ * @param id - The ID of the layer.
+ * @param data - GUI node data.
+ * @returns Special properties of the layer.
+ * TODO: Rename to resolveSpecialProperties
+ */
 function calculateSpecialProperties(layer: ExportableLayer, id: string, data?: PluginGUINodeData | null) {
   return {
     screen: !!data?.screen,
@@ -363,6 +606,12 @@ function calculateSpecialProperties(layer: ExportableLayer, id: string, data?: P
   };
 }
 
+/**
+ * Converts a Figma layer into GUI node data.
+ * @param layer - The Figma layer to convert into GUI node data.
+ * @param options - Options for exporting GUI node data.
+ * @returns Converted GUI node data.
+ */
 export async function convertBoxGUINodeData(layer: BoxLayer, options: GUINodeDataExportOptions): Promise<GUINodeData> {
   const { namePrefix, forcedName, parentId, parentPivot, parentSize, parentShift, atRoot } = options;
   const defaults = injectGUINodeDefaults();
@@ -391,6 +640,12 @@ export async function convertBoxGUINodeData(layer: BoxLayer, options: GUINodeDat
   };
 }
 
+/**
+ * Converts a text layer into GUI node data.
+ * @param layer - The text layer to convert into GUI node data.
+ * @param options - Options for exporting GUI node data.
+ * @returns Converted GUI node data.
+ */
 export function convertTextGUINodeData(layer: TextLayer, options: GUINodeDataExportOptions): GUINodeData {
   const { namePrefix, forcedName, parentId, parentPivot, parentSize, parentShift, atRoot } = options;
   const defaults = injectGUINodeDefaults();
@@ -421,14 +676,27 @@ export function convertTextGUINodeData(layer: TextLayer, options: GUINodeDataExp
   };
 }
 
+/**
+ * Resolves the background color for the GUI component.
+ * @returns The resolved background color.
+ * TODO: Rename to resolveBackgroundColor
+ */
 function calculateGUIBackgroundColor() {
   return vector4(0);
 }
 
+/**
+ * Injects default GUI component values.
+ * @returns Default GUI component values.
+ */
 function injectGUIDefaults() {
   return config.guiDefaultValues;
 }
 
+/**
+ * Converts GUI component data.
+ * @returns Converted GUI component data.
+ */
 export function convertGUIData(): GUIComponentData {
   const backgroundColor = calculateGUIBackgroundColor();
   const defaults = injectGUIDefaults();

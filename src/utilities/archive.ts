@@ -1,6 +1,5 @@
 /**
- * Utility module for handling archives.
- * It utilizes JSZip library for creating zip archives.
+ * Utility module for handling archives. It utilizes JSZip library for creating zip archives.
  */
 
 import JSZip from "jszip";

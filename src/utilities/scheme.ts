@@ -1,5 +1,5 @@
 /**
- * Module for handling scheme boilerplate code.
+ * Utility module for handling scheme boilerplate code.
  * @packageDocumentation
  */
 

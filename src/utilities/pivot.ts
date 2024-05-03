@@ -157,7 +157,17 @@ function calculateCenteredRootPosition(layer: ExportableLayer, size: Vector4, pa
   return vector4(0);
 }
 
-
+/**
+ * Calculates the position of a layer in the root container.
+ * @param layer - The layer to calculate the position for.
+ * @param pivot - The pivot point of the layer.
+ * @param parentPivot - The pivot point of the parent.
+ * @param size - The size of the layer.
+ * @param parentSize - The size of the parent.
+ * @param parentShift - The shift of the parent.
+ * @param data - GUI node data.
+ * @returns The root position of the layer.
+ */
 export function calculateRootPosition(layer: ExportableLayer, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4, parentShift: Vector4, data?: PluginGUINodeData | null) {
   const position = calculateCenteredRootPosition(layer, size, parentSize, parentShift, data);
   const pivotedPosition = calculatePivotedPosition(position, pivot, parentPivot, size, parentSize);
