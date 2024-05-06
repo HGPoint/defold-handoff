@@ -13,6 +13,7 @@ type UIData = {
   atlasActionsCollapsed?: boolean,
   atlasesToolsCollapsed?: boolean,
   atlasesActionsCollapsed?: boolean,
+  sectionGUIPropertiesCollapsed?: boolean,
   sectionAtlasPropertiesCollapsed?: boolean,
   sectionToolsCollapsed?: boolean,
   sectionActionsCollapsed?: boolean,

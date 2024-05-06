@@ -607,6 +607,13 @@ function calculateSpecialProperties(layer: ExportableLayer, id: string, data?: P
   };
 }
 
+function calculateLayer(data?: PluginGUINodeData | null) {
+  if (data?.layer) {
+    return data.layer;
+  }
+  return config.guiNodeDefaultValues.layer;
+}
+
 /**
  * Converts a Figma layer into GUI node data.
  * @param layer - The Figma layer to convert into GUI node data.
@@ -620,6 +627,7 @@ export async function convertBoxGUINodeData(layer: BoxLayer, options: GUINodeDat
   const id = calculateId(layer, forcedName, namePrefix)
   const slice9 = calculateSlice9(layer, data);
   const type = calculateType(layer, data, atRoot);
+  const guiLayer = calculateLayer(data);
   const pivot = calculateBoxPivot(data);
   const visuals = await convertBoxVisuals(layer, data);
   const sizeMode = await calculateBoxSizeMode(layer, visuals.texture, data);
@@ -631,6 +639,7 @@ export async function convertBoxGUINodeData(layer: BoxLayer, options: GUINodeDat
     ...data,
     id,
     type,
+    layer: guiLayer,
     ...specialProperties,
     ...parent,
     ...transformations,

@@ -5,7 +5,7 @@
 
 import config from "config/config.json";
 import { isSlice9PlaceholderLayer, isSlice9ServiceLayer, findOriginalLayer } from "utilities/slice9";
-import { isAtlas, isFigmaFrame, isFigmaSection, isFigmaComponentInstance, isFigmaBox, isFigmaText, isExportable, getPluginData, hasChildren } from "utilities/figma";
+import { isAtlas, isFigmaFrame, isFigmaSection, isFigmaComponentInstance, isFigmaBox, isFigmaText, isExportable, getPluginData, hasChildren, isFigmaPage } from "utilities/figma";
 import { isTemplateGUINode } from "utilities/gui";
 import { projectConfig } from "handoff/project";
 
@@ -175,6 +175,27 @@ function sectionPluginUISelectionConverter(data: PluginSectionData[], layer: Sec
   return data;
 }
 
+export function generateContextData(selection: SelectionData): PluginGUIContextData {
+  if (selection.gui.length === 1) {
+    const { gui: [ guiNode ] } = selection;
+    let parent = guiNode.parent;
+    while (parent && !isFigmaPage(parent) && !isFigmaSection(parent)) {
+      parent = parent.parent;
+    }
+    if (parent && isFigmaSection(parent)) {
+      const pluginData = getPluginData(parent, "defoldSection");
+      return {
+        layers: pluginData?.layers ? [ ...config.sectionDefaultValues.layers, ...pluginData.layers ] : [ ...config.sectionDefaultValues.layers ],
+        materials: pluginData?.materials || []
+      }
+    }
+  }
+  return {
+    layers: config.sectionDefaultValues.layers,
+    materials: config.sectionDefaultValues.materials
+  }
+}
+
 /**
  * Converts plugin selection data to UI selection data.
  * @param selection - The plugin selection data.
@@ -187,6 +208,7 @@ export function convertPluginUISelection(selection: SelectionData): SelectionUID
     layers: selection.layers,
     sections: selection.sections.reduce(sectionPluginUISelectionConverter, []),
     project: projectConfig,
+    context: generateContextData(selection)
   }
 }
 

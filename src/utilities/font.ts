@@ -13,8 +13,8 @@ const fontCache: { [key: string]: string | null } = {};
  * @param fontFamily - The font family being searched for.
  * @returns True if the project font matches or includes the font family, otherwise false.
  */
-function fontFilter(projectFont: string, fontFamily: string) {
-  const normalizedProjectFont = projectFont.toLowerCase();
+function fontFilter(projectFont: ProjectFontData, fontFamily: string) {
+  const normalizedProjectFont = projectFont.name.toLowerCase();
   const normalizedFontFamily = fontFamily.toLowerCase();
   return (
     normalizedProjectFont === normalizedFontFamily ||
@@ -32,7 +32,8 @@ export function tryFindFont(fontFamily: string): string | null {
   if (fontCache[fontFamily]) {
     return fontCache[fontFamily];
   }
-  const font = projectConfig.fontFamilies.find((projectFont) => fontFilter(projectFont, fontFamily));
-  fontCache[fontFamily] = font || null;
-  return font || null;
+  const fontData = projectConfig.fontFamilies.find((projectFont) => fontFilter(projectFont, fontFamily));
+  const font = fontData ? fontData.id : null;
+  fontCache[fontFamily] = font;
+  return font;
 }

@@ -9,7 +9,23 @@ type ProjectPathData = {
 type ProjectData = {
   screenSize: Vector4,
   paths: ProjectPathData,
-  fontFamilies: string[],
+  fontFamilies: ProjectFontData[],
+}
+
+type ProjectFontData = {
+  id: string,
+  name: string,
+}
+
+type ProjectLayerData = {
+  id: string,
+  name: string,
+}
+
+type ProjectMaterialData = {
+  id: string,
+  name: string,
+  path: string,
 }
 
 type SpriteComponentData = {

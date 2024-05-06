@@ -3,13 +3,15 @@
   import Button from "components/Button";
 
   export let label: string;
-  export let value: string[];
+  export let action: string;
+  export let value: { id: string, name: string }[];
   export let disabled = false;
 
   const id = generateRandomId();
 
   function addValue() {
-    value = [...value, ""];
+    const valueId = generateRandomId();
+    value = [ ...value, { id: valueId, name: "" } ];
   }
 
   function removeValue(index: number) {
@@ -25,22 +27,29 @@
   }
 </script>
 
-<label
-  class="widgetLabel"
-  for={`${id}-0`}>
+{#if value[0]}
+  <label
+    class="widgetLabel"
+    for={`${id}-${value[0].id}`}>
+      {label}
+  </label>
+{:else}
+  <span
+    class="widgetLabel">
     {label}
-</label>
+  </span>
+{/if}
 <div class="widgetTextSet">
-  {#each value as textValue, index}
+  {#each value as setValue, index (setValue.id)}
     <div class="widgetTextSetItem">
       <input
         class="widgetInput"
         type="text"
         id={`${id}-${index}`}
-        bind:value={value[index]}
+        bind:value={setValue.name}
         {disabled} />
       <Button label="Remove" {disabled} onClick={() => { onRemoveClick(index); }} />
     </div>
   {/each}
-  <Button label="Add Font" {disabled} onClick={onAddClick} />
+  <Button label={action} {disabled} onClick={onAddClick} />
 </div>

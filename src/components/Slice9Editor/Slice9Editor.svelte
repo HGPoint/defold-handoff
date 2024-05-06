@@ -151,6 +151,7 @@
     </div>
     <button
       class="widgetApply"
+      {disabled}
       on:click={onApplyClick}>
         Apply
     </button>

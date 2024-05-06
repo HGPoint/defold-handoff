@@ -7,6 +7,7 @@
   import ActionButton from "components/ActionButton";
   import ToggleProperty from "components/ToggleProperty";
   import TextProperty from "components/TextProperty";
+  import TextSetProperty from "components/TextSetProperty";
 
   let { sections: [ section ] } = $selectionState;
   let lastSentUpdate = JSON.stringify(section);
@@ -36,6 +37,10 @@
 
 {#if section}
   <Page>
+    <Properties title="GUI Section Properties" collapseKey="sectionGUIPropertiesCollapsed">
+      <TextSetProperty label="Layers" action="Add Layer" bind:value={section.layers} />
+      <TextSetProperty label="Materials" action="Add Material" bind:value={section.materials} />
+    </Properties>
     <Properties title="Atlas Section Properties" collapseKey="sectionAtlasPropertiesCollapsed">
       <ToggleProperty label="Bundled Atlases" bind:value={section.bundled} />
       <TextProperty label="Combine As" bind:value={section.jumbo} />

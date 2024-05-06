@@ -4,6 +4,7 @@ type SelectionUIData = {
   layers: SceneNode[],
   sections: PluginSectionData[],
   project: ProjectData,
+  context?: PluginGUIContextData,
 }
 
 type SelectionData = {
@@ -17,10 +18,17 @@ type PluginSectionData = {
   id: string,
   bundled: boolean,
   jumbo: string,
+  layers: ProjectLayerData[],
+  materials: ProjectMaterialData[],
 }
 
 type PluginAtlasData = {
   id: string,
+}
+
+type PluginGUIContextData = {
+  layers: ProjectLayerData[],
+  materials: ProjectMaterialData[],
 }
 
 type PluginGUINodeData = {

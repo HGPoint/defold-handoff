@@ -46,7 +46,7 @@
       <TextProperty label="Spines Path" bind:value={project.paths.spineAssetsPath} />
     </Properties>
     <Properties title="Project Font Properties">
-      <TextSetProperty label="Font Families" bind:value={project.fontFamilies} />
+      <TextSetProperty label="Font Families" action="Add Font" bind:value={project.fontFamilies} />
     </Properties>
   </Page>
 {/if}

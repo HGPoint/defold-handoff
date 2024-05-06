@@ -55,8 +55,10 @@ declare module "config/config.json" {
     sectionDefaultValues: {
       bundled: boolean,
       jumbo: string,
+      layers: ProjectLayerData[],
+      materials: ProjectMaterialData[]
     }
-    fontFamilies: string[],
+    fontFamilies: ProjectFontData[],
     fontSize: number,
     fontStrokeRatio: number,
     sizeModes: Record<string, SizeMode | "PARSED">,

@@ -246,6 +246,8 @@ select:hover:disabled {
 
 .sectionHeader {
   position: relative;
+  display: flex;
+  align-items: center;
   height: 32px;
   padding: 0 0 5px;
   border-bottom: 1px solid currentColor;

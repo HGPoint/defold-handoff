@@ -44,7 +44,7 @@ function updatePaths(paths?: Partial<ProjectPathData>) {
  * Updates the font families configuration of the project.
  * @param fontFamilies - The new font families configuration to apply.
  */
-function updateFontFamilies(fontFamilies?: string[]) {
+function updateFontFamilies(fontFamilies?: ProjectFontData[]) {
   if (fontFamilies) {
     projectConfig.fontFamilies = fontFamilies ? [...fontFamilies] : config.fontFamilies;
   }

@@ -15,6 +15,8 @@
 
   let { gui: [ guiNode ] } = $selectionState;
   let fontFamilies: Record<string, string>;
+  let layers: Record<string, string>;
+  let materials: Record<string, string>;
   let lastSentUpdate = JSON.stringify(guiNode);
 
   function shouldSendUpdate() {
@@ -34,7 +36,9 @@
 
   function updateData(selection: SelectionUIData) {
     ({ gui: [ guiNode ] } = $selectionState);
-    fontFamilies = $selectionState.project.fontFamilies.reduce((fonts, font) => ({ ...fonts, [font]: font }), {});
+    fontFamilies = $selectionState.project.fontFamilies.reduce((fonts, font) => ({ ...fonts, [font.name]: font.id }), {});
+    layers = $selectionState.context ? $selectionState.context.layers.reduce((layerOptions, layer) => ({ ...layerOptions, [layer.name]: layer.id }), {}) : {};
+    materials = $selectionState.context ? $selectionState.context.materials.reduce((materialOptions, material) => ({ ...materialOptions, [material.name]: material.id }), {}) : {};
   }
 
   $: updateData($selectionState);
@@ -52,12 +56,12 @@
       {#if isTextGUINodeType(guiNode.type)}
         <OptionsProperty label="Font" bind:value={guiNode.font} options={fontFamilies} />
       {/if}
-      <OptionsProperty label="Material" bind:value={guiNode.material} options={{}} disabled={true} />
+      <OptionsProperty label="Material" bind:value={guiNode.material} options={materials} disabled={true} />
       {#if isBoxGUINodeType(guiNode.type)}
         <SidesProperty label="Slice 9" bind:value={guiNode.slice9} />
       {/if}
       <ToggleProperty label="Inherit Alpha" bind:value={guiNode.inherit_alpha} />
-      <OptionsProperty label="Layer" bind:value={guiNode.layer} options={{}} disabled={true} />
+      <OptionsProperty label="Layer" bind:value={guiNode.layer} options={layers} />
       <OptionsProperty label="Blend Mode" bind:value={guiNode.blend_mode} options={config.blendModes} />
       {#if isBoxGUINodeType(guiNode.type)}
         <OptionsProperty label="Pivot" bind:value={guiNode.pivot} options={config.pivots} />
@@ -86,10 +90,10 @@
     <Actions title="Tools" collapseKey="guiNodeToolsCollapsed">
       <ActionButton label="Infer Properties" action="fixGUINodes" />
       {#if isTextGUINodeType(guiNode.type)}
-      <ActionButton label="Fix Text" action="fixTextNode" />
+        <ActionButton label="Fix Text" action="fixTextNode" />
       {/if}
       {#if isBoxGUINodeType(guiNode.type)}
-      <ActionButton label="Refresh Slice 9" action="restoreSlice9Node" />
+        <ActionButton label="Refresh Slice 9" action="restoreSlice9Node" />
       {/if}
       <ActionButton label="Validate GUI" action="validateGUINodes" disabled={true} />
       <ActionButton label="Reset GUI Node" action="resetGUINodes" />

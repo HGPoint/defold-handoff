@@ -35,7 +35,7 @@ export function inferFont(layer: TextNode) {
     if (foundFont) {
       return foundFont;
     }
-    return projectConfig.fontFamilies[0];
+    return projectConfig.fontFamilies[0].id;
   }
   return "";
 } 
@@ -78,12 +78,14 @@ export function inferTextNode(layer: TextNode) {
   const pluginData = getPluginData(layer, "defoldGUINode");
   const id = pluginData?.id || layer.name;
   const type = pluginData?.type || "TYPE_TEXT";
+  const guiLayer = pluginData?.layer || config.guiNodeDefaultValues.layer;
   const data = {
     ...config.guiNodeDefaultValues,
     ...config.guiNodeDefaultSpecialValues,
     ...pluginData,
     id,
     type,
+    layer: guiLayer,
     visible,
     size_mode: sizeMode,
     font,
@@ -139,12 +141,14 @@ export async function inferGUINode(layer: BoxLayer) {
   const pluginData = getPluginData(layer, "defoldGUINode");
   const id = pluginData?.id || layer.name;
   const type = pluginData?.type || "TYPE_TEXT";
+  const guiLayer = pluginData?.layer || config.guiNodeDefaultValues.layer;
   const data = {
     ...config.guiNodeDefaultValues,
     ...config.guiNodeDefaultSpecialValues,
     ...pluginData,
     id,
     type,
+    layer: guiLayer,
     visible,
     size_mode: sizeMode,
   };

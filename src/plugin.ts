@@ -3,7 +3,7 @@
  * @packageDocumentation
  */
 
-import { getPluginData, hasVariantPropertyChanged } from "utilities/figma";
+import { getPluginData, hasVariantPropertyChanged, isFigmaComponentInstance } from "utilities/figma";
 import { isGUINodeSelected, reducePluginSelection, convertPluginUISelection, reduceAtlases, reduceGUINodes } from "utilities/selection";  
 import { isSlice9Layer, tryRefreshSlice9Sprite  } from "utilities/slice9";
 import { initializeProject, updateProject } from "handoff/project";
@@ -287,7 +287,7 @@ function onSlice9VariantPropertyChange(layer: InstanceNode) {
 function processDocumentChange(event: DocumentChangeEvent) {
   if (isGUINodeSelected(selection)) {
     const { gui: [layer] } = selection;
-    if (isSlice9Layer(layer) && hasVariantPropertyChanged(event)) {
+    if (isSlice9Layer(layer) && isFigmaComponentInstance(layer) && hasVariantPropertyChanged(event)) {
       onSlice9VariantPropertyChange(layer);
     }
   }
