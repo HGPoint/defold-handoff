@@ -51,6 +51,7 @@ type PluginGUINodeData = {
   template_name: string,
   wrapper: boolean,
   wrapper_padding: Vector4,
+  exclude: boolean,
 }
 
 type PluginData = {

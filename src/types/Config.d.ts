@@ -38,8 +38,10 @@ declare module "config/config.json" {
       template_path: string,
       template_name: string,
       wrapper: boolean,
-      wrapper_padding: Vector4
+      wrapper_padding: Vector4,
+      exclude: boolean
     }
+    atlasMaxSize: number,
     atlasDefaultValues: {
       margin: number,
       extrude_borders: number,

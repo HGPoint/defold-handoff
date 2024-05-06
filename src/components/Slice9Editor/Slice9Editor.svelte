@@ -44,7 +44,7 @@
   }
 
   function updateBorderTransforms(updatedValue: Vector4, updatedSize: Vector4) {
-    const width = 279;
+    const width = 264;
     const height = width * (size.y / size.x);
     const { x, y, z, w } = editedValue;
     const transformX = width * (x / size.x);

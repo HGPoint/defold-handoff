@@ -5,6 +5,7 @@
 
 
 import { projectConfig } from "handoff/project";
+import { isFigmaSection, isFigmaPage } from "utilities/figma";
 import { vector4, addVectors } from "utilities/math";
 
 /**
@@ -149,10 +150,16 @@ export function calculatePivotedShift(pivot: Pivot, parentPivot: Pivot, size: Ve
  */
 function calculateCenteredRootPosition(layer: ExportableLayer, size: Vector4, parentSize: Vector4, parentShift: Vector4, data?: PluginGUINodeData | null) {
   if (data?.screen) {
-    const { x, y } = calculateCenteredPosition(layer, size, parentSize);
-    const rootX = x + parentShift.x;
-    const rootY = y + projectConfig.screenSize.y - parentShift.y;
-    return vector4(rootX, rootY, 0, 0);
+    if (layer.parent && (isFigmaPage(layer.parent) || isFigmaSection(layer.parent))) {
+      const halfScreenWidth = projectConfig.screenSize.x / 2;
+      const halfScreenHeight = projectConfig.screenSize.y / 2;
+      return vector4(halfScreenWidth, halfScreenHeight, 0, 0);
+    } else {
+      const { x, y } = calculateCenteredPosition(layer, size, parentSize);    
+      const rootX = x + parentShift.x;
+      const rootY = y + projectConfig.screenSize.y - parentShift.y;
+      return vector4(rootX, rootY, 0, 0);
+    }
   }
   return vector4(0);
 }

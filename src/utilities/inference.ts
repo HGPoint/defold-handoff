@@ -7,7 +7,7 @@
 import config from "config/config.json";
 import { projectConfig } from "handoff/project";
 import { findTexture } from "utilities/gui";
-import { getPluginData, setPluginData, isFigmaBox, isFigmaText, hasFont } from "utilities/figma";
+import { getPluginData, setPluginData, isFigmaBox, isFigmaText, hasFont, findMainComponent, isFigmaComponentInstance, isFigmaSceneNode, isAtlas } from "utilities/figma";
 import { isSlice9Layer } from "utilities/slice9";
 import { tryFindFont } from "utilities/font";
 
@@ -108,11 +108,24 @@ export function inferBoxVisible(layer: BoxLayer, texture?: string): boolean {
  * @param texture - The texture for the box layer.
  * @returns The inferred size mode for the box layer.
  */
-export function inferBoxSizeMode(layer: BoxLayer, texture?: string): SizeMode {
+export async function inferBoxSizeMode(layer: BoxLayer, texture?: string): Promise<SizeMode> {
   if (isSlice9Layer(layer)) {
     return "SIZE_MODE_MANUAL";
   }
-  return texture ? "SIZE_MODE_AUTO" : "SIZE_MODE_MANUAL";
+  layer
+  if (texture) {
+    if (isFigmaComponentInstance(layer)) {
+      const mainComponent = await findMainComponent(layer);
+      if (mainComponent) {
+        const { parent } = mainComponent;
+        if (isFigmaSceneNode(parent) && isAtlas(parent)) {
+          return mainComponent.width == layer.width && mainComponent.height == layer.height ? "SIZE_MODE_AUTO" : "SIZE_MODE_MANUAL";
+        }
+      }
+    }
+    return "SIZE_MODE_AUTO";
+  }
+  return "SIZE_MODE_MANUAL";
 }
 
 /**
@@ -121,7 +134,7 @@ export function inferBoxSizeMode(layer: BoxLayer, texture?: string): SizeMode {
  */
 export async function inferGUINode(layer: BoxLayer) {
   const texture = await findTexture(layer);
-  const sizeMode = inferBoxSizeMode(layer, texture);
+  const sizeMode = await inferBoxSizeMode(layer, texture);
   const visible = inferBoxVisible(layer, texture);
   const pluginData = getPluginData(layer, "defoldGUINode");
   const id = pluginData?.id || layer.name;

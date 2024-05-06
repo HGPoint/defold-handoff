@@ -100,6 +100,7 @@ type GUINodeData = {
   template_name: string,
   wrapper: boolean,
   wrapper_padding: Vector4,
+  exclude: boolean,
   exportable_layer: ExportableLayer,
   figma_position: Vector4,
   children?: GUINodeData[],

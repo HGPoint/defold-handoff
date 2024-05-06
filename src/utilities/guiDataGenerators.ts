@@ -192,49 +192,52 @@ async function generateGUINodeData(options: GUINodeDataExportOptions, guiNodesDa
         let alreadyCloned = false;
         // Convert Figma box layer into GUI node data
         const guiNodeData = await convertBoxGUINodeData(layer, options);  
-        // Check if the layer is cloneable and a Figma component instance
-        if (guiNodeData.cloneable && isFigmaComponentInstance(layer)) {
-          // Find the main component of the instance
-          const mainComponent = await findMainComponent(layer);
-          // Check if the layer has already been cloned
-          if (mainComponent) {
-            if (clones?.find((clone) => findClone(clone, mainComponent, layer))) {
-              alreadyCloned = true;
-            } else {
-              if (!clones) {
-                clones = [];
+        // Check if the layer shouldn't be excluded from export
+        if (!guiNodeData.exclude) {
+          // Check if the layer is cloneable and a Figma component instance
+          if (guiNodeData.cloneable && isFigmaComponentInstance(layer)) {
+            // Find the main component of the instance
+            const mainComponent = await findMainComponent(layer);
+            // Check if the layer has already been cloned
+            if (mainComponent) {
+              if (clones?.find((clone) => findClone(clone, mainComponent, layer))) {
+                alreadyCloned = true;
+              } else {
+                if (!clones) {
+                  clones = [];
+                }
+                // Create clone data and add it to the clones array
+                const clone = createClone(mainComponent, layer);
+                clones.push(clone);
               }
-              // Create clone data and add it to the clones array
-              const clone = createClone(mainComponent, layer);
-              clones.push(clone);
             }
           }
-        }
-        // If not already cloned, proceed with processing the layer
-        if (!alreadyCloned) {
-          // Check if the layer should be skipped based on export settings
-          const shouldSkip = await isSkippable(layer, guiNodeData);
-          // If not skipped, add GUI node data to the array
-          if (!shouldSkip) {
-            guiNodesData.push(guiNodeData);
-          }
-          // Process children if the layer has any, and it's not a template or at the root level
-          if (hasChildren(layer) && (!guiNodeData.template || options.atRoot) && !await isAtlasSprite(layer)) {
-            const { children: layerChildren } = layer; 
-            // If not skipped, initialize children array in GUI node data
+          // If not already cloned, proceed with processing the layer
+          if (!alreadyCloned) {
+            // Check if the layer should be skipped based on export settings
+            const shouldSkip = await isSkippable(layer, guiNodeData);
+            // If not skipped, add GUI node data to the array
             if (!shouldSkip) {
-              guiNodeData.children = [];
+              guiNodesData.push(guiNodeData);
             }
-            // Process each child recursively
-            for (const layerChild of layerChildren) {
-              // Check if the child is exportable and not a slice 9 service layer
-              if (isExportable(layerChild) && !isSlice9ServiceLayer(layer)) {
-                // Generate parent options for the child
-                const parentOptions = await generateParentOptions(layerChild, shouldSkip, shouldSkip && options.atRoot, options, guiNodeData);
-                // Determine the array to collect children GUI node data based on skip status
-                const children = !shouldSkip ? guiNodeData.children :  guiNodesData;
-                // Recursively generate GUI node data for the child
-                await generateGUINodeData(parentOptions, children, clones);
+            // Process children if the layer has any, and it's not a template or at the root level
+            if (hasChildren(layer) && (!guiNodeData.template || options.atRoot) && !await isAtlasSprite(layer)) {
+              const { children: layerChildren } = layer; 
+              // If not skipped, initialize children array in GUI node data
+              if (!shouldSkip) {
+                guiNodeData.children = [];
+              }
+              // Process each child recursively
+              for (const layerChild of layerChildren) {
+                // Check if the child is exportable and not a slice 9 service layer
+                if (isExportable(layerChild) && !isSlice9ServiceLayer(layer)) {
+                  // Generate parent options for the child
+                  const parentOptions = await generateParentOptions(layerChild, shouldSkip, shouldSkip && options.atRoot, options, guiNodeData);
+                  // Determine the array to collect children GUI node data based on skip status
+                  const children = !shouldSkip ? guiNodeData.children :  guiNodesData;
+                  // Recursively generate GUI node data for the child
+                  await generateGUINodeData(parentOptions, children, clones);
+                }
               }
             }
           }
@@ -244,7 +247,10 @@ async function generateGUINodeData(options: GUINodeDataExportOptions, guiNodesDa
       else if (isFigmaText(layer)) {
         // Convert Figma text layer into GUI node data and add to the array
         const guiNodeData = convertTextGUINodeData(layer, options);
-        guiNodesData.push(guiNodeData);
+        // Check if the layer shouldn't be excluded from export
+        if (!guiNodeData.exclude) {
+          guiNodesData.push(guiNodeData);
+        }
       }
     }
   }

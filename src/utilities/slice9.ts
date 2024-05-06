@@ -11,7 +11,7 @@ import { getPluginData, removePluginData, isFigmaComponentInstance, isAtlasSprit
  * @param layer - The Figma layer to check.
  * @returns A boolean indicating if the layer is a slice9 layer.
  */
-export function isSlice9Layer(layer: SceneNode): layer is InstanceNode {
+export function isSlice9Layer(layer: SceneNode) {
   return isFigmaComponentInstance(layer) && !!getPluginData(layer, "defoldSlice9");
 }
 
@@ -33,6 +33,10 @@ export function isSlice9ServiceLayer(layer: SceneNode): boolean {
   return layer.name.startsWith("slice9Frame-")
 }
 
+function isOriginalSlice9Layer(layer: SceneNode): layer is InstanceNode {
+  return isFigmaComponentInstance(layer) && isSlice9Layer(layer);
+}
+
 /**
  * Finds the original layer corresponding to a slice9 placeholder.
  * @param placeholder - The slice9 placeholder layer.
@@ -40,7 +44,7 @@ export function isSlice9ServiceLayer(layer: SceneNode): boolean {
  */
 export function findOriginalLayer(placeholder: FrameNode): ExportableLayer | null {
   const { children } = placeholder;
-  const layer = children.find(isSlice9Layer);
+  const layer = children.find(isOriginalSlice9Layer);
   if (!layer) {
     return null;
   }
@@ -496,7 +500,7 @@ export async function updateSlice9Placeholder(layer: InstanceNode, slice9: Vecto
  */
 export async function tryRefreshSlice9Placeholder(layer: SceneNode, slice9: Vector4 | undefined) {
   if (slice9) {
-    if (isSlice9Layer(layer)) {
+    if (isSlice9Layer(layer) && isFigmaComponentInstance(layer)) {
       if (isZeroVector(slice9)) {
         removeSlice9Placeholder(layer);
       } else {

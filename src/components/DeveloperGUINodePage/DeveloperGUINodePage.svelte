@@ -69,10 +69,11 @@
       <ToggleProperty label="Clipping Inverted" bind:value={guiNode.clipping_inverted} />
     </Properties>
     <Properties title="Special Properties" collapseKey="guiNodeSpecialPropertiesCollapsed">
-      <ToggleProperty label="On Screen" bind:value={guiNode.screen} />
-      <ToggleProperty label="Skip" bind:value={guiNode.skip} />
-      <ToggleProperty label="Extract" bind:value={guiNode.cloneable} />
-      <ToggleProperty label="Template" bind:value={guiNode.template} />
+      <ToggleProperty label="Don't Export" bind:value={guiNode.exclude} />
+      <ToggleProperty label="On Screen" bind:value={guiNode.screen} disabled={guiNode.exclude} />
+      <ToggleProperty label="Skip" bind:value={guiNode.skip} disabled={guiNode.exclude} />
+      <ToggleProperty label="Extract" bind:value={guiNode.cloneable} disabled={guiNode.exclude} />
+      <ToggleProperty label="Template" bind:value={guiNode.template} disabled={guiNode.exclude} />
       {#if guiNode.template}
         <TextProperty label="Template Name" bind:value={guiNode.template_name} />
         <TextProperty label="Template Path" bind:value={guiNode.template_path} />

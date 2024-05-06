@@ -59,6 +59,7 @@ With this plugin, you can easily manage GUI template designs and atlases, stream
 - `src/utilities/scheme.ts` – Module for handling scheme boilerplate code.
 - `src/utilities/selection.ts` – Module for handling selection data.
 - `src/utilities/slice9.ts` – Module for handling slice9 placeholders in Figma.
+- `src/utilities/validators.ts` – Module for handling validation.
 
 ### Types
 

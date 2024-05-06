@@ -188,11 +188,11 @@ function convertTextSize(layer: TextLayer, scale: Vector4) {
  * @param data - GUI node data.
  * @returns The calculated size mode for the Figma layer.
  */
-function calculateBoxSizeMode(layer: BoxLayer, texture?: string, data?: PluginGUINodeData | null): SizeMode {
+async function calculateBoxSizeMode(layer: BoxLayer, texture?: string, data?: PluginGUINodeData | null): Promise<SizeMode> {
   if (data?.size_mode && data.size_mode !== "PARSED") {
     return data.size_mode;
   }
-  return inferBoxSizeMode(layer, texture);
+  return await inferBoxSizeMode(layer, texture);
 }
 
 /**
@@ -602,6 +602,7 @@ function calculateSpecialProperties(layer: ExportableLayer, id: string, data?: P
     template_name: data?.template_name || id,
     wrapper: !!data?.wrapper,
     wrapper_padding: data?.wrapper_padding || vector4(0),
+    exclude: !!data?.exclude,
     exportable_layer: layer,
   };
 }
@@ -621,7 +622,7 @@ export async function convertBoxGUINodeData(layer: BoxLayer, options: GUINodeDat
   const type = calculateType(layer, data, atRoot);
   const pivot = calculateBoxPivot(data);
   const visuals = await convertBoxVisuals(layer, data);
-  const sizeMode = calculateBoxSizeMode(layer, visuals.texture, data);
+  const sizeMode = await calculateBoxSizeMode(layer, visuals.texture, data);
   const transformations = convertBoxTransformations(layer, pivot, parentPivot, parentSize, parentShift, atRoot, data);
   const parent = convertParent(parentId, data);
   const specialProperties = calculateSpecialProperties(layer, id, data);

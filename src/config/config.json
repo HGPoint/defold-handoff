@@ -79,8 +79,10 @@
     "template_path": "common/view",
     "template_name": "",
     "wrapper": false,
-    "wrapper_padding": null
+    "wrapper_padding": null,
+    "exclude": false
   },
+  "atlasMaxSize": 2048,
   "atlasDefaultValues": {
     "margin": 0,
     "extrude_borders": 2,

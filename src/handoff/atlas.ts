@@ -6,6 +6,7 @@
 import { generateAtlasDataSet } from "utilities/atlasDataGenerators";
 import { serializeAtlasDataSet } from "utilities/atlasDataSerializers";
 import { packSprites } from "utilities/atlas";
+// import { validateAtlases } from "utilities/validators";
 import { setPluginData, isFigmaRemoved, isFigmaComponent, isFigmaComponentSet } from "utilities/figma";
 
 /**
@@ -159,9 +160,12 @@ export function addSprites(atlas: ComponentSetNode, layers: SceneNode[]) {
  * @returns An array of serialized atlas data.
  */
 export async function exportAtlases(atlases: ComponentSetNode[]): Promise<SerializedAtlasData[]> {
-  const atlasData = await generateAtlasDataSet(atlases);
-  const serializedAtlasData = serializeAtlasDataSet(atlasData);
-  return serializedAtlasData;
+  // if (validateAtlases(atlases)) {
+    const atlasData = await generateAtlasDataSet(atlases);
+    const serializedAtlasData = serializeAtlasDataSet(atlasData);
+    return serializedAtlasData;
+  // }
+  return Promise.reject("Error exporting atlases");
 }
 
 /**

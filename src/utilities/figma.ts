@@ -47,6 +47,15 @@ export function isFigmaSection(layer: BaseNode): layer is SectionNode {
 }
 
 /**
+ * Checks if a layer is a Figma page.
+ * @param layer - The Figma layer to check.
+ * @returns True if the layer is a Figma page, otherwise false.
+ */
+export function isFigmaPage(layer: BaseNode): layer is PageNode {
+  return layer.type === "PAGE";
+}
+
+/**
  * Checks if a layer is a Figma component node.
  * @param layer - The Figma layer to check.
  * @returns True if the layer is a Figma component node, otherwise false.

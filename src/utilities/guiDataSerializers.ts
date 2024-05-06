@@ -20,6 +20,7 @@ const EXCLUDED_PROPERTY_KEYS = [
   "template_name",
   "wrapper",
   "wrapper_padding",
+  "exclude",
   "exportable_layer",
   "figma_position",
   "children"
