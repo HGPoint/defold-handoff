@@ -29,8 +29,8 @@ export function generateAtlasPath(atlas: string): string {
  * @param font - The name of the font.
  * @returns The font path.
  */
-export function generateFontPath(font: string): string {
-  const fileName = generateFontFileName(font);
+export function generateFontPath(font: FontData): string {
+  const fileName = generateFontFileName(font.name);
   return `/${projectConfig.paths.assetsPath}/${projectConfig.paths.fontAssetsPath}/${fileName}`;
 }
 

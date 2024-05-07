@@ -5,8 +5,9 @@
 
 import config from "config/config.json";
 import { isSlice9PlaceholderLayer, isSlice9ServiceLayer, findOriginalLayer } from "utilities/slice9";
-import { isAtlas, isFigmaFrame, isFigmaSection, isFigmaComponentInstance, isFigmaBox, isFigmaText, isExportable, getPluginData, hasChildren, isFigmaPage } from "utilities/figma";
+import { isAtlas, isFigmaFrame, isFigmaSection, isFigmaComponentInstance, isFigmaBox, isFigmaText, isExportable, getPluginData, hasChildren } from "utilities/figma";
 import { isTemplateGUINode } from "utilities/gui";
+import { generateContextData } from "utilities/context";
 import { projectConfig } from "handoff/project";
 
 /**
@@ -175,20 +176,15 @@ function sectionPluginUISelectionConverter(data: PluginSectionData[], layer: Sec
   return data;
 }
 
-export function generateContextData(selection: SelectionData): PluginGUIContextData {
+/**
+ * Generates GUI node context data for current selection.
+ * @param selection - The selection data.
+ * @returns The context data.
+ */
+export function generateSelectionContextData(selection: SelectionData): PluginGUIContextData {
   if (selection.gui.length === 1) {
     const { gui: [ guiNode ] } = selection;
-    let parent = guiNode.parent;
-    while (parent && !isFigmaPage(parent) && !isFigmaSection(parent)) {
-      parent = parent.parent;
-    }
-    if (parent && isFigmaSection(parent)) {
-      const pluginData = getPluginData(parent, "defoldSection");
-      return {
-        layers: pluginData?.layers ? [ ...config.sectionDefaultValues.layers, ...pluginData.layers ] : [ ...config.sectionDefaultValues.layers ],
-        materials: pluginData?.materials || []
-      }
-    }
+    return generateContextData(guiNode);
   }
   return {
     layers: config.sectionDefaultValues.layers,
@@ -208,7 +204,7 @@ export function convertPluginUISelection(selection: SelectionData): SelectionUID
     layers: selection.layers,
     sections: selection.sections.reduce(sectionPluginUISelectionConverter, []),
     project: projectConfig,
-    context: generateContextData(selection)
+    context: generateSelectionContextData(selection)
   }
 }
 

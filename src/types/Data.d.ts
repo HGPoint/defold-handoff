@@ -158,12 +158,15 @@ type TextureData = Record<string, TextureAtlasData>;
 
 type FontData = Record<string, string>;
 
+type LayerData = string[];
+
 type GUIData = {
   name: string,
   gui: GUIComponentData,
   nodes: GUINodeData[],
   textures: TextureData,
-  fonts: FontData
+  fonts: FontData,
+  layers: LayerData
 }
 
 type SerializedGUIData = {

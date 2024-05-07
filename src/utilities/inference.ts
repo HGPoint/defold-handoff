@@ -10,6 +10,7 @@ import { findTexture } from "utilities/gui";
 import { getPluginData, setPluginData, isFigmaBox, isFigmaText, hasFont, findMainComponent, isFigmaComponentInstance, isFigmaSceneNode, isAtlas } from "utilities/figma";
 import { isSlice9Layer } from "utilities/slice9";
 import { tryFindFont } from "utilities/font";
+import { generateContextData } from "utilities/context";
 
 /**
  * Infers the GUINode type based on the Figma layer type.
@@ -68,17 +69,31 @@ export function inferTextSizeMode(): SizeMode {
 }
 
 /**
+ * Infers the layer for the GUI node.
+ * @param context - The GUI context data.
+ * @param pluginData - The plugin data for the GUI node.
+ */
+export function inferLayer(context: PluginGUIContextData, pluginData?: PluginGUINodeData | null) {
+  if (!pluginData?.layer) {
+    return config.guiNodeDefaultValues.layer;
+  }
+  const inferredLayer = context.layers.find((layer) => layer.id === pluginData.layer);
+  return inferredLayer ? inferredLayer.id : config.guiNodeDefaultValues.layer;
+}
+
+/**
  * Infers properties for a text node and sets plugin data.
  * @param layer - The text layer to infer properties for.
  */
 export function inferTextNode(layer: TextNode) {
+  const context = generateContextData(layer);
   const sizeMode = inferTextSizeMode();
   const visible = inferTextVisible();
   const font = inferFont(layer);
   const pluginData = getPluginData(layer, "defoldGUINode");
   const id = pluginData?.id || layer.name;
   const type = pluginData?.type || "TYPE_TEXT";
-  const guiLayer = pluginData?.layer || config.guiNodeDefaultValues.layer;
+  const guiLayer = inferLayer(context, pluginData);
   const data = {
     ...config.guiNodeDefaultValues,
     ...config.guiNodeDefaultSpecialValues,
@@ -135,13 +150,14 @@ export async function inferBoxSizeMode(layer: BoxLayer, texture?: string): Promi
  * @param layer - The box layer to infer properties for.
  */
 export async function inferGUINode(layer: BoxLayer) {
+  const context = generateContextData(layer);
   const texture = await findTexture(layer);
   const sizeMode = await inferBoxSizeMode(layer, texture);
   const visible = inferBoxVisible(layer, texture);
   const pluginData = getPluginData(layer, "defoldGUINode");
   const id = pluginData?.id || layer.name;
   const type = pluginData?.type || "TYPE_TEXT";
-  const guiLayer = pluginData?.layer || config.guiNodeDefaultValues.layer;
+  const guiLayer = inferLayer(context, pluginData);
   const data = {
     ...config.guiNodeDefaultValues,
     ...config.guiNodeDefaultSpecialValues,

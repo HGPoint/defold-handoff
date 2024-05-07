@@ -97,9 +97,8 @@ export function fixTextNode(layer: SceneNode) {
 /**
  * Removes bound GUI node data for a given Figma layer.
  * @param layer - Figma layer to reset GUI node data for.
- * TODO: Rename function to removeGUINode
  */
-export function resetGUINode(layer: SceneNode) {
+export function removeGUINode(layer: SceneNode) {
   removePluginData(layer, "defoldGUINode");
   removePluginData(layer, "defoldSlice9");
 }
@@ -107,10 +106,9 @@ export function resetGUINode(layer: SceneNode) {
 /**
  * Removes bound GUI node data for an array of Figma layers.
  * @param layers - Figma layers to reset GUI nodes for.
- * TODO: Rename function to removeGUINodes
  */
-export function resetGUINodes(layers: SceneNode[]) {
-  layers.forEach((layer) => { resetGUINode(layer) });
+export function removeGUINodes(layers: SceneNode[]) {
+  layers.forEach((layer) => { removeGUINode(layer) });
 }
 
 /**

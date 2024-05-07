@@ -10,6 +10,7 @@ import { setPluginData, findMainComponent, hasChildren, isAtlas, isAtlasSection,
 import { vector4, areVectorsEqual, copyVector, addVectors } from "utilities/math";
 import { convertGUIData, convertBoxGUINodeData, convertTextGUINodeData } from "utilities/guiDataConverters";
 import { isSlice9PlaceholderLayer, findOriginalLayer, isSlice9Layer, isSlice9ServiceLayer, parseSlice9Data } from "utilities/slice9";
+import { generateContextData } from "utilities/context";
 import { generateAtlasPath, generateFontPath } from "utilities/path";
 
 /**
@@ -65,9 +66,8 @@ function generateRootOptions(layer: ExportableLayer): GUINodeDataExportOptions {
  * @param parentOptions - Parent GUI node export options.
  * @param guiNodeData - GUI node data.
  * @returns Resolved parent parameters.
- * TODO: Rename the function to resolveParentParameters.
  */
-function calculateParentParameters(shouldSkip: boolean, parentOptions: GUINodeDataExportOptions, guiNodeData: GUINodeData): Pick<GUINodeDataExportOptions, "parentId" | "parentPivot" | "parentSize" | "parentShift" | "parentChildren"> {
+function resolveParentParameters(shouldSkip: boolean, parentOptions: GUINodeDataExportOptions, guiNodeData: GUINodeData): Pick<GUINodeDataExportOptions, "parentId" | "parentPivot" | "parentSize" | "parentShift" | "parentChildren"> {
   if (shouldSkip) {
     const { parentId, parentSize, parentPivot, parentShift, parentChildren } = parentOptions;
     return {
@@ -136,7 +136,7 @@ async function generateForcedName(layer: ExportableLayer): Promise<string | unde
 async function generateParentOptions(layer: ExportableLayer, shouldSkip: boolean, atRoot: boolean, parentOptions: GUINodeDataExportOptions, parentGUINodeData: GUINodeData): Promise<GUINodeDataExportOptions> {
   const namePrefix = generateNamePrefix(shouldSkip, parentOptions);
   const forcedName = await generateForcedName(layer);
-  const parentParameters = calculateParentParameters(shouldSkip, parentOptions, parentGUINodeData);
+  const parentParameters = resolveParentParameters(shouldSkip, parentOptions, parentGUINodeData);
   return {
     layer,
     atRoot,
@@ -339,12 +339,27 @@ async function generateFontData(layer: SceneNode, fontData: FontData) {
   if (isFigmaText(layer)) {
     for (const font of projectConfig.fontFamilies) {
       const path = generateFontPath(font);
-      if (!fontData[font]) {
-        fontData[font] = path;
+      if (!fontData[font.name]) {
+        fontData[font.name] = path;
       }
     }
     return;
   }
+}
+
+/**
+ * Generates layers data from shared GUI context data.
+ * @param layer - The Figma layer generate shared GUI context data from.
+ * @returns An array of layer names.
+ */
+function generateLayersData(layer: ExportableLayer) {
+  const context = generateContextData(layer);
+  return context.layers.reduce((layers, layerData) => {
+    if (layerData.id === "DEFAULT") {
+      return layers;
+    }
+    return [ ...layers, layerData.name ];
+  }, [] as string[]);
 }
 
 /**
@@ -446,12 +461,14 @@ export async function generateGUIData(layer: ExportableLayer): Promise<GUIData> 
   await generateTexturesData(layer, textures);
   const fonts = {};
   await generateFontData(layer, fonts);
+  const layers = generateLayersData(layer);
   return {
     name,
     gui,
     nodes: collapsedNodes,
     textures,
     fonts,
+    layers,
   };
 }
 

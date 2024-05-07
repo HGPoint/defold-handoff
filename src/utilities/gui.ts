@@ -4,7 +4,7 @@
  */
 
 import config from "config/config.json";
-import { calculateAtlasTexture, calculateEmptyTexture } from "utilities/atlas";
+import { resolveAtlasTexture, resolveEmptyTexture } from "utilities/atlas";
 import { getPluginData, findMainComponent, isFigmaComponentInstance, isFigmaSceneNode, isAtlas } from "utilities/figma";
 import { inferGUINodeType } from "utilities/inference";
 
@@ -60,11 +60,11 @@ export async function findTexture(layer: ExportableLayer) {
     if (mainComponent) {
       const { parent } = mainComponent;
       if (isFigmaSceneNode(parent) && isAtlas(parent)) {
-        return calculateAtlasTexture(parent, layer);
+        return resolveAtlasTexture(parent, layer);
       }
     }
   }
-  return calculateEmptyTexture();
+  return resolveEmptyTexture();
 }
 
 /**

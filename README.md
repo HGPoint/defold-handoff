@@ -40,6 +40,7 @@ With this plugin, you can easily manage GUI template designs and atlases, stream
 - `src/utilities/atlasDataSerializers.ts` – Module for handling atlas data serialization.
 - `src/utilities/clipboard.ts` – Module for handling the clipboard operations.
 - `src/utilities/color.ts` – Module for handling color operations.
+- `src/utilities/context.ts` – Module for handling shared context for GUI nodes (Layers, materials, etc.).
 - `src/utilities/dataSerializers.ts` – Module for handling Defold property serialization.
 - `src/utilities/download.ts` – Module for handling file downloading.
 - `src/utilities/evaluation.ts` – Module for evaluating expressions.

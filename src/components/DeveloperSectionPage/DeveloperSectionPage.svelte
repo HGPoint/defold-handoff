@@ -39,7 +39,7 @@
   <Page>
     <Properties title="GUI Section Properties" collapseKey="sectionGUIPropertiesCollapsed">
       <TextSetProperty label="Layers" action="Add Layer" bind:value={section.layers} />
-      <TextSetProperty label="Materials" action="Add Material" bind:value={section.materials} />
+      <TextSetProperty label="Materials" action="Add Material" bind:value={section.materials} disabled={true} />
     </Properties>
     <Properties title="Atlas Section Properties" collapseKey="sectionAtlasPropertiesCollapsed">
       <ToggleProperty label="Bundled Atlases" bind:value={section.bundled} />

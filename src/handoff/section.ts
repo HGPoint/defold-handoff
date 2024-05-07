@@ -19,17 +19,15 @@ export function updateSection(layer: SectionNode, data: PluginSectionData) {
 /**
  * Removes bound section data for a given Figma section.
  * @param layer - The section layer to reset.
- * TODO: Rename function to removeSection.
  */
-export function resetSection(layer: SceneNode) {
+export function removeSection(layer: SceneNode) {
   removePluginData(layer, "defoldSection");
 }
 
 /**
  * Removes bound section data for an array of Figma sections.
  * @param layers - The section layers to reset.
- * TODO: Rename function to removeSections.
  */
-export function resetSections(layers: SceneNode[]) {
-  layers.forEach((layer) => { resetSection(layer) });
+export function removeSections(layers: SceneNode[]) {
+  layers.forEach((layer) => { removeSection(layer) });
 }

@@ -107,6 +107,16 @@ function fontsDataSerializer(data: string, [name, fontPath]: [string, string]): 
 }
 
 /**
+ * Serializes layer data.
+ * @param data - Serialized data.
+ * @param layer - Layer name.
+ * @returns Serialized layer data.
+ */
+function layerDataSerializer(data: string, layer: string): string {
+  return `${data}\nlayers\n{\nname:"${layer}"\n}`;
+}
+
+/**
  * Serializes GUI node data.
  * @param guiData - GUI node data to be serialized.
  * @returns Serialized GUI node data.
@@ -117,7 +127,8 @@ export function serializeGUIData(guiData: GUIData): SerializedGUIData {
   const nodes = guiData.nodes.reduce(guiNodeSerializer, "");
   const textures = Object.entries(guiData.textures).reduce(textureDataSerializer, "")
   const fonts = Object.entries(guiData.fonts).reduce(fontsDataSerializer, "");
-  const data = `${gui}${textures}${fonts}${nodes}`;
+  const layers = guiData.layers.reduce(layerDataSerializer, "");
+  const data = `${gui}${textures}${fonts}${nodes}${layers}`;
   return {
     name,
     data

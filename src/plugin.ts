@@ -7,9 +7,9 @@ import { getPluginData, hasVariantPropertyChanged, isFigmaComponentInstance } fr
 import { isGUINodeSelected, reducePluginSelection, convertPluginUISelection, reduceAtlases, reduceGUINodes } from "utilities/selection";  
 import { isSlice9Layer, tryRefreshSlice9Sprite  } from "utilities/slice9";
 import { initializeProject, updateProject } from "handoff/project";
-import { updateGUINode, tryRestoreSlice9Node, copyGUINodes, exportGUINodes, resetGUINodes, fixTextNode, fixGUINodes, copyGUINodeScheme, tryExtractImage } from "handoff/gui";
+import { updateGUINode, tryRestoreSlice9Node, copyGUINodes, exportGUINodes, removeGUINodes, fixTextNode, fixGUINodes, copyGUINodeScheme, tryExtractImage } from "handoff/gui";
 import { createAtlas, addSprites, fixAtlases, sortAtlases, fitAtlases, exportAtlases, destroyAtlases, tryRestoreAtlases } from "handoff/atlas";
-import { updateSection, resetSections } from "handoff/section";
+import { updateSection, removeSections } from "handoff/section";
 import { exportBundle } from "handoff/bundle";
 
 let selection: SelectionData = { gui: [], atlases: [], layers: [], sections: [] };
@@ -96,7 +96,7 @@ async function onCopyGUINodeScheme() {
   } 
 
 function onResetGUINodes() {
-  resetGUINodes(selection.gui);
+  removeGUINodes(selection.gui);
   updateSelection();
   figma.notify("GUI nodes reset");
 }
@@ -194,7 +194,7 @@ function onUpdateSection(data: PluginSectionData) {
 }
 
 function onResetSections() {
-  resetSections(selection.sections);
+  removeSections(selection.sections);
   updateSelection();
   figma.notify("Sections reset");
 }

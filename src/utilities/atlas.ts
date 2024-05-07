@@ -9,9 +9,8 @@ import { isFigmaSceneNode, isFigmaSection, getPluginData } from "utilities/figma
  * Resolves the final atlas name. If the atlas is part of a section that is to be combined as a single atlas, the name of the combined atlas is returned.
  * @param atlas - The atlas node for which the name is to be resolved.
  * @returns The resolved atlas name.
- * TODO: Rename to resolveAtlasName
  */
-export function calculateAtlasName(atlas: ComponentSetNode) {
+export function resolveAtlasName(atlas: ComponentSetNode) {
   const section = atlas.parent;
   if (isFigmaSceneNode(section) && isFigmaSection(section)) {
     const combineAs = getPluginData(section, "defoldSection")?.jumbo
@@ -27,10 +26,9 @@ export function calculateAtlasName(atlas: ComponentSetNode) {
  * @param atlas - The atlas node containing the sprite.
  * @param layer - The sprite layer for which the texture property is to be resolved.
  * @returns The resolved texture property.
- * TODO: Rename to resolveAtlasTexture
  */
-export function calculateAtlasTexture(atlas: ComponentSetNode, layer: InstanceNode) {
-  const atlasName = calculateAtlasName(atlas);
+export function resolveAtlasTexture(atlas: ComponentSetNode, layer: InstanceNode) {
+  const atlasName = resolveAtlasName(atlas);
   const sprite = layer.variantProperties?.Sprite;
   return sprite ? `${atlasName}/${sprite}` : "";
 }
@@ -38,9 +36,8 @@ export function calculateAtlasTexture(atlas: ComponentSetNode, layer: InstanceNo
 /**
  * Resolves an empty texture property.
  * @returns The resolved texture property.
- * TODO: Rename to resolveEmptyTexture
  */
-export function calculateEmptyTexture() {
+export function resolveEmptyTexture() {
   return "";
 }
 

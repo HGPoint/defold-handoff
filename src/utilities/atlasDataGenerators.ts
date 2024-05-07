@@ -4,7 +4,7 @@
  */
 
 import { convertAtlasData, convertSpriteData } from "utilities/atlasDataConverters";
-import { calculateAtlasName } from "utilities/atlas";
+import { resolveAtlasName } from "utilities/atlas";
 
 /**
  * Generates sprite data from a Figma layer.
@@ -31,7 +31,7 @@ async function generateAtlasSpriteData(layer: SceneNode, directory: string): Pro
  */
 async function generateAtlasData(layer: ComponentSetNode): Promise<AtlasData> {
   const { name: directory, children } = layer;
-  const name = calculateAtlasName(layer);
+  const name = resolveAtlasName(layer);
   const atlas = convertAtlasData();
   const exportPromises = children.map((spriteData) => generateAtlasSpriteData(spriteData, directory));
   const images = await Promise.all(exportPromises);
@@ -48,7 +48,6 @@ async function generateAtlasData(layer: ComponentSetNode): Promise<AtlasData> {
  * @param atlas - The atlas data.
  * @param index - The index of the atlas.
  * @returns The updated combined atlas.
- * TODO: Rename the function to something more appropriate.
  */
 function combinationDataReducer(combinationData: Record<string, number[]>, atlas: AtlasData, index: number) {
   const { name } = atlas;
@@ -96,7 +95,6 @@ function combinedAtlasesReducer(combinedAtlases: AtlasData[], combineAtlasName: 
  * Combines jumbo atlases into a single atlas.
  * @param atlases - The array of atlas data to process.
  * @returns The final atlas data set.
- * TODO: Rename the function to something more appropriate.
  */
 function combineAtlases(atlases: AtlasData[]) {
   const combinationData = atlases.reduce(combinationDataReducer, {} as Record<string, number[]>);
