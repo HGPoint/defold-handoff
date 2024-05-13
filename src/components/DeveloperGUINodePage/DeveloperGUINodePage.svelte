@@ -92,6 +92,9 @@
       {#if isTextGUINodeType(guiNode.type)}
         <ActionButton label="Fix Text" action="fixTextNode" />
       {/if}
+      {#if $selectionState.canTryMatch}
+        <ActionButton label="Match Parent to GUI Node" action="matchGUINodes" />
+      {/if}
       {#if isBoxGUINodeType(guiNode.type)}
         <ActionButton label="Refresh Slice 9" action="restoreSlice9Node" />
       {/if}
@@ -104,5 +107,10 @@
       <ActionButton label="Copy GUI" action="copyGUINodes" />
       <ActionButton label="Copy GUI Scheme" action="copyGUINodeScheme" />
     </Actions>
+    {#if $selectionState.layers.length > 1}
+      <Actions title="Atlas Actions" collapseKey="layersActionsCollapsed">
+        <ActionButton label="Create Atlas" action="createAtlas" />
+      </Actions>
+    {/if}
   </Page>
 {/if}

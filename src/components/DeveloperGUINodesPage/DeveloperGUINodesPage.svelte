@@ -1,4 +1,5 @@
 <script lang="ts">
+  import selectionState from "state/selection";
   import Page from "components/Page";
   import Actions from "components/Actions";
   import ActionButton from "components/ActionButton";
@@ -14,4 +15,9 @@
     <ActionButton label="Export GUI" action="exportGUINodes" />
     <ActionButton label="Export Bundle" action="exportBundle" />
   </Actions>
+  {#if $selectionState.layers.length > 1}
+    <Actions title="Atlas Actions" collapseKey="layersActionsCollapsed">
+      <ActionButton label="Create Atlas" action="createAtlas" />
+    </Actions>
+  {/if}
 </Page>

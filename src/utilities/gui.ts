@@ -5,7 +5,7 @@
 
 import config from "config/config.json";
 import { resolveAtlasTexture, resolveEmptyTexture } from "utilities/atlas";
-import { getPluginData, findMainComponent, isFigmaComponentInstance, isFigmaSceneNode, isAtlas } from "utilities/figma";
+import { getPluginData, findMainComponent, isExportable, isFigmaComponentInstance, isFigmaSceneNode, isAtlas } from "utilities/figma";
 import { inferGUINodeType } from "utilities/inference";
 
 /**
@@ -82,5 +82,42 @@ export function getDefoldGUINodePluginData(layer: SceneNode) {
     ...pluginData,
     id,
     type,
+  }
+}
+
+/**
+ * Resizes the parent frame to fit the given dimensions and shifts it by the given amount.
+ * @param parent - The parent frame to resize.
+ * @param width - The width of the child node to fit the parent to.
+ * @param height - The height of the child node to fit the parent to.
+ * @param shiftX - The amount to shift the parent to compensate for the child's position on the X axis.
+ * @param shiftY - The amount to shift the parent to compensate for the child's position on the Y axis.
+ */
+export function fitParent(parent: FrameNode, width: number, height: number, shiftX: number, shiftY: number) {
+  parent.resizeWithoutConstraints(width, height);
+  parent.x += shiftX;
+  parent.y += shiftY;
+}
+
+/**
+ * Fits the children of the given frame node by shifting them by the given amount.
+ * @param layer - The frame node to fit the children of.
+ * @param shiftX - The amount to shift the children to compensate for the parent's shift on the X axis.
+ * @param shiftY - The amount to shift the children to compensate for the parent's shift on the Y axis.
+ */
+export function fitChildren(layer: FrameNode, shiftX: number, shiftY: number) {
+  for (const parentChild of layer.children) {
+    if (isExportable(parentChild)) {
+      if (parentChild.constraints.horizontal === "STRETCH" || parentChild.constraints.horizontal === "MIN") {
+        parentChild.x -= shiftX;
+      } else if (parentChild.constraints.horizontal === "MAX") {
+        parentChild.x += shiftX;
+      }
+      if (parentChild.constraints.vertical === "STRETCH" || parentChild.constraints.vertical === "MIN") {
+        parentChild.y -= shiftY;
+      } else if (parentChild.constraints.vertical === "MAX") {
+        parentChild.y += shiftY;
+      }
+    }
   }
 }

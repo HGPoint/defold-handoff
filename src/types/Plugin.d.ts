@@ -5,6 +5,7 @@ type SelectionUIData = {
   sections: PluginSectionData[],
   project: ProjectData,
   context?: PluginGUIContextData,
+  canTryMatch: boolean,
 }
 
 type SelectionData = {
@@ -82,6 +83,7 @@ type PluginMessageAction =
   "copyGUINodeScheme" |
   "guiNodeSchemeCopied" |
   "fixGUINodes" |
+  "matchGUINodes" |
   "validateGUINodes" |
   "resetGUINodes" |
   "updateGUINode" |

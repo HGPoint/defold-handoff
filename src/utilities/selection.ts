@@ -108,6 +108,9 @@ function pluginSelectionReducer(selection: SelectionData, layer: SceneNode): Sel
       if (originalLayer) {
         selection.gui.push(originalLayer);
       }
+      if (!isFigmaText(layer)) {
+        selection.layers.push(layer);
+      }
     } else {
       selection.layers.push(layer);
     }
@@ -193,6 +196,20 @@ export function generateSelectionContextData(selection: SelectionData): PluginGU
 }
 
 /**
+ * Checks if the selected GUI nodes can be matched by size.
+ * @param selection - The selection data.
+ * @returns True if the selected GUI nodes form potentially matchable pair, false otherwise.
+ */
+export function checkForMatchingPairs(selection: SelectionData): boolean {
+  if (selection.gui.length === 1) {
+    const [ guiNode ] = selection.gui;
+    const { parent } = guiNode;
+    return parent !== null && (isFigmaFrame(guiNode) || isFigmaComponentInstance(guiNode)) && isFigmaFrame(parent);
+  }
+  return false;
+}
+
+/**
  * Converts plugin selection data to UI selection data.
  * @param selection - The plugin selection data.
  * @returns The UI selection data.
@@ -204,7 +221,8 @@ export function convertPluginUISelection(selection: SelectionData): SelectionUID
     layers: selection.layers,
     sections: selection.sections.reduce(sectionPluginUISelectionConverter, []),
     project: projectConfig,
-    context: generateSelectionContextData(selection)
+    context: generateSelectionContextData(selection),
+    canTryMatch: checkForMatchingPairs(selection)
   }
 }
 

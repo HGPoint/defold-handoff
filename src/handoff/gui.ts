@@ -5,8 +5,8 @@
 
 import { generateGUIDataSet, generateGUIData } from "utilities/guiDataGenerators";
 import { serializeGUIDataSet } from "utilities/guiDataSerializers";
-import { getDefoldGUINodePluginData } from "utilities/gui";
-import { isFigmaText, getPluginData, setPluginData, removePluginData, tryUpdateLayerName, isFigmaComponentInstance, findMainComponent, isFigmaSceneNode, isAtlas } from "utilities/figma";
+import { getDefoldGUINodePluginData, fitParent, fitChildren } from "utilities/gui";
+import { isFigmaText, getPluginData, setPluginData, removePluginData, tryUpdateLayerName, isFigmaComponentInstance, findMainComponent, isFigmaSceneNode, isAtlas, isFigmaFrame } from "utilities/figma";
 import { tryRefreshSlice9Placeholder, isSlice9PlaceholderLayer, findOriginalLayer, parseSlice9Data } from "utilities/slice9";
 import { tryRefreshScalePlaceholder } from "utilities/scale";
 import { extractScheme } from "utilities/scheme";
@@ -82,6 +82,21 @@ export async function exportGUINodes(layers: ExportableLayer[]): Promise<Seriali
  */
 export function fixGUINodes(layers: SceneNode[]) {
   inferGUINodes(layers);
+}
+
+/**
+ * Matches parent of the GUI node to the dimensions of the GUI node.
+ * @param layer - The GUI node to match parent for.
+ */
+export function matchGUINodes(layer: ExportableLayer) {
+  if (isFigmaFrame(layer) || isFigmaComponentInstance(layer)) {
+    const { parent } = layer;
+    if (parent && isFigmaFrame(parent)) {
+      const { width, height, x, y } = layer;
+      fitParent(parent, width, height, x, y);
+      fitChildren(parent, x, y)
+    }
+  }
 }
 
 /**
