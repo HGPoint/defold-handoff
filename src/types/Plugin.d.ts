@@ -21,6 +21,7 @@ type PluginSectionData = {
   jumbo: string,
   layers: ProjectLayerData[],
   materials: ProjectMaterialData[],
+  ignorePrefixes: boolean,
 }
 
 type PluginAtlasData = {
@@ -30,6 +31,7 @@ type PluginAtlasData = {
 type PluginGUIContextData = {
   layers: ProjectLayerData[],
   materials: ProjectMaterialData[],
+  ignorePrefixes: boolean,
 }
 
 type PluginGUINodeData = {

@@ -190,8 +190,9 @@ export function generateSelectionContextData(selection: SelectionData): PluginGU
     return generateContextData(guiNode);
   }
   return {
-    layers: config.sectionDefaultValues.layers,
-    materials: config.sectionDefaultValues.materials
+    layers: JSON.parse(JSON.stringify(config.sectionDefaultValues.layers)),
+    materials: JSON.parse(JSON.stringify(config.sectionDefaultValues.materials)),
+    ignorePrefixes: config.sectionDefaultValues.ignorePrefixes
   }
 }
 

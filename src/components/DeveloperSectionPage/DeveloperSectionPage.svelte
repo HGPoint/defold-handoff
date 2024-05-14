@@ -38,6 +38,7 @@
 {#if section}
   <Page>
     <Properties title="GUI Section Properties" collapseKey="sectionGUIPropertiesCollapsed">
+      <ToggleProperty label="Ignore Prefixes" bind:value={section.ignorePrefixes} />
       <TextSetProperty label="Layers" action="Add Layer" bind:value={section.layers} />
       <TextSetProperty label="Materials" action="Add Material" bind:value={section.materials} disabled={true} />
     </Properties>

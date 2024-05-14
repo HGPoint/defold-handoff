@@ -32,7 +32,7 @@ function updateScreenSize(screenSize?: Vector4) {
  */
 function updatePaths(paths?: Partial<ProjectPathData>) {
   if (paths) {
-    projectConfig.paths.assetsPath = paths?.assetsPath || config.paths.assetsPath;
+    projectConfig.paths.assetsPath = paths?.assetsPath || paths?.assetsPath == "" ? paths.assetsPath : config.paths.assetsPath;
     projectConfig.paths.atlasAssetsPath = paths?.atlasAssetsPath || config.paths.atlasAssetsPath;
     projectConfig.paths.imageAssetsPath = paths?.imageAssetsPath || config.paths.imageAssetsPath;
     projectConfig.paths.fontAssetsPath = paths?.fontAssetsPath || config.paths.fontAssetsPath;

@@ -6,12 +6,25 @@
 import { projectConfig } from "handoff/project";
 
 /**
+ * Prepends the assets path to the specified resource path.
+ * @param resourcePath - The resource path.
+ * @returns The resource path with the assets path prepended.
+ */
+function prependAssetsPath(resourcePath: string): string {
+  if (!projectConfig.paths.assetsPath) {
+    return resourcePath;
+  }
+  return `/${projectConfig.paths.assetsPath}${resourcePath}`;
+}
+
+/**
  * Generates the image assets path for the specified atlas.
  * @param atlas - The name of the atlas.
  * @returns The image assets path.
  */
 export function generateImageAssetsPath(atlas: string): string {
-  return `/${projectConfig.paths.assetsPath}/${projectConfig.paths.imageAssetsPath}/${atlas}`;
+  const resourcePath = `/${projectConfig.paths.imageAssetsPath}/${atlas}`;
+  return prependAssetsPath(resourcePath);
 }
 
 /**
@@ -21,7 +34,8 @@ export function generateImageAssetsPath(atlas: string): string {
  */
 export function generateAtlasPath(atlas: string): string {
   const fileName = generateAtlasFileName(atlas);
-  return `/${projectConfig.paths.assetsPath}/${projectConfig.paths.atlasAssetsPath}/${fileName}`;
+  const resourcePath = `/${projectConfig.paths.atlasAssetsPath}/${fileName}`;
+  return prependAssetsPath(resourcePath);
 }
 
 /**
@@ -31,7 +45,8 @@ export function generateAtlasPath(atlas: string): string {
  */
 export function generateFontPath(font: FontData): string {
   const fileName = generateFontFileName(font.name);
-  return `/${projectConfig.paths.assetsPath}/${projectConfig.paths.fontAssetsPath}/${fileName}`;
+  const resourcePath = `/${projectConfig.paths.fontAssetsPath}/${fileName}`;
+  return prependAssetsPath(resourcePath);
 }
 
 /**

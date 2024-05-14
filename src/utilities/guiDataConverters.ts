@@ -18,11 +18,12 @@ import { generateContextData } from "utilities/context";
  * @param layer - The Figma layer for which to calculate the ID.
  * @param forcedName - A forced name for the ID.
  * @param namePrefix - A prefix to prepend to the ID.
+ * @param ignorePrefixes - Indicates whether to ignore prefixes.
  * @returns The generated ID for the layer.
  */
-function resolveId(layer: ExportableLayer, forcedName?: string, namePrefix?: string) {
+function resolveId(layer: ExportableLayer, ignorePrefixes: boolean, forcedName?: string, namePrefix?: string) {
   const name = forcedName || layer.name;
-  if (namePrefix) {
+  if (!ignorePrefixes && namePrefix) {
     return `${namePrefix}${name}`;
   }
   return name;
@@ -633,7 +634,7 @@ export async function convertBoxGUINodeData(layer: BoxLayer, options: GUINodeDat
   const context = generateContextData(layer);
   const defaults = injectGUINodeDefaults();
   const data = getPluginData(layer, "defoldGUINode");
-  const id = resolveId(layer, forcedName, namePrefix)
+  const id = resolveId(layer, context.ignorePrefixes, forcedName, namePrefix)
   const slice9 = resolveSlice9(layer, data);
   const type = resolveType(layer, data, atRoot);
   const guiLayer = resolveLayer(context, data);
@@ -670,7 +671,7 @@ export function convertTextGUINodeData(layer: TextLayer, options: GUINodeDataExp
   const context = generateContextData(layer);
   const defaults = injectGUINodeDefaults();
   const data = getPluginData(layer, "defoldGUINode");
-  const id = resolveId(layer, forcedName, namePrefix)
+  const id = resolveId(layer, context.ignorePrefixes, forcedName, namePrefix)
   const type = resolveType(layer, data);
   const guiLayer = resolveLayer(context, data);
   const pivot = resolveTextPivot(layer);

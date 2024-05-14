@@ -6,7 +6,7 @@
 import { getPluginData, hasVariantPropertyChanged, isFigmaComponentInstance } from "utilities/figma";
 import { isGUINodeSelected, reducePluginSelection, convertPluginUISelection, reduceAtlases, reduceGUINodes } from "utilities/selection";  
 import { isSlice9Layer, tryRefreshSlice9Sprite  } from "utilities/slice9";
-import { initializeProject, updateProject } from "handoff/project";
+import { initializeProject, projectConfig, updateProject } from "handoff/project";
 import { updateGUINode, tryRestoreSlice9Node, copyGUINodes, exportGUINodes, removeGUINodes, fixTextNode, fixGUINodes, matchGUINodes, copyGUINodeScheme, tryExtractImage } from "handoff/gui";
 import { createAtlas, addSprites, fixAtlases, sortAtlases, fitAtlases, exportAtlases, destroyAtlases, tryRestoreAtlases } from "handoff/atlas";
 import { updateSection, removeSections } from "handoff/section";
@@ -157,7 +157,7 @@ function onExportAtlases() {
 
 function onAtlasesExported(atlases: SerializedAtlasData[]) {
   const bundle = { atlases };
-  postMessageToPluginUI("atlasesExported", { bundle });
+  postMessageToPluginUI("atlasesExported", { bundle, project: projectConfig });
   figma.notify("Atlases exported");
 }
 
@@ -175,7 +175,7 @@ function onExportBundle() {
 }
 
 function onBundleExported(bundle: BundleData) {
-  postMessageToPluginUI("bundleExported", { bundle });
+  postMessageToPluginUI("bundleExported", { bundle, project: projectConfig });
   figma.notify("Bundle exported");
 }
 

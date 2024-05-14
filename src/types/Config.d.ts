@@ -57,6 +57,7 @@ declare module "config/config.json" {
       jumbo: string,
       layers: ProjectLayerData[],
       materials: ProjectMaterialData[]
+      ignorePrefixes: boolean
     }
     fontFamilies: ProjectFontData[],
     fontSize: number,

@@ -79,13 +79,14 @@ function generateGUINodesFileName(gui: SerializedGUIData[]) {
 /**
  * Exports multiple GUI components as a single zip file.
  * @param bundle - The bundle data containing GUI components.
+ * @param project - The project config data.
  */
-export async function exportComponents({ bundle }: PluginMessagePayload) {
+export async function exportComponents({ bundle, project }: PluginMessagePayload) {
   if (isBundleData(bundle)) {
     const { gui } = bundle;
-    if (isSerializedGUIData(gui)) {
+    if (project && isSerializedGUIData(gui)) {
       const fileName = generateGUINodesFileName(gui);
-      const blob = await archiveBundle(bundle);
+      const blob = await archiveBundle(bundle, project);
       download(blob, fileName);
     }
   }
@@ -112,14 +113,15 @@ export async function exportGUI(data: PluginMessagePayload) {
 /**
  * Exports resources contained in the bundle data as a single zip file.
  * @param bundle - The bundle data containing resources.
+ * @param project - The project config data.
  */
-export async function exportResources({ bundle }: PluginMessagePayload) {
+export async function exportResources({ bundle, project }: PluginMessagePayload) {
   if (isBundleData(bundle)) {
     const { gui } = bundle;
-    if (isSerializedGUIData(gui)) {
+    if (project && isSerializedGUIData(gui)) {
       const [{ name: bundleName }] = gui;
       const fileName = `${bundleName}.resources.zip`;
-      const blob = await archiveBundle(bundle);
+      const blob = await archiveBundle(bundle, project);
       download(blob, fileName);
     }
   }
@@ -139,13 +141,14 @@ function generateAtlasesFileName(atlases: AtlasData[] | SerializedAtlasData[]) {
 /**
  * Exports atlases contained in the bundle data as a single zip file.
  * @param bundle - The bundle data containing atlases.
+ * @param project - The project config data.
  */
-export async function exportAtlases({ bundle }: PluginMessagePayload) {
+export async function exportAtlases({ bundle, project }: PluginMessagePayload) {
   if (isBundleData(bundle)) {
     const { atlases } = bundle;
-    if (isSerializedAtlasData(atlases)) {
+    if (project && isSerializedAtlasData(atlases)) {
       const fileName = generateAtlasesFileName(atlases);
-      const blob = await archiveBundle(bundle);
+      const blob = await archiveBundle(bundle, project);
       download(blob, fileName);
     }
   }

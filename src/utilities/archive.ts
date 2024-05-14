@@ -2,8 +2,8 @@
  * Utility module for handling archives. It utilizes JSZip library for creating zip archives.
  */
 
+import config from "config/config.json";
 import JSZip from "jszip";
-import { projectConfig } from "handoff/project";
 import { generateAtlasFileName, generateGUIFileName, generateSpriteFileName } from "utilities/path";
 
 /**
@@ -35,9 +35,9 @@ function archiveAtlas({ data, name, images }: SerializedAtlasData, atlasesFolder
  * @param atlases - The array of serialized atlases to be archived.
  * @param assetsFolder - The folder where assets are stored within the zip archive.
  */
-function archiveAtlases(atlases: SerializedAtlasData[], assetsFolder: JSZip) {
-  const imagesFolder = assetsFolder.folder(projectConfig.paths.imageAssetsPath) || assetsFolder;
-  const atlasesFolder = assetsFolder.folder(projectConfig.paths.atlasAssetsPath) || assetsFolder;
+function archiveAtlases(atlases: SerializedAtlasData[], assetsFolder: JSZip, paths: ProjectPathData) {
+  const imagesFolder = assetsFolder.folder(paths.imageAssetsPath) || assetsFolder;
+  const atlasesFolder = assetsFolder.folder(paths.atlasAssetsPath) || assetsFolder;
   atlases.forEach((atlas) => { archiveAtlas(atlas, atlasesFolder, imagesFolder); })
 }
 
@@ -65,14 +65,18 @@ function archiveGUINodes(guiNodes: SerializedGUIData[], assetsFolder: JSZip) {
  * @param bundle - The bundle data to be archived.
  * @returns A Blob containing the zip archive.
  */
-export function archiveBundle({ gui, atlases }: BundleData) {
+export function archiveBundle({ gui, atlases }: BundleData, projectConfig: Partial<ProjectData>) {
   const zip = new JSZip();
   if (gui) {
     archiveGUINodes(gui, zip);
   }
   if (atlases) {
-    const folder = zip.folder(projectConfig.paths.assetsPath) || zip;
-    archiveAtlases(atlases, folder);
+    const paths = {
+      ...config.paths,
+      ...projectConfig.paths,
+    }
+    const folder = zip.folder(paths.assetsPath) || zip;
+    archiveAtlases(atlases, folder, paths);
   }
   return zip.generateAsync({ type: "blob" })
 }

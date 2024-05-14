@@ -103,7 +103,8 @@
         "name": "None"
       }
     ],
-    "materials": []
+    "materials": [],
+    "ignorePrefixes": false
   },
   "fontFamilies": [],
   "fontSize": 38,
