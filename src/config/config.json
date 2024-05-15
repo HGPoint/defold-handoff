@@ -59,7 +59,7 @@
     "slice9": { "x": 0, "y": 0, "z": 0, "w": 0 },
     "layer": "DEFAULT",
     "material": "",
-    "inherit_alpha": false,
+    "inherit_alpha": true,
     "xanchor": "XANCHOR_NONE",
     "yanchor": "YANCHOR_NONE",
     "pivot": "PIVOT_CENTER",
@@ -76,6 +76,7 @@
     "screen": false,
     "skip": false,
     "cloneable": false,
+    "path": "",
     "template": false,
     "template_path": "common/view",
     "template_name": "",
@@ -106,8 +107,8 @@
     "materials": [],
     "ignorePrefixes": false
   },
-  "fontFamilies": [],
-  "fontSize": 38,
+  "defaultFontSize": 38,
+  "defaultFontFamilies": [],
   "fontStrokeRatio": 0.04,
   "sizeModes": {
     "Parsed": "PARSED",

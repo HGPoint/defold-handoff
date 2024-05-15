@@ -57,6 +57,7 @@ type PluginGUINodeData = {
   screen: boolean,
   skip: boolean,
   cloneable: boolean,
+  path: string,
   template: boolean,
   template_path: string,
   template_name: string,

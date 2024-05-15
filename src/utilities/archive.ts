@@ -4,7 +4,7 @@
 
 import config from "config/config.json";
 import JSZip from "jszip";
-import { generateAtlasFileName, generateGUIFileName, generateSpriteFileName, generateTemplatePath } from "utilities/path";
+import { generateAtlasFileName, generateGUIPath, generateSpriteFileName, generateTemplatePath } from "utilities/path";
 
 /**
  * Archives an individual atlas image into the provided images folder within the zip archive.
@@ -46,8 +46,8 @@ function archiveAtlases(atlases: SerializedAtlasData[], assetsFolder: JSZip, pat
  * @param guiNodeData - The serialized GUI node to be archived.
  * @param assetsFolder - The folder where assets are stored within the zip archive.
  */
-function archiveGUINode({ name, data, template, templateName, templatePath }: SerializedGUIData, assetsFolder: JSZip) {
-  const guiFilePath = template && templateName && templatePath ? generateTemplatePath(templatePath, templateName) : generateGUIFileName(name);
+function archiveGUINode({ name, data, template, templateName, templatePath, filePath }: SerializedGUIData, assetsFolder: JSZip) {
+  const guiFilePath = template && templateName && templatePath ? generateTemplatePath(templatePath, templateName) : generateGUIPath(name, filePath);
   assetsFolder.file(guiFilePath, data);
 }
 

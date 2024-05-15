@@ -245,14 +245,14 @@ export function reduceAtlases(selection: SelectionData): ComponentSetNode[] {
  * @param guiNode - The GUI node to search within.
  * @returns The list of template nodes found.
  */
-export function findTemplateNodes(guiNode: ExportableLayer): ExportableLayer[] {
-  const templateNodes: ExportableLayer[] = [];
+export function findTemplateNodes(guiNode: ExportableLayer): GUINodeExport[] {
+  const templateNodes: GUINodeExport[] = [];
   if (isFigmaBox(guiNode) && hasChildren(guiNode)) {
     const { children } = guiNode;
     for (const child of children) {
       if (isExportable(child)) {
         if (isTemplateGUINode(child)) {
-          templateNodes.push(child);
+          templateNodes.push({ layer: child, asTemplate: true });
         } else {
           const childTemplateNodes = findTemplateNodes(child);
           templateNodes.push(...childTemplateNodes);
@@ -268,10 +268,10 @@ export function findTemplateNodes(guiNode: ExportableLayer): ExportableLayer[] {
  * @param selection - The selection data.
  * @returns The list of GUI nodes.
  */
-export function reduceGUINodes(selection: SelectionData): ExportableLayer[] {
+export function reduceGUINodes(selection: SelectionData): GUINodeExport[] {
   const nodes = selection.gui.reduce((nodes, guiNode) => {
     const templateNodes = findTemplateNodes(guiNode);
     return [ ...nodes, ...templateNodes ]
-  }, [ ...selection.gui ]);
+  }, selection.gui.map(guiNode => ({ layer: guiNode, asTemplate: false })));
   return nodes;
 }

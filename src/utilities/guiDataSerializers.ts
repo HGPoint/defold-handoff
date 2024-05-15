@@ -15,6 +15,7 @@ const EXCLUDED_PROPERTY_KEYS = [
   "screen",
   "skip",
   "cloneable",
+  "path",
   "template",
   "template_path",
   "template_name",
@@ -117,25 +118,40 @@ function layerDataSerializer(data: string, layer: string): string {
 }
 
 /**
+ * Serializes template data.
+ * @param guiData - GUI data.
+ * @param asTemplate - Whether the GUI node should be serialized as a template.
+ * @returns Serialized template data.
+ */
+function serializeTemplateData(guiData: GUIData, asTemplate: boolean) {
+  if (asTemplate) {
+    return {
+      template: true,
+      templateName: guiData.nodes[0].template_name,
+      templatePath: guiData.nodes[0].template_path,
+    }
+  }
+  return {};
+}
+
+/**
  * Serializes GUI node data.
  * @param guiData - GUI node data to be serialized.
  * @returns Serialized GUI node data.
- * TODO: Find a more reliable way to detect template nodes.
  */
 export function serializeGUIData(guiData: GUIData): SerializedGUIData {
-  const { name } = guiData;
+  const { name, asTemplate, filePath } = guiData;
   const gui = Object.entries(guiData.gui).reduce(propertySerializer, "");
   const nodes = guiData.nodes.reduce(guiNodeSerializer, "");
   const textures = Object.entries(guiData.textures).reduce(textureDataSerializer, "")
   const fonts = Object.entries(guiData.fonts).reduce(fontsDataSerializer, "");
   const layers = guiData.layers.reduce(layerDataSerializer, "");
   const data = `${gui}${textures}${fonts}${nodes}${layers}`;
-  const template = guiData.nodes[0].template && guiData.nodes.filter(node => !node.parent).length === 1;
-  const templateData = template ? { templateName: guiData.nodes[0].template_name, templatePath: guiData.nodes[0].template_path } : {};
+  const templateData = serializeTemplateData(guiData, asTemplate);
   return {
     name,
     data,
-    template,
+    filePath,
     ...templateData
   };
 }

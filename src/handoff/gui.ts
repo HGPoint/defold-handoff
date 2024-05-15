@@ -48,7 +48,7 @@ export function updateGUINode(layer: SceneNode, data: PluginGUINodeData) {
  * @param layers - The layers to serialize.
  * @returns An array of serialized GUI nodes data.
  */
-export async function copyGUINodes(layers: ExportableLayer[]): Promise<SerializedGUIData[]> {
+export async function copyGUINodes(layers: GUINodeExport[]): Promise<SerializedGUIData[]> {
   const guiNodesData = await generateGUIDataSet(layers);
   const serializedGUINodesData = serializeGUIDataSet(guiNodesData);
   return serializedGUINodesData;
@@ -59,7 +59,7 @@ export async function copyGUINodes(layers: ExportableLayer[]): Promise<Serialize
  * @param layer - Figma layer to extract GUI node scheme from.
  * @returns Boilerplate code of the GUI node scheme.
  */
-export async function copyGUINodeScheme(layer: ExportableLayer): Promise<string> {
+export async function copyGUINodeScheme(layer: GUINodeExport): Promise<string> {
   const guiNodesData = await generateGUIData(layer);
   const scheme = extractScheme(guiNodesData.nodes);
   return scheme;
@@ -70,7 +70,7 @@ export async function copyGUINodeScheme(layer: ExportableLayer): Promise<string>
  * @param layers - The layers to export GUI nodes data from.
  * @returns An array of serialized GUI nodes data.
  */
-export async function exportGUINodes(layers: ExportableLayer[]): Promise<SerializedGUIData[]> {
+export async function exportGUINodes(layers: GUINodeExport[]): Promise<SerializedGUIData[]> {
   const guiNodesData = await generateGUIDataSet(layers);
   const serializedGUINodesData = serializeGUIDataSet(guiNodesData);
   return serializedGUINodesData;

@@ -42,12 +42,13 @@ function calculateColorValue(paint: SolidPaint) {
 /**
  * Resolves type for a given layer based on its type and plugin data.
  * @param layer - The Figma layer to calculate the type for.
+ * @param options - The GUI node data export options.
  * @param data - The plugin data associated with the layer.
  * @param atRoot - Indicates whether the layer is at the root level.
  * @returns The resolved type for the layer.
  */
-function resolveType(layer: ExportableLayer, data?: PluginGUINodeData | null): GUINodeType {
-  if (data?.template) {
+function resolveType(layer: ExportableLayer, options: GUINodeDataExportOptions, data?: PluginGUINodeData | null, atRoot?: boolean): GUINodeType {
+  if (data?.template && (!atRoot || !options.asTemplate)) {
     return "TYPE_TEMPLATE";
   }
   return isFigmaText(layer) ? "TYPE_TEXT" : "TYPE_BOX";
@@ -91,9 +92,9 @@ function convertChildPosition(layer: ExportableLayer, pivot: Pivot, parentPivot:
  * @param data - GUI node data.
  * @returns The converted position vector of the layer.
  */
-function convertPosition(layer: ExportableLayer, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4, parentShift: Vector4, atRoot: boolean, data?: PluginGUINodeData | null) {
+function convertPosition(layer: ExportableLayer, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4, parentShift: Vector4, atRoot: boolean, asTemplate: boolean, data?: PluginGUINodeData | null) {
   if (atRoot) {
-    return calculateRootPosition(layer, pivot, parentPivot, size, parentSize, parentShift, data);
+    return calculateRootPosition(layer, pivot, parentPivot, size, parentSize, parentShift, asTemplate, data);
   }
   return convertChildPosition(layer, pivot, parentPivot, size, parentSize, parentShift);
 }
@@ -138,7 +139,7 @@ function calculateMixedTextScale() {
  * @returns The calculated text scale vector.
  */
 function calculateTextScale(fontSize: number) {
-  const scale = fontSize / config.fontSize;
+  const scale = fontSize / projectConfig.fontSize;
   return vector4(scale, scale, scale, 1);
 }
 
@@ -221,9 +222,9 @@ function resolveTextSizeMode(data?: PluginGUINodeData | null) {
  * @param data - GUI node data.
  * @returns The converted base transformations of the layer.
  */
-function convertBaseTransformations(layer: ExportableLayer, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4, parentShift: Vector4, atRoot: boolean, data?: PluginGUINodeData | null) {
+function convertBaseTransformations(layer: ExportableLayer, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4, parentShift: Vector4, atRoot: boolean, asTemplate: boolean, data?: PluginGUINodeData | null) {
   const figmaPosition = convertFigmaPosition(layer);
-  const position = convertPosition(layer, pivot, parentPivot, size, parentSize, parentShift, atRoot, data);
+  const position = convertPosition(layer, pivot, parentPivot, size, parentSize, parentShift, atRoot, asTemplate, data);
   const rotation = convertRotation(layer);
   return {
     position,
@@ -244,9 +245,9 @@ function convertBaseTransformations(layer: ExportableLayer, pivot: Pivot, parent
  * @param data - GUI node data.
  * @returns The converted transformations of the Figma layer.
  */
-function convertBoxTransformations(layer: BoxLayer, pivot: Pivot, parentPivot: Pivot, parentSize: Vector4, parentShift: Vector4, atRoot: boolean, data?: PluginGUINodeData | null) {
+function convertBoxTransformations(layer: BoxLayer, pivot: Pivot, parentPivot: Pivot, parentSize: Vector4, parentShift: Vector4, atRoot: boolean, asTemplate: boolean, data?: PluginGUINodeData | null) {
   const size = convertBoxSize(layer);
-  const baseTransformations = convertBaseTransformations(layer, pivot, parentPivot, size, parentSize, parentShift, atRoot, data);
+  const baseTransformations = convertBaseTransformations(layer, pivot, parentPivot, size, parentSize, parentShift, atRoot, asTemplate, data);
   const scale = convertBoxScale();
   return {
     ...baseTransformations,
@@ -266,11 +267,11 @@ function convertBoxTransformations(layer: BoxLayer, pivot: Pivot, parentPivot: P
  * @param data - GUI node data.
  * @returns The converted transformations of the text layer.
  */
-function convertTextTransformations(layer: TextLayer, pivot: Pivot, parentPivot: Pivot, parentSize: Vector4, parentShift: Vector4, atRoot: boolean, data?: PluginGUINodeData | null) {
+function convertTextTransformations(layer: TextLayer, pivot: Pivot, parentPivot: Pivot, parentSize: Vector4, parentShift: Vector4, atRoot: boolean, asTemplate: boolean, data?: PluginGUINodeData | null) {
   const scale = convertTextScale(layer);
   const size = convertTextSize(layer, scale);
   const textBoxSize = convertBoxSize(layer);
-  const baseTransformations = convertBaseTransformations(layer, pivot, parentPivot, textBoxSize, parentSize, parentShift, atRoot, data);
+  const baseTransformations = convertBaseTransformations(layer, pivot, parentPivot, textBoxSize, parentSize, parentShift, atRoot, asTemplate, data);
   return {
     ...baseTransformations,
     size,
@@ -594,6 +595,7 @@ function resolveSpecialProperties(layer: ExportableLayer, id: string, data?: Plu
     screen: !!data?.screen,
     skip: !!data?.skip,
     cloneable: !!data?.cloneable,
+    path: data?.path || config.guiNodeDefaultSpecialValues.path,
     template: !!data?.template,
     template_path: data?.template_path || config.guiNodeDefaultSpecialValues.template_path,
     template_name: data?.template_name || id,
@@ -630,18 +632,18 @@ function resolveLayer(context: PluginGUIContextData, data?: PluginGUINodeData | 
  * @returns Converted GUI node data.
  */
 export async function convertBoxGUINodeData(layer: BoxLayer, options: GUINodeDataExportOptions): Promise<GUINodeData> {
-  const { namePrefix, forcedName, parentId, parentPivot, parentSize, parentShift, atRoot } = options;
+  const { namePrefix, forcedName, parentId, parentPivot, parentSize, parentShift, atRoot, asTemplate } = options;
   const context = generateContextData(layer);
   const defaults = injectGUINodeDefaults();
   const data = getPluginData(layer, "defoldGUINode");
   const id = resolveId(layer, context.ignorePrefixes, forcedName, namePrefix)
   const slice9 = resolveSlice9(layer, data);
-  const type = resolveType(layer, data);
+  const type = resolveType(layer, options, data, atRoot);
   const guiLayer = resolveLayer(context, data);
   const pivot = resolveBoxPivot(data);
   const visuals = await convertBoxVisuals(layer, data);
   const sizeMode = await resolveBoxSizeMode(layer, visuals.texture, data);
-  const transformations = convertBoxTransformations(layer, pivot, parentPivot, parentSize, parentShift, atRoot, data);
+  const transformations = convertBoxTransformations(layer, pivot, parentPivot, parentSize, parentShift, atRoot, asTemplate, data);
   const parent = convertParent(parentId, data);
   const specialProperties = resolveSpecialProperties(layer, id, data);
   return {
@@ -667,19 +669,19 @@ export async function convertBoxGUINodeData(layer: BoxLayer, options: GUINodeDat
  * @returns Converted GUI node data.
  */
 export function convertTextGUINodeData(layer: TextLayer, options: GUINodeDataExportOptions): GUINodeData {
-  const { namePrefix, forcedName, parentId, parentPivot, parentSize, parentShift, atRoot } = options;
+  const { namePrefix, forcedName, parentId, parentPivot, parentSize, parentShift, atRoot, asTemplate } = options;
   const context = generateContextData(layer);
   const defaults = injectGUINodeDefaults();
   const data = getPluginData(layer, "defoldGUINode");
   const id = resolveId(layer, context.ignorePrefixes, forcedName, namePrefix)
-  const type = resolveType(layer, data);
+  const type = resolveType(layer, options, data, atRoot);
   const guiLayer = resolveLayer(context, data);
   const pivot = resolveTextPivot(layer);
   const visuals = convertTextVisuals(layer, data);
   const sizeMode = resolveTextSizeMode(data);
-  const transformations = convertTextTransformations(layer, pivot, parentPivot, parentSize, parentShift, atRoot, data);
+  const transformations = convertTextTransformations(layer, pivot, parentPivot, parentSize, parentShift, atRoot, asTemplate, data);
   const parent = convertParent(parentId);
-  const text = layer.characters;
+  const text = layer.characters.trim();
   const textParameters = resolveTextParameters(layer);
   const specialProperties = resolveSpecialProperties(layer, id, data);
   return {

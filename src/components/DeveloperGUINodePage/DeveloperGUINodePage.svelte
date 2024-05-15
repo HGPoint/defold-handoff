@@ -78,6 +78,9 @@
       <ToggleProperty label="Skip" bind:value={guiNode.skip} disabled={guiNode.exclude} />
       <ToggleProperty label="Extract" bind:value={guiNode.cloneable} disabled={guiNode.exclude} />
       <ToggleProperty label="Template" bind:value={guiNode.template} disabled={guiNode.exclude} />
+      {#if !guiNode.template}
+        <TextProperty label="Path" bind:value={guiNode.path} />
+      {/if}
       {#if guiNode.template}
         <TextProperty label="Template Name" bind:value={guiNode.template_name} />
         <TextProperty label="Template Path" bind:value={guiNode.template_path} />

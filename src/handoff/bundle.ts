@@ -51,7 +51,7 @@ async function findAtlases(atlasIds: string[]): Promise<ComponentSetNode[]> {
  * @param layers - Figma layers representing GUI nodes to export.
  * @returns A BundleData object containing serialized data for the GUI nodes and atlases.
  */
-export async function exportBundle(layers: ExportableLayer[]): Promise<BundleData> {
+export async function exportBundle(layers: GUINodeExport[]): Promise<BundleData> {
   const guiNodesData = await generateGUIDataSet(layers);
   const serializedGUINodesData = serializeGUIDataSet(guiNodesData);
   const atlasIds = guiNodesData.reduce(reduceAtlases, []);

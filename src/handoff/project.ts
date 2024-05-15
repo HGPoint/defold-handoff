@@ -12,7 +12,8 @@ import { getPluginData, setPluginData } from "utilities/figma";
 export const projectConfig: ProjectData = {
   screenSize: { ...config.screenSize },
   paths: { ...config.paths },
-  fontFamilies: [...config.fontFamilies],
+  fontSize: config.defaultFontSize,
+  fontFamilies: [...config.defaultFontFamilies],
 }
 
 /**
@@ -41,12 +42,22 @@ function updatePaths(paths?: Partial<ProjectPathData>) {
 }
 
 /**
+ * Updates the font size configuration of the project.
+ * @param fontSize - The new font size configuration to apply.
+ */
+function updateFontSize(fontSize?: number) {
+  if (fontSize) {
+    projectConfig.fontSize = fontSize;
+  }
+}
+
+/**
  * Updates the font families configuration of the project.
  * @param fontFamilies - The new font families configuration to apply.
  */
 function updateFontFamilies(fontFamilies?: ProjectFontData[]) {
   if (fontFamilies) {
-    projectConfig.fontFamilies = fontFamilies ? [...fontFamilies] : config.fontFamilies;
+    projectConfig.fontFamilies = fontFamilies ? [...fontFamilies] : config.defaultFontFamilies;
   }
 }
 
@@ -57,6 +68,7 @@ function updateFontFamilies(fontFamilies?: ProjectFontData[]) {
 function updateProjectData(data: Partial<ProjectData>) {
   updateScreenSize(data.screenSize);
   updatePaths(data.paths);
+  updateFontSize(data.fontSize);
   updateFontFamilies(data.fontFamilies);
 }
 
@@ -81,6 +93,7 @@ export function updateProject(data: Partial<ProjectData>) {
   const projectData = {
     screenSize: { ...projectConfig.screenSize },
     paths: { ...projectConfig.paths },
+    fontSize: projectConfig.fontSize,
     fontFamilies: [...projectConfig.fontFamilies],
   }
   setPluginData(document, { defoldProject: projectData });

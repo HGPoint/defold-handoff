@@ -47,10 +47,11 @@ async function isSpriteHolderLayer(layer: ExportableLayer): Promise<boolean> {
  * @param layer - The Figma layer at the root.
  * @returns Options for exporting the root GUI node data.
  */
-function generateRootOptions(layer: ExportableLayer): GUINodeDataExportOptions {
+function generateRootOptions(layer: ExportableLayer, asTemplate: boolean): GUINodeDataExportOptions {
   return {
     layer,
     atRoot: true,
+    asTemplate,
     namePrefix: "",
     parentId: "",
     parentPivot: config.guiNodeDefaultValues.pivot,
@@ -139,6 +140,7 @@ async function generateParentOptions(layer: ExportableLayer, shouldSkip: boolean
   return {
     layer,
     atRoot,
+    asTemplate: parentOptions.asTemplate,
     namePrefix,
     forcedName,
     ...parentParameters,
@@ -447,11 +449,13 @@ function collapseGUINodeData(nodes: GUINodeData[], collapsedNodes: GUINodeData[]
  * @param layer - The Figma layer to generate GUI data for.
  * @returns GUI data.
  */
-export async function generateGUIData(layer: ExportableLayer): Promise<GUIData> {
+export async function generateGUIData(nodeExport: GUINodeExport): Promise<GUIData> {
+  const { layer, asTemplate } = nodeExport;
   tryRestoreSlice9Data(layer);
   const { name } = layer;
   const gui = convertGUIData();
-  const rootOptions = generateRootOptions(layer);
+  const rootData = getPluginData(layer, "defoldGUINode");
+  const rootOptions = generateRootOptions(layer, asTemplate);
   const nodes: GUINodeData[] = [];
   await generateGUINodeData(rootOptions, nodes, [] as GUINodeCloneData[]);
   const collapsedNodes: GUINodeData[] = [];
@@ -461,6 +465,7 @@ export async function generateGUIData(layer: ExportableLayer): Promise<GUIData> 
   const fonts = {};
   await generateFontData(layer, fonts);
   const layers = generateLayersData(layer);
+  const filePath = rootData?.path || config.guiNodeDefaultSpecialValues.path;
   return {
     name,
     gui,
@@ -468,10 +473,12 @@ export async function generateGUIData(layer: ExportableLayer): Promise<GUIData> 
     textures,
     fonts,
     layers,
+    filePath,
+    asTemplate
   };
 }
 
-export async function generateGUIDataSet(layers: ExportableLayer[]): Promise<GUIData[]> {
+export async function generateGUIDataSet(layers: GUINodeExport[]): Promise<GUIData[]> {
   const guiNodesDataSets = layers.map(generateGUIData);
   return Promise.all(guiNodesDataSets);
 }

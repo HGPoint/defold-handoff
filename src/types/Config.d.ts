@@ -34,6 +34,7 @@ declare module "config/config.json" {
       screen: boolean,
       skip: boolean,
       cloneable: boolean,
+      path: string,
       template: boolean,
       template_path: string,
       template_name: string,
@@ -59,8 +60,8 @@ declare module "config/config.json" {
       materials: ProjectMaterialData[]
       ignorePrefixes: boolean
     }
-    fontFamilies: ProjectFontData[],
-    fontSize: number,
+    defaultFontSize: number,
+    defaultFontFamilies: ProjectFontData[],
     fontStrokeRatio: number,
     sizeModes: Record<string, SizeMode | "PARSED">,
     blendModes: Record<string, GUINodeBlendMode>,

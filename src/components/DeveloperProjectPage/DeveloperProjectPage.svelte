@@ -4,6 +4,7 @@
   import Page from "components/Page";
   import DimensionsProperty from "components/DimensionsProperty";
   import Properties from "components/Properties";
+  import NumberProperty from "components/NumberProperty";
   import TextProperty from "components/TextProperty";
   import TextSetProperty from "components/TextSetProperty";
 
@@ -46,6 +47,7 @@
       <TextProperty label="Spines Path" bind:value={project.paths.spineAssetsPath} />
     </Properties>
     <Properties title="Project Font Properties">
+      <NumberProperty label="Font Size" bind:value={project.fontSize} />
       <TextSetProperty label="Font Families" action="Add Font" bind:value={project.fontFamilies} />
     </Properties>
   </Page>

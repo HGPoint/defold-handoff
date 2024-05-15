@@ -16,5 +16,5 @@
 </label>
 <NumberInput
   {id}
-  value={value}
+  bind:value={value}
   disabled={disabled} />

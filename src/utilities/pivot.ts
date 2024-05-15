@@ -148,13 +148,13 @@ export function calculatePivotedShift(pivot: Pivot, parentPivot: Pivot, size: Ve
  * @param data - GUI node data.
  * @returns The centered root position of the layer.
  */
-function calculateCenteredRootPosition(layer: ExportableLayer, size: Vector4, parentSize: Vector4, parentShift: Vector4, data?: PluginGUINodeData | null) {
+function calculateCenteredRootPosition(layer: ExportableLayer, size: Vector4, parentSize: Vector4, parentShift: Vector4, asTemplate: boolean, data?: PluginGUINodeData | null) {
   if (data?.screen) {
     if (layer.parent && (isFigmaPage(layer.parent) || isFigmaSection(layer.parent))) {
       const halfScreenWidth = projectConfig.screenSize.x / 2;
       const halfScreenHeight = projectConfig.screenSize.y / 2;
       return vector4(halfScreenWidth, halfScreenHeight, 0, 0);
-    } else {
+    } else if (!asTemplate) {
       const { x, y } = calculateCenteredPosition(layer, size, parentSize);    
       const rootX = x + parentShift.x;
       const rootY = y + projectConfig.screenSize.y - parentShift.y;
@@ -175,10 +175,13 @@ function calculateCenteredRootPosition(layer: ExportableLayer, size: Vector4, pa
  * @param data - GUI node data.
  * @returns The root position of the layer.
  */
-export function calculateRootPosition(layer: ExportableLayer, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4, parentShift: Vector4, data?: PluginGUINodeData | null) {
-  const position = calculateCenteredRootPosition(layer, size, parentSize, parentShift, data);
-  const pivotedPosition = calculatePivotedPosition(position, pivot, parentPivot, size, parentSize);
-  return pivotedPosition;
+export function calculateRootPosition(layer: ExportableLayer, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4, parentShift: Vector4, asTemplate: boolean, data?: PluginGUINodeData | null) {
+  const position = calculateCenteredRootPosition(layer, size, parentSize, parentShift, asTemplate, data);
+  if (!asTemplate) {
+    const pivotedPosition = calculatePivotedPosition(position, pivot, parentPivot, size, parentSize);
+    return pivotedPosition;
+  }
+  return position;
 }
 
 /**

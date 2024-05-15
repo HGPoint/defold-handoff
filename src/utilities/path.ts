@@ -72,6 +72,20 @@ export function generateTemplatePath(templatePath: string, templateName: string)
 }
 
 /**
+ * Generates path to the GUI file with the specified GUI node name if a file path is provided.
+ * @param name - The name of the GUI node.
+ * @param filePath - The file path.
+ * @returns The full path to the GUI file.
+ */
+export function generateGUIPath(name: string, filePath?: string): string {
+  const fileName = generateGUIFileName(name);
+  if (filePath) {
+    return `${filePath}/${fileName}`;
+  }
+  return fileName;
+}
+
+/**
  * Generates the .gui file name with the specified GUI node name.
  * @param guiNodeName - The name of the GUI node.
  * @returns The GUI file name.

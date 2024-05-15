@@ -9,6 +9,7 @@ type ProjectPathData = {
 type ProjectData = {
   screenSize: Vector4,
   paths: ProjectPathData,
+  fontSize: number,
   fontFamilies: ProjectFontData[],
 }
 
@@ -111,6 +112,7 @@ type GUINodeData = {
 
   skip: boolean,
   cloneable: boolean,
+  path: string,
   template: boolean,
   template_path: string,
   template_name: string,
@@ -132,8 +134,14 @@ type SerializableGUINodeDataKey = keyof Omit<GUINodeData, GUINodeNonDefoldProper
 
 type SerializableGUINodeDataValue = GUINodeData[SerializableGUINodeDataKey];
 
+type GUINodeExport = {
+  layer: ExportableLayer,
+  asTemplate: boolean,
+}
+
 type GUINodeDataExportOptions = {
   layer: ExportableLayer,
+  asTemplate: boolean,
   atRoot: boolean,
   namePrefix: string,
   forcedName?: string,
@@ -166,12 +174,15 @@ type GUIData = {
   nodes: GUINodeData[],
   textures: TextureData,
   fonts: FontData,
-  layers: LayerData
+  layers: LayerData,
+  filePath: string,
+  asTemplate: boolean,
 }
 
 type SerializedGUIData = {
   name: string,
   data: string,
+  filePath?: string,
   template?: boolean,
   templateName?: string,
   templatePath?: string,

@@ -58,7 +58,8 @@ function onSelectionChange() {
 }
 
 function onCopyGUINodes() {
-  copyGUINodes(selection.gui)
+  const nodes = selection.gui.map(layer => ({ layer, asTemplate: false }));
+  copyGUINodes(nodes)
     .then(onGUINodesCopied);
 }
 
@@ -69,7 +70,8 @@ function onGUINodesCopied(gui: SerializedGUIData[]) {
 }
 
 function onExportGUINodes() {
-  exportGUINodes(selection.gui)
+  const nodes = reduceGUINodes(selection);
+  exportGUINodes(nodes)
     .then(onGUINodesExported);
 }
 
@@ -86,7 +88,8 @@ function onUpdateGUINode(data: PluginGUINodeData) {
 
 async function onCopyGUINodeScheme() {
   const { gui: [ layer ] } = selection;
-  copyGUINodeScheme(layer)
+  const nodeExport = { layer, asTemplate: false };
+  copyGUINodeScheme(nodeExport)
     .then(onGUINodeSchemeCopied);
   }
   
