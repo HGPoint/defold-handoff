@@ -172,6 +172,9 @@ type GUIData = {
 type SerializedGUIData = {
   name: string,
   data: string,
+  template?: boolean,
+  templateName?: string,
+  templatePath?: string,
 }
 
 type BundleData = {

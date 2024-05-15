@@ -129,9 +129,13 @@ export function serializeGUIData(guiData: GUIData): SerializedGUIData {
   const fonts = Object.entries(guiData.fonts).reduce(fontsDataSerializer, "");
   const layers = guiData.layers.reduce(layerDataSerializer, "");
   const data = `${gui}${textures}${fonts}${nodes}${layers}`;
+  const [{ template, template_name: templateName, template_path: templatePath }] = guiData.nodes;
   return {
     name,
-    data
+    data,
+    template,
+    templateName,
+    templatePath
   };
 }
 
