@@ -46,8 +46,8 @@ function calculateColorValue(paint: SolidPaint) {
  * @param atRoot - Indicates whether the layer is at the root level.
  * @returns The resolved type for the layer.
  */
-function resolveType(layer: ExportableLayer, data?: PluginGUINodeData | null, atRoot?: boolean): GUINodeType {
-  if (data?.template && !atRoot) {
+function resolveType(layer: ExportableLayer, data?: PluginGUINodeData | null): GUINodeType {
+  if (data?.template) {
     return "TYPE_TEMPLATE";
   }
   return isFigmaText(layer) ? "TYPE_TEXT" : "TYPE_BOX";
@@ -636,7 +636,7 @@ export async function convertBoxGUINodeData(layer: BoxLayer, options: GUINodeDat
   const data = getPluginData(layer, "defoldGUINode");
   const id = resolveId(layer, context.ignorePrefixes, forcedName, namePrefix)
   const slice9 = resolveSlice9(layer, data);
-  const type = resolveType(layer, data, atRoot);
+  const type = resolveType(layer, data);
   const guiLayer = resolveLayer(context, data);
   const pivot = resolveBoxPivot(data);
   const visuals = await convertBoxVisuals(layer, data);

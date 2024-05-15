@@ -100,9 +100,11 @@ function generateNamePrefix(shouldSkip: boolean, options: GUINodeDataExportOptio
     }
     return "";
   } else if (isFigmaComponentInstance(options.layer)) {
+    if (options.namePrefix) {
+      return `${options.namePrefix}${options.layer.name}_`;
+    }
     return `${options.layer.name}_`;
-  }
-  if (options.namePrefix) {
+  } if (options.namePrefix) {
     return options.namePrefix;
   }
   return "";
