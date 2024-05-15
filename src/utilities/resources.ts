@@ -119,7 +119,7 @@ export async function exportResources({ bundle, project }: PluginMessagePayload)
   if (isBundleData(bundle)) {
     const { gui } = bundle;
     if (project && isSerializedGUIData(gui)) {
-      const bundleName = gui.length > 1 ? `${gui.length}nodes` : gui[0].name;
+      const bundleName = gui.length === 1 || gui.filter(node => !node.template).length == 1 ? gui[0].name : gui.length;
       const fileName = `${bundleName}.resources.zip`;
       const blob = await archiveBundle(bundle, project);
       download(blob, fileName);

@@ -188,7 +188,7 @@ async function generateGUINodeData(options: GUINodeDataExportOptions, guiNodesDa
       if (isFigmaBox(layer) && !isSlice9ServiceLayer(layer)) {
         let alreadyCloned = false;
         // Convert Figma box layer into GUI node data
-        const guiNodeData = await convertBoxGUINodeData(layer, options);  
+        const guiNodeData = await convertBoxGUINodeData(layer, options);
         // Check if the layer shouldn't be excluded from export
         if (!guiNodeData.exclude) {
           // Check if the layer is cloneable and a Figma component instance

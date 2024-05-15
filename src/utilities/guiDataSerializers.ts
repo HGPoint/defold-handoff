@@ -120,6 +120,7 @@ function layerDataSerializer(data: string, layer: string): string {
  * Serializes GUI node data.
  * @param guiData - GUI node data to be serialized.
  * @returns Serialized GUI node data.
+ * TODO: Find a more reliable way to detect template nodes.
  */
 export function serializeGUIData(guiData: GUIData): SerializedGUIData {
   const { name } = guiData;
@@ -129,13 +130,13 @@ export function serializeGUIData(guiData: GUIData): SerializedGUIData {
   const fonts = Object.entries(guiData.fonts).reduce(fontsDataSerializer, "");
   const layers = guiData.layers.reduce(layerDataSerializer, "");
   const data = `${gui}${textures}${fonts}${nodes}${layers}`;
-  const [{ template, template_name: templateName, template_path: templatePath }] = guiData.nodes;
+  const template = guiData.nodes[0].template && guiData.nodes.filter(node => !node.parent).length === 1;
+  const templateData = template ? { templateName: guiData.nodes[0].template_name, templatePath: guiData.nodes[0].template_path } : {};
   return {
     name,
     data,
     template,
-    templateName,
-    templatePath
+    ...templateData
   };
 }
 
