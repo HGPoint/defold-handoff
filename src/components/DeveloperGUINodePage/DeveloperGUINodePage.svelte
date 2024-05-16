@@ -75,19 +75,27 @@
     <Properties title="Special Properties" collapseKey="guiNodeSpecialPropertiesCollapsed">
       <ToggleProperty label="Don't Export" bind:value={guiNode.exclude} />
       <ToggleProperty label="On Screen" bind:value={guiNode.screen} disabled={guiNode.exclude} />
+      {#if guiNode.export_variants && Object.keys(guiNode.export_variants).length > 0}
+        <fieldset>
+          <legend>Export Complete Property Sets:</legend>
+          {#each Object.keys(guiNode.export_variants) as variant}
+            <ToggleProperty label={variant} bind:value={guiNode.export_variants[variant]} />
+          {/each}
+        </fieldset>
+      {/if}
       <ToggleProperty label="Skip" bind:value={guiNode.skip} disabled={guiNode.exclude} />
       <ToggleProperty label="Extract" bind:value={guiNode.cloneable} disabled={guiNode.exclude} />
       <ToggleProperty label="Template" bind:value={guiNode.template} disabled={guiNode.exclude} />
-      {#if !guiNode.template}
+      {#if !guiNode.template && !guiNode.exclude}
         <TextProperty label="Path" bind:value={guiNode.path} />
       {/if}
-      {#if guiNode.template}
+      {#if guiNode.template && !guiNode.exclude}
         <TextProperty label="Template Name" bind:value={guiNode.template_name} />
         <TextProperty label="Template Path" bind:value={guiNode.template_path} />
       {/if}
-      <ToggleProperty label="Wrapper" bind:value={guiNode.wrapper} disabled={true} />
-      {#if guiNode.wrapper}
-        <SidesProperty label="Wrapper Padding" bind:value={guiNode.wrapper_padding} disabled={true} />
+      <ToggleProperty label="Wrapper" bind:value={guiNode.wrapper} disabled={true || guiNode.exclude} />
+      {#if guiNode.wrapper && !guiNode.exclude}
+        <SidesProperty label="Wrapper Padding" bind:value={guiNode.wrapper_padding} disabled={true || guiNode.exclude} />
       {/if}
     </Properties>
     <Actions title="Tools" collapseKey="guiNodeToolsCollapsed">

@@ -72,6 +72,7 @@ export function inferTextSizeMode(): SizeMode {
  * Infers the layer for the GUI node.
  * @param context - The GUI context data.
  * @param pluginData - The plugin data for the GUI node.
+ * @returns The inferred layer for the GUI node.
  */
 export function inferLayer(context: PluginGUIContextData, pluginData?: PluginGUINodeData | null) {
   if (!pluginData?.layer) {
@@ -79,6 +80,32 @@ export function inferLayer(context: PluginGUIContextData, pluginData?: PluginGUI
   }
   const inferredLayer = context.layers.find((layer) => layer.id === pluginData.layer);
   return inferredLayer ? inferredLayer.id : config.guiNodeDefaultValues.layer;
+}
+
+/**
+ * Infers variants that should be exported in full for the GUI node.
+ * @param layer - The GUI node to infer variants for.
+ * @returns The inferred variants for the GUI node.
+ */
+export function inferVariants(layer: SceneNode) {
+  const variants: Record<string, boolean> = {};
+  if (isFigmaComponentInstance(layer)) {
+    for (const variant of Object.keys(layer.componentProperties)) {
+      const { type } = layer.componentProperties[variant];
+      if (type === "BOOLEAN" || type === "VARIANT") {
+        variants[variant] = false;
+      }
+    }
+    for (const exposedInstance of layer.exposedInstances) {
+      for (const variant of Object.keys(exposedInstance.componentProperties)) {
+        const { type } = exposedInstance.componentProperties[variant];
+        if (type === "BOOLEAN" || type === "VARIANT") {
+          variants[variant] = false;
+        }
+      }
+    }
+  }
+  return variants;
 }
 
 /**
@@ -94,6 +121,7 @@ export function inferTextNode(layer: TextNode) {
   const id = pluginData?.id || layer.name;
   const type = pluginData?.type || "TYPE_TEXT";
   const guiLayer = inferLayer(context, pluginData);
+  const exportVariants = pluginData?.export_variants || inferVariants(layer);
   const data = {
     ...config.guiNodeDefaultValues,
     ...config.guiNodeDefaultSpecialValues,
@@ -104,6 +132,7 @@ export function inferTextNode(layer: TextNode) {
     visible,
     size_mode: sizeMode,
     font,
+    export_variants: exportVariants,
   };
   setPluginData(layer, { defoldGUINode: data });
   inferTextStrokeWeight(layer);
@@ -162,6 +191,7 @@ export async function inferGUINode(layer: BoxLayer) {
   const id = pluginData?.id || layer.name;
   const type = pluginData?.type || "TYPE_TEXT";
   const guiLayer = inferLayer(context, pluginData);
+  const exportVariants = pluginData?.export_variants || inferVariants(layer);
   const data = {
     ...config.guiNodeDefaultValues,
     ...config.guiNodeDefaultSpecialValues,
@@ -171,6 +201,7 @@ export async function inferGUINode(layer: BoxLayer) {
     layer: guiLayer,
     visible,
     size_mode: sizeMode,
+    export_variants: exportVariants,
   };
   setPluginData(layer, { defoldGUINode: data });
 }

@@ -10,7 +10,7 @@ import { isSlice9Layer, findPlaceholderLayer, parseSlice9Data } from "utilities/
 import { isZeroVector, vector4 } from "utilities/math";
 import { convertChildPosition, calculateRootPosition } from "utilities/pivot";
 import { projectConfig } from "handoff/project";
-import { inferBoxSizeMode, inferTextSizeMode, inferBoxVisible, inferTextVisible, inferFont } from "utilities/inference";
+import { inferBoxSizeMode, inferTextSizeMode, inferBoxVisible, inferTextVisible, inferFont, inferVariants } from "utilities/inference";
 import { generateContextData } from "utilities/context";
 
 /**
@@ -584,6 +584,7 @@ function resolveSpecialProperties(layer: ExportableLayer, id: string, data?: Plu
     wrapper_padding: data?.wrapper_padding || vector4(0),
     exclude: !!data?.exclude,
     exportable_layer: layer,
+    export_variants: data?.export_variants || inferVariants(layer),
   };
 }
 
