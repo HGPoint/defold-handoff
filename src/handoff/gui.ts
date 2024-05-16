@@ -11,6 +11,7 @@ import { tryRefreshSlice9Placeholder, isSlice9PlaceholderLayer, findOriginalLaye
 import { tryRefreshScalePlaceholder } from "utilities/scale";
 import { extractScheme } from "utilities/scheme";
 import { inferTextNode, inferGUINodes } from "utilities/inference";
+import { projectConfig } from "handoff/project";
 
 /**
  * Tries to restore slice 9 data for a given Figma layer.
@@ -97,6 +98,19 @@ export function matchGUINodes(layer: ExportableLayer) {
       fitChildren(parent, x, y)
     }
   }
+}
+
+/**
+ * Resizes GUI nodes to the dimensions of the screen.
+ * @param layers - The layers to resize.
+ */
+export function resizeScreenNodes(layers: SceneNode[]) {
+  const { screenSize: { x: screenWidth, y: screenHeight } } = projectConfig;
+  layers.forEach((layer) => {
+    if (isFigmaFrame(layer)) {
+      layer.resizeWithoutConstraints(screenWidth, screenHeight);
+    }
+  });
 }
 
 /**

@@ -138,53 +138,6 @@ export function calculatePivotedShift(pivot: Pivot, parentPivot: Pivot, size: Ve
 }
 
 /**
- * Calculates the centered position of a layer in the root container.
- * @param layer - The layer to calculate the position for.
- * @param pivot - The pivot point of the layer.
- * @param parentPivot - The pivot point of the parent.
- * @param size - The size of the layer.
- * @param parentSize - The size of the parent.
- * @param parentShift - The shift of the parent.
- * @param data - GUI node data.
- * @returns The centered root position of the layer.
- */
-function calculateCenteredRootPosition(layer: ExportableLayer, size: Vector4, parentSize: Vector4, parentShift: Vector4, asTemplate: boolean, data?: PluginGUINodeData | null) {
-  if (data?.screen) {
-    if (layer.parent && (isFigmaPage(layer.parent) || isFigmaSection(layer.parent))) {
-      const halfScreenWidth = projectConfig.screenSize.x / 2;
-      const halfScreenHeight = projectConfig.screenSize.y / 2;
-      return vector4(halfScreenWidth, halfScreenHeight, 0, 0);
-    } else if (!asTemplate) {
-      const { x, y } = calculateCenteredPosition(layer, size, parentSize);    
-      const rootX = x + parentShift.x;
-      const rootY = y + projectConfig.screenSize.y - parentShift.y;
-      return vector4(rootX, rootY, 0, 0);
-    }
-  }
-  return vector4(0);
-}
-
-/**
- * Calculates the position of a layer in the root container.
- * @param layer - The layer to calculate the position for.
- * @param pivot - The pivot point of the layer.
- * @param parentPivot - The pivot point of the parent.
- * @param size - The size of the layer.
- * @param parentSize - The size of the parent.
- * @param parentShift - The shift of the parent.
- * @param data - GUI node data.
- * @returns The root position of the layer.
- */
-export function calculateRootPosition(layer: ExportableLayer, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4, parentShift: Vector4, asTemplate: boolean, data?: PluginGUINodeData | null) {
-  const position = calculateCenteredRootPosition(layer, size, parentSize, parentShift, asTemplate, data);
-  if (!asTemplate) {
-    const pivotedPosition = calculatePivotedPosition(position, pivot, parentPivot, size, parentSize);
-    return pivotedPosition;
-  }
-  return position;
-}
-
-/**
  * Calculates the center of a rectangle rotated around a point.
  * @param x - The x coordinate of top-left corner.
  * @param y - The y coordinate of top-left corner.
@@ -219,6 +172,75 @@ export function calculateCenteredPosition(layer: ExportableLayer, size: Vector4,
   const centeredX = x - (parentSize.x / 2);
   const centeredY = (parentSize.y / 2) - y;
   return vector4(centeredX, centeredY, 0, 1);
+}
+
+/**
+ * Calculates the centered position of a layer in the root container.
+ * @param layer - The layer to calculate the position for.
+ * @param pivot - The pivot point of the layer.
+ * @param parentPivot - The pivot point of the parent.
+ * @param size - The size of the layer.
+ * @param parentSize - The size of the parent.
+ * @param parentShift - The shift of the parent.
+ * @param data - GUI node data.
+ * @returns The centered root position of the layer.
+ */
+function calculateCenteredRootPosition(layer: ExportableLayer, size: Vector4, parentSize: Vector4, parentShift: Vector4, asTemplate: boolean, data?: PluginGUINodeData | null) {
+  if (data?.screen && !asTemplate) {
+    if (layer.parent && (isFigmaPage(layer.parent) || isFigmaSection(layer.parent))) {
+      const halfScreenWidth = projectConfig.screenSize.x / 2;
+      const halfScreenHeight = projectConfig.screenSize.y / 2;
+      return vector4(halfScreenWidth, halfScreenHeight, 0, 0);
+    } else {
+      const { x, y } = calculateCenteredPosition(layer, size, parentSize);    
+      const rootX = x + parentShift.x;
+      const rootY = y + projectConfig.screenSize.y - parentShift.y;
+      return vector4(rootX, rootY, 0, 0);
+    }
+  }
+  return vector4(0);
+}
+
+/**
+ * Calculates the position of a layer in the root container.
+ * @param layer - The layer to calculate the position for.
+ * @param pivot - The pivot point of the layer.
+ * @param parentPivot - The pivot point of the parent.
+ * @param size - The size of the layer.
+ * @param parentSize - The size of the parent.
+ * @param parentShift - The shift of the parent.
+ * @param data - GUI node data.
+ * @returns The root position of the layer.
+ */
+export function calculateRootPosition(layer: ExportableLayer, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4, parentShift: Vector4, asTemplate: boolean, data?: PluginGUINodeData | null) {
+  const centeredPosition = calculateCenteredRootPosition(layer, size, parentSize, parentShift, asTemplate, data);
+  if (data?.template && !asTemplate) {
+    return centeredPosition;
+  }
+  const pivotedPosition = calculatePivotedPosition(centeredPosition, pivot, parentPivot, size, parentSize);
+  return pivotedPosition;
+}
+
+/**
+ * Converts the position of a child layer relative to its parent.
+ * @param layer - The ExportableLayer to convert position for.
+ * @param pivot - The pivot point of the child layer.
+ * @param parentPivot - The pivot point of the parent layer.
+ * @param size - The size of the child layer.
+ * @param parentSize - The size of the parent layer.
+ * @param parentShift - The shift vector of the parent layer.
+ * @returns The converted position vector of the child layer.
+ */
+export function convertChildPosition(layer: ExportableLayer, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4, parentShift: Vector4, asTemplate: boolean, data?: PluginGUINodeData | null) {
+  const centeredPosition = calculateCenteredPosition(layer, size, parentSize);
+  if (data?.template) {
+    return centeredPosition;
+  }
+  const pivotedPosition = calculatePivotedPosition(centeredPosition, pivot, parentPivot, size, parentSize);
+  const shiftedX = pivotedPosition.x + parentShift.x;
+  const shiftedY = pivotedPosition.y - parentShift.y;
+  const shiftedPosition = vector4(shiftedX, shiftedY, 0, 1);
+  return shiftedPosition;
 }
 
 /**

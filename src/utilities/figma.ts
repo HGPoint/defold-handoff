@@ -3,6 +3,8 @@
  * @packageDocumentation
  */
 
+import { nonWhiteRGB } from "utilities/color"
+
 /**
  * Checks if a layer is a Figma scene node.
  * @param layer - The Figma layer to check.
@@ -176,7 +178,16 @@ export function hasChildren(layer: BoxLayer): boolean {
  * @returns True if the fills contain solid colors, otherwise false.
  */
 export function hasSolidFills(fills: readonly Paint[] | typeof figma.mixed) {
-  return typeof fills === "object" && !!fills.length && fills.some(fill => fill.type === "SOLID");
+  return typeof fills === "object" && !!fills.length && fills.some(fill => fill.visible && fill.type === "SOLID");
+}
+
+/**
+ * Checks if fills contain solid non-default colors.
+ * @param fills - The fills to check.
+ * @returns True if the fills contain solid non-default colors, otherwise false.
+ */
+export function hasSolidVisibleFills(fills: readonly Paint[] | typeof figma.mixed) {
+  return typeof fills === "object" && !!fills.length && fills.some(fill => fill.visible && fill.type === "SOLID" && nonWhiteRGB(fill.color));
 }
 
 /**

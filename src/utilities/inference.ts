@@ -7,7 +7,7 @@
 import config from "config/config.json";
 import { projectConfig } from "handoff/project";
 import { findTexture } from "utilities/gui";
-import { getPluginData, setPluginData, isFigmaBox, isFigmaText, hasFont, findMainComponent, isFigmaComponentInstance, isFigmaSceneNode, isAtlas } from "utilities/figma";
+import { getPluginData, setPluginData, isFigmaBox, isFigmaText, hasFont, findMainComponent, isFigmaComponentInstance, isFigmaSceneNode, isAtlas, hasSolidVisibleFills } from "utilities/figma";
 import { isSlice9Layer } from "utilities/slice9";
 import { tryFindFont } from "utilities/font";
 import { generateContextData } from "utilities/context";
@@ -116,7 +116,11 @@ export function inferTextNode(layer: TextNode) {
  * @returns True if the box layer is visible, otherwise false.
  */
 export function inferBoxVisible(layer: BoxLayer, texture?: string): boolean {
-  return !!texture;
+  if (!texture) {
+    const fills = layer.fills;
+    return hasSolidVisibleFills(fills);
+  }
+  return true;
 }
 
 /**

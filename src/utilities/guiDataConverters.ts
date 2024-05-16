@@ -8,7 +8,7 @@ import { findTexture } from "utilities/gui";
 import { isFigmaText, hasSolidFills, hasSolidStrokes, isSolidPaint, isShadowEffect, getPluginData } from "utilities/figma";
 import { isSlice9Layer, findPlaceholderLayer, parseSlice9Data } from "utilities/slice9";
 import { isZeroVector, vector4 } from "utilities/math";
-import { calculatePivotedPosition, calculateCenteredPosition, calculateRootPosition } from "utilities/pivot";
+import { convertChildPosition, calculateRootPosition } from "utilities/pivot";
 import { projectConfig } from "handoff/project";
 import { inferBoxSizeMode, inferTextSizeMode, inferBoxVisible, inferTextVisible, inferFont } from "utilities/inference";
 import { generateContextData } from "utilities/context";
@@ -62,25 +62,6 @@ function convertParent(parentId?: string, data?: PluginGUINodeData | null) {
 }
 
 /**
- * Converts the position of a child layer relative to its parent.
- * @param layer - The ExportableLayer to convert position for.
- * @param pivot - The pivot point of the child layer.
- * @param parentPivot - The pivot point of the parent layer.
- * @param size - The size of the child layer.
- * @param parentSize - The size of the parent layer.
- * @param parentShift - The shift vector of the parent layer.
- * @returns The converted position vector of the child layer.
- */
-function convertChildPosition(layer: ExportableLayer, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4, parentShift: Vector4) {
-  const centeredPosition = calculateCenteredPosition(layer, size, parentSize);
-  const pivotedPosition = calculatePivotedPosition(centeredPosition, pivot, parentPivot, size, parentSize);
-  const shiftedX = pivotedPosition.x + parentShift.x;
-  const shiftedY = pivotedPosition.y - parentShift.y;
-  const shiftedPosition = vector4(shiftedX, shiftedY, 0, 1);
-  return shiftedPosition; 
-}
-
-/**
  * Converts the position of a layer relative to its parent or to the root.
  * @param layer - The layer to convert position for.
  * @param pivot - The pivot point of the layer.
@@ -96,7 +77,7 @@ function convertPosition(layer: ExportableLayer, pivot: Pivot, parentPivot: Pivo
   if (atRoot) {
     return calculateRootPosition(layer, pivot, parentPivot, size, parentSize, parentShift, asTemplate, data);
   }
-  return convertChildPosition(layer, pivot, parentPivot, size, parentSize, parentShift);
+  return convertChildPosition(layer, pivot, parentPivot, size, parentSize, parentShift, asTemplate, data);
 }
 
 /**

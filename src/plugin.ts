@@ -7,7 +7,7 @@ import { getPluginData, hasVariantPropertyChanged, isFigmaComponentInstance } fr
 import { isGUINodeSelected, reducePluginSelection, convertPluginUISelection, reduceAtlases, reduceGUINodes } from "utilities/selection";  
 import { isSlice9Layer, tryRefreshSlice9Sprite  } from "utilities/slice9";
 import { initializeProject, projectConfig, updateProject } from "handoff/project";
-import { updateGUINode, tryRestoreSlice9Node, copyGUINodes, exportGUINodes, removeGUINodes, fixTextNode, fixGUINodes, matchGUINodes, copyGUINodeScheme, tryExtractImage } from "handoff/gui";
+import { updateGUINode, tryRestoreSlice9Node, copyGUINodes, exportGUINodes, removeGUINodes, fixTextNode, fixGUINodes, matchGUINodes, resizeScreenNodes, copyGUINodeScheme, tryExtractImage } from "handoff/gui";
 import { createAtlas, addSprites, fixAtlases, sortAtlases, fitAtlases, exportAtlases, destroyAtlases, tryRestoreAtlases } from "handoff/atlas";
 import { updateSection, removeSections } from "handoff/section";
 import { exportBundle } from "handoff/bundle";
@@ -77,7 +77,7 @@ function onExportGUINodes() {
 
 function onGUINodesExported(gui: SerializedGUIData[]) {
   const bundle = { gui };
-  postMessageToPluginUI("guiNodesExported", { bundle })
+  postMessageToPluginUI("guiNodesExported", { bundle, project: projectConfig })
   figma.notify("GUI nodes exported");
 }
 
@@ -113,6 +113,11 @@ function onMatchGUINodes() {
   const { gui: [layer] } = selection;
   matchGUINodes(layer);
   figma.notify("GUI nodes matched");
+}
+
+function onResizeScreenNodes() {
+  resizeScreenNodes(selection.gui);
+  figma.notify("Nodes resized to screen size");
 }
 
 function onCreateAtlas() {
@@ -240,6 +245,8 @@ function processPluginUIMessage(message: PluginMessage) {
     onFixGUINodes();
   } else if (type === "matchGUINodes") {
     onMatchGUINodes();
+  } else if (type === "resizeScreenNodes"){
+    onResizeScreenNodes();
   } else if (type === "updateGUINode" && data?.guiNode) {
     onUpdateGUINode(data.guiNode);
   } else if (type === "copyGUINodeScheme") {

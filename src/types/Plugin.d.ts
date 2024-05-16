@@ -86,6 +86,7 @@ type PluginMessageAction =
   "copyGUINodeScheme" |
   "guiNodeSchemeCopied" |
   "fixGUINodes" |
+  "resizeScreenNodes" |
   "matchGUINodes" |
   "validateGUINodes" |
   "resetGUINodes" |

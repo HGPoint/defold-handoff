@@ -92,11 +92,12 @@
     </Properties>
     <Actions title="Tools" collapseKey="guiNodeToolsCollapsed">
       <ActionButton label="Infer Properties" action="fixGUINodes" />
-      {#if isTextGUINodeType(guiNode.type)}
-        <ActionButton label="Fix Text" action="fixTextNode" />
-      {/if}
       {#if $selectionState.canTryMatch}
         <ActionButton label="Match Parent to GUI Node" action="matchGUINodes" />
+      {/if}
+      <ActionButton label="Resize to Screen" action="resizeScreenNodes" />
+      {#if isTextGUINodeType(guiNode.type)}
+        <ActionButton label="Fix Text" action="fixTextNode" />
       {/if}
       {#if isBoxGUINodeType(guiNode.type)}
         <ActionButton label="Refresh Slice 9" action="restoreSlice9Node" />

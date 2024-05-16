@@ -30,3 +30,12 @@ export function convertRGBAToHex(rgba: Vector4): string {
   const b = Math.round(rgba.z * 255).toString(16).padStart(2, "0");
   return `#${r}${g}${b}`;
 }
+
+/**
+ * Checks if the RGB color vector is not white.
+ * @param rgb - The RGB color vector.
+ * @returns A boolean indicating if the color is not white.
+ */
+export function nonWhiteRGB(rgb: RGB): boolean {
+  return rgb.r !== 1 || rgb.g !== 1 || rgb.b !== 1;
+}

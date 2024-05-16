@@ -70,7 +70,7 @@ export function archiveBundle({ gui, atlases }: BundleData, projectConfig: Parti
   if (gui) {
     archiveGUINodes(gui, zip);
   }
-  if (atlases) {
+  if (atlases && atlases.length > 0) {
     const paths = {
       ...config.paths,
       ...projectConfig.paths,
