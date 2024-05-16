@@ -264,14 +264,23 @@ export function findTemplateNodes(guiNode: ExportableLayer): GUINodeExport[] {
 }
 
 /**
+ * Detects if a root GUI node is a template node
+ * @param nodes - The list of GUI nodes to check.
+ * @returns The list of root nodes.
+ */
+export function detectRootTemplates(nodes: ExportableLayer[]): GUINodeExport[] {
+  return nodes.map(guiNode => ({ layer: guiNode, asTemplate: isTemplateGUINode(guiNode) }));
+}
+
+/**
  * Reduces the selection to a list of GUI nodes. If a GUI node is a template, it will be added to the list of GUI nodes.
  * @param selection - The selection data.
  * @returns The list of GUI nodes.
  */
 export function reduceGUINodes(selection: SelectionData): GUINodeExport[] {
-  const nodes = selection.gui.reduce((nodes, guiNode) => {
+  const guiNodes = selection.gui.reduce((nodes, guiNode) => {
     const templateNodes = findTemplateNodes(guiNode);
     return [ ...nodes, ...templateNodes ]
-  }, selection.gui.map(guiNode => ({ layer: guiNode, asTemplate: false })));
-  return nodes;
+  }, detectRootTemplates(selection.gui));
+  return guiNodes;
 }
