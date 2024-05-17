@@ -6,7 +6,7 @@
 import config from "config/config.json";
 import { resolveAtlasTexture, resolveEmptyTexture } from "utilities/atlas";
 import { getPluginData, findMainComponent, isExportable, isFigmaComponentInstance, isFigmaSceneNode, isAtlas } from "utilities/figma";
-import { inferGUINodeType, inferVariants } from "utilities/inference";
+import { inferGUINodeType } from "utilities/inference";
 
 /**
  * Checks if the given node type is a template type.
@@ -76,7 +76,7 @@ export function getDefoldGUINodePluginData(layer: SceneNode) {
   const pluginData = getPluginData(layer, "defoldGUINode");
   const id = pluginData?.id || layer.name;
   const type = pluginData?.type || inferGUINodeType(layer);
-  const exportVariants = pluginData?.export_variants || inferVariants(layer);
+  const exportVariants = pluginData?.export_variants || "";
   return {
     ...config.guiNodeDefaultValues,
     ...config.guiNodeDefaultSpecialValues,

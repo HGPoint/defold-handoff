@@ -230,23 +230,6 @@ select:hover:disabled {
   gap: 7px;
 }
 
-.properties fieldset {
-  display: grid;
-  box-sizing: border-box;
-  grid-template-columns: 90px auto;
-  grid-column: span 2;
-  gap: 7px;
-  padding: 0 0 7px;
-  margin: 0;
-  border: 0;
-}
-
-.properties legend {
-  padding: 0;
-  margin: 0;
-  grid-column: span 2;
-}
-
 .actions {
   display: grid;
   grid-template-columns: 1fr;

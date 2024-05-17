@@ -10,21 +10,21 @@ import { isSlice9Layer, findPlaceholderLayer, parseSlice9Data } from "utilities/
 import { isZeroVector, vector4 } from "utilities/math";
 import { convertChildPosition, calculateRootPosition } from "utilities/pivot";
 import { projectConfig } from "handoff/project";
-import { inferBoxSizeMode, inferTextSizeMode, inferBoxVisible, inferTextVisible, inferFont, inferVariants } from "utilities/inference";
+import { inferBoxSizeMode, inferTextSizeMode, inferBoxVisible, inferTextVisible, inferFont } from "utilities/inference";
 import { generateContextData } from "utilities/context";
 
 /**
  * Generates the ID for a given layer, optionally with a forced name and name prefix.
- * @param layer - The Figma layer for which to calculate the ID.
+ * @param layer - The Figma layer for which to resolve the ID.
  * @param forcedName - A forced name for the ID.
  * @param namePrefix - A prefix to prepend to the ID.
  * @param ignorePrefixes - Indicates whether to ignore prefixes.
  * @returns The generated ID for the layer.
  */
-function resolveId(layer: ExportableLayer, ignorePrefixes: boolean, forcedName?: string, namePrefix?: string) {
+function resolveId(layer: ExportableLayer, ignorePrefixes: boolean, forcedName?: string, namePrefix?: string, variantPrefix?: string) {
   const name = forcedName || layer.name;
-  if (!ignorePrefixes && namePrefix) {
-    return `${namePrefix}${name}`;
+  if (!ignorePrefixes) {
+    return `${namePrefix || ""}${variantPrefix ? `${variantPrefix.toLowerCase()}_` : ""}${name}`;
   }
   return name;
 }
@@ -41,7 +41,7 @@ function calculateColorValue(paint: SolidPaint) {
 
 /**
  * Resolves type for a given layer based on its type and plugin data.
- * @param layer - The Figma layer to calculate the type for.
+ * @param layer - The Figma layer to resolve the type for.
  * @param options - The GUI node data export options.
  * @param data - The plugin data associated with the layer.
  * @param atRoot - Indicates whether the layer is at the root level.
@@ -167,10 +167,10 @@ function convertTextSize(layer: TextLayer, scale: Vector4) {
 
 /**
  * Resolves the size mode for a Figma layer.
- * @param layer - The Figma layer to calculate size mode for.
+ * @param layer - The Figma layer to resolve size mode for.
  * @param texture - The texture associated with the layer.
  * @param data - GUI node data.
- * @returns The calculated size mode for the Figma layer.
+ * @returns The resolved size mode for the Figma layer.
  */
 async function resolveBoxSizeMode(layer: BoxLayer, texture?: string, data?: PluginGUINodeData | null): Promise<SizeMode> {
   if (data?.size_mode && data.size_mode !== "PARSED") {
@@ -180,9 +180,9 @@ async function resolveBoxSizeMode(layer: BoxLayer, texture?: string, data?: Plug
 }
 
 /**
- * Calculates the size mode for a text layer.
+ * Resolves the size mode for a text layer.
  * @param data - GUI node data.
- * @returns The calculated size mode for the text layer.
+ * @returns The resolved size mode for the text layer.
  */
 function resolveTextSizeMode(data?: PluginGUINodeData | null) {
   if (data?.size_mode && data.size_mode !== "PARSED") {
@@ -275,7 +275,7 @@ function resolveBoxPivot(data?: PluginGUINodeData | null) {
 
 /**
  * Resolve the pivot point for a text layer.
- * @param layer - The text layer to calculate pivot point for.
+ * @param layer - The text layer to resolve pivot point for.
  * @returns The resolved pivot point for the text layer.
  */
 function resolveTextPivot(layer: TextLayer): Pivot {
@@ -313,7 +313,7 @@ function resolveBaseColor() {
  * Resolve the fill color for a layer.
  * @param fills - The array of paint fills applied to the layer.
  * @returns The resolved fill color vector.
- * TODO: Write a separate function for resolving a transparent fill color (use instead of calculateBaseOutline)
+ * TODO: Write a separate function for resolving a transparent fill color (use instead of resolveBaseOutline)
  */
 function resolveFillColor(fills: readonly Paint[] | typeof figma.mixed) {
   if (Array.isArray(fills)) {
@@ -327,7 +327,7 @@ function resolveFillColor(fills: readonly Paint[] | typeof figma.mixed) {
 
 /**
  * Resolve the color for a layer.
- * @param layer - The layer to calculate color for.
+ * @param layer - The layer to resolve color for.
  * @returns The resolved color vector.
  */
 function resolveColor(layer: ExportableLayer) {
@@ -340,7 +340,7 @@ function resolveColor(layer: ExportableLayer) {
 
 /**
  * Resolves the visibility of a Figma layer.
- * @param layer - The Figma layer to calculate visibility for.
+ * @param layer - The Figma layer to resolve visibility for.
  * @param texture - The texture associated with the layer.
  * @param data - GUI node data.
  * @returns The resolved visibility for the Figma layer.
@@ -354,7 +354,7 @@ function resolveBoxVisible(layer: BoxLayer, texture?: string, data?: PluginGUINo
 
 /**
  * Resolves the visibility of a text layer.
- * @param layer - The text layer to calculate visibility for.
+ * @param layer - The text layer to resolve visibility for.
  * @param data - GUI node data.
  * @returns The resolved visibility for the text layer.
  */
@@ -363,6 +363,15 @@ function resolveTextVisible(layer: TextLayer, data?: PluginGUINodeData | null) {
     return data.visible;
   }
   return inferTextVisible();
+}
+
+/**
+ * Resolves the clipping visible property for a layer.
+ * @param layer - The layer to resolve clipping visible for.
+ * @returns The resolved clipping visible property.
+ */
+function resolveClippingVisible(layer: BoxLayer) {
+  return layer.clipsContent;
 }
 
 /**
@@ -375,16 +384,18 @@ async function convertBoxVisuals(layer: BoxLayer, data?: PluginGUINodeData | nul
   const color = resolveColor(layer);
   const texture = await findTexture(layer);
   const visible = resolveBoxVisible(layer, texture, data);
+  const clippingVisible = resolveClippingVisible(layer);
   return {
     visible,
     color,
-    texture
+    texture,
+    clipping_visible: clippingVisible,
   };
 }
 
 /**
  * Resolves the font for a text layer.
- * @param layer - The text layer to calculate font for.
+ * @param layer - The text layer to resolve font for.
  * @param data - PluginGUINodeData object containing additional data.
  * @returns The resolved font for the text layer.
  */
@@ -428,10 +439,10 @@ function resolveOutlineColor(strokes: readonly Paint[]) {
 
 /**
  * Resolves the outline for a text layer.
- * @param layer - The text layer to calculate outline for.
+ * @param layer - The text layer to resolve outline for.
  * @returns The resolved outline.
  */
-function calculateOutline(layer: TextLayer) {
+function resolveOutline(layer: TextLayer) {
   const { strokes } = layer;
   if (hasSolidStrokes(strokes)) {
     return resolveOutlineColor(strokes);
@@ -480,7 +491,7 @@ function convertTextVisuals(layer: TextLayer, data?: PluginGUINodeData | null) {
   const color = resolveColor(layer);
   const visible = resolveTextVisible(layer, data);
   const font = resolveFont(layer, data);
-  const outline = calculateOutline(layer);
+  const outline = resolveOutline(layer);
   const shadow = resolveShadow(layer);
   return {
     visible,
@@ -496,7 +507,7 @@ function convertTextVisuals(layer: TextLayer, data?: PluginGUINodeData | null) {
  * @param layer - The text layer to resolve line break for.
  * @returns True if the text has line breaks, otherwise false.
  */
-function calculateLineBreak(layer: TextLayer) {
+function resolveLineBreak(layer: TextLayer) {
   return layer.textAutoResize === "HEIGHT";
 }
 
@@ -525,12 +536,12 @@ function calculateTextTracking(layer: TextLayer) {
 }
 
 /**
- * Calculates properties related to text layout.
- * @param layer - The text layer to calculate properties for.
- * @returns Calculated text properties of the text layer.
+ * Resolves properties related to text layout.
+ * @param layer - The text layer to resolve properties for.
+ * @returns Resolved text properties of the text layer.
  */
 function resolveTextParameters(layer: TextLayer) {
-  const lineBreak = calculateLineBreak(layer);
+  const lineBreak = resolveLineBreak(layer);
   const textLeading = calculateTextLeading(layer);
   const textTracking = calculateTextTracking(layer);
   return {
@@ -566,7 +577,7 @@ function injectGUINodeDefaults() {
 
 /**
  * Resolves special properties of a layer.
- * @param layer - The layer to calculate special properties for.
+ * @param layer - The layer to resolve special properties for.
  * @param id - The ID of the layer.
  * @param data - GUI node data.
  * @returns Special properties of the layer.
@@ -584,7 +595,7 @@ function resolveSpecialProperties(layer: ExportableLayer, id: string, data?: Plu
     wrapper_padding: data?.wrapper_padding || vector4(0),
     exclude: !!data?.exclude,
     exportable_layer: layer,
-    export_variants: data?.export_variants || inferVariants(layer),
+    export_variants: data?.export_variants || "",
   };
 }
 
@@ -614,11 +625,11 @@ function resolveLayer(context: PluginGUIContextData, data?: PluginGUINodeData | 
  * @returns Converted GUI node data.
  */
 export async function convertBoxGUINodeData(layer: BoxLayer, options: GUINodeDataExportOptions): Promise<GUINodeData> {
-  const { namePrefix, forcedName, parentId, parentPivot, parentSize, parentShift, atRoot, asTemplate } = options;
+  const { namePrefix, variantPrefix, forcedName, parentId, parentPivot, parentSize, parentShift, atRoot, asTemplate } = options;
   const context = generateContextData(layer);
   const defaults = injectGUINodeDefaults();
   const data = getPluginData(layer, "defoldGUINode");
-  const id = resolveId(layer, context.ignorePrefixes, forcedName, namePrefix)
+  const id = resolveId(layer, context.ignorePrefixes, forcedName, namePrefix, variantPrefix)
   const slice9 = resolveSlice9(layer, data);
   const type = resolveType(layer, options, data, atRoot);
   const guiLayer = resolveLayer(context, data);
@@ -651,11 +662,11 @@ export async function convertBoxGUINodeData(layer: BoxLayer, options: GUINodeDat
  * @returns Converted GUI node data.
  */
 export function convertTextGUINodeData(layer: TextLayer, options: GUINodeDataExportOptions): GUINodeData {
-  const { namePrefix, forcedName, parentId, parentPivot, parentSize, parentShift, atRoot, asTemplate } = options;
+  const { namePrefix, variantPrefix, forcedName, parentId, parentPivot, parentSize, parentShift, atRoot, asTemplate } = options;
   const context = generateContextData(layer);
   const defaults = injectGUINodeDefaults();
   const data = getPluginData(layer, "defoldGUINode");
-  const id = resolveId(layer, context.ignorePrefixes, forcedName, namePrefix)
+  const id = resolveId(layer, context.ignorePrefixes, forcedName, namePrefix, variantPrefix)
   const type = resolveType(layer, options, data, atRoot);
   const guiLayer = resolveLayer(context, data);
   const pivot = resolveTextPivot(layer);

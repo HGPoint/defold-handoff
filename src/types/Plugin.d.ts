@@ -63,7 +63,7 @@ type PluginGUINodeData = {
   template_name: string,
   wrapper: boolean,
   wrapper_padding: Vector4,
-  export_variants: Record<string, boolean>,
+  export_variants: string,
   exclude: boolean,
 }
 

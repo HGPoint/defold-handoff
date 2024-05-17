@@ -1,7 +1,7 @@
 <script lang="ts">
   import config from "config/config.json";
   import selectionState from "state/selection";
-  import { postMessageToPlugin } from "utilities/pluginUI";
+  import { postMessageToPlugin, trimFigmaPropertyName } from "utilities/pluginUI";
   import { isTextGUINodeType, isBoxGUINodeType } from "utilities/gui";
   import Page from "components/Page";
   import Properties from "components/Properties";
@@ -75,14 +75,7 @@
     <Properties title="Special Properties" collapseKey="guiNodeSpecialPropertiesCollapsed">
       <ToggleProperty label="Don't Export" bind:value={guiNode.exclude} />
       <ToggleProperty label="On Screen" bind:value={guiNode.screen} disabled={guiNode.exclude} />
-      {#if guiNode.export_variants && Object.keys(guiNode.export_variants).length > 0}
-        <fieldset>
-          <legend>Export Complete Property Sets:</legend>
-          {#each Object.keys(guiNode.export_variants) as variant}
-            <ToggleProperty label={variant} bind:value={guiNode.export_variants[variant]} />
-          {/each}
-        </fieldset>
-      {/if}
+      <TextProperty label="Add to Export" bind:value={guiNode.export_variants} disabled={guiNode.exclude} />
       <ToggleProperty label="Skip" bind:value={guiNode.skip} disabled={guiNode.exclude} />
       <ToggleProperty label="Extract" bind:value={guiNode.cloneable} disabled={guiNode.exclude} />
       <ToggleProperty label="Template" bind:value={guiNode.template} disabled={guiNode.exclude} />

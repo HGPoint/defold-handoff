@@ -142,6 +142,7 @@ async function generateParentOptions(layer: ExportableLayer, shouldSkip: boolean
     atRoot,
     asTemplate: parentOptions.asTemplate,
     namePrefix,
+    variantPrefix: parentOptions.variantPrefix,
     forcedName,
     ...parentParameters,
   }
@@ -180,6 +181,7 @@ function findClone(data: GUINodeCloneData, mainComponent: ComponentNode, layer: 
  * @param options - Export options for the GUI node.
  * @param guiNodesData - Array to collect GUI node data.
  * @param clones - Array to collect clones.
+ * TODO: Refactor this function to make it more readable and maintainable. Also document it properly.
  */
 async function generateGUINodeData(options: GUINodeDataExportOptions, guiNodesData?: GUINodeData[], clones?: ReturnType<typeof createClone>[]) {
   // Check if GUI node data array is provided
@@ -221,23 +223,76 @@ async function generateGUINodeData(options: GUINodeDataExportOptions, guiNodesDa
             if (!shouldSkip) {
               guiNodesData.push(guiNodeData);
             }
-            // Process children if the layer has any, and it's not a template or at the root level
-            if (hasChildren(layer) && (!guiNodeData.template || options.atRoot) && !await isAtlasSprite(layer)) {
-              const { children: layerChildren } = layer; 
-              // If not skipped, initialize children array in GUI node data
-              if (!shouldSkip) {
-                guiNodeData.children = [];
-              }
-              // Process each child recursively
-              for (const layerChild of layerChildren) {
-                // Check if the child is exportable and not a slice 9 service layer
-                if (isExportable(layerChild) && !isSlice9ServiceLayer(layer)) {
-                  // Generate parent options for the child
-                  const parentOptions = await generateParentOptions(layerChild, shouldSkip, shouldSkip && options.atRoot, options, guiNodeData);
-                  // Determine the array to collect children GUI node data based on skip status
-                  const children = !shouldSkip ? guiNodeData.children :  guiNodesData;
-                  // Recursively generate GUI node data for the child
-                  await generateGUINodeData(parentOptions, children, clones);
+            // Process children if the layer has any, and it's not a template, or at the root level and not a sprite holder
+            if (hasChildren(layer) && (!guiNodeData.template || (options.atRoot && options.asTemplate)) && !await isAtlasSprite(layer)) {
+              if (isFigmaComponentInstance(layer) && guiNodeData.export_variants) {
+                const exportVariants = guiNodeData.export_variants.split(",");
+                if (exportVariants && exportVariants.length > 0) {
+                  const variations: Record<string, string[]> = {};
+                  for (const exportVariant of exportVariants) {
+                    const [ variantName, variantValue ] = exportVariant.split("=").map(value => value.trim());
+                    const initialValue = layer.variantProperties && layer.variantProperties[variantName];
+                    if (!variations[variantName]) {
+                      variations[variantName] = initialValue ? [initialValue] : [];
+                    }
+                    if (!variations[variantName].includes(variantValue)) {
+                      variations[variantName].push(variantValue);
+                    }
+                  }
+                  for (const variantName of Object.keys(variations)) {
+                    const variantValues = variations[variantName];
+                    for (const variantValue of variantValues) {
+                      if (layer.variantProperties && layer.variantProperties[variantName]) {
+                        layer.setProperties({ [variantName]: variantValue });
+                      } else {
+                        const exposedInstance = layer.exposedInstances.find((instance) => instance.variantProperties && instance.variantProperties[variantName]);
+                        if (exposedInstance && exposedInstance.variantProperties && exposedInstance.variantProperties[variantName]) {
+                          exposedInstance.setProperties({ [variantName]: variantValue });
+                        }
+                      }
+                      const variantOptions = { ...options };
+                      variantOptions.variantPrefix = variantValue;
+                      const { children: layerChildren } = layer;
+                      // Process each child recursively
+                      for (const layerChild of layerChildren) {
+                        // Check if the child is exportable and not a slice 9 service layer
+                        if (isExportable(layerChild) && !isSlice9ServiceLayer(layer)) {
+                          // Generate parent options for the child
+                          const parentOptions = await generateParentOptions(layerChild, shouldSkip, shouldSkip && variantOptions.atRoot, variantOptions, guiNodeData);
+                          // Determine the array to collect children GUI node data based on skip status
+                          const children = guiNodesData;
+                          // Recursively generate GUI node data for the child
+                          await generateGUINodeData(parentOptions, children, clones);
+                        }
+                      }
+                    }
+                    if (layer.variantProperties && layer.variantProperties[variantName]) {
+                      layer.setProperties({ [variantName]: variantValues[0] });
+                    } else {
+                      const exposedInstance = layer.exposedInstances.find((instance) => instance.variantProperties && instance.variantProperties[variantName]);
+                      if (exposedInstance && exposedInstance.variantProperties && exposedInstance.variantProperties[variantName]) {
+                        exposedInstance.setProperties({ [variantName]: variantValues[0] });
+                      }
+                    }
+                  }
+                }
+              } else {
+                const { children: layerChildren } = layer;
+                // If not skipped, initialize children array in GUI node data
+                if (!shouldSkip) {
+                  guiNodeData.children = [];
+                }
+                // Process each child recursively
+                for (const layerChild of layerChildren) {
+                  // Check if the child is exportable and not a slice 9 service layer
+                  if (isExportable(layerChild) && !isSlice9ServiceLayer(layer)) {
+                    // Generate parent options for the child
+                    const parentOptions = await generateParentOptions(layerChild, shouldSkip, shouldSkip && options.atRoot, options, guiNodeData);
+                    // Determine the array to collect children GUI node data based on skip status
+                    const children = !shouldSkip ? guiNodeData.children : guiNodesData;
+                    // Recursively generate GUI node data for the child
+                    await generateGUINodeData(parentOptions, children, clones);
+                  }
                 }
               }
             }
