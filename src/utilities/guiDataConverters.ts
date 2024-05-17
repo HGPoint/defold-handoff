@@ -24,7 +24,7 @@ import { generateContextData } from "utilities/context";
 function resolveId(layer: ExportableLayer, ignorePrefixes: boolean, forcedName?: string, namePrefix?: string, variantPrefix?: string) {
   const name = forcedName || layer.name;
   if (!ignorePrefixes) {
-    return `${namePrefix || ""}${variantPrefix ? `${variantPrefix.toLowerCase()}_` : ""}${name}`;
+    return `${namePrefix || ""}${name}${variantPrefix ? `_${variantPrefix.toLowerCase()}` : ""}`;
   }
   return name;
 }
@@ -77,7 +77,7 @@ function convertPosition(layer: ExportableLayer, pivot: Pivot, parentPivot: Pivo
   if (atRoot) {
     return calculateRootPosition(layer, pivot, parentPivot, size, parentSize, parentShift, asTemplate, data);
   }
-  return convertChildPosition(layer, pivot, parentPivot, size, parentSize, parentShift, asTemplate, data);
+  return convertChildPosition(layer, pivot, parentPivot, size, parentSize, parentShift);
 }
 
 /**
@@ -148,7 +148,7 @@ function convertBoxSize(layer: ExportableLayer) {
     if (placeholder) {
       return vector4(placeholder.width, placeholder.height, 0, 1);
     }
-  } 
+  }
   return vector4(layer.width, layer.height, 0, 1);
 }
 
@@ -587,6 +587,7 @@ function resolveSpecialProperties(layer: ExportableLayer, id: string, data?: Plu
     screen: !!data?.screen,
     skip: !!data?.skip,
     cloneable: !!data?.cloneable,
+    fixed: !!data?.fixed,
     path: data?.path || config.guiNodeDefaultSpecialValues.path,
     template: !!data?.template,
     template_path: data?.template_path || config.guiNodeDefaultSpecialValues.template_path,

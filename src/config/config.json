@@ -75,6 +75,7 @@
   "guiNodeDefaultSpecialValues": {
     "screen": false,
     "skip": false,
+    "fixed": false,
     "cloneable": false,
     "path": "",
     "template": false,

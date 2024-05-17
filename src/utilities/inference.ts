@@ -136,7 +136,6 @@ export async function inferBoxSizeMode(layer: BoxLayer, texture?: string): Promi
   if (isSlice9Layer(layer)) {
     return "SIZE_MODE_MANUAL";
   }
-  layer
   if (texture) {
     if (isFigmaComponentInstance(layer)) {
       const mainComponent = await findMainComponent(layer);

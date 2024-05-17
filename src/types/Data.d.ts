@@ -112,6 +112,7 @@ type GUINodeData = {
 
   skip: boolean,
   cloneable: boolean,
+  fixed: boolean,
   path: string,
   template: boolean,
   template_path: string,
@@ -146,6 +147,7 @@ type GUINodeDataExportOptions = {
   atRoot: boolean,
   namePrefix: string,
   variantPrefix?: string,
+  exportVariations?: Record<string, string[]>,
   forcedName?: string,
   parentId: string,
   parentPivot: Pivot,
@@ -157,6 +159,14 @@ type GUINodeDataExportOptions = {
 type GUINodeCloneData = {
   cloneOf: ComponentNode,
   cloneInstance: InstanceNode,
+}
+
+type GUINodeExportVariantsData = Record<string, GUINodeExportVariantData>;
+
+type GUINodeExportVariantData = {
+  instance: InstanceNode,
+  initialValue: string,
+  values: string[]
 }
 
 type TextureAtlasData = {

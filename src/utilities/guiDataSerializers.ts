@@ -15,6 +15,7 @@ const EXCLUDED_PROPERTY_KEYS = [
   "screen",
   "skip",
   "cloneable",
+  "fixed",
   "path",
   "template",
   "template_path",

@@ -33,6 +33,7 @@ declare module "config/config.json" {
     guiNodeDefaultSpecialValues: {
       screen: boolean,
       skip: boolean,
+      fixed: boolean,
       cloneable: boolean,
       path: string,
       template: boolean,

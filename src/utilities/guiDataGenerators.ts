@@ -12,6 +12,7 @@ import { convertGUIData, convertBoxGUINodeData, convertTextGUINodeData } from "u
 import { isSlice9PlaceholderLayer, findOriginalLayer, isSlice9Layer, isSlice9ServiceLayer, parseSlice9Data } from "utilities/slice9";
 import { generateContextData } from "utilities/context";
 import { generateAtlasPath, generateFontPath } from "utilities/path";
+import { delay } from "utilities/delay";
 
 /**
  * Checks if a layer is skippable based on export settings and type.
@@ -183,7 +184,7 @@ function findClone(data: GUINodeCloneData, mainComponent: ComponentNode, layer: 
  * @param clones - Array to collect clones.
  * TODO: Refactor this function to make it more readable and maintainable. Also document it properly.
  */
-async function generateGUINodeData(options: GUINodeDataExportOptions, guiNodesData?: GUINodeData[], clones?: ReturnType<typeof createClone>[]) {
+async function generateGUINodeData(options: GUINodeDataExportOptions, guiNodesData?: GUINodeData[], clones?: ReturnType<typeof createClone>[], exportVariants?: GUINodeExportVariantsData) {
   // Check if GUI node data array is provided
   if (guiNodesData) {
     // Retrieve the Figma layer from export options
@@ -225,73 +226,36 @@ async function generateGUINodeData(options: GUINodeDataExportOptions, guiNodesDa
             }
             // Process children if the layer has any, and it's not a template, or at the root level and not a sprite holder
             if (hasChildren(layer) && (!guiNodeData.template || (options.atRoot && options.asTemplate)) && !await isAtlasSprite(layer)) {
-              if (isFigmaComponentInstance(layer) && guiNodeData.export_variants) {
-                const exportVariants = guiNodeData.export_variants.split(",");
-                if (exportVariants && exportVariants.length > 0) {
-                  const variations: Record<string, string[]> = {};
-                  for (const exportVariant of exportVariants) {
-                    const [ variantName, variantValue ] = exportVariant.split("=").map(value => value.trim());
-                    const initialValue = layer.variantProperties && layer.variantProperties[variantName];
-                    if (!variations[variantName]) {
-                      variations[variantName] = initialValue ? [initialValue] : [];
-                    }
-                    if (!variations[variantName].includes(variantValue)) {
-                      variations[variantName].push(variantValue);
-                    }
-                  }
-                  for (const variantName of Object.keys(variations)) {
-                    const variantValues = variations[variantName];
-                    for (const variantValue of variantValues) {
-                      if (layer.variantProperties && layer.variantProperties[variantName]) {
-                        layer.setProperties({ [variantName]: variantValue });
-                      } else {
-                        const exposedInstance = layer.exposedInstances.find((instance) => instance.variantProperties && instance.variantProperties[variantName]);
-                        if (exposedInstance && exposedInstance.variantProperties && exposedInstance.variantProperties[variantName]) {
-                          exposedInstance.setProperties({ [variantName]: variantValue });
-                        }
+              const { children: layerChildren } = layer;
+              // If not skipped, initialize children array in GUI node data
+              if (!shouldSkip) {
+                guiNodeData.children = [];
+              }
+              // Determine the array to collect children GUI node data based on skip status
+              const children = !shouldSkip ? guiNodeData.children : guiNodesData;
+              // Process each child recursively
+              for (const layerChild of layerChildren) {
+                // Check if the child is exportable and not a slice   9 service layer
+                if (isExportable(layerChild) && !isSlice9ServiceLayer(layer)) {
+                  // Generate parent options for the child
+                  const parentOptions = await generateParentOptions(layerChild, shouldSkip, shouldSkip && options.atRoot, options, guiNodeData);
+                  if (isFigmaComponentInstance(layerChild) && exportVariants && Object.entries(exportVariants).find(([, exportVariant]) => exportVariant.instance === layerChild)) {
+                    const variant = Object.entries(exportVariants).find(([ , exportVariant]) => exportVariant.instance === layerChild);
+                    if (variant) {
+                      const [ variantName, variantData ] = variant;
+                      for (const value of variantData.values) {
+                        layerChild.setProperties({ [variantName]: value });
+                        const variantParentOptions = { ...parentOptions, variantPrefix: value };
+                        // Explicit delay to allow Figma to update the layer size after changing the variant
+                        await delay(100);
+                        // Recursively generate GUI node data for each exported variant
+                        await generateGUINodeData(variantParentOptions, children, clones, exportVariants);
                       }
-                      const variantOptions = { ...options };
-                      variantOptions.variantPrefix = variantValue;
-                      const { children: layerChildren } = layer;
-                      // Process each child recursively
-                      for (const layerChild of layerChildren) {
-                        // Check if the child is exportable and not a slice 9 service layer
-                        if (isExportable(layerChild) && !isSlice9ServiceLayer(layer)) {
-                          // Generate parent options for the child
-                          const parentOptions = await generateParentOptions(layerChild, shouldSkip, shouldSkip && variantOptions.atRoot, variantOptions, guiNodeData);
-                          // Determine the array to collect children GUI node data based on skip status
-                          const children = guiNodesData;
-                          // Recursively generate GUI node data for the child
-                          await generateGUINodeData(parentOptions, children, clones);
-                        }
-                      }
+                      layerChild.setProperties({ [variantName]: variantData.initialValue });
                     }
-                    if (layer.variantProperties && layer.variantProperties[variantName]) {
-                      layer.setProperties({ [variantName]: variantValues[0] });
-                    } else {
-                      const exposedInstance = layer.exposedInstances.find((instance) => instance.variantProperties && instance.variantProperties[variantName]);
-                      if (exposedInstance && exposedInstance.variantProperties && exposedInstance.variantProperties[variantName]) {
-                        exposedInstance.setProperties({ [variantName]: variantValues[0] });
-                      }
-                    }
-                  }
-                }
-              } else {
-                const { children: layerChildren } = layer;
-                // If not skipped, initialize children array in GUI node data
-                if (!shouldSkip) {
-                  guiNodeData.children = [];
-                }
-                // Process each child recursively
-                for (const layerChild of layerChildren) {
-                  // Check if the child is exportable and not a slice 9 service layer
-                  if (isExportable(layerChild) && !isSlice9ServiceLayer(layer)) {
-                    // Generate parent options for the child
-                    const parentOptions = await generateParentOptions(layerChild, shouldSkip, shouldSkip && options.atRoot, options, guiNodeData);
-                    // Determine the array to collect children GUI node data based on skip status
-                    const children = !shouldSkip ? guiNodeData.children : guiNodesData;
+                  } else {
                     // Recursively generate GUI node data for the child
-                    await generateGUINodeData(parentOptions, children, clones);
+                    await generateGUINodeData(parentOptions, children, clones, exportVariants);
                   }
                 }
               }
@@ -302,7 +266,7 @@ async function generateGUINodeData(options: GUINodeDataExportOptions, guiNodesDa
       // Process Figma text layers
       else if (isFigmaText(layer)) {
         // Convert Figma text layer into GUI node data and add to the array
-        const guiNodeData = convertTextGUINodeData(layer, options);
+        const guiNodeData = await convertTextGUINodeData(layer, options);
         // Check if the layer shouldn't be excluded from export
         if (!guiNodeData.exclude) {
           guiNodesData.push(guiNodeData);
@@ -485,7 +449,7 @@ function collapseNodes(parent: GUINodeData, child: GUINodeData) {
 function collapseGUINodeData(nodes: GUINodeData[], collapsedNodes: GUINodeData[]) {
   for (const node of nodes) {
     collapsedNodes.push(node);
-    if (node.children) {
+    if (node.children && !node.fixed) {
       const { children } = node;
       const collapsableChild = children.find(child => canCollapseNodes(node, child));
       if (collapsableChild) {
@@ -494,6 +458,52 @@ function collapseGUINodeData(nodes: GUINodeData[], collapsedNodes: GUINodeData[]
         children.splice(index, 1);
       }
       collapseGUINodeData(children, collapsedNodes);
+    }
+  }
+}
+
+/**
+ * Finds export variants and match them with their initial values and instances on which they are defined.
+ * @param layer - The Figma layer to find export variants for.
+ * @param exportVariants - Object to store export variants.
+ */
+function findExportVariants(layer: ExportableLayer, exportVariants: GUINodeExportVariantsData) {
+  if (isFigmaBox(layer) && !isSlice9ServiceLayer(layer)) {
+    const guiNodeData = getPluginData(layer, "defoldGUINode");
+    if (isFigmaComponentInstance(layer) && guiNodeData?.export_variants) {
+      const variants = guiNodeData.export_variants.split(",");
+      if (variants && variants.length > 0) {
+        for (const exportVariant of variants) {
+          const [ variantName, variantValue ] = exportVariant.split("=").map(value => value.trim());
+          let initialValue;
+          let instance;
+          if (layer.variantProperties && !!layer.variantProperties[variantName]) {
+              instance = layer;
+              initialValue = layer.variantProperties[variantName];
+          } else {
+            const exposedInstance = layer.exposedInstances.find((instance) => instance.variantProperties && !!instance.variantProperties[variantName]);
+            if (exposedInstance && exposedInstance.variantProperties && exposedInstance.variantProperties[variantName]) {
+              instance = exposedInstance;
+              initialValue = exposedInstance.variantProperties[variantName];
+            }
+          }
+          if (instance && initialValue && !exportVariants[variantName]) {
+            exportVariants[variantName] = {
+              instance,
+              initialValue,
+              values: [initialValue]
+            }
+          }
+          exportVariants[variantName].values.push(variantValue);
+        }
+      }
+    }
+    if (hasChildren(layer)) {
+      for (const child of layer.children) {
+        if (isExportable(child)) {
+          findExportVariants(child, exportVariants);
+        }
+      }
     }
   }
 }
@@ -512,7 +522,10 @@ export async function generateGUIData(nodeExport: GUINodeExport): Promise<GUIDat
   const rootData = getPluginData(layer, "defoldGUINode");
   const rootOptions = generateRootOptions(layer, asTemplate);
   const nodes: GUINodeData[] = [];
-  await generateGUINodeData(rootOptions, nodes, [] as GUINodeCloneData[]);
+  const clones: GUINodeCloneData[] = [];
+  const exportVariants: GUINodeExportVariantsData = {};
+  findExportVariants(layer, exportVariants);
+  await generateGUINodeData(rootOptions, nodes, clones, exportVariants);
   const collapsedNodes: GUINodeData[] = [];
   collapseGUINodeData(nodes, collapsedNodes);
   const textures: TextureData = {};

@@ -42,6 +42,7 @@ With this plugin, you can easily manage GUI template designs and atlases, stream
 - `src/utilities/color.ts` – Module for handling color operations.
 - `src/utilities/context.ts` – Module for handling shared context for GUI nodes (Layers, materials, etc.).
 - `src/utilities/dataSerializers.ts` – Module for handling Defold property serialization.
+- `src/utilities/delay.ts` – Module for handling time delays.
 - `src/utilities/download.ts` – Module for handling file downloading.
 - `src/utilities/evaluation.ts` – Module for evaluating expressions.
 - `src/utilities/figma.ts` – Module for handling the work with Figma layers and properties.

@@ -231,11 +231,8 @@ export function calculateRootPosition(layer: ExportableLayer, pivot: Pivot, pare
  * @param parentShift - The shift vector of the parent layer.
  * @returns The converted position vector of the child layer.
  */
-export function convertChildPosition(layer: ExportableLayer, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4, parentShift: Vector4, asTemplate: boolean, data?: PluginGUINodeData | null) {
+export function convertChildPosition(layer: ExportableLayer, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4, parentShift: Vector4) {
   const centeredPosition = calculateCenteredPosition(layer, size, parentSize);
-  if (data?.template) {
-    return centeredPosition;
-  }
   const pivotedPosition = calculatePivotedPosition(centeredPosition, pivot, parentPivot, size, parentSize);
   const shiftedX = pivotedPosition.x + parentShift.x;
   const shiftedY = pivotedPosition.y - parentShift.y;
@@ -243,7 +240,7 @@ export function convertChildPosition(layer: ExportableLayer, pivot: Pivot, paren
   return shiftedPosition;
 }
 
-/**
+/**w2 2 
  * Calculates the pivoted position of a layer relative to its parent size.
  * @param layer - The layer to calculate the position for.
  * @param pivot - The pivot point of the layer.
