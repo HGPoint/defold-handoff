@@ -7,6 +7,7 @@
   import NumberProperty from "components/NumberProperty";
   import TextProperty from "components/TextProperty";
   import TextSetProperty from "components/TextSetProperty";
+  import PropertyTip from "components/PropertyTip";
 
   let { project } = $selectionState
   let lastSentUpdate = JSON.stringify(project);
@@ -49,6 +50,13 @@
     <Properties title="Project Font Properties">
       <NumberProperty label="Font Size" bind:value={project.fontSize} />
       <TextSetProperty label="Font Families" action="Add Font" bind:value={project.fontFamilies} />
+    </Properties>
+    <Properties title="Project Naming Conventions">
+      <TextProperty label="Skip Layers" bind:value={project.autoskip}>
+        <PropertyTip>
+          Layers with names starting with this string will be skipped.
+        </PropertyTip>
+      </TextProperty>
     </Properties>
   </Page>
 {/if}

@@ -1,6 +1,6 @@
 type ExportableLayer = BoxLayer | TextLayer;
 
-type BoxLayer = FrameNode | InstanceNode;
+type BoxLayer = FrameNode | ComponentNode | InstanceNode;
 
 type TextLayer = TextNode;
 

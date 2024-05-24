@@ -39,6 +39,7 @@ declare module "config/config.json" {
       template: boolean,
       template_path: string,
       template_name: string,
+      export_variants: string,
       wrapper: boolean,
       wrapper_padding: Vector4,
       exclude: boolean
@@ -64,6 +65,7 @@ declare module "config/config.json" {
     defaultFontSize: number,
     defaultFontFamilies: ProjectFontData[],
     fontStrokeRatio: number,
+    autoskip: string,
     sizeModes: Record<string, SizeMode | "PARSED">,
     blendModes: Record<string, GUINodeBlendMode>,
     pivots: Record<string, Pivot>,

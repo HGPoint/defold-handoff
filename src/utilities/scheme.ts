@@ -11,7 +11,8 @@
 export function extractScheme(nodes: GUINodeData[]): string {
   const schemeNodes = nodes.reduce((scheme, node) => {
     const { id } = node;
-    return `${scheme}\n  ${id.toUpperCase()} = "${id}";`;
+    const name = (node.parent ? node.id : "root").toUpperCase();
+    return `${scheme}\n  ${name} = "${id}";`;
   }, "");
   return `local scheme = {${schemeNodes}\n}`;
 }

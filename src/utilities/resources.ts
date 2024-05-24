@@ -3,7 +3,7 @@
  * @packageDocumentation
  */
 
-import { generateGUIPath } from "utilities/path";
+import { generateGUIFileName, sanitizeGUIFileName } from "utilities/path";
 import { archiveBundle } from "utilities/archive";
 import copyOnClipboard from "utilities/clipboard";
 import download from "utilities/download";
@@ -58,8 +58,9 @@ export function exportComponent({ bundle }: PluginMessagePayload) {
     const { gui } = bundle;
     if (isSerializedGUIData(gui)) {
       const [ guiNode ] = gui;
-      const { name: guiNodeName, filePath } = guiNode;
-      const fileName = generateGUIPath(guiNodeName, filePath);
+      const { name: guiNodeName } = guiNode;
+      const sanitizedGUIName = sanitizeGUIFileName(guiNodeName);
+      const fileName = generateGUIFileName(sanitizedGUIName);
       const blob = new Blob([guiNode.data], { type: "text/plain" });
       download(blob, fileName);
     }

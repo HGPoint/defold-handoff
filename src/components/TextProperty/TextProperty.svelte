@@ -19,3 +19,4 @@
   {id}
   bind:value
   {disabled} />
+<slot />

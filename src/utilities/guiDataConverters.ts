@@ -508,7 +508,7 @@ function convertTextVisuals(layer: TextLayer, data?: PluginGUINodeData | null) {
  * @returns True if the text has line breaks, otherwise false.
  */
 function resolveLineBreak(layer: TextLayer) {
-  return layer.textAutoResize === "HEIGHT";
+  return layer.textAutoResize === "HEIGHT" || layer.textAutoResize === "NONE";
 }
 
 /**
@@ -517,8 +517,9 @@ function resolveLineBreak(layer: TextLayer) {
  * @returns The calculated text leading.
  */
 function calculateTextLeading(layer: TextLayer) {
-  if (typeof layer.lineHeight === "number" && typeof layer.fontSize === "number") {
-    return layer.lineHeight / layer.fontSize;
+  const { lineHeight, fontSize } = layer;
+  if (typeof lineHeight === "object" && "value" in lineHeight && typeof fontSize === "number") {
+    return lineHeight.value / fontSize;
   }
   return 1;
 }
@@ -620,6 +621,20 @@ function resolveLayer(context: PluginGUIContextData, data?: PluginGUINodeData | 
 }
 
 /**
+ * Resolves the text content for a text layer
+ * @param layer - The text layer to resolve text for.
+ * @returns The resolved text for the text layer.
+ */
+function resolveText(layer: TextLayer) {
+  const text = layer.characters.trim();
+  const lines = text.split("\n");
+  if (lines.length > 1) {
+    return lines.join("\\n\"\n\"");
+  }
+  return text;
+}
+
+/**
  * Converts a Figma layer into GUI node data.
  * @param layer - The Figma layer to convert into GUI node data.
  * @param options - Options for exporting GUI node data.
@@ -675,7 +690,7 @@ export function convertTextGUINodeData(layer: TextLayer, options: GUINodeDataExp
   const sizeMode = resolveTextSizeMode(data);
   const transformations = convertTextTransformations(layer, pivot, parentPivot, parentSize, parentShift, atRoot, asTemplate, data);
   const parent = convertParent(parentId);
-  const text = layer.characters.trim();
+  const text = resolveText(layer);
   const textParameters = resolveTextParameters(layer);
   const specialProperties = resolveSpecialProperties(layer, id, data);
   return {

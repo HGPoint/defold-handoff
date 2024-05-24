@@ -81,6 +81,7 @@
     "template": false,
     "template_path": "common/view",
     "template_name": "",
+    "export_variants": "",
     "wrapper": false,
     "wrapper_padding": null,
     "exclude": false
@@ -111,6 +112,7 @@
   "defaultFontSize": 38,
   "defaultFontFamilies": [],
   "fontStrokeRatio": 0.04,
+  "autoskip": "skip_",
   "sizeModes": {
     "Parsed": "PARSED",
     "Auto": "SIZE_MODE_AUTO",

@@ -14,6 +14,7 @@ export const projectConfig: ProjectData = {
   paths: { ...config.paths },
   fontSize: config.defaultFontSize,
   fontFamilies: [...config.defaultFontFamilies],
+  autoskip: config.autoskip,
 }
 
 /**
@@ -62,6 +63,16 @@ function updateFontFamilies(fontFamilies?: ProjectFontData[]) {
 }
 
 /**
+ * Updates the autoskip configuration of the project.
+ * @param autoskip - The new autoskip configuration to apply.
+ */
+function updateAutoskip(autoskip?: string) {
+  if (autoskip) {
+    projectConfig.autoskip = autoskip;
+  }
+}
+
+/**
  * Updates the project data.
  * @param data - Project data update.
  */
@@ -70,6 +81,7 @@ function updateProjectData(data: Partial<ProjectData>) {
   updatePaths(data.paths);
   updateFontSize(data.fontSize);
   updateFontFamilies(data.fontFamilies);
+  updateAutoskip(data.autoskip);
 }
 
 /**
@@ -95,6 +107,7 @@ export function updateProject(data: Partial<ProjectData>) {
     paths: { ...projectConfig.paths },
     fontSize: projectConfig.fontSize,
     fontFamilies: [...projectConfig.fontFamilies],
+    autoskip: projectConfig.autoskip,
   }
   setPluginData(document, { defoldProject: projectData });
 }

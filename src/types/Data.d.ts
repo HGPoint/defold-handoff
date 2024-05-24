@@ -11,6 +11,7 @@ type ProjectData = {
   paths: ProjectPathData,
   fontSize: number,
   fontFamilies: ProjectFontData[],
+  autoskip: string,
 }
 
 type ProjectFontData = {

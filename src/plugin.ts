@@ -6,8 +6,9 @@
 import { getPluginData, hasVariantPropertyChanged, isFigmaComponentInstance } from "utilities/figma";
 import { isGUINodeSelected, reducePluginSelection, convertPluginUISelection, reduceAtlases, reduceGUINodes } from "utilities/selection";  
 import { isSlice9Layer, tryRefreshSlice9Sprite  } from "utilities/slice9";
+import { isTemplateGUINode } from "utilities/gui";
 import { initializeProject, projectConfig, updateProject } from "handoff/project";
-import { updateGUINode, tryRestoreSlice9Node, copyGUINodes, exportGUINodes, removeGUINodes, fixTextNode, fixGUINodes, matchGUINodes, resizeScreenNodes, copyGUINodeScheme, tryExtractImage } from "handoff/gui";
+import { updateGUINode, tryRestoreSlice9Node, copyGUINode, exportGUINodes, removeGUINodes, fixTextNode, fixGUINodes, matchGUINodes, resizeScreenNodes, copyGUINodeScheme, tryExtractImage, } from "handoff/gui";
 import { createAtlas, addSprites, fixAtlases, sortAtlases, fitAtlases, exportAtlases, destroyAtlases, tryRestoreAtlases } from "handoff/atlas";
 import { updateSection, removeSections } from "handoff/section";
 import { exportBundle } from "handoff/bundle";
@@ -57,16 +58,17 @@ function onSelectionChange() {
   updateSelection();
 }
 
-function onCopyGUINodes() {
-  const nodes = selection.gui.map(layer => ({ layer, asTemplate: false }));
-  copyGUINodes(nodes)
-    .then(onGUINodesCopied);
+function onCopyGUINode() {
+  const { gui: [layer] } = selection;
+  const nodeExport = { layer, asTemplate: isTemplateGUINode(layer) };
+  copyGUINode(nodeExport)
+    .then(onGUINodeCopied);
 }
 
-function onGUINodesCopied(gui: SerializedGUIData[]) {
-  const bundle = { gui };
+function onGUINodeCopied(gui: SerializedGUIData) {
+  const bundle = { gui: [gui] };
   postMessageToPluginUI("guiNodesCopied", { bundle })
-  figma.notify("GUI nodes copied");
+  figma.notify("GUI node copied");
 }
 
 function onExportGUINodes() {
@@ -88,7 +90,7 @@ function onUpdateGUINode(data: PluginGUINodeData) {
 
 async function onCopyGUINodeScheme() {
   const { gui: [ layer ] } = selection;
-  const nodeExport = { layer, asTemplate: false };
+  const nodeExport = { layer, asTemplate: isTemplateGUINode(layer) };
   copyGUINodeScheme(nodeExport)
     .then(onGUINodeSchemeCopied);
   }
@@ -236,7 +238,7 @@ async function onRequestImage() {
 function processPluginUIMessage(message: PluginMessage) {
   const { type, data } = message;
   if (type === "copyGUINodes") {
-    onCopyGUINodes();
+    onCopyGUINode();
   } else if (type === "exportGUINodes") {
     onExportGUINodes();
   } else if (type === "resetGUINodes") {

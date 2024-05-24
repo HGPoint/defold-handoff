@@ -21,7 +21,7 @@ import { delay } from "utilities/delay";
  * @returns True if the layer is skippable, otherwise false.
  */
 async function isSkippable(layer: ExportableLayer, gUINodeData: GUINodeData): Promise<boolean> {
-  return gUINodeData.skip || isSlice9PlaceholderLayer(layer) || await isSpriteHolderLayer(layer);
+  return gUINodeData.skip || layer.name.startsWith(projectConfig.autoskip) || isSlice9PlaceholderLayer(layer) || await isSpriteHolderLayer(layer);
 }
 
 /**

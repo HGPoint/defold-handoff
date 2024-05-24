@@ -12,6 +12,7 @@
   import TransformationProperty from "components/TransformationProperty";
   import SidesProperty from "components/SidesProperty";
   import TextProperty from "components/TextProperty";
+  import PropertyTip from "components/PropertyTip";
 
   let { gui: [ guiNode ] } = $selectionState;
   let fontFamilies: Record<string, string>;
@@ -75,7 +76,11 @@
     <Properties title="Special Properties" collapseKey="guiNodeSpecialPropertiesCollapsed">
       <ToggleProperty label="Don't Export" bind:value={guiNode.exclude} />
       <ToggleProperty label="On Screen" bind:value={guiNode.screen} disabled={guiNode.exclude} />
-      <TextProperty label="Add to Export" bind:value={guiNode.export_variants} disabled={guiNode.exclude} />
+      <TextProperty label="Add to Export" bind:value={guiNode.export_variants} disabled={guiNode.exclude}>
+        <PropertyTip>
+          Comma separated pairs of component's properties (including from nested instances) and their values to add to the export. For example <code>Status=Multiple,Status=Disabled</code>
+        </PropertyTip>
+      </TextProperty>
       <ToggleProperty label="Skip" bind:value={guiNode.skip} disabled={guiNode.exclude} />
       <ToggleProperty label="Don't Collapse" bind:value={guiNode.fixed} disabled={guiNode.exclude} />
       <ToggleProperty label="Extract" bind:value={guiNode.cloneable} disabled={guiNode.exclude} />

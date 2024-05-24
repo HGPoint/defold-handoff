@@ -269,6 +269,14 @@ select:hover:disabled {
   text-align: left;
 }
 
+.propertyTip {
+  grid-column: 2;
+  padding: 0.5em;
+  margin: -5px 0 0;
+  font-size: 0.9rem;
+  background: #212428;
+}
+
 .sectionToggle::before {
   content: "-";
   display: block;

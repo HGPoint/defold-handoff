@@ -121,3 +121,15 @@ export function generateSpriteFileName(spriteName: string): string {
 export function generateFontFileName(fontName: string): string {
   return `${fontName}.font`;
 }
+
+/**
+ * Sanitizes the GUI file name by removing naming conventions.
+ * @param guiFileName - The GUI file name.
+ * @returns The sanitized GUI file name.
+ */
+export function sanitizeGUIFileName(guiNodeName: string): string {
+  if (guiNodeName.startsWith(projectConfig.autoskip)) {
+    return guiNodeName.replace(projectConfig.autoskip, "");
+  }
+  return guiNodeName;
+}

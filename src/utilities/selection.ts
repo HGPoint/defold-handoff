@@ -5,7 +5,7 @@
 
 import config from "config/config.json";
 import { isSlice9PlaceholderLayer, isSlice9ServiceLayer, findOriginalLayer } from "utilities/slice9";
-import { isAtlas, isFigmaFrame, isFigmaSection, isFigmaComponentInstance, isFigmaBox, isFigmaText, isExportable, getPluginData, hasChildren } from "utilities/figma";
+import { isAtlas, isFigmaFrame, isFigmaSection, isFigmaComponent, isFigmaComponentInstance, isFigmaBox, isFigmaText, isExportable, getPluginData, hasChildren } from "utilities/figma";
 import { isTemplateGUINode } from "utilities/gui";
 import { generateContextData } from "utilities/context";
 import { projectConfig } from "handoff/project";
@@ -103,7 +103,7 @@ function pluginSelectionReducer(selection: SelectionData, layer: SceneNode): Sel
       selection.atlases.push(layer);
     } else if (isFigmaSection(layer)) {
       selection.sections.push(layer);
-    } else if (isFigmaFrame(layer) || isFigmaComponentInstance(layer) || isFigmaText(layer)) {
+    } else if (isFigmaFrame(layer) || isFigmaComponent(layer) || isFigmaComponentInstance(layer) || isFigmaText(layer)) {
       const originalLayer = isSlice9PlaceholderLayer(layer) ? findOriginalLayer(layer) : layer;
       if (originalLayer) {
         selection.gui.push(originalLayer);
@@ -250,7 +250,7 @@ export function findTemplateNodes(guiNode: ExportableLayer): GUINodeExport[] {
   if (isFigmaBox(guiNode) && hasChildren(guiNode)) {
     const { children } = guiNode;
     for (const child of children) {
-      if (isExportable(child)) {
+      if (child.visible && isExportable(child)) {
         if (isTemplateGUINode(child)) {
           templateNodes.push({ layer: child, asTemplate: true });
         } else {
