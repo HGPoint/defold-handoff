@@ -184,7 +184,7 @@ function findClone(data: GUINodeCloneData, mainComponent: ComponentNode, layer: 
  * @param clones - Array to collect clones.
  * TODO: Refactor this function to make it more readable and maintainable. Also document it properly.
  */
-async function generateGUINodeData(options: GUINodeDataExportOptions, guiNodesData?: GUINodeData[], clones?: ReturnType<typeof createClone>[], exportVariants?: GUINodeExportVariantsData) {
+async function generateGUINodeData(options: GUINodeDataExportOptions, guiNodesData?: GUINodeData[], clones?: ReturnType<typeof createClone>[]) {
   // Check if GUI node data array is provided
   if (guiNodesData) {
     // Retrieve the Figma layer from export options
@@ -239,30 +239,70 @@ async function generateGUINodeData(options: GUINodeDataExportOptions, guiNodesDa
                 if (isExportable(layerChild) && !isSlice9ServiceLayer(layer)) {
                   // Generate parent options for the child
                   const parentOptions = await generateParentOptions(layerChild, shouldSkip, shouldSkip && options.atRoot, options, guiNodeData);
-                  if (isFigmaComponentInstance(layerChild) && exportVariants && Object.entries(exportVariants).find(([, exportVariant]) => exportVariant.instance === layerChild)) {
-                    const variant = Object.entries(exportVariants).find(([ , exportVariant]) => exportVariant.instance === layerChild);
-                    if (variant) {
-                      const [ variantName, variantData ] = variant;
-                      for (const value of variantData.values) {
-                        layerChild.setProperties({ [variantName]: value });
-                        const variantParentOptions = { ...parentOptions, variantPrefix: value };
-                        // Explicit delay to allow Figma to update the layer size after changing the variant
-                        await delay(100);
-                        // Recursively generate GUI node data for each exported variant
-                        await generateGUINodeData(variantParentOptions, children, clones, exportVariants);
-                      }
-                      layerChild.setProperties({ [variantName]: variantData.initialValue });
-                    }
+                  // Recursively generate GUI node data for the child
+                  await generateGUINodeData(parentOptions, children, clones);
+                }
+              }
+              if (isFigmaComponentInstance(layer) && guiNodeData.export_variants) {
+                const exportVariants = guiNodeData.export_variants.split(",");
+                for (const exportVariant of exportVariants) {
+                  let layerInstance: InstanceNode | undefined = undefined;
+                  let initialValue: string | undefined = undefined;
+                  const [exportVariantName, exportVariantValue] = exportVariant.split("=").map(value => value.trim());
+                  if (layer.variantProperties && !!layer.variantProperties[exportVariantName]) {
+                    layerInstance = layer;
+                    initialValue = layer.variantProperties[exportVariantName];
                   } else {
-                    // Recursively generate GUI node data for the child
-                    await generateGUINodeData(parentOptions, children, clones, exportVariants);
+                    const exposedInstance = layer.exposedInstances.find((instance) => instance.variantProperties && !!instance.variantProperties[exportVariantName]);
+                    if (exposedInstance && exposedInstance.variantProperties && !!exposedInstance.variantProperties[exportVariantName]) {
+                      layerInstance = exposedInstance;
+                      initialValue = exposedInstance.variantProperties[exportVariantName];
+                    }
                   }
+                  if (!!layerInstance && !!initialValue) {
+                    layerInstance.setProperties({ [exportVariantName]: exportVariantValue });
+                    // Explicit delay to allow Figma to update the layer size after changing the variant
+                    await delay(100);
+                    // Recursively generate GUI node data for each exported variant
+                    const { children: layerVariantChildren } = layer;
+                    for (const layerVariantChild of layerVariantChildren) {
+                      // Check if the child is exportable and not a slice   9 service layer
+                      if (isExportable(layerVariantChild) && !isSlice9ServiceLayer(layer)) {
+                        // Generate parent options for the child
+                        const parentOptions = await generateParentOptions(layerVariantChild, shouldSkip, shouldSkip && options.atRoot, options, guiNodeData);
+                        parentOptions.variantPrefix = exportVariantValue;
+                        // Recursively generate GUI node data for the child
+                        await generateGUINodeData(parentOptions, children, clones);
+                      }
+                    }
+                    layerInstance.setProperties({ [exportVariantName]: initialValue });
+                  }
+                }
+                if (children && children.length > 0) {
+                  // Remove duplicate children left after exporting variants
+                  const uniqueChildren = children.reduce((filteredChildren, child) => {
+                    if (!filteredChildren.find(uniqueChild => {
+                      return (
+                        (uniqueChild.exportable_layer_id === child.exportable_layer_id) ||
+                        (
+                          uniqueChild.exportable_layer_name === child.exportable_layer_name &&
+                          areVectorsEqual(uniqueChild.size, child.size) &&
+                          areVectorsEqual(uniqueChild.position, child.position) &&
+                          uniqueChild.texture === child.texture
+                        )
+                      )
+                    })) {
+                      filteredChildren.push(child);
+                    }
+                    return filteredChildren;
+                  }, [] as GUINodeData[]);
+                  children.splice(0, children.length, ...uniqueChildren);
                 }
               }
             }
           }
         }
-      } 
+      }
       // Process Figma text layers
       else if (isFigmaText(layer)) {
         // Convert Figma text layer into GUI node data and add to the array
@@ -462,51 +502,6 @@ function collapseGUINodeData(nodes: GUINodeData[], collapsedNodes: GUINodeData[]
   }
 }
 
-/**
- * Finds export variants and match them with their initial values and instances on which they are defined.
- * @param layer - The Figma layer to find export variants for.
- * @param exportVariants - Object to store export variants.
- */
-function findExportVariants(layer: ExportableLayer, exportVariants: GUINodeExportVariantsData) {
-  if (isFigmaBox(layer) && !isSlice9ServiceLayer(layer)) {
-    const guiNodeData = getPluginData(layer, "defoldGUINode");
-    if (isFigmaComponentInstance(layer) && guiNodeData?.export_variants) {
-      const variants = guiNodeData.export_variants.split(",");
-      if (variants && variants.length > 0) {
-        for (const exportVariant of variants) {
-          const [ variantName, variantValue ] = exportVariant.split("=").map(value => value.trim());
-          let initialValue;
-          let instance;
-          if (layer.variantProperties && !!layer.variantProperties[variantName]) {
-              instance = layer;
-              initialValue = layer.variantProperties[variantName];
-          } else {
-            const exposedInstance = layer.exposedInstances.find((instance) => instance.variantProperties && !!instance.variantProperties[variantName]);
-            if (exposedInstance && exposedInstance.variantProperties && exposedInstance.variantProperties[variantName]) {
-              instance = exposedInstance;
-              initialValue = exposedInstance.variantProperties[variantName];
-            }
-          }
-          if (instance && initialValue && !exportVariants[variantName]) {
-            exportVariants[variantName] = {
-              instance,
-              initialValue,
-              values: [initialValue]
-            }
-          }
-          exportVariants[variantName].values.push(variantValue);
-        }
-      }
-    }
-    if (hasChildren(layer)) {
-      for (const child of layer.children) {
-        if (isExportable(child)) {
-          findExportVariants(child, exportVariants);
-        }
-      }
-    }
-  }
-}
 
 /**
  * Generates GUI data for a given Figma layer, including GUI node data, textures, and fonts.
@@ -523,9 +518,7 @@ export async function generateGUIData(nodeExport: GUINodeExport): Promise<GUIDat
   const rootOptions = generateRootOptions(layer, asTemplate);
   const nodes: GUINodeData[] = [];
   const clones: GUINodeCloneData[] = [];
-  const exportVariants: GUINodeExportVariantsData = {};
-  findExportVariants(layer, exportVariants);
-  await generateGUINodeData(rootOptions, nodes, clones, exportVariants);
+  await generateGUINodeData(rootOptions, nodes, clones);
   const collapsedNodes: GUINodeData[] = [];
   collapseGUINodeData(nodes, collapsedNodes);
   const textures: TextureData = {};

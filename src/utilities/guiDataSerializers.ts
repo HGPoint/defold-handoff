@@ -25,6 +25,8 @@ const EXCLUDED_PROPERTY_KEYS = [
   "export_variants",
   "exclude",
   "exportable_layer",
+  "exportable_layer_id",
+  "exportable_layer_name",
   "figma_position",
   "children"
 ];

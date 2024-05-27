@@ -123,6 +123,8 @@ type GUINodeData = {
   export_variants: string,
   exclude: boolean,
   exportable_layer: ExportableLayer,
+  exportable_layer_name: string,
+  exportable_layer_id: string,
   figma_position: Vector4,
   children?: GUINodeData[],
 }

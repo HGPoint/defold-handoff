@@ -597,6 +597,8 @@ function resolveSpecialProperties(layer: ExportableLayer, id: string, data?: Plu
     wrapper_padding: data?.wrapper_padding || vector4(0),
     exclude: !!data?.exclude,
     exportable_layer: layer,
+    exportable_layer_id: layer.id,
+    exportable_layer_name: layer.name,
     export_variants: data?.export_variants || "",
   };
 }
