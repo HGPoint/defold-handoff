@@ -6,7 +6,8 @@
 import { generateAtlasDataSet } from "utilities/atlasDataGenerators";
 import { serializeAtlasDataSet } from "utilities/atlasDataSerializers";
 import { packSprites } from "utilities/atlas";
-// import { validateAtlases } from "utilities/validators";
+import { isFigmaComponentInstance, findMainComponent, isFigmaSceneNode, isAtlas } from "utilities/figma";
+import { validateAtlases } from "utilities/validators";
 import { setPluginData, isFigmaRemoved, isFigmaComponent, isFigmaComponentSet } from "utilities/figma";
 
 /**
@@ -160,11 +161,11 @@ export function addSprites(atlas: ComponentSetNode, layers: SceneNode[]) {
  * @returns An array of serialized atlas data.
  */
 export async function exportAtlases(atlases: ComponentSetNode[]): Promise<SerializedAtlasData[]> {
-  // if (validateAtlases(atlases)) {
+  if (validateAtlases(atlases)) {
     const atlasData = await generateAtlasDataSet(atlases);
     const serializedAtlasData = serializeAtlasDataSet(atlasData);
     return serializedAtlasData;
-  // }
+  }
   return Promise.reject("Error exporting atlases");
 }
 
@@ -268,4 +269,27 @@ export function tryRestoreAtlas(layer: SceneNode) {
  */
 export function tryRestoreAtlases(layers: SceneNode[]) {
   layers.forEach(tryRestoreAtlas);
+}
+
+
+/**
+ * Tries to extract a sprite image from an atlas component.
+ * @param layer - The layer to try extracting an image from.
+ * @returns The extracted image as a Uint8Array or null if extraction failed.
+ */
+export async function tryExtractImage(layer: SceneNode): Promise<Uint8Array | null> {
+  if (isFigmaComponentInstance(layer)) {
+    const mainComponent = await findMainComponent(layer);
+    if (mainComponent) {
+      const { parent } = mainComponent;
+      if (isFigmaSceneNode(parent) && isAtlas(parent)) {
+        const { visible } = layer;
+        layer.visible = true;
+        const image = await layer.exportAsync({ format: "PNG" });
+        layer.visible = visible;
+        return image;
+      }
+    }
+  }
+  return null;
 }

@@ -8,8 +8,8 @@ import { isGUINodeSelected, reducePluginSelection, convertPluginUISelection, red
 import { isSlice9Layer, tryRefreshSlice9Sprite  } from "utilities/slice9";
 import { isTemplateGUINode } from "utilities/gui";
 import { initializeProject, projectConfig, updateProject } from "handoff/project";
-import { updateGUINode, tryRestoreSlice9Node, copyGUINode, exportGUINodes, removeGUINodes, fixTextNode, fixGUINodes, matchGUINodes, resizeScreenNodes, copyGUINodeScheme, tryExtractImage, } from "handoff/gui";
-import { createAtlas, addSprites, fixAtlases, sortAtlases, fitAtlases, exportAtlases, destroyAtlases, tryRestoreAtlases } from "handoff/atlas";
+import { updateGUINode, tryRestoreSlice9Node, copyGUINode, exportGUINodes, removeGUINodes, fixTextNode, fixGUINodes, matchGUINodes, resizeScreenNodes, copyGUINodeScheme } from "handoff/gui";
+import { createAtlas, addSprites, fixAtlases, sortAtlases, fitAtlases, exportAtlases, destroyAtlases, tryRestoreAtlases, tryExtractImage } from "handoff/atlas";
 import { updateSection, removeSections } from "handoff/section";
 import { exportBundle } from "handoff/bundle";
 
@@ -108,6 +108,7 @@ function onResetGUINodes() {
 
 function onFixGUINodes() {
   fixGUINodes(selection.gui);
+  updateSelection();
   figma.notify("GUI nodes fixed");
 }
 
@@ -162,7 +163,7 @@ function onFitAtlases() {
 function onExportAtlases() {
   const atlases = reduceAtlases(selection);
   exportAtlases(atlases)
-  .then(onAtlasesExported);
+    .then(onAtlasesExported);
 }
 
 function onAtlasesExported(atlases: SerializedAtlasData[]) {
@@ -196,12 +197,14 @@ function onShowGUINodeData() {
 function onFixTextNode() {
   const { gui: [ layer ] } = selection;
   fixTextNode(layer);
+  figma.notify("Text node fixed");
 }
 
 function onRestoreSlice9Node() {
   const { gui: [ layer ] } = selection;
   tryRestoreSlice9Node(layer);
   updateSelection();
+  figma.notify("Slice 9 restored");
 }
 
 function onUpdateSection(data: PluginSectionData) {

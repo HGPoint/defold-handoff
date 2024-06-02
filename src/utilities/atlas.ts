@@ -3,6 +3,7 @@
  * @packageDocumentation
  */
 
+import config from "config/config.json";
 import { isFigmaSceneNode, isFigmaSection, getPluginData } from "utilities/figma";
 
 /**
@@ -68,11 +69,11 @@ export function packSprites(atlas: ComponentSetNode) {
     }
     if (maxWidth + width > atlas.width) {
       maxWidth = 0;
-      maxHeight += currentRowHeight + 10; // TODO: Add gap config instead of hardcoded value.
+      maxHeight += currentRowHeight + config.atlasSpritePadding;
       currentRowHeight = height;
     }
     sprite.x = maxWidth;
     sprite.y = maxHeight;
-    maxWidth += width + 10; // TODO: Add gap config instead of hardcoded value.
+    maxWidth += width + config.atlasSpritePadding;
   });
 }

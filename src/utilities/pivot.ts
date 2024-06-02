@@ -6,7 +6,7 @@
 
 import { projectConfig } from "handoff/project";
 import { isFigmaSection, isFigmaPage } from "utilities/figma";
-import { vector4, addVectors } from "utilities/math";
+import { vector4, addVectors, calculateCenter } from "utilities/math";
 
 /**
  * Checks if the pivot is located to the north.
@@ -69,95 +69,90 @@ export function calculatePivotedPositionInParent(centeredPosition: Vector4, pare
 }
 
 /**
+ * Calculates the mandatory horizontal shift for the specific pivot point based on pivot points and parent sizes.
+ * @param width - The width of the layer.
+ * @param parentWidth - The width of the parent.
+ * @param pivot - The pivot point of the layer.
+ * @param parentPivot - The pivot point of the parent.
+ * @returns The pivoted horizontal shift.
+ */
+function calculatePivotedHorizontalShift(width: number, parentWidth: number, pivot: Pivot, parentPivot: Pivot) {
+  const halfWidth = width / 2;
+  if (isPivotEast(parentPivot)) {
+    if (isPivotEast(pivot)) {
+      return halfWidth;
+    } else if (isPivotWest(pivot)) {
+      return -halfWidth;
+    } else {
+      return 0;
+    }
+  } else if (isPivotWest(parentPivot)) {
+    if (isPivotEast(pivot)) {
+      return halfWidth;
+    } else if (isPivotWest(pivot)) {
+      return -halfWidth;
+    } else {
+      return 0;
+    }
+  } else {
+    if (isPivotEast(pivot)) {
+      return halfWidth;
+    } else if (isPivotWest(pivot)) {
+      return -halfWidth;
+    } else {
+      return 0;
+    }
+  }
+}
+
+/**
+ * Calculates the mandatory vertical shift for the specific pivot point based on pivot points and parent sizes.
+ * @param height - The height of the layer.
+ * @param parentHeight - The height of the parent.
+ * @param pivot - The pivot point of the layer.
+ * @param parentPivot - The pivot point of the parent.
+ * @returns The pivoted vertical shift.
+ */
+function calculatePivotedVerticalShift(height: number, parentHeight: number, pivot: Pivot, parentPivot: Pivot) {
+  const halfHeight = height / 2;
+  if (isPivotNorth(parentPivot)) {
+    if (isPivotNorth(pivot)) {
+      return halfHeight - parentHeight;
+    } else if (isPivotSouth(pivot)) {
+      return -parentHeight - halfHeight;
+    }
+    return -parentHeight;
+  } else if (isPivotSouth(parentPivot)) {
+    if (isPivotNorth(pivot)) {
+      return halfHeight + parentHeight;
+    } else if (isPivotSouth(pivot)) {
+      return parentHeight - halfHeight;
+    }
+    return parentHeight
+  } else {
+    if (isPivotNorth(pivot)) {
+      return halfHeight;
+    } else if (isPivotSouth(pivot)) {
+      return -halfHeight;
+    }
+    return 0;
+  }
+}
+
+/**
  * Calculates the mandatory shift for the specific pivot point based on pivot points and parent sizes.
  * @param pivot - The pivot point of the layer.
  * @param parentPivot - The pivot point of the parent.
  * @param size - The size of the layer.
  * @param parentSize - The size of the parent.
  * @returns The pivoted shift.
- * TODO: Refactor this function into a few smaller functions.
  */
 export function calculatePivotedShift(pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4) {
   const { x: width, y: height } = size;
-  const { y: parentHeight } = parentSize;
-  const halfWidth = width / 2;
-  const halfHeight = height / 2;
-  let shiftX;
-  let shiftY;
-  if (isPivotNorth(parentPivot)) {
-    if (isPivotNorth(pivot)) {
-      shiftY = halfHeight - parentHeight;
-    } else if (isPivotSouth(pivot)) {
-      shiftY = -parentHeight - halfHeight;
-    } else {
-      shiftY = -parentHeight;
-    }
-  } else if (isPivotSouth(parentPivot)) {
-    if (isPivotNorth(pivot)) {
-      shiftY = halfHeight + parentHeight;
-    } else if (isPivotSouth(pivot)) {
-      shiftY = parentHeight - halfHeight;
-    } else {
-      shiftY = parentHeight
-    }
-  } else {
-    if (isPivotNorth(pivot)) {
-      shiftY = halfHeight;
-    } else if (isPivotSouth(pivot)) {
-      shiftY = -halfHeight;
-    } else {
-      shiftY = 0;
-    }
-  }
-  if (isPivotEast(parentPivot)) {
-    if (isPivotEast(pivot)) {
-      shiftX = halfWidth;
-    } else if (isPivotWest(pivot)) {
-      shiftX = -halfWidth;
-    } else {
-      shiftX = 0;
-    }
-  } else if (isPivotWest(parentPivot)) {
-    if (isPivotEast(pivot)) {
-      shiftX = halfWidth;
-    } else if (isPivotWest(pivot)) {
-      shiftX = -halfWidth;
-    } else {
-      shiftX = 0;
-    }
-  } else {
-    if (isPivotEast(pivot)) {
-      shiftX = halfWidth;
-    } else if (isPivotWest(pivot)) {
-      shiftX = -halfWidth;
-    } else {
-      shiftX = 0;
-    }
-  }
+  const { x: parentWidth, y: parentHeight } = parentSize;
+  const shiftX = calculatePivotedHorizontalShift(width, parentWidth, pivot, parentPivot);
+  const shiftY = calculatePivotedVerticalShift(height, parentHeight, pivot, parentPivot);
   return vector4(shiftX, shiftY, 0, 1);
-}
-
-/**
- * Calculates the center of a rectangle rotated around a point.
- * @param x - The x coordinate of top-left corner.
- * @param y - The y coordinate of top-left corner.
- * @param width - The width of the rectangle.
- * @param height - The height of the rectangle.
- * @param degrees - The rotation in degrees.
- * @returns The center of the rectangle.
- * TODO: Move this function to math utilities.
- */
-function calculateCenter(x: number, y: number, width: number, height: number, degrees: number) {
-  const radians = degrees * Math.PI / 180;
-  const upperRightX = x + width * Math.cos(radians);
-  const upperRightY = y - width * Math.sin(radians);
-  const lowerLeftX = x + height * Math.sin(radians);
-  const lowerLeftY = y + height * Math.cos(radians);
-  const lowerRightX = upperRightX + height * Math.sin(radians);
-  const lowerRightY = upperRightY + height * Math.cos(radians);
-  const centerX = (x + lowerRightX + upperRightX + lowerLeftX) / 4;
-  const centerY = (y + lowerRightY + upperRightY + lowerLeftY) / 4;
-  return vector4(centerX, centerY, 0, 1);
 }
 
 /**

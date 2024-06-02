@@ -3,7 +3,6 @@
   * @packageDocumentation
  */
 
-
 import config from "config/config.json";
 import { projectConfig } from "handoff/project";
 import { findTexture } from "utilities/gui";
@@ -95,7 +94,6 @@ export function inferTextNode(layer: TextNode) {
   const id = pluginData?.id || layer.name;
   const type = pluginData?.type || "TYPE_TEXT";
   const guiLayer = inferLayer(context, pluginData);
-  const exportVariants = "";
   const data = {
     ...config.guiNodeDefaultValues,
     ...config.guiNodeDefaultSpecialValues,
@@ -106,7 +104,6 @@ export function inferTextNode(layer: TextNode) {
     visible,
     size_mode: sizeMode,
     font,
-    export_variants: exportVariants,
   };
   setPluginData(layer, { defoldGUINode: data });
   inferTextStrokeWeight(layer);
@@ -164,7 +161,6 @@ export async function inferGUINode(layer: BoxLayer) {
   const id = pluginData?.id || layer.name;
   const type = pluginData?.type || "TYPE_TEXT";
   const guiLayer = inferLayer(context, pluginData);
-  const exportVariants = "";
   const data = {
     ...config.guiNodeDefaultValues,
     ...config.guiNodeDefaultSpecialValues,
@@ -174,7 +170,6 @@ export async function inferGUINode(layer: BoxLayer) {
     layer: guiLayer,
     visible,
     size_mode: sizeMode,
-    export_variants: exportVariants,
   };
   setPluginData(layer, { defoldGUINode: data });
 }

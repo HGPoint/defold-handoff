@@ -100,3 +100,34 @@ export function copyVector(vector: Vector4): Vector4 {
 export function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
 }
+
+/**
+ * Formats a number to a readable format (rounds to 3 decimal places).
+ * @param value - The number to format.
+ * @returns The formatted number.
+ */
+export function readableNumber(number: number): number {
+  return Math.round(number * 1000) / 1000;
+}
+
+/**
+ * Calculates the center of a rectangle rotated around a point.
+ * @param x - The x coordinate of top-left corner.
+ * @param y - The y coordinate of top-left corner.
+ * @param width - The width of the rectangle.
+ * @param height - The height of the rectangle.
+ * @param degrees - The rotation in degrees.
+ * @returns The center of the rectangle.
+ */
+export function calculateCenter(x: number, y: number, width: number, height: number, degrees: number) {
+  const radians = degrees * Math.PI / 180;
+  const upperRightX = x + width * Math.cos(radians);
+  const upperRightY = y - width * Math.sin(radians);
+  const lowerLeftX = x + height * Math.sin(radians);
+  const lowerLeftY = y + height * Math.cos(radians);
+  const lowerRightX = upperRightX + height * Math.sin(radians);
+  const lowerRightY = upperRightY + height * Math.cos(radians);
+  const centerX = (x + lowerRightX + upperRightX + lowerLeftX) / 4;
+  const centerY = (y + lowerRightY + upperRightY + lowerLeftY) / 4;
+  return vector4(centerX, centerY, 0, 1);
+}

@@ -5,6 +5,7 @@
 
 import { isZeroVector, vector4 } from "utilities/math";
 import { getPluginData, removePluginData, isFigmaComponentInstance, isAtlasSprite, setPluginData, isFigmaFrame, isExportable } from "utilities/figma";
+import { getDefoldGUINodePluginData } from "utilities/gui";
 
 /**
  * Checks if a Figma layer has the specified plugin data indicating it is a slice9 layer.
@@ -574,4 +575,15 @@ export function parseSlice9Data(layer: SceneNode): Vector4 | null {
     }
   }
   return null;
+}
+
+/**
+ * Restores the slice9 data for a layer.
+ * @param layer - The layer to restore the slice9 node for.
+ * @param slice9 - The slice9 values.
+ */
+export function restoreSlice9Node(layer: SceneNode, slice9: Vector4) {
+  setPluginData(layer, { defoldSlice9: true });
+  const data = getDefoldGUINodePluginData(layer);
+  setPluginData(layer, { defoldGUINode: { ...data, slice9 } });
 }

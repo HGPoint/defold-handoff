@@ -4,6 +4,7 @@
  */
 
 import config from "config/config.json";
+import { readableNumber } from "utilities/math";
 
 /**
  * Checks if a value has a valid non-null and non-undefined value.
@@ -57,6 +58,9 @@ function isVector4Property<T>(value: T[keyof T]): value is T[keyof T] & Vector4 
  * @returns The serialized property string.
  */
 function serializeSimpleProperty<T>(property: keyof T, value: number | boolean | string): string {
+  if (typeof value === "number") {
+    return `${property.toString()}: ${readableNumber(value)}`;
+  }
   return `${property.toString()}: ${value}`;
 }
 
@@ -77,7 +81,7 @@ function serializeQuotedProperty<T>(property: keyof T, value: string): string {
  * @returns The serialized property string.
  */
 function serializeVector4Property<T>(property: keyof T, value: Vector4): string {
-  return `${property.toString()} {\nx: ${value.x}\ny: ${value.y}\nz: ${value.z}\nw: ${value.w}\n}`;
+  return `${property.toString()} {\nx: ${readableNumber(value.x)}\ny: ${readableNumber(value.y)}\nz: ${readableNumber(value.z)}\nw: ${readableNumber(value.w)}\n}`;
 }
 
 /**

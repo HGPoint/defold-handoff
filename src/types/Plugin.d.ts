@@ -54,18 +54,21 @@ type PluginGUINodeData = {
   clipping_inverted: boolean,
   font?: string,
 
+  exclude: boolean,
   screen: boolean,
   skip: boolean,
-  cloneable: boolean,
   fixed: boolean,
+  cloneable: boolean,
+  export_variants: string,
   path: string,
   template: boolean,
   template_path: string,
   template_name: string,
+  script: boolean,
+  script_path: string,
+  script_name: string,
   wrapper: boolean,
   wrapper_padding: Vector4,
-  export_variants: string,
-  exclude: boolean,
 }
 
 type PluginData = {

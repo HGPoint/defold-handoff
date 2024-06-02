@@ -513,9 +513,9 @@ export async function generateGUIData(nodeExport: GUINodeExport): Promise<GUIDat
   const { layer, asTemplate } = nodeExport;
   tryRestoreSlice9Data(layer);
   const { name } = layer;
-  const gui = convertGUIData();
   const rootData = getPluginData(layer, "defoldGUINode");
   const rootOptions = generateRootOptions(layer, asTemplate);
+  const gui = convertGUIData(rootData);
   const nodes: GUINodeData[] = [];
   const clones: GUINodeCloneData[] = [];
   await generateGUINodeData(rootOptions, nodes, clones);

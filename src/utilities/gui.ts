@@ -90,36 +90,26 @@ export function getDefoldGUINodePluginData(layer: SceneNode) {
 /**
  * Resizes the parent frame to fit the given dimensions and shifts it by the given amount.
  * @param parent - The parent frame to resize.
- * @param width - The width of the child node to fit the parent to.
- * @param height - The height of the child node to fit the parent to.
- * @param shiftX - The amount to shift the parent to compensate for the child's position on the X axis.
- * @param shiftY - The amount to shift the parent to compensate for the child's position on the Y axis.
+ * @param layer - The layer to fit the parent to.
  */
-export function fitParent(parent: FrameNode, width: number, height: number, shiftX: number, shiftY: number) {
+export function fitParent(parent: FrameNode, layer: ExportableLayer) {
+  const { width, height, x, y } = layer; 
   parent.resizeWithoutConstraints(width, height);
-  parent.x += shiftX;
-  parent.y += shiftY;
+  parent.x += x;
+  parent.y += y;
 }
 
 /**
  * Fits the children of the given frame node by shifting them by the given amount.
- * @param layer - The frame node to fit the children of.
- * @param shiftX - The amount to shift the children to compensate for the parent's shift on the X axis.
- * @param shiftY - The amount to shift the children to compensate for the parent's shift on the Y axis.
+ * @param parent - The frame node to fit the children of.
+ * @param layer - The layer to fit the children to.
  */
-export function fitChildren(layer: FrameNode, shiftX: number, shiftY: number) {
-  for (const parentChild of layer.children) {
+export function fitChildren(parent: FrameNode, layer: ExportableLayer) {
+  const { x, y } = layer;
+  for (const parentChild of parent.children) {
     if (isExportable(parentChild)) {
-      if (parentChild.constraints.horizontal === "STRETCH" || parentChild.constraints.horizontal === "MIN") {
-        parentChild.x -= shiftX;
-      } else if (parentChild.constraints.horizontal === "MAX") {
-        parentChild.x += shiftX;
-      }
-      if (parentChild.constraints.vertical === "STRETCH" || parentChild.constraints.vertical === "MIN") {
-        parentChild.y -= shiftY;
-      } else if (parentChild.constraints.vertical === "MAX") {
-        parentChild.y += shiftY;
-      }
+      parentChild.x -= x;
+      parentChild.y -= y;
     }
   }
 }

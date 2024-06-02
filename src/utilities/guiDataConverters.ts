@@ -4,6 +4,7 @@
  */
 
 import config from "config/config.json";
+import { generateScriptPath } from "utilities/path";
 import { findTexture } from "utilities/gui";
 import { isFigmaText, hasSolidFills, hasSolidStrokes, isSolidPaint, isShadowEffect, getPluginData } from "utilities/figma";
 import { isSlice9Layer, findPlaceholderLayer, parseSlice9Data } from "utilities/slice9";
@@ -160,8 +161,8 @@ function convertBoxSize(layer: ExportableLayer) {
  */
 function convertTextSize(layer: TextLayer, scale: Vector4) {
   const { width, height } = layer;
-  const scaledWidth = width / scale.x;
-  const scaledHeight = height / scale.y;
+  const scaledWidth = Math.ceil(width / scale.x);
+  const scaledHeight = Math.ceil(height / scale.y);
   return vector4(scaledWidth, scaledHeight, 0, 1);
 }
 
@@ -310,10 +311,17 @@ function resolveBaseColor() {
 }
 
 /**
+ * Resolves the base fill color.
+ * @returns The resolved base fill color.
+ */
+function resolveBaseFill() {
+  return vector4(1, 1, 1, 0);
+}
+
+/**
  * Resolve the fill color for a layer.
  * @param fills - The array of paint fills applied to the layer.
  * @returns The resolved fill color vector.
- * TODO: Write a separate function for resolving a transparent fill color (use instead of resolveBaseOutline)
  */
 function resolveFillColor(fills: readonly Paint[] | typeof figma.mixed) {
   if (Array.isArray(fills)) {
@@ -322,7 +330,7 @@ function resolveFillColor(fills: readonly Paint[] | typeof figma.mixed) {
       return calculateColorValue(fill);
     }
   }
-  return resolveBaseOutline();
+  return resolveBaseFill();
 }
 
 /**
@@ -591,8 +599,11 @@ function resolveSpecialProperties(layer: ExportableLayer, id: string, data?: Plu
     fixed: !!data?.fixed,
     path: data?.path || config.guiNodeDefaultSpecialValues.path,
     template: !!data?.template,
-    template_path: data?.template_path || config.guiNodeDefaultSpecialValues.template_path,
-    template_name: data?.template_name || id,
+    template_path: data?.template && data?.template_path ? data.template_path : config.guiNodeDefaultSpecialValues.template_path,
+    template_name: data?.template && data?.template_name ? data.template_name : id,
+    script: !!data?.script,
+    script_path: data?.script && data?.script_path ? data.script_path : config.guiNodeDefaultSpecialValues.script_path,
+    script_name: data?.script && data?.script_name ? data.script_name : id,
     wrapper: !!data?.wrapper,
     wrapper_padding: data?.wrapper_padding || vector4(0),
     exclude: !!data?.exclude,
@@ -729,14 +740,28 @@ function injectGUIDefaults() {
 }
 
 /**
+ * Resolves the script path for a GUI component.
+ * @param data - Root GUI node data.
+ * @returns The resolved script path.
+ */
+function resolveScript(data: PluginGUINodeData | null | undefined) {
+  if (data?.script) {
+    return generateScriptPath(data.script_path, data.script_name);
+  }
+  return config.guiDefaultValues.script;
+}
+
+/**
  * Converts GUI component data.
  * @returns Converted GUI component data.
  */
-export function convertGUIData(): GUIComponentData {
+export function convertGUIData(rootData: PluginGUINodeData | null | undefined): GUIComponentData {
+  const script = resolveScript(rootData);
   const backgroundColor = resolveGUIBackgroundColor();
   const defaults = injectGUIDefaults();
   return {
     ...defaults,
+    script,
     background_color: backgroundColor,
   };
 }

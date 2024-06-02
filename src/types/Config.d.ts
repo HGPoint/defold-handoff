@@ -31,20 +31,24 @@ declare module "config/config.json" {
       template_node_child: boolean
     }
     guiNodeDefaultSpecialValues: {
+      exclude: boolean
       screen: boolean,
       skip: boolean,
       fixed: boolean,
       cloneable: boolean,
+      export_variants: string,
       path: string,
       template: boolean,
       template_path: string,
       template_name: string,
-      export_variants: string,
+      script: boolean,
+      script_path: string,
+      script_name: string,
       wrapper: boolean,
       wrapper_padding: Vector4,
-      exclude: boolean
     }
     atlasMaxSize: number,
+    atlasSpritePadding: number,
     atlasDefaultValues: {
       margin: number,
       extrude_borders: number,

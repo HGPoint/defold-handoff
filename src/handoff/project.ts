@@ -28,17 +28,27 @@ function updateScreenSize(screenSize?: Vector4) {
 }
 
 /**
+ * Updates a path configuration of the project.
+ * @param updatedPath - The updated path to apply.
+ * @param projectPath - The current project path.
+ * @param defaultPath - The default path to apply if the updated path is empty.
+ * @returns The updated path.
+ */
+function updatePath(updatedPath: string | undefined, projectPath: string, defaultPath: string) {
+  return updatedPath || updatedPath == "" ? updatedPath : projectPath || defaultPath;
+}
+
+/**
  * Updates the paths configuration of the project.
  * @param paths - The new paths configuration to apply.
- * TODO: If paths isn't in update, before settings in to the default value, check if it's already set in the projectConfig.
  */
 function updatePaths(paths?: Partial<ProjectPathData>) {
   if (paths) {
     projectConfig.paths.assetsPath = paths?.assetsPath || paths?.assetsPath == "" ? paths.assetsPath : config.paths.assetsPath;
-    projectConfig.paths.atlasAssetsPath = paths?.atlasAssetsPath || config.paths.atlasAssetsPath;
-    projectConfig.paths.imageAssetsPath = paths?.imageAssetsPath || config.paths.imageAssetsPath;
-    projectConfig.paths.fontAssetsPath = paths?.fontAssetsPath || config.paths.fontAssetsPath;
-    projectConfig.paths.spineAssetsPath = paths?.spineAssetsPath || config.paths.spineAssetsPath;
+    projectConfig.paths.atlasAssetsPath = updatePath(paths?.atlasAssetsPath, projectConfig.paths.atlasAssetsPath, config.paths.atlasAssetsPath);
+    projectConfig.paths.imageAssetsPath = updatePath(paths?.imageAssetsPath, projectConfig.paths.imageAssetsPath, config.paths.imageAssetsPath);
+    projectConfig.paths.fontAssetsPath = updatePath(paths?.fontAssetsPath, projectConfig.paths.fontAssetsPath, config.paths.fontAssetsPath);
+    projectConfig.paths.spineAssetsPath = updatePath(paths?.spineAssetsPath, projectConfig.paths.spineAssetsPath, config.paths.spineAssetsPath);
   }
 }
 

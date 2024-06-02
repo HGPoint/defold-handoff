@@ -76,7 +76,7 @@
     <Properties title="Special Properties" collapseKey="guiNodeSpecialPropertiesCollapsed">
       <ToggleProperty label="Don't Export" bind:value={guiNode.exclude} />
       <ToggleProperty label="On Screen" bind:value={guiNode.screen} disabled={guiNode.exclude} />
-      <TextProperty label="Add to Export" bind:value={guiNode.export_variants} disabled={guiNode.exclude}>
+      <TextProperty label="Bundle Variants" bind:value={guiNode.export_variants} disabled={guiNode.exclude}>
         <PropertyTip>
           Comma separated pairs of component's properties (including from nested instances) and their values to add to the export. For example <code>Status=Multiple,Status=Disabled</code>
         </PropertyTip>
@@ -85,12 +85,17 @@
       <ToggleProperty label="Don't Collapse" bind:value={guiNode.fixed} disabled={guiNode.exclude} />
       <ToggleProperty label="Extract" bind:value={guiNode.cloneable} disabled={guiNode.exclude} />
       <ToggleProperty label="Template" bind:value={guiNode.template} disabled={guiNode.exclude} />
-      {#if !guiNode.template && !guiNode.exclude}
-        <TextProperty label="Path" bind:value={guiNode.path} />
-      {/if}
       {#if guiNode.template && !guiNode.exclude}
         <TextProperty label="Template Name" bind:value={guiNode.template_name} />
         <TextProperty label="Template Path" bind:value={guiNode.template_path} />
+      {/if}
+      <ToggleProperty label="Script" bind:value={guiNode.script} disabled={guiNode.exclude} />
+      {#if guiNode.script && !guiNode.exclude}
+        <TextProperty label="Script Name" bind:value={guiNode.script_name} />
+        <TextProperty label="Script Path" bind:value={guiNode.script_path} />
+      {/if}
+      {#if !guiNode.template && !guiNode.exclude}
+        <TextProperty label="Path" bind:value={guiNode.path} />
       {/if}
       <ToggleProperty label="Wrapper" bind:value={guiNode.wrapper} disabled={true || guiNode.exclude} />
       {#if guiNode.wrapper && !guiNode.exclude}

@@ -72,6 +72,17 @@ export function generateTemplatePath(templatePath: string, templateName: string)
 }
 
 /**
+ * Generates the script path within the specified script directory for the specified script name.
+ * @param scriptPath - The path of the script directory.
+ * @param scriptName - The name of the script.
+ * @returns The script path.
+ */
+export function generateScriptPath(scriptPath: string, scriptName: string): string {
+  const fileName = generateScriptFileName(scriptName);
+  return `${scriptPath}/${fileName}`;
+}
+
+/**
  * Generates path to the GUI file with the specified GUI node name if a file path is provided.
  * @param name - The name of the GUI node.
  * @param filePath - The file path.
@@ -83,6 +94,19 @@ export function generateGUIPath(name: string, filePath?: string): string {
     return `${filePath}/${fileName}`;
   }
   return fileName;
+}
+
+/**
+ * Generates the .gui_script or .lua file name with the specified script name.
+ * @param scriptName - The name of the script.
+ * @param lua - Whether the script is just a Lua script.
+ * @returns The script file name.
+ */
+export function generateScriptFileName(scriptName: string, lua = false): string {
+  if (lua) {
+    return `${scriptName}.lua`;
+  }
+  return `${scriptName}.gui_script`;
 }
 
 /**
