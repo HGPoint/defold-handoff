@@ -12,6 +12,7 @@ import { convertGUIData, convertBoxGUINodeData, convertTextGUINodeData } from "u
 import { isSlice9PlaceholderLayer, findOriginalLayer, isSlice9Layer, isSlice9ServiceLayer, parseSlice9Data } from "utilities/slice9";
 import { generateContextData } from "utilities/context";
 import { generateAtlasPath, generateFontPath } from "utilities/path";
+import { inferGUINode, inferTextNode } from "utilities/inference";
 import { delay } from "utilities/delay";
 
 /**
@@ -194,6 +195,7 @@ async function generateGUINodeData(options: GUINodeDataExportOptions, guiNodesDa
       // Process Figma box layers that are not slice 9 service layers
       if (isFigmaBox(layer) && !isSlice9ServiceLayer(layer)) {
         let alreadyCloned = false;
+        await tryInferNode(layer);
         // Convert Figma box layer into GUI node data
         const guiNodeData = await convertBoxGUINodeData(layer, options);
         // Check if the layer shouldn't be excluded from export
@@ -305,8 +307,9 @@ async function generateGUINodeData(options: GUINodeDataExportOptions, guiNodesDa
       }
       // Process Figma text layers
       else if (isFigmaText(layer)) {
+        await tryInferNode(layer);
         // Convert Figma text layer into GUI node data and add to the array
-        const guiNodeData = await convertTextGUINodeData(layer, options);
+        const guiNodeData = convertTextGUINodeData(layer, options);
         // Check if the layer shouldn't be excluded from export
         if (!guiNodeData.exclude) {
           guiNodesData.push(guiNodeData);
@@ -449,6 +452,17 @@ async function tryRestoreSlice9Data(layer: ExportableLayer) {
   }
 }
 
+async function tryInferNode(layer: ExportableLayer) {
+  const pluginData = getPluginData(layer, "defoldGUINode");
+  if (!pluginData) {
+    if (isFigmaBox(layer)) {
+      await inferGUINode(layer);
+    } else if (isFigmaText(layer)) {
+      inferTextNode(layer);
+    }
+  }
+}
+
 /**
  * Checks if a child node can be collapsed into its parent based on certain criteria.
  * @param parent - The parent GUI node.
@@ -512,6 +526,7 @@ function collapseGUINodeData(nodes: GUINodeData[], collapsedNodes: GUINodeData[]
 export async function generateGUIData(nodeExport: GUINodeExport): Promise<GUIData> {
   const { layer, asTemplate } = nodeExport;
   tryRestoreSlice9Data(layer);
+  tryInferNode(layer);
   const { name } = layer;
   const rootData = getPluginData(layer, "defoldGUINode");
   const rootOptions = generateRootOptions(layer, asTemplate);
