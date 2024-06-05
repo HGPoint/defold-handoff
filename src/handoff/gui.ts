@@ -7,7 +7,7 @@ import { generateGUIDataSet, generateGUIData } from "utilities/guiDataGenerators
 import { serializeGUIData, serializeGUIDataSet } from "utilities/guiDataSerializers";
 import { fitParent, fitChildren } from "utilities/gui";
 import { isFigmaText, getPluginData, setPluginData, removePluginData, tryUpdateLayerName, isFigmaComponentInstance, isFigmaFrame } from "utilities/figma";
-import { restoreSlice9Node, tryRefreshSlice9Placeholder, isSlice9PlaceholderLayer, findOriginalLayer, parseSlice9Data } from "utilities/slice9";
+import { restoreSlice9Node, tryRefreshSlice9Placeholder, isSlice9PlaceholderLayer, findOriginalLayer, parseSlice9Data, isSlice9Layer, findPlaceholderLayer } from "utilities/slice9";
 import { tryRefreshScalePlaceholder } from "utilities/scale";
 import { extractScheme } from "utilities/scheme";
 import { inferTextNode, inferGUINodes } from "utilities/inference";
@@ -17,10 +17,14 @@ import { projectConfig } from "handoff/project";
  * Tries to restore slice 9 data for a given Figma layer.
  * @param layer - The layer to try restoring slice 9 data for.
  */
-export function tryRestoreSlice9Node(layer: SceneNode) {
-  const slice9 = parseSlice9Data(layer);
-  if (slice9) {
-    restoreSlice9Node(layer, slice9);
+export async function tryRestoreSlice9Node(layer: SceneNode) {
+  const originalLayer = isSlice9PlaceholderLayer(layer) ? findOriginalLayer(layer) : layer;
+  if (originalLayer) {
+    const slice9 = parseSlice9Data(originalLayer);
+    if (slice9) {
+      restoreSlice9Node(originalLayer, slice9);
+      await tryRefreshSlice9Placeholder(originalLayer, slice9);
+    }
   }
 }
 
@@ -88,10 +92,15 @@ export function fixGUINodes(layers: SceneNode[]) {
  */
 export function matchGUINodes(layer: ExportableLayer) {
   if (isFigmaFrame(layer) || isFigmaComponentInstance(layer)) {
-    const { parent } = layer;
-    if (parent && isFigmaFrame(parent)) {
-      fitParent(parent, layer);
-      fitChildren(parent, layer)
+    const realLayer = isSlice9Layer(layer) ? findPlaceholderLayer(layer) : layer;
+    if (realLayer) {
+      const { parent } = realLayer;
+      if (parent && isFigmaFrame(parent)) {
+        fitParent(parent, realLayer);
+        if (!isSlice9PlaceholderLayer(realLayer)) {
+          fitChildren(parent, realLayer)
+        }
+      }
     }
   }
 }

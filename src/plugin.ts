@@ -202,9 +202,13 @@ function onFixTextNode() {
 
 function onRestoreSlice9Node() {
   const { gui: [ layer ] } = selection;
-  tryRestoreSlice9Node(layer);
+  tryRestoreSlice9Node(layer)
+    .then(OnSlice9NodeRestored);
+}
+
+function OnSlice9NodeRestored() {
   updateSelection();
-  figma.notify("Slice 9 restored");
+  figma.notify("Slice 9 fixed");
 }
 
 function onUpdateSection(data: PluginSectionData) {

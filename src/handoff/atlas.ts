@@ -17,8 +17,7 @@ import { setPluginData, isFigmaRemoved, isFigmaComponent, isFigmaComponentSet } 
 function fitSpriteComponent(sprite: ComponentNode) {
   const bounds = sprite.absoluteRenderBounds;
   if (bounds !== null) {
-    const prevWidth = sprite.width;
-    const prevHeight = sprite.height;
+    const { width: prevWidth, height: prevHeight } = sprite;
     sprite.resizeWithoutConstraints(bounds.width, bounds.height)
     const changeWidth = sprite.width - prevWidth;
     const changeHeight = sprite.height - prevHeight;
