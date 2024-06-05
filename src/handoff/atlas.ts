@@ -15,15 +15,17 @@ import { setPluginData, isFigmaRemoved, isFigmaComponent, isFigmaComponentSet } 
  * @param sprite - The sprite component to fit.
  */
 function fitSpriteComponent(sprite: ComponentNode) {
-  const bounds = sprite.absoluteRenderBounds;
-  if (bounds !== null) {
-    const { width: prevWidth, height: prevHeight } = sprite;
-    sprite.resizeWithoutConstraints(bounds.width, bounds.height)
-    const changeWidth = sprite.width - prevWidth;
-    const changeHeight = sprite.height - prevHeight;
+  const renderBounds = sprite.absoluteRenderBounds;
+  const boxBounds = sprite.absoluteBoundingBox;
+  if (renderBounds !== null && boxBounds !== null) {
+    const { x: prevX, y: prevY } = boxBounds;
+    const { width: newWidth, height: newHeight, x: newX, y: newY } = renderBounds;
+    const changePositionX = Math.floor((newX - prevX));
+    const changePositionY = Math.floor((newY - prevY));
+    sprite.resizeWithoutConstraints(newWidth, newHeight)
     sprite.children.forEach(child => {
-      child.x += changeWidth / 2;
-      child.y += changeHeight / 2;
+      child.x -= changePositionX;
+      child.y -= changePositionY;
     });
   }
 }
