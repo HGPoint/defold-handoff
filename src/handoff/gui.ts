@@ -5,7 +5,7 @@
 
 import { generateGUIDataSet, generateGUIData } from "utilities/guiDataGenerators";
 import { serializeGUIData, serializeGUIDataSet } from "utilities/guiDataSerializers";
-import { fitParent, fitChildren } from "utilities/gui";
+import { fitParent, fitChildren, shouldUpdateGUINode } from "utilities/gui";
 import { isFigmaText, getPluginData, setPluginData, removePluginData, tryUpdateLayerName, isFigmaComponentInstance, isFigmaFrame } from "utilities/figma";
 import { restoreSlice9Node, tryRefreshSlice9Placeholder, isSlice9PlaceholderLayer, findOriginalLayer, parseSlice9Data, isSlice9Layer, findPlaceholderLayer } from "utilities/slice9";
 import { tryRefreshScalePlaceholder } from "utilities/scale";
@@ -37,11 +37,14 @@ export function updateGUINode(layer: SceneNode, data: PluginGUINodeData) {
   const originalLayer = isSlice9PlaceholderLayer(layer) ? findOriginalLayer(layer) : layer;
   if (originalLayer) {
     const pluginData = getPluginData(originalLayer, "defoldGUINode");
-    const guiNodeData = pluginData ? { defoldGUINode: { ...pluginData, ...data } } : { defoldGUINode: data };
-    setPluginData(originalLayer, guiNodeData);
-    tryUpdateLayerName(originalLayer, data.id);
-    tryRefreshSlice9Placeholder(originalLayer, data.slice9)
-    tryRefreshScalePlaceholder(layer, data.scale);
+    const updatedPluginData: PluginGUINodeData = { ...pluginData, ...data };
+    if (shouldUpdateGUINode(pluginData, updatedPluginData)) {
+      const guiNodeData = { defoldGUINode: { ...pluginData, ...data } };
+      setPluginData(originalLayer, guiNodeData);
+      tryUpdateLayerName(originalLayer, data.id);
+      tryRefreshSlice9Placeholder(originalLayer, data.slice9, pluginData?.slice9)
+      tryRefreshScalePlaceholder(layer, data.scale, pluginData?.scale);
+    }
   }
 }
 

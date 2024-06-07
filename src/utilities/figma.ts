@@ -227,12 +227,40 @@ export function hasFont(fontName: FontName | typeof figma.mixed): fontName is Fo
 }
 
 /**
+ * Checks a particular property has changed.  
+ * @param change - The document change to check.
+ * @param property - The property to check.
+ * @returns True if the property has changed, otherwise false
+ */
+function hasPropertyChange(change: PropertyChange, property: NodeChangePropertyExtended) {
+  return change.properties.some(prop => prop === property);
+}
+
+/**
  * Checks if a variant property has changed.
- * @param event - The document change event to check.
+ * @param change - The document change to check.
  * @returns True if the variant property has changed, otherwise false.
  */
-export function hasVariantPropertyChanged(event: DocumentChangeEvent) {
-  return event.documentChanges.some(change => change.type === "PROPERTY_CHANGE" && change.properties.some(property => (property as NodeChangePropertyExtended) === "variant"))
+export function hasVariantPropertyChanged(change: PropertyChange) {
+  return hasPropertyChange(change, "variant");
+}
+
+/**
+ * Checks if a name property has changed.
+ * @param change - The document change to check.
+ * @returns True if the name property has changed, otherwise false.
+ */
+export function hasNamePropertyChanged(change: PropertyChange) {
+  return hasPropertyChange(change, "name");
+}
+
+/**
+ * Checks if a particular document change is a property change.
+ * @param change - The document change to check.
+ * @returns True if the document change is a property change, otherwise false.
+ */
+export function isPropertyChange(change: DocumentChange): change is PropertyChange {
+  return change.type === "PROPERTY_CHANGE";
 }
 
 /**
@@ -355,3 +383,4 @@ export function equalExposedComponentProperties(exposedInstances1: InstanceNode[
   }
   return false;
 }
+ 

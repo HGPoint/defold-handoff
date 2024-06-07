@@ -3,9 +3,9 @@
  * @packageDocumentation
  */
 
-import { getPluginData, hasVariantPropertyChanged, isFigmaComponentInstance } from "utilities/figma";
-import { isGUINodeSelected, reducePluginSelection, convertPluginUISelection, reduceAtlases, reduceGUINodes } from "utilities/selection";  
-import { isSlice9Layer, tryRefreshSlice9Sprite  } from "utilities/slice9";
+import { getPluginData, hasVariantPropertyChanged, hasNamePropertyChanged, isFigmaComponentInstance, isPropertyChange } from "utilities/figma";
+import { reducePluginSelection, convertPluginUISelection, reduceAtlases, reduceGUINodes } from "utilities/selection";  
+import { isSlice9Layer, isSlice9PlaceholderLayer, tryRefreshSlice9Sprite, tryUpdateOriginalLayerName  } from "utilities/slice9";
 import { isTemplateGUINode } from "utilities/gui";
 import { initializeProject, projectConfig, updateProject } from "handoff/project";
 import { updateGUINode, tryRestoreSlice9Node, copyGUINode, exportGUINodes, removeGUINodes, fixTextNode, fixGUINodes, matchGUINodes, resizeScreenNodes, copyGUINodeScheme } from "handoff/gui";
@@ -303,25 +303,55 @@ function onPluginUIMessage(message: PluginMessage) {
   processPluginUIMessage(message);
 }
 
-function onSlice9VariantPropertyChange(layer: InstanceNode) {
-  tryRefreshSlice9Sprite(layer);
+/**
+ * Handler for when a name property changes on a node.
+ * @param node - The node with the name property change.
+ */
+function onNamePropertyChange(node: SceneNode) {
+  if (isSlice9PlaceholderLayer(node)) {
+    tryUpdateOriginalLayerName(node);
+  }
+  updateSelection();
 }
 
 /**
- * Processes a document change event.
- * @param event - The document change event.
+ * Handler for when a variant property changes on a node.
+ * @param node - The node with the variant property change.
  */
-function processDocumentChange(event: DocumentChangeEvent) {
-  if (isGUINodeSelected(selection)) {
-    const { gui: [layer] } = selection;
-    if (isSlice9Layer(layer) && isFigmaComponentInstance(layer) && hasVariantPropertyChanged(event)) {
-      onSlice9VariantPropertyChange(layer);
+function onVariantPropertyChange(node: SceneNode) {
+  if (isSlice9Layer(node) && isFigmaComponentInstance(node)) {
+    tryRefreshSlice9Sprite(node);
+  }
+}
+
+/**
+ * Processes a single document change.
+ * @param change - The document change.
+ */
+function processDocumentChange(change: DocumentChange) {
+  if (isPropertyChange(change)) {
+    const { node } = change;
+    if (!node?.removed) {
+      if (hasNamePropertyChanged(change)) {
+        onNamePropertyChange(node);
+      }
+      if (hasVariantPropertyChanged(change)) {
+        onVariantPropertyChange(node);
+      }
     }
   }
 }
 
+/**
+ * Processes changes to the document.
+ * @param event - The document change event.
+ */
+function processDocumentChanges(event: DocumentChangeEvent) {
+  event.documentChanges.forEach(processDocumentChange);
+}
+
 function onDocumentChange(event: DocumentChangeEvent) {
-  processDocumentChange(event);
+  processDocumentChanges(event);
 }
 
 /**

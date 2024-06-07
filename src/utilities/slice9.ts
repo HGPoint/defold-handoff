@@ -3,7 +3,7 @@
  * @module ScalePlaceholderUtils
  */
 
-import { isZeroVector, vector4 } from "utilities/math";
+import { isZeroVector, areVectorsEqual, vector4 } from "utilities/math";
 import { getPluginData, removePluginData, isFigmaComponentInstance, isAtlasSprite, setPluginData, isFigmaFrame, isExportable } from "utilities/figma";
 import { getDefoldGUINodePluginData } from "utilities/gui";
 
@@ -498,9 +498,10 @@ export async function updateSlice9Placeholder(layer: InstanceNode, slice9: Vecto
  * Attempts to refresh the slice9 placeholder.
  * @param layer - The layer for which to refresh the slice9 placeholder.
  * @param slice9 - The slice9 data.
+ * @param oldSlice9 - The old slice9 data.
  */
-export async function tryRefreshSlice9Placeholder(layer: SceneNode, slice9: Vector4 | undefined) {
-  if (slice9) {
+export async function tryRefreshSlice9Placeholder(layer: SceneNode, slice9?: Vector4, oldSlice9?: Vector4) {
+  if (slice9 && (!oldSlice9 || !areVectorsEqual(oldSlice9, slice9))) {
     if (isSlice9Layer(layer) && isFigmaComponentInstance(layer)) {
       if (isZeroVector(slice9)) {
         removeSlice9Placeholder(layer);
@@ -586,4 +587,17 @@ export function restoreSlice9Node(layer: SceneNode, slice9: Vector4) {
   setPluginData(layer, { defoldSlice9: true });
   const data = getDefoldGUINodePluginData(layer);
   setPluginData(layer, { defoldGUINode: { ...data, slice9 } });
+}
+
+/**
+ * Attempts to update the original layer name based on the placeholder layer name.
+ * @param placeholderLayer - The placeholder layer.
+ */
+export function tryUpdateOriginalLayerName(placeholderLayer: FrameNode) {
+  const originalLayer = findOriginalLayer(placeholderLayer);
+  if (originalLayer) {
+    const { name } = placeholderLayer;
+    const newName = name.replace("-slice9Placeholder", "");
+    originalLayer.name = newName;
+  }
 }

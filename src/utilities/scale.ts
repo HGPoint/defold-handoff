@@ -4,7 +4,7 @@
  */
 
 import { getPluginData } from "utilities/figma";
-import { isOneScaleVector } from "utilities/math";
+import { areVectorsEqual, isOneScaleVector } from "utilities/math";
 
 /**
  * Checks if a Figma layer has the specified plugin data indicating it has scale transformation.
@@ -92,9 +92,10 @@ async function createScalePlaceholder(layer: SceneNode, scale: Vector4) {
  * Tries to refresh the scale placeholder based on the provided scale values.
  * @param layer - The layer to be checked and possibly refreshed.
  * @param scale - The new scale values.
+ * @param oldScale - The old scale values.
  */
-export function tryRefreshScalePlaceholder(layer: SceneNode, scale?: Vector4) {
-  if (scale) {
+export function tryRefreshScalePlaceholder(layer: SceneNode, scale?: Vector4, oldScale?: Vector4) {
+  if (scale && (!oldScale || !areVectorsEqual(scale, oldScale))) {
     if (isScaleLayer(layer)) {
       if (isOneScaleVector(scale)) {
         removeScalePlaceholder(layer);

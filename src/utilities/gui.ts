@@ -113,3 +113,16 @@ export function fitChildren(parent: FrameNode, layer: ExportableLayer) {
     }
   }
 }
+
+/**
+ * Checks if the updated plugin data is different from the current plugin data.
+ * @param pluginData - The current plugin data.
+ * @param updatedPluginData - The updated plugin data.
+ * @returns True if the plugin data should be updated, otherwise false.
+ */
+export function shouldUpdateGUINode(pluginData: PluginGUINodeData | null | undefined, updatedPluginData: PluginGUINodeData) {
+  if (!pluginData) {
+    return true;
+  }
+  return JSON.stringify(pluginData) !== JSON.stringify(updatedPluginData);
+}
