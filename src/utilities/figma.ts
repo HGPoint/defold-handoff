@@ -103,12 +103,12 @@ export function isFigmaText(layer: BaseNode): layer is TextNode {
 }
 
 /**
- * Checks if a layer is a (Defold) box node (either a frame or a component instance).
+ * Checks if a layer is a (Defold) box node (either a frame, a component instance or a component).
  * @param layer - The Figma layer to check.
  * @returns True if the layer is a Figma box node, otherwise false.
  */
-export function isFigmaBox(layer: BaseNode): layer is (FrameNode | InstanceNode) {
-  return isFigmaFrame(layer) || isFigmaComponentInstance(layer);
+export function isFigmaBox(layer: BaseNode): layer is (FrameNode | InstanceNode | ComponentNode) {
+  return isFigmaFrame(layer) || isFigmaComponentInstance(layer) || isFigmaComponent(layer);
 }
 
 /**
@@ -383,4 +383,3 @@ export function equalExposedComponentProperties(exposedInstances1: InstanceNode[
   }
   return false;
 }
- 

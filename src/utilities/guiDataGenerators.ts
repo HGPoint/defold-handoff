@@ -16,16 +16,6 @@ import { inferGUINode, inferTextNode } from "utilities/inference";
 import { delay } from "utilities/delay";
 
 /**
- * Checks if a layer is skippable based on export settings and type.
- * @param layer - The Figma layer to check.
- * @param gUINodeData - GUI node data of the layer.
- * @returns True if the layer is skippable, otherwise false.
- */
-async function isSkippable(layer: ExportableLayer, gUINodeData: GUINodeData): Promise<boolean> {
-  return gUINodeData.skip || layer.name.startsWith(projectConfig.autoskip) || isSlice9PlaceholderLayer(layer) || await isSpriteHolderLayer(layer);
-}
-
-/**
  * Checks if a layer is a sprite holder (layer is an instance of an atlas component set).
  * @param layer - The Figma layer to check.
  * @returns True if the layer is a sprite holder, otherwise false.
@@ -188,131 +178,230 @@ function findClone(data: GUINodeCloneData, mainComponent: ComponentNode, layer: 
  * @param options - Export options for the GUI node.
  * @param guiNodesData - Array to collect GUI node data.
  * @param clones - Array to collect clones.
- * TODO: Refactor this function to make it more readable and maintainable. Also document it properly.
- * TODO: When exporting bundled variants, base layer needs to be exported again with new variant properties.   
  */
-async function generateGUINodeData(options: GUINodeDataExportOptions, guiNodesData?: GUINodeData[], clones?: ReturnType<typeof createClone>[]) {
-  // Check if GUI node data array is provided
+async function generateGUINodeData(options: GUINodeDataExportOptions, guiNodesData: GUINodeData[], clones?: GUINodeCloneData[]) {
   if (guiNodesData) {
-    // Retrieve the Figma layer from export options
     const { layer } = options;
-    // Check if the layer is visible or a slice 9 layer
-    if (layer.visible || isSlice9Layer(layer)) {
-      // Process Figma box layers that are not slice 9 service layers
-      if (isFigmaBox(layer) && !isSlice9ServiceLayer(layer)) {
-        let alreadyCloned = false;
-        await tryInferNode(layer);
-        // Convert Figma box layer into GUI node data
-        const guiNodeData = await convertBoxGUINodeData(layer, options);
-        // Check if the layer shouldn't be excluded from export
-        if (!guiNodeData.exclude) {
-          // Check if the layer is cloneable and a Figma component instance
-          if (guiNodeData.cloneable && isFigmaComponentInstance(layer)) {
-            // Find the main component of the instance
-            const mainComponent = await findMainComponent(layer);
-            // Check if the layer has already been cloned
-            if (mainComponent) {
-              if (clones?.find((clone) => findClone(clone, mainComponent, layer))) {
-                alreadyCloned = true;
-              } else {
-                if (!clones) {
-                  clones = [];
-                }
-                // Create clone data and add it to the clones array
-                const clone = createClone(mainComponent, layer);
-                clones.push(clone);
-              }
-            }
-          }
-          // If not already cloned, proceed with processing the layer
-          if (!alreadyCloned) {
-            // Check if the layer should be skipped based on export settings
-            const shouldSkip = await isSkippable(layer, guiNodeData);
-            // If not skipped, add GUI node data to the array
-            if (!shouldSkip) {
-              guiNodesData.push(guiNodeData);
-            }
-            // Process children if the layer has any, and it's not a template, or at the root level and not a sprite holder
-            if (hasChildren(layer) && (!guiNodeData.template || (options.atRoot && options.asTemplate)) && !await isAtlasSprite(layer)) {
-              const { children: layerChildren } = layer;
-              // If not skipped, initialize children array in GUI node data
-              if (!shouldSkip) {
-                guiNodeData.children = [];
-              }
-              // Determine the array to collect children GUI node data based on skip status
-              const children = !shouldSkip ? guiNodeData.children : guiNodesData;
-              // Process each child recursively
-              for (const layerChild of layerChildren) {
-                // Check if the child is exportable and not a slice   9 service layer
-                if (isExportable(layerChild) && !isSlice9ServiceLayer(layer)) {
-                  // Generate parent options for the child
-                  const parentOptions = await generateParentOptions(layerChild, shouldSkip, shouldSkip && options.atRoot, options, guiNodeData);
-                  // Recursively generate GUI node data for the child
-                  await generateGUINodeData(parentOptions, children, clones);
-                }
-              }
-              if (isFigmaComponentInstance(layer) && guiNodeData.export_variants) {
-                const exportVariants = guiNodeData.export_variants.split(",");
-                for (const exportVariant of exportVariants) {
-                  let layerInstance: InstanceNode | undefined = undefined;
-                  let initialValue: string | undefined = undefined;
-                  const [exportVariantName, exportVariantValue] = exportVariant.split("=").map(value => value.trim());
-                  if (layer.variantProperties && !!layer.variantProperties[exportVariantName]) {
-                    layerInstance = layer;
-                    initialValue = layer.variantProperties[exportVariantName];
-                  } else {
-                    const exposedInstance = layer.exposedInstances.find((instance) => instance.variantProperties && !!instance.variantProperties[exportVariantName]);
-                    if (exposedInstance && exposedInstance.variantProperties && !!exposedInstance.variantProperties[exportVariantName]) {
-                      layerInstance = exposedInstance;
-                      initialValue = exposedInstance.variantProperties[exportVariantName];
-                    }
-                  }
-                  if (!!layerInstance && !!initialValue) {
-                    layerInstance.setProperties({ [exportVariantName]: exportVariantValue });
-                    // Explicit delay to allow Figma to update the layer size after changing the variant
-                    await delay(100);
-                    // Recursively generate GUI node data for each exported variant
-                    const { children: layerVariantChildren } = layer;
-                    for (const layerVariantChild of layerVariantChildren) {
-                      // Check if the child is exportable and not a slice   9 service layer
-                      if (isExportable(layerVariantChild) && !isSlice9ServiceLayer(layer)) {
-                        // Generate parent options for the child
-                        const parentOptions = await generateParentOptions(layerVariantChild, shouldSkip, shouldSkip && options.atRoot, options, guiNodeData);
-                        parentOptions.variantPrefix = exportVariantValue;
-                        // Recursively generate GUI node data for the child
-                        await generateGUINodeData(parentOptions, children, clones);
-                      }
-                    }
-                    layerInstance.setProperties({ [exportVariantName]: initialValue });
-                  }
-                }
-                if (children && children.length > 0) {
-                  // Remove duplicate children left after exporting variants
-                  const uniqueChildren = children.reduce((filteredChildren, child) => {
-                    if (!filteredChildren.find(uniqueChild => uniqueChild === child)) {
-                      filteredChildren.push(child);
-                    }
-                    return filteredChildren;
-                  }, [] as GUINodeData[]);
-                  children.splice(0, children.length, ...uniqueChildren);
-                }
-              }
-            }
-          }
-        }
+    if (canProcessGUIBoxNode(layer)) {
+      await generateGUIBoxNodeData(layer, options, guiNodesData, clones);
+    } else if (canProcessGUITextNode(layer)) {
+      await generateGUITextNodeData(layer, options, guiNodesData)
+    }
+  }
+}
+
+/**
+ * Checks if a layer can be processed as a GUI box node.
+ * @param layer - The Figma layer to check.
+ * @returns True if the layer can be processed as a GUI box node, otherwise false.
+ */
+function canProcessGUIBoxNode(layer: ExportableLayer): layer is FrameNode | ComponentNode | InstanceNode {
+  return isFigmaBox(layer) && !isSlice9ServiceLayer(layer) && (layer.visible || isSlice9Layer(layer))
+}
+
+/**
+ * Generates GUI node data for a box layer.
+ * @param layer - The Figma layer to generate GUI node data for.
+ * @param options - Export options for the GUI node.
+ * @param guiNodesData - Array to collect GUI node data.
+ * @param clones - Array to collect clones.
+ */
+async function generateGUIBoxNodeData(layer: BoxLayer, options: GUINodeDataExportOptions, guiNodesData: GUINodeData[], clones?: GUINodeCloneData[]) {
+  await tryInferNode(layer);
+  const guiNodeData = await convertBoxGUINodeData(layer, options);
+  if (!guiNodeData.exclude) {
+    const alreadyCloned = await isClonedLayer(layer, guiNodeData, clones);
+    if (!alreadyCloned) {
+      const shouldSkip = await isSkippableLayer(layer, guiNodeData);
+      if (!shouldSkip) {
+        guiNodesData.push(guiNodeData);
       }
-      // Process Figma text layers
-      else if (isFigmaText(layer)) {
-        await tryInferNode(layer);
-        // Convert Figma text layer into GUI node data and add to the array
-        const guiNodeData = convertTextGUINodeData(layer, options);
-        // Check if the layer shouldn't be excluded from export
-        if (!guiNodeData.exclude) {
-          guiNodesData.push(guiNodeData);
-        }
+      if (await shouldProcessGUINodeChildren(layer, guiNodeData, options)) {
+        await processGUIBoxNodeChildren(layer, guiNodeData, shouldSkip, options, guiNodesData, clones);
+      }
+      if (shouldProcessVariants(layer, guiNodeData, options)) {
+        await processGUIBoxNodeVariants(layer, guiNodeData, options, guiNodesData, shouldSkip, clones);
       }
     }
   }
+}
+
+/**
+ * Checks if a layer is skippable based on export settings and type.
+ * @param layer - The Figma layer to check.
+ * @param gUINodeData - GUI node data of the layer.
+ * @returns True if the layer is skippable, otherwise false.
+ */
+async function isSkippableLayer(layer: ExportableLayer, gUINodeData: GUINodeData): Promise<boolean> {
+  return (
+    gUINodeData.skip ||
+    layer.name.startsWith(projectConfig.autoskip) ||
+    isSlice9PlaceholderLayer(layer) ||
+    await isSpriteHolderLayer(layer)
+  );
+}
+
+/**
+ * Checks if a layer was already cloned.
+ * @param layer - The Figma layer to check.
+ * @returns True if the layer is an already cloned layer, otherwise false.
+ */
+async function isClonedLayer(layer: BoxLayer, guiNodeData: GUINodeData, clones?: GUINodeCloneData[]) {
+  if (guiNodeData.cloneable && isFigmaComponentInstance(layer)) {
+    const mainComponent = await findMainComponent(layer);
+    if (mainComponent) {
+      if (clones?.find((clone) => findClone(clone, mainComponent, layer))) {
+        return true;
+      } else {
+        if (!clones) {
+          clones = [];
+        }
+        const clone = createClone(mainComponent, layer);
+        clones.push(clone);
+      }
+    }
+  }
+  return false;
+}
+
+/**
+ * Checks if a layer has children that should be processed as GUI nodes.
+ * @param layer - The Figma layer to check.
+ * @returns True if the layer has children that should be processed, otherwise false.
+ */
+async function shouldProcessGUINodeChildren(layer: BoxLayer, guiNodeData: GUINodeData, options: GUINodeDataExportOptions) {
+  return hasChildren(layer) && (!guiNodeData.template || (options.atRoot && options.asTemplate)) && !await isAtlasSprite(layer)
+}
+
+/**
+ * Processes children of a GUI box node.
+ * @param layer - The Figma layer to process children for.
+ * @param guiNodeData - GUI node data of the layer.
+ * @param shouldSkip - Indicates if the layer should be skipped.
+ * @param options - Export options for the GUI node.
+ * @param guiNodesData - Array to collect GUI node data.
+ * @param clones - Array to collect clones.
+ */
+async function processGUIBoxNodeChildren(layer: BoxLayer, guiNodeData: GUINodeData, shouldSkip: boolean, options: GUINodeDataExportOptions, guiNodesData: GUINodeData[], clones?: GUINodeCloneData[]) {
+  const nodeChildren = !shouldSkip ? [] : guiNodesData;
+  const { children } = layer;
+  if (!shouldSkip) {
+    guiNodeData.children = nodeChildren;
+  }
+  for (const child of children) {
+    if (shouldProcessChildLayer(child)) {
+      const parentOptions = await generateParentOptions(child, shouldSkip, shouldSkip && options.atRoot, options, guiNodeData);
+      await generateGUINodeData(parentOptions, nodeChildren, clones);
+    }
+  }
+}
+
+/** 
+ * Checks if a child layer should be processed as a GUI node.
+ * @param layer - The Figma layer to check.
+ * @returns True if the layer should be processed as a GUI node, otherwise false.
+ */
+function shouldProcessChildLayer(layer: SceneNode): layer is ExportableLayer {
+  return isExportable(layer) && !isSlice9ServiceLayer(layer);
+}
+
+/**
+ * Checks if bundled variants for the layer should be processed.
+ * @param layer - The Figma layer to check.
+ * @param guiNodeData - GUI node data of the layer.
+ * @param options - Export options for the GUI node.
+ * @returns True if there are bundled variants that should be processed, otherwise false.
+ */
+function shouldProcessVariants(layer: SceneNode, guiNodeData: GUINodeData, options: GUINodeDataExportOptions): layer is InstanceNode {
+  return isFigmaComponentInstance(layer) && !options.variantPrefix && !!guiNodeData.export_variants
+}
+
+/**
+ * Processes bundled variants for a GUI box node.
+ * @param layer - The Figma layer to process variants for.
+ * @param guiNodeData - GUI node data of the layer.
+ * @param options - Export options for the GUI node.
+ * @param guiNodesData - Array to collect GUI node data.
+ * @param clones - Array to collect clones.
+ */
+async function processGUIBoxNodeVariants(layer: InstanceNode, guiNodeData: GUINodeData, options: GUINodeDataExportOptions, guiNodesData: GUINodeData[], shouldSkip: boolean, clones?: GUINodeCloneData[]) {
+  const exportVariants = resolveExportVariants(guiNodeData.export_variants);
+  for (const exportVariant of exportVariants) {
+    const [ exportVariantName, exportVariantValue ] = resolveExportVariantComponents(exportVariant);
+    const variantOptions = resolveVariantOptions(layer, exportVariantName);
+    if (variantOptions) {
+      const { variantLayer, variantInitialValue } = variantOptions;
+      variantLayer.setProperties({ [exportVariantName]: exportVariantValue });
+      await delay(100);
+      options.variantPrefix = exportVariantValue;
+      await generateGUINodeData(options, guiNodesData, clones);
+      variantLayer.setProperties({ [exportVariantName]: variantInitialValue });
+    }
+  }
+}
+
+/**
+ * Resolves export variants for a layer.
+ * @param exportVariants - The export variants to resolve.
+ * @returns Export variants.
+ */
+function resolveExportVariants(exportVariants: string) {
+  return exportVariants.split(",");
+}
+
+/**
+ * Resolves components of a bundled variant.
+ * @param exportVariant - The bundled variant to resolve.
+ * @returns Components of the bundled variant.
+ */ 
+function resolveExportVariantComponents(exportVariant: string) {
+  return exportVariant.split("=").map(value => value.trim());
+}
+
+/**
+ * Resolves variant options for a layer.
+ * @param layer - The Figma layer.
+ * @param exportVariantName - The name of the export variant.
+ * @returns Variant options - layer and initial variant value.
+ */
+function resolveVariantOptions(layer: InstanceNode, exportVariantName: string) {
+  if (layer.variantProperties && !!layer.variantProperties[exportVariantName]) {
+    return {
+      variantLayer: layer,
+      variantInitialValue: layer.variantProperties[exportVariantName]
+    }
+  }
+  const exposedInstance = layer.exposedInstances.find((instance) => instance.variantProperties && !!instance.variantProperties[exportVariantName]);
+  if (exposedInstance && exposedInstance.variantProperties && !!exposedInstance.variantProperties[exportVariantName]) {
+    return {
+      variantLayer: exposedInstance,
+      variantInitialValue: exposedInstance.variantProperties[exportVariantName]
+    }
+  }
+  return null
+}
+
+/**
+ * Generates GUI node data for a text layer.
+ * @param layer - The Figma layer to generate GUI node data for.
+ * @param options - Export options for the GUI node.
+ * @param guiNodesData - Array to collect GUI node data.
+ */
+async function generateGUITextNodeData(layer: TextNode, options: GUINodeDataExportOptions, guiNodesData: GUINodeData[]) {
+  await tryInferNode(layer);
+  const guiNodeData = convertTextGUINodeData(layer, options);
+  if (!guiNodeData.exclude) {
+    guiNodesData.push(guiNodeData);
+  }
+}
+
+/**
+ * Checks if a layer can be processed as a GUI text node.
+ * @param layer - The Figma layer to check.
+ * @returns True if the layer can be processed as a GUI text node, otherwise false.
+ */
+function canProcessGUITextNode(layer: TextNode): layer is TextNode {
+  return isFigmaText(layer) && layer.visible
 }
 
 /**
@@ -361,64 +450,78 @@ function updateTextureData(atlas: SceneNode, texturesData: TextureData) {
  * Generates texture data recursively for a given Figma layer and stores it in the provided texture data object.
  * @param layer - The Figma layer.
  * @param texturesData - Object to store texture data.
- * TODO: Refactor this function to make it more readable and maintainable. Also document it properly.
  */
-async function generateTexturesData(layer: SceneNode, texturesData: TextureData) {
+async function generateTexturesData(layer: SceneNode, texturesData: TextureData, skipVariants = false) {
   if (isFigmaBox(layer)) {
     if (isFigmaComponentInstance(layer)) {
-      const mainComponent = await findMainComponent(layer);
-      if (mainComponent) {
-        const { parent: atlas } = mainComponent;
-        if (isFigmaSceneNode(atlas) && isAtlas(atlas)) {
-          updateTextureData(atlas, texturesData);
-        }
-      }
+      await processTextureData(layer, texturesData);
     }
     if (hasChildren(layer)) {
-      for (const child of layer.children) {
-        await generateTexturesData(child, texturesData);
-      }
+      await processChildrenTextureData(layer, texturesData);
+    }
+    await tryProcessVariantsTextureData(layer, texturesData, skipVariants);
+  }
+}
+
+/**
+ * Processes texture data for a given layer.
+ * @param layer - The Figma layer to process texture data for.
+ * @param texturesData - Object to store texture data.
+ */
+async function processTextureData(layer: InstanceNode, texturesData: TextureData) {
+  const mainComponent = await findMainComponent(layer);
+  if (mainComponent) {
+    const { parent: atlas } = mainComponent;
+    if (isFigmaSceneNode(atlas) && isAtlas(atlas)) {
+      updateTextureData(atlas, texturesData);
     }
   }
+}
+
+/**
+ * Processes texture data for the children of a given layer.
+ * @param layer - The Figma layer to process texture data for its children.
+ * @param texturesData - Object to store texture data.
+ */
+async function processChildrenTextureData(layer: BoxLayer, texturesData: TextureData) {
+  for (const child of layer.children) {
+    await generateTexturesData(child, texturesData);
+  }
+}
+
+/**
+ * Tries to generate texture data for bundled variants of a given layer.
+ * @param layer - The Figma layer for whose bundled variants texture data should be generated.
+ * @param texturesData - Object to store texture data.
+ * @param skipVariants - Indicates if variants should be skipped. 
+ */
+async function tryProcessVariantsTextureData(layer: BoxLayer, texturesData: TextureData, skipVariants: boolean) {
   const pluginData = getPluginData(layer, "defoldGUINode");
-  if (isFigmaComponentInstance(layer) && pluginData?.export_variants) {
-    const exportVariants = pluginData.export_variants.split(",");
+  if (pluginData && shouldProcessVariantTextureData(layer, pluginData, skipVariants)) {
+    const exportVariants = resolveExportVariants(pluginData.export_variants);
     for (const exportVariant of exportVariants) {
-      let layerInstance: InstanceNode | undefined = undefined;
-      let initialValue: string | undefined = undefined;
-      const [exportVariantName, exportVariantValue] = exportVariant.split("=").map(value => value.trim());
-      if (layer.variantProperties && !!layer.variantProperties[exportVariantName]) {
-        layerInstance = layer;
-        initialValue = layer.variantProperties[exportVariantName];
-      } else {
-        const exposedInstance = layer.exposedInstances.find((instance) => instance.variantProperties && !!instance.variantProperties[exportVariantName]);
-        if (exposedInstance && exposedInstance.variantProperties && !!exposedInstance.variantProperties[exportVariantName]) {
-          layerInstance = exposedInstance;
-          initialValue = exposedInstance.variantProperties[exportVariantName];
-        }
-      }
-      if (!!layerInstance && !!initialValue) {
-        layerInstance.setProperties({ [exportVariantName]: exportVariantValue });
-        // Explicit delay to allow Figma to update the layer size after changing the variant
+      const [exportVariantName, exportVariantValue] = resolveExportVariantComponents(exportVariant);
+      const variantOptions = resolveVariantOptions(layer, exportVariantName);
+      if (variantOptions) {
+        const { variantLayer, variantInitialValue } = variantOptions;
+        variantLayer.setProperties({ [exportVariantName]: exportVariantValue });
         await delay(100);
-        if (isFigmaComponentInstance(layer)) {
-          const mainComponent = await findMainComponent(layer);
-          if (mainComponent) {
-            const { parent: atlas } = mainComponent;
-            if (isFigmaSceneNode(atlas) && isAtlas(atlas)) {
-              updateTextureData(atlas, texturesData);
-            }
-          }
-        }
-        if (hasChildren(layer)) {
-          for (const child of layer.children) {
-            await generateTexturesData(child, texturesData);
-          }
-        }
-        layerInstance.setProperties({ [exportVariantName]: initialValue });
+        await generateTexturesData(layer, texturesData, true);
+        variantLayer.setProperties({ [exportVariantName]: variantInitialValue });
       }
     }
   }
+}
+
+/**
+ * Checks if texture data should be processed for bundled variants of a given layer
+ * @param layer - The Figma layer to check.
+ * @param pluginData - Plugin data of the layer.
+ * @param skipVariants - Indicates if variants should be skipped.
+ * @returns True if texture data should be processed for bundled variants, otherwise false.
+ */
+function shouldProcessVariantTextureData(layer: BoxLayer, pluginData: PluginGUINodeData, skipVariants: boolean): layer is InstanceNode {
+  return isFigmaComponentInstance(layer) && !skipVariants && !!pluginData.export_variants;
 }
 
 /**
@@ -426,56 +529,76 @@ async function generateTexturesData(layer: SceneNode, texturesData: TextureData)
  * @async
  * @param layer - The Figma layer to generate font data for.
  * @param fontData - The object to store the generated font data.
- * * TODO: Refactor this function to make it more readable and maintainable. Also document it properly.
  */
-async function generateFontData(layer: SceneNode, fontData: FontData) {
+async function generateFontData(layer: SceneNode, fontData: FontData, skipVariants = false) {
   if (isFigmaBox(layer)) {
     if (hasChildren(layer)) {
-      for (const child of layer.children) {
-        await generateFontData(child, fontData);
-      }
+      processChildrenFontData(layer, fontData);
     }
-    const pluginData = getPluginData(layer, "defoldGUINode");
-    if (isFigmaComponentInstance(layer) && pluginData?.export_variants) {
-      const exportVariants = pluginData.export_variants.split(",");
-      for (const exportVariant of exportVariants) {
-        let layerInstance: InstanceNode | undefined = undefined;
-        let initialValue: string | undefined = undefined;
-        const [exportVariantName, exportVariantValue] = exportVariant.split("=").map(value => value.trim());
-        if (layer.variantProperties && !!layer.variantProperties[exportVariantName]) {
-          layerInstance = layer;
-          initialValue = layer.variantProperties[exportVariantName];
-        } else {
-          const exposedInstance = layer.exposedInstances.find((instance) => instance.variantProperties && !!instance.variantProperties[exportVariantName]);
-          if (exposedInstance && exposedInstance.variantProperties && !!exposedInstance.variantProperties[exportVariantName]) {
-            layerInstance = exposedInstance;
-            initialValue = exposedInstance.variantProperties[exportVariantName];
-          }
-        }
-        if (!!layerInstance && !!initialValue) {
-          layerInstance.setProperties({ [exportVariantName]: exportVariantValue });
-          // Explicit delay to allow Figma to update the layer size after changing the variant
-          await delay(100);
-          if (isFigmaBox(layer)) {
-            if (hasChildren(layer)) {
-              for (const child of layer.children) {
-                await generateFontData(child, fontData);
-              }
-            }
-          }
-          layerInstance.setProperties({ [exportVariantName]: initialValue });
-        }
+    await tryProcessVariantsFontData(layer, fontData, skipVariants);
+  }
+  if (isFigmaText(layer)) {
+    processFontData(fontData);
+    return;
+  }
+}
+
+/**
+ * Processes font data for the children of a given layer.
+ * @param layer - The Figma layer for whose children font data should be processed.
+ * @param fontData - The object to store the generated font data.
+ */
+async function processChildrenFontData(layer: BoxLayer, fontData: FontData) {
+  for (const child of layer.children) {
+    await generateFontData(child, fontData);
+  }
+}
+
+/**
+ * Tries to generate font data for bundled variants of a given layer.
+ * @param layer - The Figma layer for whose bundled variants font data should be generated.
+ * @param fontData - The object to store the generated font data.
+ * @param skipVariants - Indicates if variants should be skipped. 
+ */
+async function tryProcessVariantsFontData(layer: BoxLayer, fontData: FontData, skipVariants: boolean) {
+  const pluginData = getPluginData(layer, "defoldGUINode");
+  if (pluginData && shouldProcessVariantsFontData(layer, pluginData, skipVariants)) {
+    const exportVariants = resolveExportVariants(pluginData.export_variants);
+    for (const exportVariant of exportVariants) {
+      const [exportVariantName, exportVariantValue] = resolveExportVariantComponents(exportVariant);
+      const variantOptions = resolveVariantOptions(layer, exportVariantName);
+      if (variantOptions) {
+        const { variantLayer, variantInitialValue } = variantOptions;
+        variantLayer.setProperties({ [exportVariantName]: exportVariantValue });
+        await delay(100);
+        await generateFontData(layer, fontData, true);
+        variantLayer.setProperties({ [exportVariantName]: variantInitialValue });
       }
     }
   }
-  if (isFigmaText(layer)) {
-    for (const font of projectConfig.fontFamilies) {
-      const path = generateFontPath(font);
-      if (!fontData[font.name]) {
-        fontData[font.name] = path;
-      }
+}
+
+/**
+ * Checks if font data should be processed for bundled variants of a given layer.
+ * @param layer - The Figma layer to check.
+ * @param pluginData - Plugin data of the layer.
+ * @param skipVariants - Indicates if variants should be skipped.
+ * @returns True if font data should be processed for bundled variants, otherwise false.
+ */
+function shouldProcessVariantsFontData(layer: BoxLayer, pluginData: PluginGUINodeData, skipVariants: boolean): layer is InstanceNode {
+  return isFigmaComponentInstance(layer) && !skipVariants && !!pluginData.export_variants
+}
+
+/**
+ * Processes font data for a given layer.
+ * @param fontData - The object to store the generated font data.
+ */
+function processFontData(fontData: FontData) {
+  for (const font of projectConfig.fontFamilies) {
+    const path = generateFontPath(font);
+    if (!fontData[font.name]) {
+      fontData[font.name] = path;
     }
-    return;
   }
 }
 
@@ -588,7 +711,6 @@ function collapseGUINodeData(nodes: GUINodeData[], collapsedNodes: GUINodeData[]
     }
   }
 }
-
 
 /**
  * Generates GUI data for a given Figma layer, including GUI node data, textures, and fonts.
