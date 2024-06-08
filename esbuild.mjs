@@ -83,7 +83,6 @@ async function watchProjects() {
   try {
     const file = url.fileURLToPath(new URL('package.json', import.meta.url));
     const json = fs.readFileSync(file, 'utf8');
-
     const pluginContext = await context({
       ...figmaPluginConfig,
     });
@@ -103,8 +102,19 @@ async function watchProjects() {
 
 async function buildProjects() {
   try {
-    const pluginBuildConfig = { ...figmaPluginConfig, minifyWhitespace: true };
-    const uiBuildConfig = { ...uiConfig, minifyWhitespace: true };
+    const file = url.fileURLToPath(new URL('package.json', import.meta.url));
+    const json = fs.readFileSync(file, 'utf8');
+    const pluginBuildConfig = {
+      ...figmaPluginConfig,
+      minifyWhitespace: true
+    };
+    const uiBuildConfig = {
+      ...uiConfig,
+      minifyWhitespace: true,
+      define: {
+        PKG: json
+      }
+    };
     await build(pluginBuildConfig);
     await build(uiBuildConfig);
   } catch (error) {
