@@ -3,6 +3,7 @@
   import selectionState from "state/selection";
   import { postMessageToPlugin } from "utilities/pluginUI";
   import { isTextGUINodeType, isBoxGUINodeType } from "utilities/gui";
+    import { isZeroVector } from "utilities/math";
   import Page from "components/Page";
   import Properties from "components/Properties";
   import Actions from "components/Actions";
@@ -111,7 +112,7 @@
       {#if isTextGUINodeType(guiNode.type)}
         <ActionButton label="Fix Text" action="fixTextNode" />
       {/if}
-      {#if isBoxGUINodeType(guiNode.type)}
+      {#if isBoxGUINodeType(guiNode.type) && !isZeroVector(guiNode.slice9)}
         <ActionButton label="Refresh Slice 9" action="restoreSlice9Node" />
       {/if}
       <ActionButton label="Validate GUI" action="validateGUINodes" disabled={true} />

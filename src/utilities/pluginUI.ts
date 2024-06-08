@@ -1,9 +1,11 @@
+/* global PKG */
+
 /**
  * Utility moule for handling plugin UI.
  * @packageDocumentation
  */
 
-import { exportAtlases, copyComponent, exportGUI, exportResources, copyScheme } from "utilities/resources";
+import { exportAtlases, exportSprites, copyComponent, exportGUI, exportResources, copyScheme } from "utilities/resources";
 
 /**
  * Generates a random alphanumeric ID.
@@ -68,8 +70,12 @@ export function postMessageToPlugin(type: PluginMessageAction, data?: PluginMess
   parent.postMessage({ pluginMessage: { type, data } }, "*");
 }
 
-function onDefoldAtlasesExported(data: PluginMessagePayload) {
+function onAtlasesExported(data: PluginMessagePayload) {
   exportAtlases(data);
+}
+
+function onSpritesExported(data: PluginMessagePayload) {
+  exportSprites(data);
 }
 
 function onComponentsCopiedToDefold(data: PluginMessagePayload) {
@@ -95,7 +101,9 @@ function onGUINodeSchemeCopied(data: PluginMessagePayload) {
  */
 export function processPluginMessage(type: PluginMessageAction, data?: PluginMessagePayload) {
   if (type === "atlasesExported" && data) {
-    onDefoldAtlasesExported(data);
+    onAtlasesExported(data);
+  } else if (type === "spritesExported" && data) {
+    onSpritesExported(data);
   } else if (type === "guiNodesCopied" && data) {
     onComponentsCopiedToDefold(data);
   } else if (type === "guiNodesExported" && data) {
@@ -105,4 +113,9 @@ export function processPluginMessage(type: PluginMessageAction, data?: PluginMes
   } else if (type === "guiNodeSchemeCopied" && data) {
     onGUINodeSchemeCopied(data);
   }
+}
+
+export function resolveVersion() {
+  // @ts-expect-error: Undefined PKG variable.
+  return PKG.version;
 }

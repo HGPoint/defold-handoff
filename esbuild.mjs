@@ -1,6 +1,7 @@
-/* global console, process */
+/* global console, process, URL */
 
 import fs from "node:fs";
+import url from "node:url";
 import { build, context } from "esbuild";
 import esbuildSvelte from "esbuild-svelte"; 
 import sveltePreprocess from "svelte-preprocess";
@@ -80,11 +81,17 @@ const uiConfig = {
 
 async function watchProjects() {
   try {
+    const file = url.fileURLToPath(new URL('package.json', import.meta.url));
+    const json = fs.readFileSync(file, 'utf8');
+
     const pluginContext = await context({
       ...figmaPluginConfig,
     });
     const uiContext = await context({
       ...uiConfig,
+      define: {
+        PKG: json
+      }
     });
     await pluginContext.watch();
     await uiContext.watch()

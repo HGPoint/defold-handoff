@@ -80,3 +80,37 @@ export function archiveBundle({ gui, atlases }: BundleData, projectConfig: Parti
   }
   return zip.generateAsync({ type: "blob" })
 }
+
+/**
+ * Archives an individual sprite image into the provided folder within the zip archive.
+ * @param spriteData - The data of the sprite to be archived.
+ * @param folder - The folder where the sprite image is stored within the zip archive.
+ */
+function archiveSpriteImage({ name, data }: SerializedSpriteData, folder: JSZip) {
+  const spriteFileName = generateSpriteFileName(name);
+  const blob = new Blob([data], { type: "image/png" });
+  folder.file(spriteFileName, blob);
+}
+
+/**
+ * Archives a sprite atlas into the provided atlas folder within the zip archive.
+ * @param atlas - The atlas data containing the sprite image to be archived.
+ * @param zip - The zip archive to store the sprite image in.
+ */
+function archiveSpriteAtlas(atlas: SerializedAtlasData, zip: JSZip) {
+  const folder = zip.folder(atlas.name) || zip;
+  atlas.images.forEach((image) => { archiveSpriteImage(image, folder) });
+}
+
+/**
+ * Archives sprites into a zip archive.
+ * @param bundle - The bundle data containing sprites to be archived.
+ * @returns A Blob containing the zip archive.
+ */
+export function archiveSprites({ atlases }: BundleData) {
+  const zip = new JSZip();
+  if (atlases && atlases.length > 0) {
+    atlases.forEach((atlas) => { archiveSpriteAtlas(atlas, zip) })
+  }
+  return zip.generateAsync({ type: "blob" })
+}

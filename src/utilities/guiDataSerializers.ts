@@ -27,6 +27,7 @@ const EXCLUDED_PROPERTY_KEYS = [
   "script_name",
   "wrapper",
   "wrapper_padding",
+  "inferred",
   "exportable_layer",
   "exportable_layer_id",
   "exportable_layer_name",

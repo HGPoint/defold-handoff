@@ -36,6 +36,7 @@ declare module "config/config.json" {
       skip: boolean,
       fixed: boolean,
       cloneable: boolean,
+      inferred: boolean,
       export_variants: string,
       path: string,
       template: boolean,

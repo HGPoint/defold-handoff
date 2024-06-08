@@ -7,6 +7,7 @@ import { getPluginData, hasVariantPropertyChanged, hasNamePropertyChanged, isFig
 import { reducePluginSelection, convertPluginUISelection, reduceAtlases, reduceGUINodes } from "utilities/selection";  
 import { isSlice9Layer, isSlice9PlaceholderLayer, tryRefreshSlice9Sprite, tryUpdateOriginalLayerName  } from "utilities/slice9";
 import { isTemplateGUINode } from "utilities/gui";
+import { decipherError } from "utilities/error";
 import { initializeProject, projectConfig, updateProject } from "handoff/project";
 import { updateGUINode, tryRestoreSlice9Node, copyGUINode, exportGUINodes, removeGUINodes, fixTextNode, fixGUINodes, matchGUINodes, resizeScreenNodes, copyGUINodeScheme } from "handoff/gui";
 import { createAtlas, addSprites, fixAtlases, sortAtlases, fitAtlases, exportAtlases, destroyAtlases, tryRestoreAtlases, tryExtractImage } from "handoff/atlas";
@@ -62,24 +63,28 @@ function onCopyGUINode() {
   const { gui: [layer] } = selection;
   const nodeExport = { layer, asTemplate: isTemplateGUINode(layer) };
   copyGUINode(nodeExport)
-    .then(onGUINodeCopied);
+    .then(onGUINodeCopied)
+    .catch(processError);
 }
 
 function onGUINodeCopied(gui: SerializedGUIData) {
   const bundle = { gui: [gui] };
   postMessageToPluginUI("guiNodesCopied", { bundle })
+  updateSelection();
   figma.notify("GUI node copied");
 }
 
 function onExportGUINodes() {
   const nodes = reduceGUINodes(selection);
   exportGUINodes(nodes)
-    .then(onGUINodesExported);
+    .then(onGUINodesExported)
+    .catch(processError);
 }
 
 function onGUINodesExported(gui: SerializedGUIData[]) {
   const bundle = { gui };
   postMessageToPluginUI("guiNodesExported", { bundle, project: projectConfig })
+  updateSelection();
   figma.notify("GUI nodes exported");
 }
 
@@ -92,7 +97,8 @@ async function onCopyGUINodeScheme() {
   const { gui: [ layer ] } = selection;
   const nodeExport = { layer, asTemplate: isTemplateGUINode(layer) };
   copyGUINodeScheme(nodeExport)
-    .then(onGUINodeSchemeCopied);
+    .then(onGUINodeSchemeCopied)
+    .catch(processError);
   }
   
   function onGUINodeSchemeCopied(scheme: string) {
@@ -163,7 +169,8 @@ function onFitAtlases() {
 function onExportAtlases() {
   const atlases = reduceAtlases(selection);
   exportAtlases(atlases)
-    .then(onAtlasesExported);
+    .then(onAtlasesExported)
+    .catch(processError);
 }
 
 function onAtlasesExported(atlases: SerializedAtlasData[]) {
@@ -179,14 +186,29 @@ function onDestroyAtlases() {
   figma.notify("Atlases destroyed");
 }
 
+function onExportSprites(scale: number = 1) {
+  const atlases = reduceAtlases(selection);
+  exportAtlases(atlases, scale)
+    .then(onSpritesExported)
+    .catch(processError);
+}
+
+function onSpritesExported(atlases: SerializedAtlasData[]) {
+  const bundle = { atlases };
+  postMessageToPluginUI("spritesExported", { bundle, project: projectConfig });
+  figma.notify("Sprites exported");
+}
+
 function onExportBundle() {
   const nodes = reduceGUINodes(selection);
   exportBundle(nodes)
-    .then(onBundleExported);
+    .then(onBundleExported)
+    .catch(processError);
 }
 
 function onBundleExported(bundle: BundleData) {
   postMessageToPluginUI("bundleExported", { bundle, project: projectConfig });
+  updateSelection();
   figma.notify("Bundle exported");
 }
 
@@ -197,13 +219,15 @@ function onShowGUINodeData() {
 function onFixTextNode() {
   const { gui: [ layer ] } = selection;
   fixTextNode(layer);
+  updateSelection();
   figma.notify("Text node fixed");
 }
 
 function onRestoreSlice9Node() {
   const { gui: [ layer ] } = selection;
   tryRestoreSlice9Node(layer)
-    .then(OnSlice9NodeRestored);
+    .then(OnSlice9NodeRestored)
+    .catch(processError);
 }
 
 function OnSlice9NodeRestored() {
@@ -278,6 +302,8 @@ function processPluginUIMessage(message: PluginMessage) {
     onExportAtlases();
   } else if (type === "destroyAtlases") {
     onDestroyAtlases();
+  } else if (type === "exportSprites" && data?.option && typeof data.option === "number") {
+    onExportSprites(data.option);
   } else if (type === "exportBundle") {
     onExportBundle();
   } else if (type === "fixTextNode") {
@@ -299,8 +325,19 @@ function processPluginUIMessage(message: PluginMessage) {
   }
 }
 
+function processError(error: Error) {
+  const text = decipherError(error);
+  figma.notify(text);
+  console.error(error);
+  console.warn(text);
+}
+
 function onPluginUIMessage(message: PluginMessage) {
-  processPluginUIMessage(message);
+  try {
+    processPluginUIMessage(message);
+  } catch (error) {
+    processError(error as Error);
+  }
 }
 
 /**

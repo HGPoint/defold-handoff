@@ -122,6 +122,7 @@ type GUINodeData = {
   wrapper_padding: Vector4,
   export_variants: string,
   exclude: boolean,
+  inferred: boolean,
   exportable_layer: ExportableLayer,
   exportable_layer_name: string,
   exportable_layer_id: string,
@@ -206,4 +207,5 @@ type SerializedGUIData = {
 type BundleData = {
   gui?: SerializedGUIData[],
   atlases?: SerializedAtlasData[],
+  sprites?: SerializedSpriteData[],
 }

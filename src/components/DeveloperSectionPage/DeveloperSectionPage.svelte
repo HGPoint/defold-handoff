@@ -5,6 +5,7 @@
   import Properties from "components/Properties";
   import Actions from "components/Actions";
   import ActionButton from "components/ActionButton";
+  import ActionOptionButton from "components/ActionOptionButton";
   import ToggleProperty from "components/ToggleProperty";
   import TextProperty from "components/TextProperty";
   import TextSetProperty from "components/TextSetProperty";
@@ -53,6 +54,7 @@
     </Actions>
     <Actions collapseKey="sectionActionsCollapsed">
       <ActionButton label="Export Atlases" action="exportAtlases" />
+      <ActionOptionButton label="Export Sprites at Scale" value={1} action="exportSprites" />
       <ActionButton label="Destroy Atlases" action="destroyAtlases" />
     </Actions>
   </Page>

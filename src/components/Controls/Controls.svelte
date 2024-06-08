@@ -2,6 +2,8 @@
   import uiState from "state/ui"
   import { postMessageToPlugin } from "utilities/pluginUI"; 
 
+  export let version: string;
+  
   let title: string;
   let lastSentUpdate = $uiState.collapsed;
 
@@ -40,6 +42,9 @@
 </script>
 
 <div class="controls">
+  <span class="pluginVersion">
+    Defold Handoff v{version}
+  </span>
   <button
     class="controlToggle"
     on:click={onCollapseClick}>

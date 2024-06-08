@@ -87,7 +87,8 @@
     "export_variants": "",
     "wrapper": false,
     "wrapper_padding": null,
-    "exclude": false
+    "exclude": false,
+    "inferred": false
   },
   "atlasMaxSize": 2048,
   "atlasSpritePadding": 10,

@@ -24,11 +24,14 @@
   function recalculateValue() {
     const result = calculateResult();
     value = result;
+    refreshEditedValue(value);
   }
 
   function bumpValue(amount: number, shift: boolean) {
     const multiplier = shift ? 10 : 1;
-    value += amount * multiplier;
+    const newValue = value + amount * multiplier;
+    value = clamp(newValue, min, max);
+    refreshEditedValue(value);
   }
 
   function refreshEditedValue(updatedValue: number) {

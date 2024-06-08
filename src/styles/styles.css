@@ -56,6 +56,10 @@ button {
   min-width: 0;
 }
 
+.widgetActionOption button {
+  flex-grow: 1;
+}
+
 button:hover,
 button:active {
   outline: none;
@@ -163,7 +167,8 @@ select:hover:disabled {
 .widgetSlice9,
 .widgetTextSet
 .widgetTextSetItem,
-.widgetDimensions {
+.widgetDimensions,
+.widgetActionOption {
   display: flex;
   align-items: center;
 }
@@ -316,6 +321,12 @@ select:hover:disabled {
   background: #2c2f34;
 }
 
+.pluginVersion {
+  align-self: center;
+  margin: 0 auto 0 0;
+  font-size: 0.75rem;
+}
+
 .controlToggle {
   min-width: 75px;
   height: 2em;
@@ -404,6 +415,10 @@ select:hover:disabled {
 .slice9Editor .widgetInput:nth-child(5) {
   justify-self: center;
   grid-column: 2;
+}
+
+.widgetActionOption .widgetInput {
+  width: 5em;
 }
 
 .slice9borderTop::before,

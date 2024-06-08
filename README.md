@@ -44,6 +44,7 @@ With this plugin, you can easily manage GUI template designs and atlases, stream
 - `src/utilities/dataSerializers.ts` – Module for handling Defold property serialization.
 - `src/utilities/delay.ts` – Module for handling time delays.
 - `src/utilities/download.ts` – Module for handling file downloading.
+- `src/utilities/error.ts` – Module for handling errors and error messages. 
 - `src/utilities/evaluation.ts` – Module for evaluating expressions.
 - `src/utilities/figma.ts` – Module for handling the work with Figma layers and properties.
 - `src/utilities/font.ts` – Module for handling fonts.

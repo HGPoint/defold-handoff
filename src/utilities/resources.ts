@@ -4,7 +4,7 @@
  */
 
 import { generateGUIFileName, sanitizeGUIFileName } from "utilities/path";
-import { archiveBundle } from "utilities/archive";
+import { archiveBundle, archiveSprites } from "utilities/archive";
 import copyOnClipboard from "utilities/clipboard";
 import download from "utilities/download";
 
@@ -151,6 +151,31 @@ export async function exportAtlases({ bundle, project }: PluginMessagePayload) {
     if (project && isSerializedAtlasData(atlases)) {
       const fileName = generateAtlasesFileName(atlases);
       const blob = await archiveBundle(bundle, project);
+      download(blob, fileName);
+    }
+  }
+}
+
+/**
+ * Generates a filename for the exported sprites.
+ * @param atlases - The atlases data.
+ * @returns The filename for the exported sprites.
+ */
+function generateSpritesFileName(atlases: SerializedAtlasData[]) {
+  const fileName = atlases.length > 1 ? atlases.length : atlases[0].name;
+  return `${fileName}.sprites.zip`;
+}
+
+/**
+ * Exports sprites contained in the bundle data as a single zip file.
+ * @param bundle - The bundle data containing atlases.
+ */
+export async function exportSprites({ bundle }: PluginMessagePayload) {
+  if (isBundleData(bundle)) {
+    const { atlases } = bundle;
+    if (isSerializedAtlasData(atlases)) {
+      const fileName = generateSpritesFileName(atlases);
+      const blob = await archiveSprites(bundle);
       download(blob, fileName);
     }
   }

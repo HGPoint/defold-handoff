@@ -607,6 +607,7 @@ function resolveSpecialProperties(layer: ExportableLayer, id: string, data?: Plu
     wrapper: !!data?.wrapper,
     wrapper_padding: data?.wrapper_padding || vector4(0),
     exclude: !!data?.exclude,
+    inferred: !!data?.inferred,
     exportable_layer: layer,
     exportable_layer_id: layer.id,
     exportable_layer_name: layer.name,

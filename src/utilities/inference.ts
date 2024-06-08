@@ -82,28 +82,41 @@ export function inferLayer(context: PluginGUIContextData, pluginData?: PluginGUI
 }
 
 /**
- * Infers properties for a text node and sets plugin data.
- * @param layer - The text layer to infer properties for.
+ * Infers properties for a text node.
+ * @param layer - The text node to infer data for.
+ * @param pluginData - The plugin data for the text node.
+ * @returns The inferred text node data.
  */
-export function inferTextNode(layer: TextNode) {
+export function inferTextNodeData(layer: TextNode, pluginData?: PluginGUINodeData | null) {
   const context = generateContextData(layer);
   const sizeMode = inferTextSizeMode();
   const visible = inferTextVisible();
   const font = inferFont(layer);
-  const pluginData = getPluginData(layer, "defoldGUINode");
   const id = pluginData?.id || layer.name;
   const type = pluginData?.type || "TYPE_TEXT";
   const guiLayer = inferLayer(context, pluginData);
-  const data = {
-    ...config.guiNodeDefaultValues,
-    ...config.guiNodeDefaultSpecialValues,
-    ...pluginData,
+  return {
     id,
     type,
     layer: guiLayer,
     visible,
     size_mode: sizeMode,
     font,
+  };
+}
+
+/**
+ * Infers properties for a text node and sets plugin data.
+ * @param layer - The text layer to infer properties for.
+ */
+export function inferTextNode(layer: TextNode) {
+  const pluginData = getPluginData(layer, "defoldGUINode");
+  const inferredData = inferTextNodeData(layer, pluginData); 
+  const data = {
+    ...config.guiNodeDefaultValues,
+    ...config.guiNodeDefaultSpecialValues,
+    ...pluginData,
+    ...inferredData,
   };
   setPluginData(layer, { defoldGUINode: data });
   inferTextStrokeWeight(layer);
@@ -149,27 +162,43 @@ export async function inferBoxSizeMode(layer: BoxLayer, texture?: string): Promi
 }
 
 /**
- * Infers properties for a box node and sets plugin data.
- * @param layer - The box layer to infer properties for.
+ * Infers properties for a GUI node.
+ * @param layer - The GUI node layer to infer properties for.
+ * @param pluginData - The plugin data for the GUI node.
+ * @returns The inferred GUI node data.
  */
-export async function inferGUINode(layer: BoxLayer) {
+export async function inferGUINodeData(layer: BoxLayer, pluginData?: PluginGUINodeData | null) {
   const context = generateContextData(layer);
   const texture = await findTexture(layer);
   const sizeMode = await inferBoxSizeMode(layer, texture);
   const visible = inferBoxVisible(layer, texture);
-  const pluginData = getPluginData(layer, "defoldGUINode");
   const id = pluginData?.id || layer.name;
-  const type = pluginData?.type || "TYPE_TEXT";
+  const type = pluginData?.type || "TYPE_BOX";
   const guiLayer = inferLayer(context, pluginData);
   const data = {
-    ...config.guiNodeDefaultValues,
-    ...config.guiNodeDefaultSpecialValues,
-    ...pluginData,
     id,
     type,
     layer: guiLayer,
     visible,
     size_mode: sizeMode,
+    inferred: true,
+  };
+  return data;
+}
+
+/**
+ * Infers properties for a box node and sets plugin data.
+ * @param layer - The box layer to infer properties for.
+ */
+export async function inferGUINode(layer: BoxLayer) {
+  const pluginData = getPluginData(layer, "defoldGUINode");
+  const inferredData = await inferGUINodeData(layer, pluginData);
+  const data = {
+    ...config.guiNodeDefaultValues,
+    ...config.guiNodeDefaultSpecialValues,
+    ...pluginData,
+    ...inferredData,
+    inferred: true,
   };
   setPluginData(layer, { defoldGUINode: data });
 }

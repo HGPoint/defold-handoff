@@ -59,6 +59,7 @@ type PluginGUINodeData = {
   skip: boolean,
   fixed: boolean,
   cloneable: boolean,
+  inferred: boolean,
   export_variants: string,
   path: string,
   template: boolean,
@@ -107,6 +108,8 @@ type PluginMessageAction =
   "fitAtlases" |
   "validateAtlases" |
   "destroyAtlases" |
+  "exportSprites" |
+  "spritesExported" |
   "exportBundle" |
   "bundleExported" |
   "selectionChanged" |
@@ -130,6 +133,7 @@ type PluginMessagePayload = {
   section?: PluginSectionData,
   scheme?: string,
   project?: Partial<ProjectData>,
+  option?: number | string | boolean,
 }
 
 type PluginMessage = {

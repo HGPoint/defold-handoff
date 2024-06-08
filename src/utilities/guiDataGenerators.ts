@@ -38,7 +38,7 @@ async function isSpriteHolderLayer(layer: ExportableLayer): Promise<boolean> {
         const sameSize = layer.width === child.width && layer.height == child.height;        
         return sameSize && await isAtlasSprite(child);
       }
-      return true;
+      return await isAtlasSprite(child);
     }
   }
   return false;
@@ -118,10 +118,15 @@ function generateNamePrefix(shouldSkip: boolean, options: GUINodeDataExportOptio
  * @param layer - The Figma layer.
  * @returns Forced name if found, otherwise undefined.
  */
-async function generateForcedName(layer: ExportableLayer): Promise<string | undefined> {
+async function generateForcedName(layer: ExportableLayer, parentOptions: GUINodeDataExportOptions, parentGUINodeData: GUINodeData): Promise<string | undefined> {
   const { parent } = layer;
-  if (parent && isExportable(parent) && await isSpriteHolderLayer(parent)) {
-    return parent.name
+  if (parent) {
+    if (parentGUINodeData.skip && parentOptions.forcedName && isSlice9PlaceholderLayer(parent)) {
+      return parentOptions.forcedName;
+    }
+    if (isExportable(parent) && await isSpriteHolderLayer(parent)) {
+      return parent.name
+    }
   }
   return undefined;
 }
@@ -137,7 +142,7 @@ async function generateForcedName(layer: ExportableLayer): Promise<string | unde
  */
 async function generateParentOptions(layer: ExportableLayer, shouldSkip: boolean, atRoot: boolean, parentOptions: GUINodeDataExportOptions, parentGUINodeData: GUINodeData): Promise<GUINodeDataExportOptions> {
   const namePrefix = generateNamePrefix(shouldSkip, parentOptions);
-  const forcedName = await generateForcedName(layer);
+  const forcedName = await generateForcedName(layer, parentOptions, parentGUINodeData);
   const parentParameters = resolveParentParameters(shouldSkip, parentOptions, parentGUINodeData);
   return {
     layer,
@@ -184,6 +189,7 @@ function findClone(data: GUINodeCloneData, mainComponent: ComponentNode, layer: 
  * @param guiNodesData - Array to collect GUI node data.
  * @param clones - Array to collect clones.
  * TODO: Refactor this function to make it more readable and maintainable. Also document it properly.
+ * TODO: When exporting bundled variants, base layer needs to be exported again with new variant properties.   
  */
 async function generateGUINodeData(options: GUINodeDataExportOptions, guiNodesData?: GUINodeData[], clones?: ReturnType<typeof createClone>[]) {
   // Check if GUI node data array is provided
@@ -283,17 +289,7 @@ async function generateGUINodeData(options: GUINodeDataExportOptions, guiNodesDa
                 if (children && children.length > 0) {
                   // Remove duplicate children left after exporting variants
                   const uniqueChildren = children.reduce((filteredChildren, child) => {
-                    if (!filteredChildren.find(uniqueChild => {
-                      return (
-                        (uniqueChild.exportable_layer_id === child.exportable_layer_id) ||
-                        (
-                          uniqueChild.exportable_layer_name === child.exportable_layer_name &&
-                          areVectorsEqual(uniqueChild.size, child.size) &&
-                          areVectorsEqual(uniqueChild.position, child.position) &&
-                          uniqueChild.texture === child.texture
-                        )
-                      )
-                    })) {
+                    if (!filteredChildren.find(uniqueChild => uniqueChild === child)) {
                       filteredChildren.push(child);
                     }
                     return filteredChildren;
@@ -365,6 +361,7 @@ function updateTextureData(atlas: SceneNode, texturesData: TextureData) {
  * Generates texture data recursively for a given Figma layer and stores it in the provided texture data object.
  * @param layer - The Figma layer.
  * @param texturesData - Object to store texture data.
+ * TODO: Refactor this function to make it more readable and maintainable. Also document it properly.
  */
 async function generateTexturesData(layer: SceneNode, texturesData: TextureData) {
   if (isFigmaBox(layer)) {
@@ -383,6 +380,45 @@ async function generateTexturesData(layer: SceneNode, texturesData: TextureData)
       }
     }
   }
+  const pluginData = getPluginData(layer, "defoldGUINode");
+  if (isFigmaComponentInstance(layer) && pluginData?.export_variants) {
+    const exportVariants = pluginData.export_variants.split(",");
+    for (const exportVariant of exportVariants) {
+      let layerInstance: InstanceNode | undefined = undefined;
+      let initialValue: string | undefined = undefined;
+      const [exportVariantName, exportVariantValue] = exportVariant.split("=").map(value => value.trim());
+      if (layer.variantProperties && !!layer.variantProperties[exportVariantName]) {
+        layerInstance = layer;
+        initialValue = layer.variantProperties[exportVariantName];
+      } else {
+        const exposedInstance = layer.exposedInstances.find((instance) => instance.variantProperties && !!instance.variantProperties[exportVariantName]);
+        if (exposedInstance && exposedInstance.variantProperties && !!exposedInstance.variantProperties[exportVariantName]) {
+          layerInstance = exposedInstance;
+          initialValue = exposedInstance.variantProperties[exportVariantName];
+        }
+      }
+      if (!!layerInstance && !!initialValue) {
+        layerInstance.setProperties({ [exportVariantName]: exportVariantValue });
+        // Explicit delay to allow Figma to update the layer size after changing the variant
+        await delay(100);
+        if (isFigmaComponentInstance(layer)) {
+          const mainComponent = await findMainComponent(layer);
+          if (mainComponent) {
+            const { parent: atlas } = mainComponent;
+            if (isFigmaSceneNode(atlas) && isAtlas(atlas)) {
+              updateTextureData(atlas, texturesData);
+            }
+          }
+        }
+        if (hasChildren(layer)) {
+          for (const child of layer.children) {
+            await generateTexturesData(child, texturesData);
+          }
+        }
+        layerInstance.setProperties({ [exportVariantName]: initialValue });
+      }
+    }
+  }
 }
 
 /**
@@ -390,12 +426,45 @@ async function generateTexturesData(layer: SceneNode, texturesData: TextureData)
  * @async
  * @param layer - The Figma layer to generate font data for.
  * @param fontData - The object to store the generated font data.
+ * * TODO: Refactor this function to make it more readable and maintainable. Also document it properly.
  */
 async function generateFontData(layer: SceneNode, fontData: FontData) {
   if (isFigmaBox(layer)) {
     if (hasChildren(layer)) {
       for (const child of layer.children) {
         await generateFontData(child, fontData);
+      }
+    }
+    const pluginData = getPluginData(layer, "defoldGUINode");
+    if (isFigmaComponentInstance(layer) && pluginData?.export_variants) {
+      const exportVariants = pluginData.export_variants.split(",");
+      for (const exportVariant of exportVariants) {
+        let layerInstance: InstanceNode | undefined = undefined;
+        let initialValue: string | undefined = undefined;
+        const [exportVariantName, exportVariantValue] = exportVariant.split("=").map(value => value.trim());
+        if (layer.variantProperties && !!layer.variantProperties[exportVariantName]) {
+          layerInstance = layer;
+          initialValue = layer.variantProperties[exportVariantName];
+        } else {
+          const exposedInstance = layer.exposedInstances.find((instance) => instance.variantProperties && !!instance.variantProperties[exportVariantName]);
+          if (exposedInstance && exposedInstance.variantProperties && !!exposedInstance.variantProperties[exportVariantName]) {
+            layerInstance = exposedInstance;
+            initialValue = exposedInstance.variantProperties[exportVariantName];
+          }
+        }
+        if (!!layerInstance && !!initialValue) {
+          layerInstance.setProperties({ [exportVariantName]: exportVariantValue });
+          // Explicit delay to allow Figma to update the layer size after changing the variant
+          await delay(100);
+          if (isFigmaBox(layer)) {
+            if (hasChildren(layer)) {
+              for (const child of layer.children) {
+                await generateFontData(child, fontData);
+              }
+            }
+          }
+          layerInstance.setProperties({ [exportVariantName]: initialValue });
+        }
       }
     }
   }
@@ -452,9 +521,13 @@ async function tryRestoreSlice9Data(layer: ExportableLayer) {
   }
 }
 
+/**
+ * Tries to infer GUI node data for a given layer.
+ * @param layer - The Figma layer to try inferring GUI node data for.
+ */
 async function tryInferNode(layer: ExportableLayer) {
   const pluginData = getPluginData(layer, "defoldGUINode");
-  if (!pluginData) {
+  if (!pluginData?.inferred) {
     if (isFigmaBox(layer)) {
       await inferGUINode(layer);
     } else if (isFigmaText(layer)) {
@@ -526,7 +599,6 @@ function collapseGUINodeData(nodes: GUINodeData[], collapsedNodes: GUINodeData[]
 export async function generateGUIData(nodeExport: GUINodeExport): Promise<GUIData> {
   const { layer, asTemplate } = nodeExport;
   tryRestoreSlice9Data(layer);
-  tryInferNode(layer);
   const { name } = layer;
   const rootData = getPluginData(layer, "defoldGUINode");
   const rootOptions = generateRootOptions(layer, asTemplate);
