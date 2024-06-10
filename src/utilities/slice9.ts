@@ -83,12 +83,12 @@ function createSlice9PlaceholderFrame(layer: InstanceNode) {
   placeholder.name = `${layer.name}-slice9Placeholder`;
   placeholder.x = positionX;
   placeholder.y = positionY;
-  placeholder.resize(width, height);
+  placeholder.resizeWithoutConstraints(width, height);
   placeholder.constraints = { horizontal: "STRETCH", vertical: "STRETCH" };
   placeholder.fills = [];
-  placeholder.appendChild(layer);
-  placeholder.layoutPositioning = absolutePosition ? "ABSOLUTE" : "AUTO";
   parent?.insertChild(hierarchyPosition, placeholder);
+  placeholder.layoutPositioning = absolutePosition ? "ABSOLUTE" : "AUTO";
+  placeholder.appendChild(layer);
   layer.constraints = { horizontal: "MIN", vertical: "MIN" };
   return placeholder
 }
@@ -454,7 +454,7 @@ export async function createSlice9Placeholder(layer: InstanceNode, slice9: Vecto
   layer.visible = false;
   layer.locked = true;
   setPluginData(layer, { defoldSlice9: true });
-  selectNode([placeholder]);
+  selectNode([placeholder], true);
 }
 
 /**

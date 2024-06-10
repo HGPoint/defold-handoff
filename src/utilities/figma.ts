@@ -388,7 +388,9 @@ export function equalExposedComponentProperties(exposedInstances1: InstanceNode[
  * Selects the specified nodes in the Figma document.
  * @param nodes - The nodes to select.
  */
-export function selectNode(nodes: SceneNode[]) {
+export function selectNode(nodes: SceneNode[], dontFocus?: boolean) {
   figma.currentPage.selection = nodes;
-  figma.viewport.scrollAndZoomIntoView(nodes);
+  if (!dontFocus) {
+    figma.viewport.scrollAndZoomIntoView(nodes);
+  }
 }
