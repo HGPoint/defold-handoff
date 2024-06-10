@@ -3,6 +3,7 @@
  * @module ScalePlaceholderUtils
  */
 
+import { selectNode } from "utilities/figma";
 import { isZeroVector, areVectorsEqual, vector4 } from "utilities/math";
 import { getPluginData, removePluginData, isFigmaComponentInstance, isAtlasSprite, setPluginData, isFigmaFrame, isExportable } from "utilities/figma";
 import { getDefoldGUINodePluginData } from "utilities/gui";
@@ -72,6 +73,8 @@ export function findPlaceholderLayer(layer: ExportableLayer): FrameNode | null {
  */
 function createSlice9PlaceholderFrame(layer: InstanceNode) {
   const parent = layer.parent;
+  const hierarchyPosition = parent ? parent.children.indexOf(layer) : 0;
+  const absolutePosition = layer.layoutPositioning === "ABSOLUTE";
   const width = layer.width;
   const height = layer.height;
   const positionX = layer.x;
@@ -83,8 +86,9 @@ function createSlice9PlaceholderFrame(layer: InstanceNode) {
   placeholder.resize(width, height);
   placeholder.constraints = { horizontal: "STRETCH", vertical: "STRETCH" };
   placeholder.fills = [];
-  parent?.appendChild(placeholder);
   placeholder.appendChild(layer);
+  placeholder.layoutPositioning = absolutePosition ? "ABSOLUTE" : "AUTO";
+  parent?.insertChild(hierarchyPosition, placeholder);
   layer.constraints = { horizontal: "MIN", vertical: "MIN" };
   return placeholder
 }
@@ -450,6 +454,7 @@ export async function createSlice9Placeholder(layer: InstanceNode, slice9: Vecto
   layer.visible = false;
   layer.locked = true;
   setPluginData(layer, { defoldSlice9: true });
+  selectNode([placeholder]);
 }
 
 /**

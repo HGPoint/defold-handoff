@@ -3,7 +3,7 @@
  * @packageDocumentation
  */
 
-import { getPluginData, hasVariantPropertyChanged, hasNamePropertyChanged, isFigmaComponentInstance, isPropertyChange } from "utilities/figma";
+import { getPluginData, selectNode, hasVariantPropertyChanged, hasNamePropertyChanged, isFigmaComponentInstance, isPropertyChange } from "utilities/figma";
 import { reducePluginSelection, convertPluginUISelection, reduceAtlases, reduceGUINodes } from "utilities/selection";  
 import { isSlice9Layer, isSlice9PlaceholderLayer, tryRefreshSlice9Sprite, tryUpdateOriginalLayerName  } from "utilities/slice9";
 import { isTemplateGUINode } from "utilities/gui";
@@ -44,15 +44,6 @@ function updateSelection() {
   selection = reducePluginSelection();
   const selectionUI = convertPluginUISelection(selection);
   postMessageToPluginUI("selectionChanged", { selection: selectionUI });
-}
-
-/**
- * Selects the specified nodes in the Figma document.
- * @param nodes - The nodes to select.
- */
-function selectNode(nodes: SceneNode[]) {
-  figma.currentPage.selection = nodes;
-  figma.viewport.scrollAndZoomIntoView(nodes);
 }
 
 function onSelectionChange() {
