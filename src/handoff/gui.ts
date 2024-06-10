@@ -6,7 +6,7 @@
 import { generateGUIDataSet, generateGUIData } from "utilities/guiDataGenerators";
 import { serializeGUIData, serializeGUIDataSet } from "utilities/guiDataSerializers";
 import { fitParent, fitChildren, shouldUpdateGUINode } from "utilities/gui";
-import { isFigmaText, getPluginData, setPluginData, removePluginData, tryUpdateLayerName, isFigmaComponentInstance, isFigmaFrame } from "utilities/figma";
+import { isFigmaText, getPluginData, setPluginData, removePluginData, tryUpdateLayerName, isFigmaFrame, isFigmaBox } from "utilities/figma";
 import { restoreSlice9Node, tryRefreshSlice9Placeholder, isSlice9PlaceholderLayer, findOriginalLayer, parseSlice9Data, isSlice9Layer, findPlaceholderLayer } from "utilities/slice9";
 import { tryRefreshScalePlaceholder } from "utilities/scale";
 import { extractScheme } from "utilities/scheme";
@@ -94,11 +94,11 @@ export function fixGUINodes(layers: SceneNode[]) {
  * @param layer - The GUI node to match parent for.
  */
 export function matchGUINodes(layer: ExportableLayer) {
-  if (isFigmaFrame(layer) || isFigmaComponentInstance(layer)) {
+  if (isFigmaBox(layer)) {
     const realLayer = isSlice9Layer(layer) ? findPlaceholderLayer(layer) : layer;
     if (realLayer) {
       const { parent } = realLayer;
-      if (parent && isFigmaFrame(parent)) {
+      if (parent && isFigmaBox(parent)) {
         fitParent(parent, realLayer);
         if (!isSlice9PlaceholderLayer(realLayer)) {
           fitChildren(parent, realLayer)

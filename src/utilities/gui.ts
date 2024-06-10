@@ -92,7 +92,7 @@ export function getDefoldGUINodePluginData(layer: SceneNode) {
  * @param parent - The parent frame to resize.
  * @param layer - The layer to fit the parent to.
  */
-export function fitParent(parent: FrameNode, layer: ExportableLayer) {
+export function fitParent(parent: BoxLayer, layer: ExportableLayer) {
   const { width, height, x, y } = layer; 
   parent.resizeWithoutConstraints(width, height);
   parent.x += x;
@@ -104,7 +104,7 @@ export function fitParent(parent: FrameNode, layer: ExportableLayer) {
  * @param parent - The frame node to fit the children of.
  * @param layer - The layer to fit the children to.
  */
-export function fitChildren(parent: FrameNode, layer: ExportableLayer) {
+export function fitChildren(parent: BoxLayer, layer: ExportableLayer) {
   const { x, y } = layer;
   for (const parentChild of parent.children) {
     if (isExportable(parentChild)) {

@@ -1,6 +1,6 @@
 {
   "name": "figma-defold-handoff",
-  "version": "0.2.31",
+  "version": "0.2.32",
   "description": "Figma to Defold handoff tool",
   "scripts": {
     "lint": "eslint --ext .ts,.tsx,.svelte --ignore-pattern node_modules .",
