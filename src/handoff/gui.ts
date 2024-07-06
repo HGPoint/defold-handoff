@@ -6,7 +6,7 @@
 import { generateGUIDataSet, generateGUIData } from "utilities/guiDataGenerators";
 import { serializeGUIData, serializeGUIDataSet } from "utilities/guiDataSerializers";
 import { fitParent, fitChildren, shouldUpdateGUINode } from "utilities/gui";
-import { isFigmaText, getPluginData, setPluginData, removePluginData, tryUpdateLayerName, isFigmaFrame, isFigmaBox } from "utilities/figma";
+import { isFigmaText, getPluginData, setPluginData, removePluginData, tryUpdateLayerName, findMainComponent, isFigmaFrame, isFigmaBox, isFigmaComponentInstance } from "utilities/figma";
 import { restoreSlice9Node, tryRefreshSlice9Placeholder, isSlice9PlaceholderLayer, findOriginalLayer, parseSlice9Data, isSlice9Layer, findPlaceholderLayer } from "utilities/slice9";
 import { tryRefreshScalePlaceholder } from "utilities/scale";
 import { extractScheme } from "utilities/scheme";
@@ -99,10 +99,9 @@ export function matchGUINodes(layer: ExportableLayer) {
     if (realLayer) {
       const { parent } = realLayer;
       if (parent && isFigmaBox(parent)) {
+        const { x, y } = realLayer;
         fitParent(parent, realLayer);
-        if (!isSlice9PlaceholderLayer(realLayer)) {
-          fitChildren(parent, realLayer)
-        }
+        fitChildren(parent, realLayer, x ,y)
       }
     }
   }
@@ -138,6 +137,11 @@ export function fixTextNode(layer: SceneNode) {
 export function removeGUINode(layer: SceneNode) {
   removePluginData(layer, "defoldGUINode");
   removePluginData(layer, "defoldSlice9");
+  if (isFigmaComponentInstance(layer)) {
+    const { root: document } = figma;
+    const key: PluginDataOverrideKey = `defoldGUINodeOverride-${layer.id}`;
+    removePluginData(document, key);
+  }
 }
 
 /**
@@ -146,4 +150,30 @@ export function removeGUINode(layer: SceneNode) {
  */
 export function removeGUINodes(layers: SceneNode[]) {
   layers.forEach((layer) => { removeGUINode(layer) });
+}
+
+/**
+ * Pulls GUI node data from the main component for a given Figma component instance layer.
+ * @param layer - The layer to pull GUI node data for.
+ */
+async function pullFromMainComponentLayer(layer: SceneNode) {
+  if (isFigmaComponentInstance(layer)) {
+    const mainComponent = await findMainComponent(layer);
+    if (mainComponent) {
+      const pluginData = getPluginData(mainComponent, "defoldGUINode");
+      if (pluginData) {
+        const guiNodeData = { defoldGUINode: pluginData };
+        setPluginData(layer, guiNodeData);
+      }
+    }
+  }
+}
+
+/**
+ * Pulls GUI node data from the main component for each Figma layer from an array.
+ * @param layers - The layers to pull GUI node data for.
+ */
+export async function pullFromMainComponent(layers: SceneNode[]) {
+  const pullPromises = layers.map(pullFromMainComponentLayer);
+  return Promise.all(pullPromises);
 }

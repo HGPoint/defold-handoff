@@ -3,13 +3,13 @@
  * @packageDocumentation
  */
 
-import { getPluginData, selectNode, hasVariantPropertyChanged, hasNamePropertyChanged, isFigmaComponentInstance, isPropertyChange } from "utilities/figma";
+import { getPluginData, selectNode, hasVariantPropertyChanged, hasNamePropertyChanged, isFigmaComponentInstance, isPropertyChange, setPluginData } from "utilities/figma";
 import { reducePluginSelection, convertPluginUISelection, reduceAtlases, reduceGUINodes } from "utilities/selection";  
 import { isSlice9Layer, isSlice9PlaceholderLayer, tryRefreshSlice9Sprite, tryUpdateOriginalLayerName  } from "utilities/slice9";
 import { isTemplateGUINode } from "utilities/gui";
 import { decipherError } from "utilities/error";
 import { initializeProject, projectConfig, updateProject } from "handoff/project";
-import { updateGUINode, tryRestoreSlice9Node, copyGUINode, exportGUINodes, removeGUINodes, fixTextNode, fixGUINodes, matchGUINodes, resizeScreenNodes, copyGUINodeScheme } from "handoff/gui";
+import { updateGUINode, tryRestoreSlice9Node, copyGUINode, exportGUINodes, removeGUINodes, fixTextNode, fixGUINodes, matchGUINodes, resizeScreenNodes, copyGUINodeScheme, pullFromMainComponent } from "handoff/gui";
 import { createAtlas, addSprites, fixAtlases, sortAtlases, fitAtlases, exportAtlases, destroyAtlases, tryRestoreAtlases, tryExtractImage } from "handoff/atlas";
 import { updateSection, removeSections } from "handoff/section";
 import { exportBundle } from "handoff/bundle";
@@ -204,7 +204,9 @@ function onBundleExported(bundle: BundleData) {
 }
 
 function onShowGUINodeData() {
-  selection.gui.forEach(layer => { console.log(getPluginData(layer, "defoldGUINode")) })
+  selection.gui.forEach(layer => {
+    console.log(getPluginData(layer, "defoldGUINode"))
+  })
 }
 
 function onFixTextNode() {
@@ -212,6 +214,17 @@ function onFixTextNode() {
   fixTextNode(layer);
   updateSelection();
   figma.notify("Text node fixed");
+}
+
+function onPullFromMainComponet() {
+  const { gui } = selection;
+  pullFromMainComponent(gui)
+    .then(onGUINodeDataPulled);
+}
+
+function onGUINodeDataPulled() {
+  updateSelection();
+  figma.notify("GUI node data pulled");
 }
 
 function onRestoreSlice9Node() {
@@ -299,6 +312,8 @@ function processPluginUIMessage(message: PluginMessage) {
     onExportBundle();
   } else if (type === "fixTextNode") {
     onFixTextNode();
+  } else if (type === "pullFromMainComponent") {
+    onPullFromMainComponet();
   } else if (type === "restoreSlice9Node") {
     onRestoreSlice9Node();
   } else if (type === "updateSection" && data?.section) {
@@ -371,11 +386,43 @@ function processDocumentChange(change: DocumentChange) {
 }
 
 /**
+ * Tries to restore GUI node data from overrides (in case component instance node was reset).
+ * @param node - The Figma component instance node to restore data for.
+ */
+function tryRestoreDataFromOverrides(node: InstanceNode) {
+  const { root: document } = figma;
+  const key: PluginDataOverrideKey = `defoldGUINodeOverride-${node.id}`;
+  const guiNodeDataOverrides = getPluginData(document, key);
+  if (guiNodeDataOverrides) {
+    const guiNodeData = { defoldGUINode: guiNodeDataOverrides }
+    setPluginData(node, guiNodeData);
+  }
+}
+
+/**
+ * Reduces unique component instances from document changes.
+ * @param instances - The reduced component instances.
+ * @param change - The document change.
+ * @returns The reduced component instances.
+ */
+function reduceComponentInstances(instances: InstanceNode[], change: DocumentChange) {
+  if (isPropertyChange(change)) {
+    const { node } = change;
+    if (!node.removed && isFigmaComponentInstance(node) && !instances.includes(node)) {
+      instances.push(node);
+    }
+  }
+  return instances;
+}
+
+/**
  * Processes changes to the document.
  * @param event - The document change event.
  */
 function processDocumentChanges(event: DocumentChangeEvent) {
   event.documentChanges.forEach(processDocumentChange);
+  const componentInstances = event.documentChanges.reduce(reduceComponentInstances, [] as InstanceNode[]);
+  componentInstances.forEach(tryRestoreDataFromOverrides);
 }
 
 function onDocumentChange(event: DocumentChangeEvent) {

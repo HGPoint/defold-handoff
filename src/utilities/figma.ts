@@ -288,8 +288,12 @@ export function tryUpdateLayerName(layer: SceneNode, name?: string) {
  * @param layer - The Figma layer to set plugin data for.
  * @param data - The plugin data to set.
  */
-function pluginDataSetter(key: PluginDataKey, value: PluginData[PluginDataKey], layer: BaseNode) {
+function pluginDataSetter<K extends PluginDataKey>(key: K, value: PluginData[K], layer: BaseNode) {
   layer.setPluginData(key, JSON.stringify(value))
+}
+
+function shouldSetOverridePluginData(layer: BaseNode, data: PluginData) {
+  return isFigmaComponentInstance(layer) && Object.keys(data).includes("defoldGUINode")
 }
 
 /**
@@ -299,6 +303,11 @@ function pluginDataSetter(key: PluginDataKey, value: PluginData[PluginDataKey], 
  */
 export function setPluginData(layer: BaseNode, data: PluginData) {
   Object.entries(data).forEach(([key, value]) => { pluginDataSetter(key as PluginDataKey, value, layer); });
+  if (shouldSetOverridePluginData(layer, data)) {
+    const { root: document } = figma;
+    const key: PluginDataOverrideKey = `defoldGUINodeOverride-${layer.id}`;
+    pluginDataSetter(key, data.defoldGUINode, document);
+  }
 }
 
 /**
@@ -321,7 +330,7 @@ export function getPluginData<T extends PluginDataKey>(layer: BaseNode, key: T):
  * @param layer - The Figma layer to remove plugin data from.
  * @param key - The key of the plugin data to remove.
  */
-export function removePluginData<T extends PluginDataKey>(layer: SceneNode, key: T) {
+export function removePluginData<T extends PluginDataKey>(layer: BaseNode, key: T) {
   layer.setPluginData(key, "");
 }
 

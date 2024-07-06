@@ -70,7 +70,10 @@ type PluginGUINodeData = {
   script_name: string,
   wrapper: boolean,
   wrapper_padding: Vector4,
+  figma_node_type: NodeType,
 }
+
+type PluginDataOverrideKey = `defoldGUINodeOverride-${string}`
 
 type PluginData = {
   defoldGUINode?: PluginGUINodeData | null,
@@ -79,6 +82,8 @@ type PluginData = {
   defoldScale?: boolean | null,
   defoldSection?: PluginSectionData | null,
   defoldProject?: ProjectData | null,
+} & {
+  [key in PluginDataOverrideKey]?: PluginGUINodeData | null
 }
 
 type PluginDataKey = keyof PluginData;
@@ -112,6 +117,7 @@ type PluginMessageAction =
   "spritesExported" |
   "exportBundle" |
   "bundleExported" |
+  "pullFromMainComponent" |
   "selectionChanged" |
   "modeChanged" |
   "fixTextNode" |

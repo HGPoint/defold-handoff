@@ -143,7 +143,8 @@ function guiNodePluginUISelectionConverter(data: PluginGUINodeData[], layer: Exp
     ...pluginData,
     template_name,
     id,
-    type
+    type,
+    figma_node_type: layer.type,
   };
   data.push(guiNodeData);
   return data;
@@ -248,14 +249,17 @@ export function reduceAtlases(selection: SelectionData): ComponentSetNode[] {
 export function findTemplateNodes(guiNode: ExportableLayer): GUINodeExport[] {
   const templateNodes: GUINodeExport[] = [];
   if (isFigmaBox(guiNode) && hasChildren(guiNode)) {
-    const { children } = guiNode;
-    for (const child of children) {
-      if (child.visible && isExportable(child)) {
-        if (isTemplateGUINode(child)) {
-          templateNodes.push({ layer: child, asTemplate: true });
-        } else {
-          const childTemplateNodes = findTemplateNodes(child);
-          templateNodes.push(...childTemplateNodes);
+    const data = getPluginData(guiNode, "defoldGUINode");
+    if (!data?.exclude) {
+      const { children } = guiNode;
+      for (const child of children) {
+        if (child.visible && isExportable(child)) {
+          if (isTemplateGUINode(child)) {
+            templateNodes.push({ layer: child, asTemplate: true });
+          } else {
+            const childTemplateNodes = findTemplateNodes(child);
+            templateNodes.push(...childTemplateNodes);
+          }
         }
       }
     }

@@ -2,7 +2,7 @@
   import config from "config/config.json";
   import selectionState from "state/selection";
   import { postMessageToPlugin } from "utilities/pluginUI";
-  import { isTextGUINodeType, isBoxGUINodeType } from "utilities/gui";
+  import { isTextGUINodeType, isBoxGUINodeType, isFigmaComponentInstanceType } from "utilities/gui";
     import { isZeroVector } from "utilities/math";
   import Page from "components/Page";
   import Properties from "components/Properties";
@@ -114,6 +114,9 @@
       {/if}
       {#if isBoxGUINodeType(guiNode.type) && !isZeroVector(guiNode.slice9)}
         <ActionButton label="Refresh Slice 9" action="restoreSlice9Node" />
+      {/if}
+      {#if isFigmaComponentInstanceType(guiNode.figma_node_type)}
+        <ActionButton label="Pull GUI Data from Main Component" action="pullFromMainComponent" />
       {/if}
       <ActionButton label="Validate GUI" action="validateGUINodes" disabled={true} />
       <ActionButton label="Reset GUI Node" action="resetGUINodes" />

@@ -590,8 +590,8 @@ export function parseSlice9Data(layer: SceneNode): Vector4 | null {
  */
 export function restoreSlice9Node(layer: SceneNode, slice9: Vector4) {
   setPluginData(layer, { defoldSlice9: true });
-  const data = getDefoldGUINodePluginData(layer);
-  setPluginData(layer, { defoldGUINode: { ...data, slice9 } });
+  const guiNodeData = { defoldGUINode: { ...getDefoldGUINodePluginData(layer), slice9 } };
+  setPluginData(layer, guiNodeData);
 }
 
 /**

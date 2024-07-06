@@ -36,6 +36,15 @@ export function isBoxGUINodeType(type: GUINodeType) {
 }
 
 /**
+ * Checks if the given node type is Figma component type.
+ * @param type - The type to check.
+ * @returns True if the type is Figma component, otherwise false.
+ */
+export function isFigmaComponentInstanceType(figmaNodeType: NodeType) {
+  return figmaNodeType === "INSTANCE";
+}
+
+/**
  * Checks if the given Figma layer is a template GUI node.
  * @param layer - The Figma layer to check.
  * @returns True if the layer is a template GUI node, otherwise false.
@@ -84,6 +93,7 @@ export function getDefoldGUINodePluginData(layer: SceneNode) {
     id,
     type,
     export_variants: exportVariants,
+    figma_node_type: layer.type,
   }
 }
 
@@ -97,19 +107,22 @@ export function fitParent(parent: BoxLayer, layer: ExportableLayer) {
   parent.resizeWithoutConstraints(width, height);
   parent.x += x;
   parent.y += y;
+  layer.x = 0;
+  layer.y = 0;
 }
 
 /**
  * Fits the children of the given frame node by shifting them by the given amount.
  * @param parent - The frame node to fit the children of.
  * @param layer - The layer to fit the children to.
+ * @param shiftX - The amount to shift the children on the x-axis.
+ * @param shiftY - The amount to shift the children on the y-axis.
  */
-export function fitChildren(parent: BoxLayer, layer: ExportableLayer) {
-  const { x, y } = layer;
+export function fitChildren(parent: BoxLayer, layer: BoxLayer, shiftX: number, shiftY: number) {
   for (const parentChild of parent.children) {
-    if (isExportable(parentChild)) {
-      parentChild.x -= x;
-      parentChild.y -= y;
+    if (layer != parentChild && isExportable(parentChild)) {
+      parentChild.x -= shiftX;
+      parentChild.y -= shiftY;
     }
   }
 }

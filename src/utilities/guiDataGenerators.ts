@@ -6,7 +6,7 @@
 import config from "config/config.json";
 import { projectConfig } from "handoff/project";
 import { getDefoldGUINodePluginData } from "utilities/gui";
-import { setPluginData, findMainComponent, hasChildren, isAtlas, isAtlasSection, isFigmaSceneNode, isFigmaComponentInstance, isFigmaBox, isFigmaText, isExportable, isAtlasSprite, getPluginData, equalComponentProperties, equalExposedComponentProperties } from "utilities/figma";
+import { setPluginData, findMainComponent, hasChildren, isAtlas, isAtlasSection, isFigmaSceneNode, isFigmaComponentInstance, isFigmaBox, isFigmaText, isExportable, isAtlasSprite, getPluginData, equalComponentProperties, equalExposedComponentProperties, isFigmaComponent } from "utilities/figma";
 import { vector4, areVectorsEqual, copyVector, addVectors } from "utilities/math";
 import { convertGUIData, convertBoxGUINodeData, convertTextGUINodeData } from "utilities/guiDataConverters";
 import { isSlice9PlaceholderLayer, findOriginalLayer, isSlice9Layer, isSlice9ServiceLayer, parseSlice9Data } from "utilities/slice9";
@@ -92,7 +92,7 @@ function generateNamePrefix(shouldSkip: boolean, options: GUINodeDataExportOptio
       return options.namePrefix;
     }
     return "";
-  } else if (isFigmaComponentInstance(options.layer)) {
+  } else if (isFigmaComponentInstance(options.layer) || isFigmaComponent(options.layer)) {
     if (options.namePrefix) {
       return `${options.namePrefix}${options.layer.name}_`;
     }
@@ -333,6 +333,7 @@ async function processGUIBoxNodeVariants(layer: InstanceNode, guiNodeData: GUINo
       const { variantLayer, variantInitialValue } = variantOptions;
       variantLayer.setProperties({ [exportVariantName]: exportVariantValue });
       await delay(100);
+      await tryInferNode(layer);
       options.variantPrefix = exportVariantValue;
       await generateGUINodeData(options, guiNodesData, clones);
       variantLayer.setProperties({ [exportVariantName]: variantInitialValue });
@@ -506,6 +507,7 @@ async function tryProcessVariantsTextureData(layer: BoxLayer, texturesData: Text
         const { variantLayer, variantInitialValue } = variantOptions;
         variantLayer.setProperties({ [exportVariantName]: exportVariantValue });
         await delay(100);
+        await tryInferNode(layer);
         await generateTexturesData(layer, texturesData, true);
         variantLayer.setProperties({ [exportVariantName]: variantInitialValue });
       }
@@ -533,7 +535,7 @@ function shouldProcessVariantTextureData(layer: BoxLayer, pluginData: PluginGUIN
 async function generateFontData(layer: SceneNode, fontData: FontData, skipVariants = false) {
   if (isFigmaBox(layer)) {
     if (hasChildren(layer)) {
-      processChildrenFontData(layer, fontData);
+      await processChildrenFontData(layer, fontData);
     }
     await tryProcessVariantsFontData(layer, fontData, skipVariants);
   }
@@ -571,6 +573,7 @@ async function tryProcessVariantsFontData(layer: BoxLayer, fontData: FontData, s
         const { variantLayer, variantInitialValue } = variantOptions;
         variantLayer.setProperties({ [exportVariantName]: exportVariantValue });
         await delay(100);
+        await tryInferNode(layer);
         await generateFontData(layer, fontData, true);
         variantLayer.setProperties({ [exportVariantName]: variantInitialValue });
       }
@@ -629,8 +632,8 @@ async function tryRestoreSlice9Data(layer: ExportableLayer) {
         const slice9 = parseSlice9Data(layer);
         if (slice9) {
           setPluginData(originalLayer, { defoldSlice9: true });
-          const data = getDefoldGUINodePluginData(originalLayer);
-          setPluginData(originalLayer, { defoldGUINode: { ...data, slice9 } });
+          const guiNodeData = { defoldGUINode: { ...getDefoldGUINodePluginData(originalLayer), slice9 } };
+          setPluginData(originalLayer, guiNodeData);
         }
       }
     }
@@ -667,11 +670,14 @@ async function tryInferNode(layer: ExportableLayer) {
  */
 function canCollapseNodes(parent: GUINodeData, child: GUINodeData): boolean {
   return (
+    !child.fixed &&
     areVectorsEqual(parent.size, child.size) &&
     parent.type === child.type &&
     !parent.texture &&
-    child.visible &&
-    !!child.texture
+    (
+      (child.visible && !!child.texture) ||
+      !child.visible
+    )
   );
 }
 
@@ -694,22 +700,39 @@ function collapseNodes(parent: GUINodeData, child: GUINodeData) {
 /**
  * Recursively collapses GUI node data by merging collapsible child nodes into their parent nodes.
  * @param nodes - The array of GUI node data to collapse.
- * @param collapsedNodes - An array to collect the collapsed GUI node data.
+ * @returns The array of collapsed GUI node data.
  */
-function collapseGUINodeData(nodes: GUINodeData[], collapsedNodes: GUINodeData[]) {
-  for (const node of nodes) {
-    collapsedNodes.push(node);
-    if (node.children && !node.fixed) {
-      const { children } = node;
-      const collapsableChild = children.find(child => canCollapseNodes(node, child));
-      if (collapsableChild) {
-        collapseNodes(node, collapsableChild);
-        const index = children.indexOf(collapsableChild);
-        children.splice(index, 1);
-      }
-      collapseGUINodeData(children, collapsedNodes);
+function collapseGUINodeData(node: GUINodeData) {
+  if (!node.children || node.children.length === 0) {
+    return node;
+  }
+  node.children = node.children.map(collapseGUINodeData);
+  for (let index = 0; index < node.children.length; index++) {
+    const child = node.children[index];
+    if (canCollapseNodes(node, child)) {
+      collapseNodes(node, child);
+      node.children.splice(index, 1);
+      break;
     }
   }
+  return node;
+}
+
+/**
+ * Flattens a tree of GUI node data by recursively including all children nodes.
+ * @param nodes - The array (tree) of GUI node data to flatten.
+ * @returns The flattened array of GUI node data.
+ */
+function flattenGUINodeData(nodes: GUINodeData[]): GUINodeData[] {
+  const flatNodes = [];
+  for (const node of nodes) {
+    flatNodes.push(node);
+    if (node.children && node.children.length > 0) {
+      flatNodes.push(...flattenGUINodeData(node.children));
+    }
+  }
+  return flatNodes;
+
 }
 
 /**
@@ -728,8 +751,8 @@ export async function generateGUIData(nodeExport: GUINodeExport): Promise<GUIDat
   const nodes: GUINodeData[] = [];
   const clones: GUINodeCloneData[] = [];
   await generateGUINodeData(rootOptions, nodes, clones);
-  const collapsedNodes: GUINodeData[] = [];
-  collapseGUINodeData(nodes, collapsedNodes);
+  const collapsedNodes = nodes.map(collapseGUINodeData);  
+  const flatNodes = flattenGUINodeData(collapsedNodes);
   const textures: TextureData = {};
   await generateTexturesData(layer, textures);
   const fonts = {};
@@ -739,7 +762,7 @@ export async function generateGUIData(nodeExport: GUINodeExport): Promise<GUIDat
   return {
     name,
     gui,
-    nodes: collapsedNodes,
+    nodes: flatNodes,
     textures,
     fonts,
     layers,

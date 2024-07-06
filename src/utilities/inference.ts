@@ -117,8 +117,11 @@ export function inferTextNode(layer: TextNode) {
     ...config.guiNodeDefaultSpecialValues,
     ...pluginData,
     ...inferredData,
+    inferred: true,
+    figma_node_type: layer.type,
   };
-  setPluginData(layer, { defoldGUINode: data });
+  const guiNodeData = { defoldGUINode: data };
+  setPluginData(layer, guiNodeData);
   inferTextStrokeWeight(layer);
 }
 
@@ -199,8 +202,10 @@ export async function inferGUINode(layer: BoxLayer) {
     ...pluginData,
     ...inferredData,
     inferred: true,
+    figma_node_type: layer.type,
   };
-  setPluginData(layer, { defoldGUINode: data });
+  const guiNodeData = { defoldGUINode: data };
+  setPluginData(layer, guiNodeData);
 }
 
 /**
