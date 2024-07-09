@@ -9,6 +9,7 @@ import { getDefoldGUINodePluginData } from "utilities/gui";
 import { setPluginData, findMainComponent, hasChildren, isAtlas, isAtlasSection, isFigmaSceneNode, isFigmaComponentInstance, isFigmaBox, isFigmaText, isExportable, isAtlasSprite, getPluginData, equalComponentProperties, equalExposedComponentProperties, isFigmaComponent } from "utilities/figma";
 import { vector4, areVectorsEqual, copyVector, addVectors } from "utilities/math";
 import { convertGUIData, convertBoxGUINodeData, convertTextGUINodeData } from "utilities/guiDataConverters";
+import { convertChildPosition } from "utilities/pivot";
 import { isSlice9PlaceholderLayer, findOriginalLayer, isSlice9Layer, isSlice9ServiceLayer, parseSlice9Data } from "utilities/slice9";
 import { generateContextData } from "utilities/context";
 import { generateAtlasPath, generateFontPath } from "utilities/path";
@@ -687,7 +688,7 @@ function canCollapseNodes(parent: GUINodeData, child: GUINodeData): boolean {
  * @param child - The child GUI node to collapse.
  */
 function collapseNodes(parent: GUINodeData, child: GUINodeData) {
-  parent.visible = true;
+  parent.visible = child.visible;
   parent.texture = child.texture;
   parent.color = child.color;
   parent.size_mode = child.size_mode;
@@ -700,6 +701,12 @@ function collapseNodes(parent: GUINodeData, child: GUINodeData) {
       parent.children = [];
     }
     for (const collapsedChild of child.children) {
+      if (parent.pivot != child.pivot) {
+        const { pivot, size } = collapsedChild;
+        const { pivot: parentPivot, size: parentSize } = parent;
+        const parentShift = vector4(0);
+        collapsedChild.position = convertChildPosition(collapsedChild.exportable_layer, pivot, parentPivot, size, parentSize, parentShift);
+      }
       collapsedChild.parent = parent.id;
       parent.children.push(collapsedChild);
     }
