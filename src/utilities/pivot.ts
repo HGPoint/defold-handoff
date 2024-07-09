@@ -6,7 +6,7 @@
 
 import { projectConfig } from "handoff/project";
 import { isFigmaSection, isFigmaPage } from "utilities/figma";
-import { vector4, addVectors, calculateCenter } from "utilities/math";
+import { vector4, addVectors, calculateCenter, isZeroVector } from "utilities/math";
 
 /**
  * Checks if the pivot is located to the north.
@@ -193,7 +193,10 @@ function calculateCenteredRootPosition(layer: ExportableLayer, size: Vector4, pa
       return vector4(rootX, rootY, 0, 0);
     }
   }
-  return vector4(0);
+  if (isZeroVector(parentSize)) {
+    return vector4(0);
+  }
+  return calculateCenteredPosition(layer, size, parentSize);
 }
 
 /**

@@ -7,7 +7,7 @@ import config from "config/config.json";
 import { projectConfig } from "handoff/project";
 import { getDefoldGUINodePluginData } from "utilities/gui";
 import { setPluginData, findMainComponent, hasChildren, isAtlas, isAtlasSection, isFigmaSceneNode, isFigmaComponentInstance, isFigmaBox, isFigmaText, isExportable, isAtlasSprite, getPluginData, equalComponentProperties, equalExposedComponentProperties, isFigmaComponent } from "utilities/figma";
-import { vector4, areVectorsEqual, copyVector, addVectors } from "utilities/math";
+import { vector4, areVectorsEqual, copyVector, addVectors, isZeroVector } from "utilities/math";
 import { convertGUIData, convertBoxGUINodeData, convertTextGUINodeData } from "utilities/guiDataConverters";
 import { convertChildPosition } from "utilities/pivot";
 import { isSlice9PlaceholderLayer, findOriginalLayer, isSlice9Layer, isSlice9ServiceLayer, parseSlice9Data } from "utilities/slice9";
@@ -66,7 +66,7 @@ function resolveParentParameters(shouldSkip: boolean, parentOptions: GUINodeData
     const { parentId, parentSize, parentPivot, parentShift, parentChildren } = parentOptions;
     return {
       parentId: parentId,
-      parentSize: parentSize,
+      parentSize: isZeroVector(parentSize) ? guiNodeData.size : parentSize,
       parentPivot: parentPivot,
       parentShift: addVectors(parentShift, guiNodeData.figma_position),
       parentChildren: parentChildren
