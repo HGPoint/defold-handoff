@@ -695,6 +695,15 @@ function collapseNodes(parent: GUINodeData, child: GUINodeData) {
   parent.material = child.material;
   parent.adjust_mode = child.adjust_mode;
   parent.blend_mode = child.blend_mode;
+  if (child.children) {
+    if (!parent.children) {
+      parent.children = [];
+    }
+    for (const collapsedChild of child.children) {
+      collapsedChild.parent = parent.id;
+      parent.children.push(collapsedChild);
+    }
+  }
 }
 
 /**
@@ -751,7 +760,7 @@ export async function generateGUIData(nodeExport: GUINodeExport): Promise<GUIDat
   const nodes: GUINodeData[] = [];
   const clones: GUINodeCloneData[] = [];
   await generateGUINodeData(rootOptions, nodes, clones);
-  const collapsedNodes = nodes.map(collapseGUINodeData);  
+  const collapsedNodes = nodes.map(collapseGUINodeData);
   const flatNodes = flattenGUINodeData(collapsedNodes);
   const textures: TextureData = {};
   await generateTexturesData(layer, textures);
