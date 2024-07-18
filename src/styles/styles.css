@@ -63,7 +63,7 @@ button {
 button:hover,
 button:active {
   outline: none;
-  background: #212428;
+  background-color: #212428;
 }
 
 button:disabled {
@@ -72,7 +72,7 @@ button:disabled {
 }
 
 button:hover:disabled {
-  background: #373c41;
+  background-color: #373c41;
 }
 
 input {
@@ -159,18 +159,34 @@ select:hover:disabled {
   line-height: 1.5;
 }
 
+.widgetLabel-is-overridden {
+  color: #5eb9ff;
+}
+
 .slice9Editor .widgetLabel {
   grid-column: span 3;
 }
 
+.widgetContainer,
 .widgetTransformation,
 .widgetSlice9,
 .widgetTextSet
 .widgetTextSetItem,
 .widgetDimensions,
 .widgetActionOption {
+  position: relative;
   display: flex;
   align-items: center;
+  justify-content: flex-start;
+}
+
+.widgetInput-is-overridden,
+.widgetSlice9-is-overridden,
+.widgetSelect-is-overridden,
+.widgetCheckbox-is-overridden,
+.widgetContainer,
+.widgetTransformation-is-overridden {
+  border-color: #5eb9ff;
 }
 
 .widgetTextSetItem > input {
@@ -497,4 +513,21 @@ select:hover:disabled {
   top: calc(10px + 5px + 1.5em + 0.5em + 1.25em - 0.75em);
   left: 0;
   grid-column: 1;
+}
+
+.restoreButton {
+  position: absolute;
+  top: 0;
+  right: 100%;
+  overflow: hidden;
+  width: 2.5em;
+  min-width: 0;
+  height: 0;
+  padding: 2.5em 0 0;
+  margin: 0 2px 0 0;
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2233%22%20height%3D%2233%22%20fill%3D%22none%22%3E%3Cpath%20stroke%3D%22%23B3B9C0%22%20stroke-linecap%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M10.843%2011.03a8%208%200%201%201%200%2011.313M10%2012V7.5M10%2012h4.5%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.originalValue {
+  display: none;
 }

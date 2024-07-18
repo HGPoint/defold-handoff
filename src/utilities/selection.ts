@@ -5,7 +5,7 @@
 
 import config from "config/config.json";
 import { isSlice9PlaceholderLayer, isSlice9ServiceLayer, findOriginalLayer } from "utilities/slice9";
-import { isAtlas, isFigmaFrame, isFigmaSection, isFigmaComponent, isFigmaComponentInstance, isFigmaBox, isFigmaText, isExportable, getPluginData, hasChildren } from "utilities/figma";
+import { isAtlas, isFigmaFrame, isFigmaSection, isFigmaComponent, isFigmaComponentInstance, isFigmaBox, isFigmaText, isExportable, getPluginData, hasChildren, findMainComponent } from "utilities/figma";
 import { isTemplateGUINode } from "utilities/gui";
 import { generateContextData } from "utilities/context";
 import { projectConfig } from "handoff/project";
@@ -212,11 +212,31 @@ export function checkForMatchingPairs(selection: SelectionData): boolean {
 }
 
 /**
+ * Checks if the selected GUI node has overridden values. Works only for single GUI node selection.
+ * @async
+ * @param selection - The selection data.
+ * @returns True if the selected GUI nodes have overridden values, false otherwise.
+ */
+async function findOriginalValues(selection: SelectionData): Promise<PluginGUINodeData | null> {
+  if (selection.gui.length === 1 && isFigmaComponentInstance(selection.gui[0])) {
+    const [ node ] = selection.gui; 
+    const mainComponent = await findMainComponent(node);
+    if (mainComponent) {
+      const pluginData = getPluginData(mainComponent, "defoldGUINode");
+      if (pluginData) {
+        return pluginData;
+      }
+    }
+  }
+  return null;
+}
+
+/**
  * Converts plugin selection data to UI selection data.
  * @param selection - The plugin selection data.
  * @returns The UI selection data.
  */
-export function convertPluginUISelection(selection: SelectionData): SelectionUIData {
+export async function convertPluginUISelection(selection: SelectionData): Promise<SelectionUIData> {
   return {
     gui: selection.gui.reduce(guiNodePluginUISelectionConverter, []),
     atlases: selection.atlases.reduce(atlasPluginUISelectionConverter, []),
@@ -224,7 +244,8 @@ export function convertPluginUISelection(selection: SelectionData): SelectionUID
     sections: selection.sections.reduce(sectionPluginUISelectionConverter, []),
     project: projectConfig,
     context: generateSelectionContextData(selection),
-    canTryMatch: checkForMatchingPairs(selection)
+    canTryMatch: checkForMatchingPairs(selection),
+    originalValues: await findOriginalValues(selection)
   }
 }
 

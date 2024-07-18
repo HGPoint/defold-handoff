@@ -16,6 +16,22 @@ export function generateRandomId(): string {
 }
 
 /**
+ * Checks if property is an override of the original value.
+ * @param value 
+ * @param originalValue 
+ * @returns 
+ */
+export function isOverride<T extends PluginGUINodeData[keyof PluginGUINodeData]>(value: T, originalValue: T | null): originalValue is T {
+  if (originalValue != null) {
+    if (typeof originalValue === "object") {
+      return JSON.stringify(value) !== JSON.stringify(originalValue);
+    }
+    return value !== originalValue
+  }
+  return false;
+}
+
+/**
  * Checks if the event contains a plugin message.
  * @param event - The event to check.
  * @returns A boolean indicating if the event contains a plugin message.

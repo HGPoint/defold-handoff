@@ -9,6 +9,61 @@ import { getPluginData, findMainComponent, isExportable, isFigmaComponentInstanc
 import { inferGUINodeType } from "utilities/inference";
 
 /**
+ * An array containing keys of properties to be excluded during serialization.
+ * @constant
+ */
+export const EXCLUDED_PROPERTY_KEYS = [
+  "exclude",
+  "screen",
+  "skip",
+  "fixed",
+  "cloneable",
+  "export_variants",
+  "path",
+  "template",
+  "template_path",
+  "template_name",
+  "script",
+  "script_path",
+  "script_name",
+  "wrapper",
+  "wrapper_padding",
+  "inferred",
+  "exportable_layer",
+  "exportable_layer_id",
+  "exportable_layer_name",
+  "figma_position",
+  "figma_node_type",
+  "children"
+];
+
+/**
+ * An array containing keys of properties to be excluded during template serialization.
+ * @constant
+ */
+export const EXCLUDED_TEMPLATE_PROPERTY_KEYS = [
+  "visible",
+  "text",
+  "font",
+  "outline",
+  "shadow",
+  "texture",
+  "size_mode",
+  "slice9",
+  "material",
+  "xanchor",
+  "yanchor",
+  "pivot",
+  "adjust_mode",
+  "clipping_mode",
+  "clipping_visible",
+  "clipping_inverted",
+  "blend_mode",
+  "custom_type",
+  ...EXCLUDED_PROPERTY_KEYS,
+];
+
+/**
  * Checks if the given node type is a template type.
  * @param type - The type to check.
  * @returns True if the type is template, otherwise false.

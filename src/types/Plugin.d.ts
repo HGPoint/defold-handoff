@@ -6,6 +6,7 @@ type SelectionUIData = {
   project: ProjectData,
   context?: PluginGUIContextData,
   canTryMatch: boolean,
+  originalValues: PluginGUINodeData | null,
 }
 
 type SelectionData = {

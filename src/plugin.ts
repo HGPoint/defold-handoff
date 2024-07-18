@@ -38,11 +38,12 @@ function isPluginUIShown() {
 
 /**
  * Updates the selection data and sends it to the plugin UI.
+ * @async
  */
-function updateSelection() {
+async function updateSelection() {
   lastExtractedImage = "";
   selection = reducePluginSelection();
-  const selectionUI = convertPluginUISelection(selection);
+  const selectionUI = await convertPluginUISelection(selection);
   postMessageToPluginUI("selectionChanged", { selection: selectionUI });
 }
 

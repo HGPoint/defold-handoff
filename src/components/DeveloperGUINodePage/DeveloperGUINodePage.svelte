@@ -15,7 +15,7 @@
   import TextProperty from "components/TextProperty";
   import PropertyTip from "components/PropertyTip";
 
-  let { gui: [ guiNode ] } = $selectionState;
+  let { gui: [ guiNode ], originalValues } = $selectionState;
   let fontFamilies: Record<string, string>;
   let layers: Record<string, string>;
   let materials: Record<string, string>;
@@ -51,56 +51,56 @@
   <Page>
     <Properties collapseKey="guiNodePropertiesCollapsed">
       <TextProperty label="Id" bind:value={guiNode.id} />
-      <TransformationProperty label="Scale" bind:value={guiNode.scale} disabled={true} />
-      <OptionsProperty label="Size Mode" bind:value={guiNode.size_mode} options={config.sizeModes} />
-      <ToggleProperty label="Enabled" bind:value={guiNode.enabled} />
-      <ToggleProperty label="Visible" bind:value={guiNode.visible} />
+      <TransformationProperty label="Scale" bind:value={guiNode.scale} originalValue={originalValues?.scale} disabled={true} />
+      <OptionsProperty label="Size Mode" bind:value={guiNode.size_mode} originalValue={originalValues?.size_mode} options={config.sizeModes} />
+      <ToggleProperty label="Enabled" bind:value={guiNode.enabled} originalValue={originalValues?.enabled} />
+      <ToggleProperty label="Visible" bind:value={guiNode.visible} originalValue={originalValues?.visible} />
       {#if isTextGUINodeType(guiNode.type)}
-        <OptionsProperty label="Font" bind:value={guiNode.font} options={fontFamilies} />
+        <OptionsProperty label="Font" bind:value={guiNode.font} originalValue={originalValues?.font} options={fontFamilies} />
       {/if}
-      <OptionsProperty label="Material" bind:value={guiNode.material} options={materials} disabled={true} />
+      <OptionsProperty label="Material" bind:value={guiNode.material} originalValue={originalValues?.material} options={materials} disabled={true} />
       {#if isBoxGUINodeType(guiNode.type)}
-        <SidesProperty label="Slice 9" bind:value={guiNode.slice9} />
+        <SidesProperty label="Slice 9" bind:value={guiNode.slice9} originalValue={originalValues?.slice9} />
       {/if}
-      <ToggleProperty label="Inherit Alpha" bind:value={guiNode.inherit_alpha} />
-      <OptionsProperty label="Layer" bind:value={guiNode.layer} options={layers} />
-      <OptionsProperty label="Blend Mode" bind:value={guiNode.blend_mode} options={config.blendModes} />
+      <ToggleProperty label="Inherit Alpha" bind:value={guiNode.inherit_alpha} originalValue={originalValues?.inherit_alpha} />
+      <OptionsProperty label="Layer" bind:value={guiNode.layer} originalValue={originalValues?.layer} options={layers} />
+      <OptionsProperty label="Blend Mode" bind:value={guiNode.blend_mode} originalValue={originalValues?.blend_mode} options={config.blendModes} />
       {#if isBoxGUINodeType(guiNode.type)}
-        <OptionsProperty label="Pivot" bind:value={guiNode.pivot} options={config.pivots} />
+        <OptionsProperty label="Pivot" bind:value={guiNode.pivot} originalValue={originalValues?.pivot} options={config.pivots} />
       {/if}
-      <OptionsProperty label="X Anchor" bind:value={guiNode.xanchor} options={config.xAnchors} />
-      <OptionsProperty label="Y Anchor" bind:value={guiNode.yanchor} options={config.yAnchors} />
-      <OptionsProperty label="Adjust Mode" bind:value={guiNode.adjust_mode} options={config.adjustModes} />
-      <OptionsProperty label="Clipping Mode" bind:value={guiNode.clipping_mode} options={config.clippingModes} />
-      <ToggleProperty label="Clipping Inverted" bind:value={guiNode.clipping_inverted} />
+      <OptionsProperty label="X Anchor" bind:value={guiNode.xanchor} originalValue={originalValues?.xanchor} options={config.xAnchors} />
+      <OptionsProperty label="Y Anchor" bind:value={guiNode.yanchor} originalValue={originalValues?.yanchor} options={config.yAnchors} />
+      <OptionsProperty label="Adjust Mode" bind:value={guiNode.adjust_mode} originalValue={originalValues?.adjust_mode} options={config.adjustModes} />
+      <OptionsProperty label="Clipping Mode" bind:value={guiNode.clipping_mode} originalValue={originalValues?.clipping_mode} options={config.clippingModes} />
+      <ToggleProperty label="Clipping Inverted" bind:value={guiNode.clipping_inverted} originalValue={originalValues?.clipping_inverted} />
     </Properties>
     <Properties title="Special Properties" collapseKey="guiNodeSpecialPropertiesCollapsed">
-      <ToggleProperty label="Don't Export" bind:value={guiNode.exclude} />
-      <ToggleProperty label="On Screen" bind:value={guiNode.screen} disabled={guiNode.exclude} />
-      <TextProperty label="Bundle Variants" bind:value={guiNode.export_variants} disabled={guiNode.exclude}>
+      <ToggleProperty label="Don't Export" bind:value={guiNode.exclude} originalValue={originalValues?.exclude} />
+      <ToggleProperty label="On Screen" bind:value={guiNode.screen} originalValue={originalValues?.screen} disabled={guiNode.exclude} />
+      <TextProperty label="Bundle Variants" bind:value={guiNode.export_variants} originalValue={originalValues?.export_variants} disabled={guiNode.exclude}>
         <PropertyTip>
           Comma separated pairs of component's properties (including from nested instances) and their values to add to the export. For example <code>Status=Multiple,Status=Disabled</code>
         </PropertyTip>
       </TextProperty>
-      <ToggleProperty label="Skip" bind:value={guiNode.skip} disabled={guiNode.exclude} />
-      <ToggleProperty label="Don't Collapse" bind:value={guiNode.fixed} disabled={guiNode.exclude} />
-      <ToggleProperty label="Extract" bind:value={guiNode.cloneable} disabled={guiNode.exclude} />
-      <ToggleProperty label="Template" bind:value={guiNode.template} disabled={guiNode.exclude} />
+      <ToggleProperty label="Skip" bind:value={guiNode.skip} originalValue={originalValues?.skip} disabled={guiNode.exclude} />
+      <ToggleProperty label="Don't Collapse" bind:value={guiNode.fixed} originalValue={originalValues?.fixed} disabled={guiNode.exclude} />
+      <ToggleProperty label="Extract" bind:value={guiNode.cloneable} originalValue={originalValues?.cloneable} disabled={guiNode.exclude} />
+      <ToggleProperty label="Template" bind:value={guiNode.template} originalValue={originalValues?.template} disabled={guiNode.exclude} />
       {#if guiNode.template && !guiNode.exclude}
-        <TextProperty label="Template Name" bind:value={guiNode.template_name} />
-        <TextProperty label="Template Path" bind:value={guiNode.template_path} />
+        <TextProperty label="Template Name" bind:value={guiNode.template_name} originalValue={originalValues?.template_name} />
+        <TextProperty label="Template Path" bind:value={guiNode.template_path} originalValue={originalValues?.template_path} />
       {/if}
-      <ToggleProperty label="Script" bind:value={guiNode.script} disabled={guiNode.exclude} />
+      <ToggleProperty label="Script" bind:value={guiNode.script} originalValue={originalValues?.script} disabled={guiNode.exclude} />
       {#if guiNode.script && !guiNode.exclude}
-        <TextProperty label="Script Name" bind:value={guiNode.script_name} />
-        <TextProperty label="Script Path" bind:value={guiNode.script_path} />
+        <TextProperty label="Script Name" bind:value={guiNode.script_name} originalValue={originalValues?.script_name} />
+        <TextProperty label="Script Path" bind:value={guiNode.script_path} originalValue={originalValues?.script_path} />
       {/if}
       {#if !guiNode.template && !guiNode.exclude}
-        <TextProperty label="Path" bind:value={guiNode.path} />
+        <TextProperty label="Path" bind:value={guiNode.path} originalValue={originalValues?.path} />
       {/if}
-      <ToggleProperty label="Wrapper" bind:value={guiNode.wrapper} disabled={true || guiNode.exclude} />
+      <ToggleProperty label="Wrapper" bind:value={guiNode.wrapper} originalValue={originalValues?.wrapper} disabled={true || guiNode.exclude} />
       {#if guiNode.wrapper && !guiNode.exclude}
-        <SidesProperty label="Wrapper Padding" bind:value={guiNode.wrapper_padding} disabled={true || guiNode.exclude} />
+        <SidesProperty label="Wrapper Padding" bind:value={guiNode.wrapper_padding} originalValue={originalValues?.wrapper_padding} disabled={true || guiNode.exclude} />
       {/if}
     </Properties>
     <Actions title="Tools" collapseKey="guiNodeToolsCollapsed">
