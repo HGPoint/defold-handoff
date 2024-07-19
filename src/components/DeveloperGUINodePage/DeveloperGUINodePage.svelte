@@ -2,7 +2,7 @@
   import config from "config/config.json";
   import selectionState from "state/selection";
   import { postMessageToPlugin } from "utilities/pluginUI";
-  import { isTextGUINodeType, isBoxGUINodeType, isFigmaComponentInstanceType } from "utilities/gui";
+  import { isTextGUINodeType, isBoxGUINodeType, isTemplateGUINodeType, isFigmaComponentInstanceType } from "utilities/gui";
     import { isZeroVector } from "utilities/math";
   import Page from "components/Page";
   import Properties from "components/Properties";
@@ -59,13 +59,13 @@
         <OptionsProperty label="Font" bind:value={guiNode.font} originalValue={originalValues?.font} options={fontFamilies} />
       {/if}
       <OptionsProperty label="Material" bind:value={guiNode.material} originalValue={originalValues?.material} options={materials} disabled={true} />
-      {#if isBoxGUINodeType(guiNode.type)}
+      {#if isBoxGUINodeType(guiNode.type) || isTemplateGUINodeType(guiNode.type)}
         <SidesProperty label="Slice 9" bind:value={guiNode.slice9} originalValue={originalValues?.slice9} />
       {/if}
       <ToggleProperty label="Inherit Alpha" bind:value={guiNode.inherit_alpha} originalValue={originalValues?.inherit_alpha} />
       <OptionsProperty label="Layer" bind:value={guiNode.layer} originalValue={originalValues?.layer} options={layers} />
       <OptionsProperty label="Blend Mode" bind:value={guiNode.blend_mode} originalValue={originalValues?.blend_mode} options={config.blendModes} />
-      {#if isBoxGUINodeType(guiNode.type)}
+      {#if isBoxGUINodeType(guiNode.type) || isTemplateGUINodeType(guiNode.type)}
         <OptionsProperty label="Pivot" bind:value={guiNode.pivot} originalValue={originalValues?.pivot} options={config.pivots} />
       {/if}
       <OptionsProperty label="X Anchor" bind:value={guiNode.xanchor} originalValue={originalValues?.xanchor} options={config.xAnchors} />
@@ -112,7 +112,7 @@
       {#if isTextGUINodeType(guiNode.type)}
         <ActionButton label="Fix Text" action="fixTextNode" />
       {/if}
-      {#if isBoxGUINodeType(guiNode.type) && !isZeroVector(guiNode.slice9)}
+      {#if (isBoxGUINodeType(guiNode.type) || isTemplateGUINodeType(guiNode.type)) && !isZeroVector(guiNode.slice9)}
         <ActionButton label="Refresh Slice 9" action="restoreSlice9Node" />
       {/if}
       {#if isFigmaComponentInstanceType(guiNode.figma_node_type)}
