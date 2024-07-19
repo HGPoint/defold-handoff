@@ -13,6 +13,7 @@ import { updateGUINode, tryRestoreSlice9Node, copyGUINode, exportGUINodes, remov
 import { createAtlas, addSprites, fixAtlases, sortAtlases, fitAtlases, exportAtlases, destroyAtlases, tryRestoreAtlases, tryExtractImage } from "handoff/atlas";
 import { updateSection, removeSections } from "handoff/section";
 import { exportBundle } from "handoff/bundle";
+import { delay } from "utilities/delay";
 
 let selection: SelectionData = { gui: [], atlases: [], layers: [], sections: [] };
 let lastExtractedImage: string;
@@ -220,6 +221,7 @@ function onFixTextNode() {
 function onPullFromMainComponet() {
   const { gui } = selection;
   pullFromMainComponent(gui)
+  delay(500)
     .then(onGUINodeDataPulled);
 }
 
@@ -231,11 +233,11 @@ function onGUINodeDataPulled() {
 function onRestoreSlice9Node() {
   const { gui: [ layer ] } = selection;
   tryRestoreSlice9Node(layer)
-    .then(OnSlice9NodeRestored)
+    .then(onSlice9NodeRestored)
     .catch(processError);
 }
 
-function OnSlice9NodeRestored() {
+function onSlice9NodeRestored() {
   updateSelection();
   figma.notify("Slice 9 fixed");
 }

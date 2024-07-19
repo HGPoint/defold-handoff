@@ -292,22 +292,43 @@ function pluginDataSetter<K extends PluginDataKey>(key: K, value: PluginData[K],
   layer.setPluginData(key, JSON.stringify(value))
 }
 
-function shouldSetOverridePluginData(layer: BaseNode, data: PluginData) {
-  return isFigmaComponentInstance(layer) && Object.keys(data).includes("defoldGUINode")
+/**
+ * Checks if a Figma layer should have override plugin data preserved.
+ * @param layer - The Figma layer to check.
+ * @param data - The plugin data.
+ * @returns True if the layer should have override plugin data preserved, otherwise false.
+ */
+async function shouldSetOverridePluginData(layer: BaseNode, data: PluginData) {
+  return (
+    isFigmaComponentInstance(layer) &&
+    Object.keys(data).includes("defoldGUINode") &&
+    !(await isAtlasSprite(layer))
+  );
 }
 
 /**
- * Sets plugin data for a Figma layer.
- * @param layer - The Figma layer to set plugin data for.
- * @param data - The plugin data to set.
+ * Tries to preserve override plugin data for a Figma layer.
+ * @async
+ * @param layer - The Figma layer for which to preserve override plugin data.
+ * @param data - The override plugin data to set.
  */
-export function setPluginData(layer: BaseNode, data: PluginData) {
-  Object.entries(data).forEach(([key, value]) => { pluginDataSetter(key as PluginDataKey, value, layer); });
-  if (shouldSetOverridePluginData(layer, data)) {
+async function trySetOverridePluginData(layer: BaseNode, data: PluginData) {
+  if (await shouldSetOverridePluginData(layer, data)) {
     const { root: document } = figma;
     const key: PluginDataOverrideKey = `defoldGUINodeOverride-${layer.id}`;
     pluginDataSetter(key, data.defoldGUINode, document);
   }
+}
+
+/**
+ * Sets plugin data for a Figma layer.
+ * @async
+ * @param layer - The Figma layer to set plugin data for.
+ * @param data - The plugin data to set.
+ */
+export async function setPluginData(layer: BaseNode, data: PluginData) {
+  Object.entries(data).forEach(([key, value]) => { pluginDataSetter(key as PluginDataKey, value, layer); });
+  trySetOverridePluginData(layer, data);
 }
 
 /**

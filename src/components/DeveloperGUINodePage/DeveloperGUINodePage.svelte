@@ -37,7 +37,7 @@
   }
 
   function updateData(selection: SelectionUIData) {
-    ({ gui: [ guiNode ] } = $selectionState);
+    ({ gui: [ guiNode ], originalValues } = $selectionState);
     fontFamilies = $selectionState.project.fontFamilies.reduce((fonts, font) => ({ ...fonts, [font.name]: font.id }), {});
     layers = $selectionState.context ? $selectionState.context.layers.reduce((layerOptions, layer) => ({ ...layerOptions, [layer.name]: layer.id }), {}) : {};
     materials = $selectionState.context ? $selectionState.context.materials.reduce((materialOptions, material) => ({ ...materialOptions, [material.name]: material.id }), {}) : {};

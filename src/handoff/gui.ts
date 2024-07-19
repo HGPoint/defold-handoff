@@ -6,7 +6,7 @@
 import { generateGUIDataSet, generateGUIData } from "utilities/guiDataGenerators";
 import { serializeGUIData, serializeGUIDataSet } from "utilities/guiDataSerializers";
 import { fitParent, fitChildren, shouldUpdateGUINode } from "utilities/gui";
-import { isFigmaText, getPluginData, setPluginData, removePluginData, tryUpdateLayerName, findMainComponent, isFigmaFrame, isFigmaBox, isFigmaComponentInstance } from "utilities/figma";
+import { isFigmaText, getPluginData, setPluginData, removePluginData, tryUpdateLayerName, isFigmaFrame, isFigmaBox, isFigmaComponentInstance } from "utilities/figma";
 import { restoreSlice9Node, tryRefreshSlice9Placeholder, isSlice9PlaceholderLayer, findOriginalLayer, parseSlice9Data, isSlice9Layer, findPlaceholderLayer } from "utilities/slice9";
 import { tryRefreshScalePlaceholder } from "utilities/scale";
 import { extractScheme } from "utilities/scheme";
@@ -33,12 +33,12 @@ export async function tryRestoreSlice9Node(layer: SceneNode) {
  * @param layer - The layer to update GUI node data for.
  * @param data - Updated GUI node data.
  */
-export function updateGUINode(layer: SceneNode, data: PluginGUINodeData) {
+export async function updateGUINode(layer: SceneNode, data: PluginGUINodeData) {
   const originalLayer = isSlice9PlaceholderLayer(layer) ? findOriginalLayer(layer) : layer;
   if (originalLayer) {
     const pluginData = getPluginData(originalLayer, "defoldGUINode");
     const updatedPluginData: PluginGUINodeData = { ...pluginData, ...data };
-    if (shouldUpdateGUINode(pluginData, updatedPluginData)) {
+    if (await shouldUpdateGUINode(layer, pluginData, updatedPluginData)) {
       const guiNodeData = { defoldGUINode: { ...pluginData, ...data } };
       setPluginData(originalLayer, guiNodeData);
       tryUpdateLayerName(originalLayer, data.id);
@@ -131,6 +131,16 @@ export function fixTextNode(layer: SceneNode) {
 }
 
 /**
+ * Removes override GUI node data for a given Figma layer.
+ * @param layer - Figma layer to remove override GUI node data for.
+ */
+function removeGUINodeOverride(layer: SceneNode) {
+  const { root: document } = figma;
+  const key: PluginDataOverrideKey = `defoldGUINodeOverride-${layer.id}`;
+  removePluginData(document, key);
+}  
+
+/**
  * Removes bound GUI node data for a given Figma layer.
  * @param layer - Figma layer to reset GUI node data for.
  */
@@ -138,9 +148,7 @@ export function removeGUINode(layer: SceneNode) {
   removePluginData(layer, "defoldGUINode");
   removePluginData(layer, "defoldSlice9");
   if (isFigmaComponentInstance(layer)) {
-    const { root: document } = figma;
-    const key: PluginDataOverrideKey = `defoldGUINodeOverride-${layer.id}`;
-    removePluginData(document, key);
+    removeGUINodeOverride(layer);
   }
 }
 
@@ -156,16 +164,10 @@ export function removeGUINodes(layers: SceneNode[]) {
  * Pulls GUI node data from the main component for a given Figma component instance layer.
  * @param layer - The layer to pull GUI node data for.
  */
-async function pullFromMainComponentLayer(layer: SceneNode) {
+function pullFromMainComponentLayer(layer: SceneNode) {
   if (isFigmaComponentInstance(layer)) {
-    const mainComponent = await findMainComponent(layer);
-    if (mainComponent) {
-      const pluginData = getPluginData(mainComponent, "defoldGUINode");
-      if (pluginData) {
-        const guiNodeData = { defoldGUINode: pluginData };
-        setPluginData(layer, guiNodeData);
-      }
-    }
+    removePluginData(layer, "defoldGUINode");
+    removeGUINodeOverride(layer);
   }
 }
 
@@ -173,7 +175,6 @@ async function pullFromMainComponentLayer(layer: SceneNode) {
  * Pulls GUI node data from the main component for each Figma layer from an array.
  * @param layers - The layers to pull GUI node data for.
  */
-export async function pullFromMainComponent(layers: SceneNode[]) {
-  const pullPromises = layers.map(pullFromMainComponentLayer);
-  return Promise.all(pullPromises);
+export function pullFromMainComponent(layers: SceneNode[]) {
+  layers.map(pullFromMainComponentLayer);
 }

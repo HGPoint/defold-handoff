@@ -5,7 +5,7 @@
 
 import config from "config/config.json";
 import { resolveAtlasTexture, resolveEmptyTexture } from "utilities/atlas";
-import { getPluginData, findMainComponent, isExportable, isFigmaComponentInstance, isFigmaSceneNode, isAtlas } from "utilities/figma";
+import { getPluginData, findMainComponent, isExportable, isFigmaComponentInstance, isFigmaSceneNode, isAtlas, isAtlasSprite } from "utilities/figma";
 import { inferGUINodeType } from "utilities/inference";
 
 /**
@@ -183,14 +183,37 @@ export function fitChildren(parent: BoxLayer, layer: BoxLayer, shiftX: number, s
 }
 
 /**
- * Checks if the updated plugin data is different from the current plugin data.
+ * Checks if the plugin data was actually updated.
+ * @async
+ * @param pluginData - The current plugin data.
+ * @param updatedPluginData - The updated plugin data.
+ * @returns True if the plugin data is updated, otherwise false.
+ */
+async function isDataUpdated(pluginData: PluginGUINodeData, updatedPluginData: PluginGUINodeData) {
+  const keys = Object.keys(updatedPluginData) as (keyof PluginGUINodeData)[];
+  return keys.some((key) => {
+    if (key == "id" || EXCLUDED_PROPERTY_KEYS.includes(key)) {
+      return false;
+    }
+    return JSON.stringify(pluginData[key]) !== JSON.stringify(updatedPluginData[key]);
+  });
+}
+
+/**
+ * Checks if the GUI node plugin data should be updated on the layer.
+ * @async
  * @param pluginData - The current plugin data.
  * @param updatedPluginData - The updated plugin data.
  * @returns True if the plugin data should be updated, otherwise false.
  */
-export function shouldUpdateGUINode(pluginData: PluginGUINodeData | null | undefined, updatedPluginData: PluginGUINodeData) {
+export async function shouldUpdateGUINode(layer: SceneNode, pluginData: PluginGUINodeData | null | undefined, updatedPluginData: PluginGUINodeData) {
   if (!pluginData) {
+    if (await isAtlasSprite(layer)) {
+      return true;
+    } else if (isFigmaComponentInstance(layer)) {
+      return false;
+    }
     return true;
   }
-  return JSON.stringify(pluginData) !== JSON.stringify(updatedPluginData);
+  return await isDataUpdated(pluginData, updatedPluginData);
 }
