@@ -287,7 +287,7 @@ async function processGUIBoxNodeChildren(layer: BoxLayer, guiNodeData: GUINodeDa
   const nodeChildren = !shouldSkip ? [] : guiNodesData;
   const { children } = layer;
   if (!shouldSkip) {
-    guiNodeData.children = nodeChildren;
+    guiNodeData.children = nodeChildren.reverse();
   }
   for (const child of children) {
     if (shouldProcessChildLayer(child)) {

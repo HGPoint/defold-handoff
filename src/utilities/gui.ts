@@ -192,7 +192,7 @@ export function fitChildren(parent: BoxLayer, layer: BoxLayer, shiftX: number, s
 async function isDataUpdated(pluginData: PluginGUINodeData, updatedPluginData: PluginGUINodeData) {
   const keys = Object.keys(updatedPluginData) as (keyof PluginGUINodeData)[];
   return keys.some((key) => {
-    if (key == "id" || EXCLUDED_PROPERTY_KEYS.includes(key)) {
+    if (key == "id") {
       return false;
     }
     return JSON.stringify(pluginData[key]) !== JSON.stringify(updatedPluginData[key]);

@@ -182,14 +182,14 @@ export function calculateCenteredPosition(layer: ExportableLayer, size: Vector4,
  */
 function calculateCenteredRootPosition(layer: ExportableLayer, size: Vector4, parentSize: Vector4, parentShift: Vector4, asTemplate: boolean, data?: PluginGUINodeData | null) {
   if (data?.screen && !asTemplate) {
+    const halfScreenWidth = projectConfig.screenSize.x / 2;
+    const halfScreenHeight = projectConfig.screenSize.y / 2;
     if (layer.parent && (isFigmaPage(layer.parent) || isFigmaSection(layer.parent))) {
-      const halfScreenWidth = projectConfig.screenSize.x / 2;
-      const halfScreenHeight = projectConfig.screenSize.y / 2;
       return vector4(halfScreenWidth, halfScreenHeight, 0, 0);
     } else {
       const { x, y } = calculateCenteredPosition(layer, size, parentSize);    
-      const rootX = x + parentShift.x;
-      const rootY = y + projectConfig.screenSize.y - parentShift.y;
+      const rootX = x + halfScreenWidth + parentShift.x;
+      const rootY = y + halfScreenHeight + parentShift.y;
       return vector4(rootX, rootY, 0, 0);
     }
   }
@@ -229,8 +229,14 @@ export function calculateRootPosition(layer: ExportableLayer, pivot: Pivot, pare
  * @param parentShift - The shift vector of the parent layer.
  * @returns The converted position vector of the child layer.
  */
-export function convertChildPosition(layer: ExportableLayer, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4, parentShift: Vector4) {
+export function convertChildPosition(layer: ExportableLayer, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4, parentShift: Vector4, asTemplate?: boolean, data?: PluginGUINodeData | null) {
   const centeredPosition = calculateCenteredPosition(layer, size, parentSize);
+  if (data?.template && !asTemplate) {
+    const shiftedCenterX = centeredPosition.x + parentShift.x;
+    const shiftedCenterY = centeredPosition.y - parentShift.y;
+    const shiftedCenterPosition = vector4(shiftedCenterX, shiftedCenterY, 0, 1);
+    return shiftedCenterPosition;
+  }
   const pivotedPosition = calculatePivotedPosition(centeredPosition, pivot, parentPivot, size, parentSize);
   const shiftedX = pivotedPosition.x + parentShift.x;
   const shiftedY = pivotedPosition.y - parentShift.y;
@@ -238,7 +244,7 @@ export function convertChildPosition(layer: ExportableLayer, pivot: Pivot, paren
   return shiftedPosition;
 }
 
-/**w2 2 
+/** 
  * Calculates the pivoted position of a layer relative to its parent size.
  * @param layer - The layer to calculate the position for.
  * @param pivot - The pivot point of the layer.

@@ -6,6 +6,7 @@
 
 <Page>
   <Actions collapseKey="layerActionsCollapsed">
+    <ActionButton label="Create Atlas" action="createAtlas" />
     <ActionButton label="Restore Atlas" action="restoreAtlases" />
   </Actions>
 </Page>

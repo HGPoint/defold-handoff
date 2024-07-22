@@ -78,7 +78,7 @@ function convertPosition(layer: ExportableLayer, pivot: Pivot, parentPivot: Pivo
   if (atRoot) {
     return calculateRootPosition(layer, pivot, parentPivot, size, parentSize, parentShift, asTemplate, data);
   }
-  return convertChildPosition(layer, pivot, parentPivot, size, parentSize, parentShift);
+  return convertChildPosition(layer, pivot, parentPivot, size, parentSize, parentShift, asTemplate, data);
 }
 
 /**

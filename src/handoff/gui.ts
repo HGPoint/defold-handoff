@@ -115,7 +115,7 @@ export function resizeScreenNodes(layers: SceneNode[]) {
   const { screenSize: { x: screenWidth, y: screenHeight } } = projectConfig;
   layers.forEach((layer) => {
     if (isFigmaFrame(layer)) {
-      layer.resizeWithoutConstraints(screenWidth, screenHeight);
+      layer.resize(screenWidth, screenHeight);
     }
   });
 }
