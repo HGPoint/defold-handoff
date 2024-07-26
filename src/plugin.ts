@@ -107,6 +107,11 @@ function onResetGUINodes() {
 
 function onFixGUINodes() {
   fixGUINodes(selection.gui);
+  delay(200)
+    .then(onGUINodesFixed);
+}
+
+function onGUINodesFixed() {
   updateSelection();
   figma.notify("GUI nodes fixed");
 }

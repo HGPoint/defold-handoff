@@ -287,7 +287,7 @@ async function processGUIBoxNodeChildren(layer: BoxLayer, guiNodeData: GUINodeDa
   const nodeChildren = !shouldSkip ? [] : guiNodesData;
   const { children } = layer;
   if (!shouldSkip) {
-    guiNodeData.children = nodeChildren.reverse();
+    guiNodeData.children = nodeChildren;
   }
   for (const child of children) {
     if (shouldProcessChildLayer(child)) {
@@ -686,8 +686,9 @@ function canCollapseNodes(parent: GUINodeData, child: GUINodeData): boolean {
  * Collapses a child GUI node into its parent node by transferring certain properties.
  * @param parent - The parent GUI node to collapse into.
  * @param child - The child GUI node to collapse.
+ * @param childIndex - The index of the child node in the parent node's children array.
  */
-function collapseNodes(parent: GUINodeData, child: GUINodeData) {
+function collapseNodes(parent: GUINodeData, child: GUINodeData, childIndex: number) {
   parent.visible = child.visible;
   parent.texture = child.texture;
   parent.color = child.color;
@@ -700,7 +701,8 @@ function collapseNodes(parent: GUINodeData, child: GUINodeData) {
     if (!parent.children) {
       parent.children = [];
     }
-    for (const collapsedChild of child.children) {
+    for (let index = 0; index < child.children.length; index++) {
+      const collapsedChild = child.children[index];
       if (parent.pivot != child.pivot) {
         const { pivot, size } = collapsedChild;
         const { pivot: parentPivot, size: parentSize } = parent;
@@ -708,7 +710,7 @@ function collapseNodes(parent: GUINodeData, child: GUINodeData) {
         collapsedChild.position = convertChildPosition(collapsedChild.exportable_layer, pivot, parentPivot, size, parentSize, parentShift);
       }
       collapsedChild.parent = parent.id;
-      parent.children.push(collapsedChild);
+      parent.children.splice(childIndex, childIndex + index, collapsedChild);
     }
   }
 }
@@ -726,8 +728,8 @@ function collapseGUINodeData(node: GUINodeData) {
   for (let index = 0; index < node.children.length; index++) {
     const child = node.children[index];
     if (canCollapseNodes(node, child)) {
-      collapseNodes(node, child);
       node.children.splice(index, 1);
+      collapseNodes(node, child, index);
       break;
     }
   }

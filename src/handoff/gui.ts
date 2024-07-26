@@ -6,7 +6,7 @@
 import { generateGUIDataSet, generateGUIData } from "utilities/guiDataGenerators";
 import { serializeGUIData, serializeGUIDataSet } from "utilities/guiDataSerializers";
 import { fitParent, fitChildren, shouldUpdateGUINode } from "utilities/gui";
-import { isFigmaText, getPluginData, setPluginData, removePluginData, tryUpdateLayerName, isFigmaFrame, isFigmaBox, isFigmaComponentInstance } from "utilities/figma";
+import { isFigmaText, getPluginData, setPluginData, removePluginData, tryUpdateLayerName, isFigmaFrame, isFigmaBox, isFigmaComponentInstance, isFigmaComponent } from "utilities/figma";
 import { restoreSlice9Node, tryRefreshSlice9Placeholder, isSlice9PlaceholderLayer, findOriginalLayer, parseSlice9Data, isSlice9Layer, findPlaceholderLayer } from "utilities/slice9";
 import { tryRefreshScalePlaceholder } from "utilities/scale";
 import { extractScheme } from "utilities/scheme";
@@ -114,7 +114,7 @@ export function matchGUINodes(layer: ExportableLayer) {
 export function resizeScreenNodes(layers: SceneNode[]) {
   const { screenSize: { x: screenWidth, y: screenHeight } } = projectConfig;
   layers.forEach((layer) => {
-    if (isFigmaFrame(layer)) {
+    if (isFigmaFrame(layer) || isFigmaComponent(layer)) {
       layer.resize(screenWidth, screenHeight);
     }
   });

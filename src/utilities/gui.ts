@@ -95,8 +95,35 @@ export function isBoxGUINodeType(type: GUINodeType) {
  * @param type - The type to check.
  * @returns True if the type is Figma component, otherwise false.
  */
+export function isFigmaComponentType(figmaNodeType: NodeType) {
+  return figmaNodeType === "COMPONENT";
+}
+
+/**
+ * Checks if the given node type is Figma component instance type.
+ * @param type - The type to check.
+ * @returns True if the type is Figma component instance, otherwise false.
+ */
 export function isFigmaComponentInstanceType(figmaNodeType: NodeType) {
   return figmaNodeType === "INSTANCE";
+}
+
+/**
+ * Checks if the given node type is Figma frame type.
+ * @param type - The type to check.
+ * @returns True if the type is Figma frame, otherwise false.
+ */
+export function isFigmaFrameType(figmaNodeType: NodeType) {
+  return figmaNodeType === "FRAME";
+}
+
+/**
+ * Checks if the given node type is Figma section type.
+ * @param type - The type to check.
+ * @returns True if the type is Figma section, otherwise false.
+ */
+export function isFigmaSectionType(figmaNodeType: NodeType) {
+  return figmaNodeType === "SECTION";
 }
 
 /**
@@ -191,12 +218,7 @@ export function fitChildren(parent: BoxLayer, layer: BoxLayer, shiftX: number, s
  */
 async function isDataUpdated(pluginData: PluginGUINodeData, updatedPluginData: PluginGUINodeData) {
   const keys = Object.keys(updatedPluginData) as (keyof PluginGUINodeData)[];
-  return keys.some((key) => {
-    if (key == "id") {
-      return false;
-    }
-    return JSON.stringify(pluginData[key]) !== JSON.stringify(updatedPluginData[key]);
-  });
+  return keys.some((key) => JSON.stringify(pluginData[key]) !== JSON.stringify(updatedPluginData[key]));
 }
 
 /**
