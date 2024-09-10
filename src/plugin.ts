@@ -9,7 +9,7 @@ import { isSlice9Layer, isSlice9PlaceholderLayer, tryRefreshSlice9Sprite, tryUpd
 import { isTemplateGUINode } from "utilities/gui";
 import { decipherError } from "utilities/error";
 import { initializeProject, projectConfig, updateProject } from "handoff/project";
-import { updateGUINode, tryRestoreSlice9Node, copyGUINode, exportGUINodes, removeGUINodes, fixTextNode, fixGUINodes, matchGUINodes, resizeScreenNodes, copyGUINodeScheme, pullFromMainComponent } from "handoff/gui";
+import { updateGUINode, updateGUINodes, tryRestoreSlice9Node, copyGUINode, exportGUINodes, exportGUINodeAtlases, removeGUINodes, fixTextNode, fixGUINodes, matchParentToGUINode, matchGUINodeToParent, resizeScreenNodes, copyGUINodeScheme, pullFromMainComponent, forceChildrenOnScreen } from "handoff/gui";
 import { createAtlas, addSprites, fixAtlases, sortAtlases, fitAtlases, exportAtlases, destroyAtlases, tryRestoreAtlases, tryExtractImage } from "handoff/atlas";
 import { updateSection, removeSections } from "handoff/section";
 import { exportBundle } from "handoff/bundle";
@@ -81,9 +81,27 @@ function onGUINodesExported(gui: SerializedGUIData[]) {
   figma.notify("GUI nodes exported");
 }
 
+function onExportGUINodeAtlases() {
+  const nodes = reduceGUINodes(selection);
+  exportGUINodeAtlases(nodes)
+    .then(onGUINodeAtlasesExported)
+    .catch(processError);
+}
+
+function onGUINodeAtlasesExported(atlases: SerializedAtlasData[]) {
+  const bundle = { atlases };
+  postMessageToPluginUI("guiNodeAtlasesExported", { bundle, project: projectConfig })
+  figma.notify("Atlases exported");
+}
+
 function onUpdateGUINode(data: PluginGUINodeData) {
   const { gui: [ layer ] } = selection;
   updateGUINode(layer, data);
+}
+
+function onUpdateGUINodes(data: PluginGUINodeData[]) {
+  const { gui: layers } = selection;
+  updateGUINodes(layers, data);
 }
 
 async function onCopyGUINodeScheme() {
@@ -116,10 +134,22 @@ function onGUINodesFixed() {
   figma.notify("GUI nodes fixed");
 }
 
-function onMatchGUINodes() {
+function onMatchParentToGUINode() {
   const { gui: [layer] } = selection;
-  matchGUINodes(layer);
-  figma.notify("GUI nodes matched");
+  matchParentToGUINode(layer);
+  figma.notify("Parent is matched to GUI node");
+}
+
+function onMatchGUINodeToParent() {
+  const { gui: [layer] } = selection;
+  matchGUINodeToParent(layer);
+  figma.notify("GUI node is matched to the parent");
+}
+
+function onForceChildrenOnScreen() {
+  const { gui: [layer] } = selection;
+  forceChildrenOnScreen(layer);
+  figma.notify("Children will be exported on screen");
 }
 
 function onResizeScreenNodes() {
@@ -284,16 +314,24 @@ function processPluginUIMessage(message: PluginMessage) {
     onCopyGUINode();
   } else if (type === "exportGUINodes") {
     onExportGUINodes();
+  } else if (type === "exportGUINodeAtlases") {
+    onExportGUINodeAtlases();
   } else if (type === "resetGUINodes") {
     onResetGUINodes();
   } else if (type === "fixGUINodes") {
     onFixGUINodes();
-  } else if (type === "matchGUINodes") {
-    onMatchGUINodes();
-  } else if (type === "resizeScreenNodes"){
+  } else if (type === "matchParentToGUINode") {
+    onMatchParentToGUINode();
+  } else if (type === "matchGUINodeToParent") {
+    onMatchGUINodeToParent();
+  } else if (type === "forceChildrenOnScreen") {
+    onForceChildrenOnScreen();
+  } else if (type === "resizeScreenNodes") {
     onResizeScreenNodes();
   } else if (type === "updateGUINode" && data?.guiNode) {
     onUpdateGUINode(data.guiNode);
+  } else if (type === "updateGUINodes" && data?.gui) {
+    onUpdateGUINodes(data.gui);
   } else if (type === "copyGUINodeScheme") {
     onCopyGUINodeScheme();
   } else if (type === "showGUINodeData") {

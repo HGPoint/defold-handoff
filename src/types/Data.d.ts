@@ -10,6 +10,7 @@ type ProjectData = {
   screenSize: Vector4,
   paths: ProjectPathData,
   fontSize: number,
+  fontStrokeRatio: number,
   fontFamilies: ProjectFontData[],
   autoskip: string,
 }

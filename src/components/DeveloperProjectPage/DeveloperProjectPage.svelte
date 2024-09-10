@@ -49,6 +49,7 @@
     </Properties>
     <Properties title="Project Font Properties">
       <NumberProperty label="Font Size" bind:value={project.fontSize} />
+      <NumberProperty label="Outline Ratio" bind:value={project.fontStrokeRatio} />
       <TextSetProperty label="Font Families" action="Add Font" bind:value={project.fontFamilies} />
     </Properties>
     <Properties title="Project Naming Conventions">

@@ -5,7 +5,7 @@
 
 import config from "config/config.json";
 import { resolveAtlasTexture, resolveEmptyTexture } from "utilities/atlas";
-import { getPluginData, findMainComponent, isExportable, isFigmaComponentInstance, isFigmaSceneNode, isAtlas, isAtlasSprite } from "utilities/figma";
+import { getPluginData, findMainComponent, isExportable, isFigmaComponentInstance, isFigmaSceneNode, isAtlas, isAtlasSection, isAtlasSprite } from "utilities/figma";
 import { inferGUINodeType } from "utilities/inference";
 
 /**
@@ -210,6 +210,18 @@ export function fitChildren(parent: BoxLayer, layer: BoxLayer, shiftX: number, s
 }
 
 /**
+ * Fits the given child layer to the parent layer.
+ * @param parent - The parent layer to fit the child to.
+ * @param layer - The child layer to fit to the parent.
+ */
+export function fitChild(parent: BoxLayer, layer: BoxLayer) {
+  const { width, height } = parent;
+  layer.resizeWithoutConstraints(width, height);
+  layer.x = 0;
+  layer.y = 0;
+}
+
+/**
  * Checks if the plugin data was actually updated.
  * @async
  * @param pluginData - The current plugin data.
@@ -238,4 +250,42 @@ export async function shouldUpdateGUINode(layer: SceneNode, pluginData: PluginGU
     return true;
   }
   return await isDataUpdated(pluginData, updatedPluginData);
+}
+
+/**
+ * Reduces an array of GUIData objects to an array of atlas IDs.
+ * @param atlasIds - Accumulator array of atlas IDs.
+ * @param defoldObject - GUIData object to extract atlas IDs from.
+ * @returns An array of atlas IDs.
+ */
+export function reduceAtlases(atlasIds: string[], defoldObject: GUIData) {
+  const textureNames = Object.values(defoldObject.textures).map((texture) => texture.id);
+  return atlasIds.concat(textureNames);
+}
+
+/**
+ * Finds atlas components based on their IDs including combined jumbo atlases.
+ * @param atlasIds - The IDs of the atlases to find.
+ * @returns An array of found atlas components.
+ */
+export async function findAtlases(atlasIds: string[]): Promise<ComponentSetNode[]> {
+  const atlases = [];
+  for (const atlasId of atlasIds) {
+    const layer = await figma.getNodeByIdAsync(atlasId);
+    if (layer && isFigmaSceneNode(layer)) {
+      if (isAtlas(layer)) {
+        atlases.push(layer);
+      } else if (isAtlasSection(layer)) {
+        const sectionData = getPluginData(layer, "defoldSection");
+        if (sectionData?.jumbo) {
+          for (const child of layer.children) {
+            if (isFigmaSceneNode(child) && isAtlas(child)) {
+              atlases.push(child);
+            }
+          }
+        }
+      }
+    }
+  }
+  return atlases;
 }

@@ -3,7 +3,7 @@
   import selectionState from "state/selection";
   import { postMessageToPlugin } from "utilities/pluginUI";
   import { isTextGUINodeType, isBoxGUINodeType, isTemplateGUINodeType, isFigmaComponentInstanceType, isFigmaComponentType, isFigmaFrameType } from "utilities/gui";
-    import { isZeroVector } from "utilities/math";
+  import { isZeroVector } from "utilities/math";
   import Page from "components/Page";
   import Properties from "components/Properties";
   import Actions from "components/Actions";
@@ -30,7 +30,7 @@
     return false;
   }
 
-  function updatePlugin(updatedProperties: PluginGUINodeData | null) {
+  function updatePlugin(updatedProperties: PluginGUINodeData) {
     if (shouldSendUpdate()) {
       postMessageToPlugin("updateGUINode", { guiNode });
     }
@@ -106,8 +106,10 @@
     <Actions title="Tools" collapseKey="guiNodeToolsCollapsed">
       <ActionButton label="Infer Properties" action="fixGUINodes" />
       {#if $selectionState.canTryMatch}
-        <ActionButton label="Match Parent to GUI Node" action="matchGUINodes" />
+        <ActionButton label="Match Parent to GUI Node" action="matchParentToGUINode" />
+        <ActionButton label="Match GUI Node to Parent" action="matchGUINodeToParent" />
       {/if}
+      <ActionButton label="Force Children on Screen" action="forceChildrenOnScreen" />
       {#if isFigmaFrameType(guiNode.figma_node_type) || isFigmaComponentType(guiNode.figma_node_type)}
         <ActionButton label="Resize to Screen" action="resizeScreenNodes" />
       {/if}
@@ -125,6 +127,7 @@
     </Actions>
     <Actions collapseKey="guiNodeActionsCollapsed">
       <ActionButton label="Export GUI" action="exportGUINodes" />
+      <ActionButton label="Export Atlases" action="exportGUINodeAtlases" />
       <ActionButton label="Export Bundle" action="exportBundle" />
       <ActionButton label="Copy GUI" action="copyGUINodes" />
       <ActionButton label="Copy GUI Scheme" action="copyGUINodeScheme" />

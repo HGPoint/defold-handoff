@@ -21,7 +21,7 @@ export function generateRandomId(): string {
  * @param originalValue 
  * @returns 
  */
-export function isOverride<T extends PluginGUINodeData[keyof PluginGUINodeData]>(value: T, originalValue: T | null): originalValue is T {
+export function isOverride<T extends PluginGUINodeData[keyof PluginGUINodeData]>(value: T | null, originalValue: T | null): originalValue is T {
   if (originalValue != null) {
     if (typeof originalValue === "object") {
       return JSON.stringify(value) !== JSON.stringify(originalValue);
@@ -116,7 +116,7 @@ function onGUINodeSchemeCopied(data: PluginMessagePayload) {
  * @param data - The data associated with the message.
  */
 export function processPluginMessage(type: PluginMessageAction, data?: PluginMessagePayload) {
-  if (type === "atlasesExported" && data) {
+  if ((type === "atlasesExported" || type === "guiNodeAtlasesExported") && data) {
     onAtlasesExported(data);
   } else if (type === "spritesExported" && data) {
     onSpritesExported(data);

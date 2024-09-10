@@ -1,7 +1,7 @@
 <script lang="ts" generics="T extends PluginGUINodeData[keyof PluginGUINodeData]">
-  import { isOverride, renderValue } from "utilities/pluginUI";
+  import { isOverride } from "utilities/pluginUI";
   
-  export let value: T;
+  export let value: T | null;
   export let originalValue: T | null;
 
   function restoreValue() {

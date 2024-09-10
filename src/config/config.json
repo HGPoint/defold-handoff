@@ -115,8 +115,8 @@
     "ignorePrefixes": false
   },
   "defaultFontSize": 38,
+  "defaultFontStrokeRatio": 0.04,
   "defaultFontFamilies": [],
-  "fontStrokeRatio": 0.04,
   "autoskip": "skip_",
   "sizeModes": {
     "Parsed": "PARSED",

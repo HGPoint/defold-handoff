@@ -3,9 +3,9 @@
   import Override from "components/Override";
 
   export let label: string;
-  export let value: boolean;
+  export let value: boolean | null;
   export let originalValue: boolean | null = null;
-  export let disabled = false;
+  export let disabled: boolean | null = false;
 
   const id = generateRandomId();
 </script>
@@ -23,6 +23,7 @@
     type="checkbox"
     {id}
     bind:checked={value}
+    indeterminate={value === null}
     {disabled} />
   <Override bind:value={value} {originalValue} />
 </div>

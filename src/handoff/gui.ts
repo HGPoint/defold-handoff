@@ -5,13 +5,14 @@
 
 import { generateGUIDataSet, generateGUIData } from "utilities/guiDataGenerators";
 import { serializeGUIData, serializeGUIDataSet } from "utilities/guiDataSerializers";
-import { fitParent, fitChildren, shouldUpdateGUINode } from "utilities/gui";
+import { reduceAtlases, findAtlases, fitParent, fitChildren, fitChild, shouldUpdateGUINode } from "utilities/gui";
 import { isFigmaText, getPluginData, setPluginData, removePluginData, tryUpdateLayerName, isFigmaFrame, isFigmaBox, isFigmaComponentInstance, isFigmaComponent } from "utilities/figma";
 import { restoreSlice9Node, tryRefreshSlice9Placeholder, isSlice9PlaceholderLayer, findOriginalLayer, parseSlice9Data, isSlice9Layer, findPlaceholderLayer } from "utilities/slice9";
 import { tryRefreshScalePlaceholder } from "utilities/scale";
 import { extractScheme } from "utilities/scheme";
 import { inferTextNode, inferGUINodes } from "utilities/inference";
 import { projectConfig } from "handoff/project";
+import { exportAtlases } from "handoff/atlas";
 
 /**
  * Tries to restore slice 9 data for a given Figma layer.
@@ -49,6 +50,20 @@ export async function updateGUINode(layer: SceneNode, data: PluginGUINodeData) {
 }
 
 /**
+ * Updates bound GUI node data for an array of layers.
+ * @param layers - The layers to update GUI node data for.
+ * @param data - Updated GUI nodes data.
+ */
+export async function updateGUINodes(layers: SceneNode[], data: PluginGUINodeData[]) {
+  for (let index = 0; index < layers.length; index++) {
+    const layer = layers[index];
+    const guiNodeData = data[index];
+    console.log(layer.name, guiNodeData.skip)
+    await updateGUINode(layer, guiNodeData);
+  }
+}
+
+/**
  * Serializes GUI node data for a given layer as ProtoText.
  * @param layers - The layers to serialize.
  * @returns An array of serialized GUI nodes data.
@@ -82,6 +97,19 @@ export async function exportGUINodes(layers: GUINodeExport[]): Promise<Serialize
 }
 
 /**
+ * Exports Atlases used by GUI nodes from an array of Figma layers and returns the serialized result.
+ * @param layers - The layers to export Atlases from.
+ * @returns An array of serialized Atlas data.
+ */
+export async function exportGUINodeAtlases(layers: GUINodeExport[]): Promise<SerializedAtlasData[]> {
+  const guiNodesData = await generateGUIDataSet(layers);
+  const atlasIds = guiNodesData.reduce(reduceAtlases, []);
+  const atlasLayers = await findAtlases(atlasIds);
+  const serializedAtlasData = await exportAtlases(atlasLayers);
+  return serializedAtlasData;
+}
+
+/**
  * Infers properties for the GUI nodes from the properties of Figma layers.
  * @param layers - Figma layers to infer GUI properties from.
  */
@@ -93,7 +121,7 @@ export function fixGUINodes(layers: SceneNode[]) {
  * Matches parent of the GUI node to the dimensions of the GUI node.
  * @param layer - The GUI node to match parent for.
  */
-export function matchGUINodes(layer: ExportableLayer) {
+export function matchParentToGUINode(layer: ExportableLayer) {
   if (isFigmaBox(layer)) {
     const realLayer = isSlice9Layer(layer) ? findPlaceholderLayer(layer) : layer;
     if (realLayer) {
@@ -102,6 +130,22 @@ export function matchGUINodes(layer: ExportableLayer) {
         const { x, y } = realLayer;
         fitParent(parent, realLayer);
         fitChildren(parent, realLayer, x ,y)
+      }
+    }
+  }
+}
+
+/**
+ * Matches GUI node to the parent dimensions.
+ * @param layer - The GUI node to match parent for.
+ */
+export function matchGUINodeToParent(layer: ExportableLayer) {
+  if (isFigmaBox(layer)) {
+    const realLayer = isSlice9Layer(layer) ? findPlaceholderLayer(layer) : layer;
+    if (realLayer) {
+      const { parent } = realLayer;
+      if (parent && isFigmaBox(parent)) {
+        fitChild(parent, realLayer);
       }
     }
   }
@@ -177,4 +221,29 @@ function pullFromMainComponentLayer(layer: SceneNode) {
  */
 export function pullFromMainComponent(layers: SceneNode[]) {
   layers.map(pullFromMainComponentLayer);
+}
+
+/**
+ * Forces the given GUI node to be exported on screen.
+ * @param layer - The layer to force on screen.
+ */
+function forceChildOnScreen(layer: SceneNode) {
+  const originalLayer = isSlice9PlaceholderLayer(layer) ? findOriginalLayer(layer) : layer;
+  if (originalLayer) {
+    const pluginData = getPluginData(originalLayer, "defoldGUINode");
+    if (pluginData) {
+      const guiNodeData = { defoldGUINode: { ...pluginData, screen: true } };
+      setPluginData(originalLayer, guiNodeData);
+    }
+  }
+}
+
+/**
+ * Forces all children of the given layer to be exported on screen.
+ * @param layer - The layer to force the children on screen for.
+ */
+export function forceChildrenOnScreen(layer: SceneNode) {
+  if (isFigmaBox(layer)) {
+    layer.children.forEach(forceChildOnScreen);
+  }
 }

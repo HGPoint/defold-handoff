@@ -13,6 +13,7 @@ export const projectConfig: ProjectData = {
   screenSize: { ...config.screenSize },
   paths: { ...config.paths },
   fontSize: config.defaultFontSize,
+  fontStrokeRatio: config.defaultFontStrokeRatio,
   fontFamilies: [...config.defaultFontFamilies],
   autoskip: config.autoskip,
 }
@@ -63,6 +64,16 @@ function updateFontSize(fontSize?: number) {
 }
 
 /**
+ * Updates the font stroke ratio configuration of the project.
+ * @param fontStrokeRatio - The new font stroke ratio configuration to apply.
+ */
+function updateFontStrokeRatio(fontStrokeRatio?: number) {
+  if (fontStrokeRatio) {
+    projectConfig.fontStrokeRatio = fontStrokeRatio;
+  }
+}
+
+/**
  * Updates the font families configuration of the project.
  * @param fontFamilies - The new font families configuration to apply.
  */
@@ -90,6 +101,7 @@ function updateProjectData(data: Partial<ProjectData>) {
   updateScreenSize(data.screenSize);
   updatePaths(data.paths);
   updateFontSize(data.fontSize);
+  updateFontStrokeRatio(data.fontStrokeRatio);
   updateFontFamilies(data.fontFamilies);
   updateAutoskip(data.autoskip);
 }
@@ -116,6 +128,7 @@ export function updateProject(data: Partial<ProjectData>) {
     screenSize: { ...projectConfig.screenSize },
     paths: { ...projectConfig.paths },
     fontSize: projectConfig.fontSize,
+    fontStrokeRatio: projectConfig.fontStrokeRatio,
     fontFamilies: [...projectConfig.fontFamilies],
     autoskip: projectConfig.autoskip,
   }
