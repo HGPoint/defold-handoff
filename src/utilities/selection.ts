@@ -6,7 +6,8 @@
 import config from "config/config.json";
 import { isSlice9PlaceholderLayer, isSlice9ServiceLayer, findOriginalLayer } from "utilities/slice9";
 import { isAtlas, isFigmaFrame, isFigmaSection, isFigmaComponent, isFigmaComponentInstance, isFigmaBox, isFigmaText, isExportable, getPluginData, hasChildren, findMainComponent } from "utilities/figma";
-import { isTemplateGUINode } from "utilities/gui";
+import { isTemplateGUINode, resolvesGUINodeType } from "utilities/gui";
+import { resolvesGameObjectType } from "utilities/gameObject";
 import { generateContextData } from "utilities/context";
 import { projectConfig } from "handoff/project";
 
@@ -92,6 +93,24 @@ export function areMultipleSectionsSelected(selection: SelectionData | Selection
 }
 
 /**
+ * Checks if a single game object is selected.
+ * @param selection - The selection data.
+ * @returns True if a single game object is selected, false otherwise.
+ */
+export function isGameObjectSelected(selection: SelectionData | SelectionUIData) {
+  return selection?.gameObjects?.length === 1;
+}
+
+/**
+ * Checks if multiple game objects are selected.
+ * @param selection - The selection data.
+ * @returns True if multiple game objects are selected, false otherwise.
+ */
+export function areMultipleGameObjectsSelected(selection: SelectionData | SelectionUIData) {
+  return selection?.gameObjects?.length > 1;
+}
+
+/**
  * Reducer function for plugin selection data. Sorts selected Figma layers into categories - GUI nodes, atlases, sections and layers.
  * @param selection - The selection data accumulator.
  * @param layer - The current layer being processed.
@@ -107,6 +126,7 @@ function pluginSelectionReducer(selection: SelectionData, layer: SceneNode): Sel
       const originalLayer = isSlice9PlaceholderLayer(layer) ? findOriginalLayer(layer) : layer;
       if (originalLayer) {
         selection.gui.push(originalLayer);
+        selection.gameObjects.push(originalLayer);
       }
       if (!isFigmaText(layer)) {
         selection.layers.push(layer);
@@ -123,7 +143,7 @@ function pluginSelectionReducer(selection: SelectionData, layer: SceneNode): Sel
  * @returns The plugin selection data.
  */
 export function reducePluginSelection(): SelectionData {
-  const selection: SelectionData = { gui: [], atlases: [], layers: [], sections: [] };
+  const selection: SelectionData = { gui: [], atlases: [], layers: [], sections: [], gameObjects: [] };
   return figma.currentPage.selection.reduce(pluginSelectionReducer, selection);
 }
 
@@ -131,11 +151,12 @@ export function reducePluginSelection(): SelectionData {
  * Reducer function that converts GUI node selection data to UI GUI node selection data.
  * @param data - The plugin selection data.
  * @param layer - The current layer being processed.
+ * @returns The converted plugin selection data.
  */
 function guiNodePluginUISelectionConverter(data: PluginGUINodeData[], layer: ExportableLayer): PluginGUINodeData[] {
   const pluginData = getPluginData(layer, "defoldGUINode");
   const { name: id } = layer;
-  const type = isFigmaText(layer) ? "TYPE_TEXT" : (pluginData?.template ? "TYPE_TEMPLATE" : "TYPE_BOX");
+  const type = resolvesGUINodeType(layer, pluginData);
   const template_name = pluginData?.template_name || id;
   const guiNodeData: PluginGUINodeData = {
     ...config.guiNodeDefaultValues,
@@ -148,6 +169,39 @@ function guiNodePluginUISelectionConverter(data: PluginGUINodeData[], layer: Exp
   };
   data.push(guiNodeData);
   return data;
+}
+
+/**
+ * Reducer function that converts game object selection data to UI game object selection data.
+ * @param layer - The current layer being processed.
+ * @returns Promise that resolves to the converted plugin selection data.
+ */
+async function gameObjectsPluginUISelectionConverter(layer: ExportableLayer): Promise<PluginGameObjectData> {
+  const pluginData = getPluginData(layer, "defoldGameObject");
+  const { name: id } = layer;
+  const type = await resolvesGameObjectType(layer);
+  const gameObjectData: PluginGameObjectData = {
+    ...config.gameObjectDefaultValues,
+    ...config.gameObjectDefaultSpecialValues,
+    ...pluginData,
+    id,
+    type,
+    figma_node_type: layer.type,
+  };
+  return gameObjectData;
+}
+
+/**
+ * Converts game object selection data to UI game object selection data.
+ * @param gameObjects - The plugin selection data.
+ * @returns Promises that resolve to the converted plugin selection data array.
+ */
+async function convertGameObjects(gameObjects: ExportableLayer[]): Promise<PluginGameObjectData[]> {
+  const gameObjectData: Promise<PluginGameObjectData>[] = [];
+  for (const layer of gameObjects) {
+    gameObjectData.push(gameObjectsPluginUISelectionConverter(layer));
+  }
+  return Promise.all(gameObjectData);
 }
 
 /**
@@ -242,6 +296,7 @@ export async function convertPluginUISelection(selection: SelectionData): Promis
     atlases: selection.atlases.reduce(atlasPluginUISelectionConverter, []),
     layers: selection.layers,
     sections: selection.sections.reduce(sectionPluginUISelectionConverter, []),
+    gameObjects: await convertGameObjects(selection.gameObjects),
     project: projectConfig,
     context: generateSelectionContextData(selection),
     canTryMatch: checkForMatchingPairs(selection),

@@ -5,7 +5,7 @@
 
 import config from "config/config.json";
 import { resolveAtlasTexture, resolveEmptyTexture } from "utilities/atlas";
-import { getPluginData, findMainComponent, isExportable, isFigmaComponentInstance, isFigmaSceneNode, isAtlas, isAtlasSprite } from "utilities/figma";
+import { getPluginData, findMainComponent, isExportable, isFigmaComponentInstance, isFigmaSceneNode, isAtlas, isAtlasSprite, isFigmaText } from "utilities/figma";
 import { inferGUINodeType } from "utilities/inference";
 
 /**
@@ -238,4 +238,14 @@ export async function shouldUpdateGUINode(layer: SceneNode, pluginData: PluginGU
     return true;
   }
   return await isDataUpdated(pluginData, updatedPluginData);
+}
+
+export function resolvesGUINodeType(layer: ExportableLayer, pluginData: PluginGUINodeData | null | undefined): GUINodeType {
+  if (isFigmaText(layer)) {
+    return "TYPE_TEXT";
+  }
+  if (pluginData?.template) {
+    return "TYPE_TEMPLATE";
+  }
+  return "TYPE_BOX";
 }

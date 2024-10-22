@@ -64,7 +64,7 @@ export function isSelectionData(selection?: SelectionUIData): selection is Selec
  * @returns A boolean indicating if the UI mode is valid.
  */
 export function isUIMode(mode?: string): mode is UIMode {
-  return mode === null || (!!mode && (mode === "developer" || mode === "designer"));
+  return mode === null || (!!mode && (mode === "developer" || mode === "designer" || mode === "game-designer"));
 }
 
 /**

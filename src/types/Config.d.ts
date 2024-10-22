@@ -26,7 +26,7 @@ declare module "config/config.json" {
       clipping_mode: ClippingMode,
       clipping_visible: boolean,
       clipping_inverted: boolean,
-      blend_mode: GUINodeBlendMode,
+      blend_mode: BlendingMode,
       custom_type: 0,
       template_node_child: boolean
     }
@@ -48,6 +48,21 @@ declare module "config/config.json" {
       wrapper: boolean,
       wrapper_padding: Vector4,
     }
+    gameObjectDefaultValues: {
+      position: Vector4,
+      scale: Vector4,
+      slice9: Vector4,
+      material: string,
+      pivot: Pivot,
+      size_mode: SizeMode,
+      blend_mode: BlendingMode,
+    },
+    gameObjectDefaultSpecialValues: {
+      skip: boolean,
+      path: string,
+      exclude: boolean,
+      inferred: boolean
+    },
     atlasMaxSize: number,
     atlasSpritePadding: number,
     atlasDefaultValues: {
@@ -72,7 +87,7 @@ declare module "config/config.json" {
     fontStrokeRatio: number,
     autoskip: string,
     sizeModes: Record<string, SizeMode | "PARSED">,
-    blendModes: Record<string, GUINodeBlendMode>,
+    blendModes: Record<string, BlendingMode>,
     pivots: Record<string, Pivot>,
     xAnchors: Record<string, XAnchor>,
     yAnchors: Record<string, YAnchor>,

@@ -17,6 +17,10 @@
     {
       "name": "Designer Mode",
       "command": "designer"
+    },
+    {
+      "name": "Game Designer Mode",
+      "command": "game-designer"
     }
   ],
   "ui": "dist/ui.html",

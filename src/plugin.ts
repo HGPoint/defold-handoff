@@ -4,7 +4,7 @@
  */
 
 import { getPluginData, selectNode, hasVariantPropertyChanged, hasNamePropertyChanged, isFigmaComponentInstance, isPropertyChange, setPluginData } from "utilities/figma";
-import { reducePluginSelection, convertPluginUISelection, reduceAtlases, reduceGUINodes } from "utilities/selection";  
+import { reducePluginSelection, convertPluginUISelection, reduceAtlases, reduceGUINodes, reduceGameObjects } from "utilities/selection";  
 import { isSlice9Layer, isSlice9PlaceholderLayer, tryRefreshSlice9Sprite, tryUpdateOriginalLayerName  } from "utilities/slice9";
 import { isTemplateGUINode } from "utilities/gui";
 import { decipherError } from "utilities/error";
@@ -12,10 +12,11 @@ import { initializeProject, projectConfig, updateProject } from "handoff/project
 import { updateGUINode, tryRestoreSlice9Node, copyGUINode, exportGUINodes, removeGUINodes, fixTextNode, fixGUINodes, matchGUINodes, resizeScreenNodes, copyGUINodeScheme, pullFromMainComponent } from "handoff/gui";
 import { createAtlas, addSprites, fixAtlases, sortAtlases, fitAtlases, exportAtlases, destroyAtlases, tryRestoreAtlases, tryExtractImage } from "handoff/atlas";
 import { updateSection, removeSections } from "handoff/section";
+import { exportGameObjects, removeGameObjects, fixGameObjects } from "handoff/gameObject";
 import { exportBundle } from "handoff/bundle";
 import { delay } from "utilities/delay";
 
-let selection: SelectionData = { gui: [], atlases: [], layers: [], sections: [] };
+let selection: SelectionData = { gui: [], atlases: [], layers: [], sections: [], gameObjects: [] };
 let lastExtractedImage: string;
 
 /**
@@ -274,6 +275,36 @@ async function onRequestImage() {
   }
 }
 
+function onExportGameObjects() {
+  exportGameObjects(selection.gameObjects)
+    .then(onGameObjectsExported)
+    .catch(processError);
+}
+
+function onGameObjectsExported(gameObjects: SerializedGameObjectsData[]) {
+  const bundle = { gameObjects };
+  postMessageToPluginUI("gameObjectsExported", { bundle, project: projectConfig })
+  updateSelection();
+  figma.notify("Game objects exported");
+}
+
+function onFixGameObjects() {
+  fixGameObjects(selection.gameObjects);
+  delay(200)
+    .then(onGameObjectsFixed);
+}
+
+function onGameObjectsFixed() {
+  updateSelection();
+  figma.notify("Game objects fixed");
+}
+
+function onResetGameObjects() {
+  removeGameObjects(selection.gameObjects);
+  updateSelection();
+  figma.notify("Game objects reset");
+}
+
 /**
  * Processes a message from the plugin UI.
  * @param message - The message from the plugin UI.
@@ -336,6 +367,12 @@ function processPluginUIMessage(message: PluginMessage) {
     expandUI();
   } else if (type === "requestImage") {
     onRequestImage();
+  } else if (type === "fixGameObjects") {
+    onFixGameObjects();
+  } else if (type === "resetGameObjects") {
+    onResetGameObjects();
+  } else if (type === "exportGameObjects") {
+    onExportGameObjects();
   }
 }
 

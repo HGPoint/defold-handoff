@@ -224,3 +224,11 @@ export function inferGUINodes(layers: readonly SceneNode[]) {
     }
   }
 }
+
+/**
+ * Infers properties for multiple game objects.
+ * @param layers - The array of Figma layers to infer properties for.
+ */
+export function inferGameObjects(layers: readonly SceneNode[]) {
+  console.log("Infer game objects", layers);
+}

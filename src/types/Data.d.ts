@@ -107,7 +107,7 @@ type GUINodeData = {
   clipping_mode: ClippingMode,
   clipping_visible: boolean,
   clipping_inverted: boolean,
-  blend_mode: GUINodeBlendMode,
+  blend_mode: BlendingMode,
   custom_type: number,
   template_node_child: boolean,
 
@@ -202,6 +202,14 @@ type SerializedGUIData = {
   template?: boolean,
   templateName?: string,
   templatePath?: string,
+}
+
+type GameObjectData = {
+  name: string,
+}
+
+type SerializedGameObjectData = {
+  name: string,
 }
 
 type BundleData = {
