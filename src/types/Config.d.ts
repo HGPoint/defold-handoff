@@ -83,6 +83,7 @@ declare module "config/config.json" {
       ignorePrefixes: boolean
     }
     defaultFontSize: number,
+    defaultFontStrokeRatio: number,
     defaultFontFamilies: ProjectFontData[],
     fontStrokeRatio: number,
     autoskip: string,

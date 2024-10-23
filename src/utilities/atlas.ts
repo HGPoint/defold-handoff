@@ -48,8 +48,8 @@ export function resolveEmptyTexture() {
  * @param sprite2 - The second sprite to compare.
  * @returns The result of comparison based on sprite heights.
  */
-function sortSpritesByHeight(sprite1: SceneNode, sprite2: SceneNode) {
-  return sprite2.height - sprite1.height;
+function sortSpritesByName(sprite1: SceneNode, sprite2: SceneNode) {
+  return sprite1.name.localeCompare(sprite2.name);
 }
 
 /**
@@ -61,7 +61,7 @@ export function packSprites(atlas: ComponentSetNode) {
   let maxHeight = 0;
   let maxWidth = 0;
   let currentRowHeight = 0;
-  const sprites = [...atlas.children].sort(sortSpritesByHeight);
+  const sprites = [...atlas.children].sort(sortSpritesByName);
   sprites.forEach(sprite => {
     const { width, height } = sprite;
     if (height > currentRowHeight) {

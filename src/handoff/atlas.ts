@@ -3,6 +3,7 @@
  * @packageDocumentation
  */
 
+import config from "config/config.json";
 import { generateAtlasDataSet } from "utilities/atlasDataGenerators";
 import { serializeAtlasDataSet } from "utilities/atlasDataSerializers";
 import { packSprites } from "utilities/atlas";
@@ -137,12 +138,28 @@ export function createAtlas(layers: SceneNode[]) {
 }
 
 /**
+ * Appends a sprite component to an atlas component.
+ * @param atlas - The atlas component to append the sprite component to.
+ * @param sprite - Figma layer to append as a sprite component.
+ * @param positionX - The x position to append the sprite component at.
+ */
+function appendSpriteComponent(atlas: ComponentSetNode, sprite: ComponentNode, positionX: number) {
+  atlas.appendChild(sprite);
+  sprite.x = positionX;
+  sprite.y = atlas.height + config.atlasSpritePadding;
+}
+
+/**
  * Appends new sprite components to an atlas component. The atlas component is then fitted to include new sprite components.
  * @param atlas - The atlas component to append the sprite components to.
  * @param sprites - Figma layers to append as sprite components.
  */
 function appendSpriteComponents(atlas: ComponentSetNode, sprites: ComponentNode[]) {
-  sprites.forEach((sprite) => { atlas.appendChild(sprite); });
+  let nextSpritePositionX = 0;
+  sprites.forEach((sprite) => {
+    appendSpriteComponent(atlas, sprite, nextSpritePositionX);
+    nextSpritePositionX += sprite.width + config.atlasSpritePadding; 
+  });
   fitAtlasComponent(atlas);
 }
 

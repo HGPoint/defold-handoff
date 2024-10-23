@@ -92,7 +92,15 @@ type PluginGameObjectData = {
   skip: boolean,
   inferred: boolean,
   path: string,
-  figma_node_type: NodeType,
+  figma_node_type: NodeType
+}
+
+type PluginGUIMassNodeData = {
+  exclude: boolean | null
+  screen: boolean | null
+  skip: boolean | null
+  fixed: boolean | null
+  cloneable: boolean | null
 }
 
 type PluginDataOverrideKey = `defoldGUINodeOverride-${string}`
@@ -117,14 +125,20 @@ type PluginMessageAction =
   "guiNodesCopied" |
   "exportGUINodes" |
   "guiNodesExported" |
+  "exportGUINodeAtlases" |
+  "guiNodeAtlasesExported" |
   "copyGUINodeScheme" |
   "guiNodeSchemeCopied" |
   "fixGUINodes" |
   "resizeScreenGUINodes" |
   "matchGUINodes" |
+  "matchParentToGUINode" |
+  "matchGUINodeToParent" |
+  "forceChildrenOnScreen" |
   "validateGUINodes" |
   "resetGUINodes" |
   "updateGUINode" |
+  "updateGUINodes" |
   "showGUINodeData" |
   "createAtlas" |
   "restoreAtlases" |
@@ -165,6 +179,7 @@ type PluginMessagePayload = {
   selection?: SelectionUIData,
   mode?: UIMode,
   image?: Uint8Array,
+  gui?: PluginGUINodeData[],
   guiNode?: PluginGUINodeData,
   gameObject?: PluginGameObjectData,
   section?: PluginSectionData,

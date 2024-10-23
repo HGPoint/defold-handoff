@@ -789,7 +789,7 @@ export async function generateGUIData(nodeExport: GUINodeExport): Promise<GUIDat
   };
 }
 
-export async function generateGUIDataSet(layers: GUINodeExport[]): Promise<GUIData[]> {
-  const guiNodesDataSets = layers.map(generateGUIData);
+export async function generateGUIDataSet(nodeExports: GUINodeExport[]): Promise<GUIData[]> {
+  const guiNodesDataSets = nodeExports.map(generateGUIData);
   return Promise.all(guiNodesDataSets);
 }

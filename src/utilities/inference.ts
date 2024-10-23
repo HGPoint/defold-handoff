@@ -54,7 +54,7 @@ export function inferTextVisible(): boolean {
  */
 export function inferTextStrokeWeight(layer: TextNode) {
   if (typeof layer.fontSize === "number") {
-    const strokeWeight = layer.fontSize * config.fontStrokeRatio;
+    const strokeWeight = layer.fontSize * projectConfig.fontStrokeRatio;
     layer.strokeWeight = strokeWeight;
   }
 }

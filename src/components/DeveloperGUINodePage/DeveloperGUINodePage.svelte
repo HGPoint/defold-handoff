@@ -31,7 +31,7 @@
     return false;
   }
 
-  function updatePlugin(updatedProperties: PluginGUINodeData | null) {
+  function updatePlugin(updatedProperties: PluginGUINodeData) {
     if (shouldSendUpdate()) {
       postMessageToPlugin("updateGUINode", { guiNode });
     }
@@ -107,8 +107,10 @@
     <Actions title="Tools" collapseKey="guiNodeToolsCollapsed">
       <ActionButton label="Infer Properties" action="fixGUINodes" />
       {#if $selectionState.canTryMatch}
-        <ActionButton label="Match Parent to GUI Node" action="matchGUINodes" />
+        <ActionButton label="Match Parent to GUI Node" action="matchParentToGUINode" />
+        <ActionButton label="Match GUI Node to Parent" action="matchGUINodeToParent" />
       {/if}
+      <ActionButton label="Force Children on Screen" action="forceChildrenOnScreen" />
       {#if isFigmaFrameType(guiNode.figma_node_type) || isFigmaComponentType(guiNode.figma_node_type)}
         <ActionButton label="Resize to Screen" action="resizeScreenGUINodes" />
       {/if}
@@ -126,6 +128,7 @@
     </Actions>
     <Actions collapseKey="guiNodeActionsCollapsed">
       <ActionButton label="Export GUI" action="exportGUINodes" />
+      <ActionButton label="Export Atlases" action="exportGUINodeAtlases" />
       <ActionButton label="Export Bundle" action="exportBundle" />
       <ActionButton label="Copy GUI" action="copyGUINodes" />
       <ActionButton label="Copy GUI Scheme" action="copyGUINodeScheme" />
