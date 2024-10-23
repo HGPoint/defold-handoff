@@ -3,12 +3,39 @@
  * @packageDocumentation
  */
 
-import { removePluginData } from "utilities/figma";
+import { generateGameObjectDataSet, generateGameObjectData } from "utilities/gameObjectDataGenerators";
+import { serializeGameObjectDataSet, serializeGameObjectData } from "utilities/gameObjectDataSerializers";
+import { removePluginData, getPluginData, setPluginData, tryUpdateLayerName } from "utilities/figma";
 import { inferGameObjects } from "utilities/inference";
+import { shouldUpdateGameObject } from "utilities/gameObject";
+import { tryRefreshSlice9Placeholder, isSlice9PlaceholderLayer, findOriginalLayer } from "utilities/slice9";
+import { tryRefreshScalePlaceholder } from "utilities/scale";
+
+export async function copyGameObject(layer: ExportableLayer): Promise<SerializedGameObjectData> {
+  const gameObjectData = await generateGameObjectData(layer);
+  const serializedGameObjectData = serializeGameObjectData(gameObjectData);
+  return serializedGameObjectData;
+}
 
 export async function exportGameObjects(layers: ExportableLayer[]): Promise<SerializedGameObjectData[]> {
-  console.log("Export game objects", layers);
-  return [];
+  const gameObjectData = await generateGameObjectDataSet(layers);
+  const serializedGameObjectsData = serializeGameObjectDataSet(gameObjectData);
+  return serializedGameObjectsData;
+}
+
+export async function updateGameObject(layer: ExportableLayer, data: PluginGameObjectData) {
+  const originalLayer = isSlice9PlaceholderLayer(layer) ? findOriginalLayer(layer) : layer;
+  if (originalLayer) {
+    const pluginData = getPluginData(originalLayer, "defoldGameObject");
+    const updatedPluginData: PluginGameObjectData = { ...pluginData, ...data };
+    if (await shouldUpdateGameObject(layer, pluginData, updatedPluginData)) {
+      const gameObjectData = { defoldGameObject: { ...pluginData, ...data } };
+      setPluginData(originalLayer, gameObjectData);
+      tryUpdateLayerName(originalLayer, data.id);
+      tryRefreshSlice9Placeholder(originalLayer, data.slice9, pluginData?.slice9)
+      tryRefreshScalePlaceholder(layer, data.scale, pluginData?.scale);
+    }
+  }
 }
 
 export function fixGameObjects(layers: SceneNode[]) {

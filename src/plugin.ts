@@ -4,15 +4,15 @@
  */
 
 import { getPluginData, selectNode, hasVariantPropertyChanged, hasNamePropertyChanged, isFigmaComponentInstance, isPropertyChange, setPluginData } from "utilities/figma";
-import { reducePluginSelection, convertPluginUISelection, reduceAtlases, reduceGUINodes, reduceGameObjects } from "utilities/selection";  
+import { reducePluginSelection, convertPluginUISelection, reduceAtlases, reduceGUINodes } from "utilities/selection";  
 import { isSlice9Layer, isSlice9PlaceholderLayer, tryRefreshSlice9Sprite, tryUpdateOriginalLayerName  } from "utilities/slice9";
 import { isTemplateGUINode } from "utilities/gui";
 import { decipherError } from "utilities/error";
 import { initializeProject, projectConfig, updateProject } from "handoff/project";
-import { updateGUINode, tryRestoreSlice9Node, copyGUINode, exportGUINodes, removeGUINodes, fixTextNode, fixGUINodes, matchGUINodes, resizeScreenNodes, copyGUINodeScheme, pullFromMainComponent } from "handoff/gui";
+import { updateGUINode, tryRestoreSlice9Node, copyGUINode, exportGUINodes, removeGUINodes, fixTextGUINode, fixGUINodes, matchGUINodes, resizeScreenGUINodes, copyGUINodeScheme, pullFromMainComponent } from "handoff/gui";
 import { createAtlas, addSprites, fixAtlases, sortAtlases, fitAtlases, exportAtlases, destroyAtlases, tryRestoreAtlases, tryExtractImage } from "handoff/atlas";
 import { updateSection, removeSections } from "handoff/section";
-import { exportGameObjects, removeGameObjects, fixGameObjects } from "handoff/gameObject";
+import { copyGameObject, updateGameObject, exportGameObjects, removeGameObjects, fixGameObjects } from "handoff/gameObject";
 import { exportBundle } from "handoff/bundle";
 import { delay } from "utilities/delay";
 
@@ -53,16 +53,16 @@ function onSelectionChange() {
   updateSelection();
 }
 
-function onCopyGUINode() {
-  const { gui: [layer] } = selection;
+function onCopyGUINodes() {
+  const { gui: [ layer ] } = selection;
   const nodeExport = { layer, asTemplate: isTemplateGUINode(layer) };
   copyGUINode(nodeExport)
-    .then(onGUINodeCopied)
+    .then(onGUINodesCopied)
     .catch(processError);
 }
 
-function onGUINodeCopied(gui: SerializedGUIData) {
-  const bundle = { gui: [gui] };
+function onGUINodesCopied(gui: SerializedGUIData) {
+  const bundle = { gui: [ gui ] };
   postMessageToPluginUI("guiNodesCopied", { bundle })
   updateSelection();
   figma.notify("GUI node copied");
@@ -93,12 +93,12 @@ async function onCopyGUINodeScheme() {
   copyGUINodeScheme(nodeExport)
     .then(onGUINodeSchemeCopied)
     .catch(processError);
-  }
-  
-  function onGUINodeSchemeCopied(scheme: string) {
-    postMessageToPluginUI("guiNodeSchemeCopied", { scheme })
-    figma.notify("GUI node scheme copied");
-  } 
+}
+
+function onGUINodeSchemeCopied(scheme: string) {
+  postMessageToPluginUI("guiNodeSchemeCopied", { scheme })
+  figma.notify("GUI node scheme copied");
+}
 
 function onResetGUINodes() {
   removeGUINodes(selection.gui);
@@ -123,8 +123,8 @@ function onMatchGUINodes() {
   figma.notify("GUI nodes matched");
 }
 
-function onResizeScreenNodes() {
-  resizeScreenNodes(selection.gui);
+function onResizeScreenGUINodes() {
+  resizeScreenGUINodes(selection.gui);
   figma.notify("Nodes resized to screen size");
 }
 
@@ -219,7 +219,7 @@ function onShowGUINodeData() {
 
 function onFixTextNode() {
   const { gui: [ layer ] } = selection;
-  fixTextNode(layer);
+  fixTextGUINode(layer);
   updateSelection();
   figma.notify("Text node fixed");
 }
@@ -281,7 +281,7 @@ function onExportGameObjects() {
     .catch(processError);
 }
 
-function onGameObjectsExported(gameObjects: SerializedGameObjectsData[]) {
+function onGameObjectsExported(gameObjects: SerializedGameObjectData[]) {
   const bundle = { gameObjects };
   postMessageToPluginUI("gameObjectsExported", { bundle, project: projectConfig })
   updateSelection();
@@ -305,6 +305,25 @@ function onResetGameObjects() {
   figma.notify("Game objects reset");
 }
 
+function onCopyGameObjects() {
+  const { gameObjects: [ layer ] } = selection;
+  copyGameObject(layer)
+    .then(onGameObjectsCopied)
+    .catch(processError);
+}
+
+function onGameObjectsCopied(gameObject: SerializedGameObjectData) {
+  const bundle = { gameObjects: [ gameObject ] };
+  postMessageToPluginUI("gameObjectsCopied", { bundle })
+  updateSelection();
+  figma.notify("Game object copied");
+}
+
+function onUpdateGameObject(data: PluginGameObjectData) {
+  const { gameObjects: [ layer ] } = selection;
+  updateGameObject(layer, data);
+}
+
 /**
  * Processes a message from the plugin UI.
  * @param message - The message from the plugin UI.
@@ -312,7 +331,7 @@ function onResetGameObjects() {
 function processPluginUIMessage(message: PluginMessage) {
   const { type, data } = message;
   if (type === "copyGUINodes") {
-    onCopyGUINode();
+    onCopyGUINodes();
   } else if (type === "exportGUINodes") {
     onExportGUINodes();
   } else if (type === "resetGUINodes") {
@@ -321,8 +340,8 @@ function processPluginUIMessage(message: PluginMessage) {
     onFixGUINodes();
   } else if (type === "matchGUINodes") {
     onMatchGUINodes();
-  } else if (type === "resizeScreenNodes"){
-    onResizeScreenNodes();
+  } else if (type === "resizeScreenGUINodes"){
+    onResizeScreenGUINodes();
   } else if (type === "updateGUINode" && data?.guiNode) {
     onUpdateGUINode(data.guiNode);
   } else if (type === "copyGUINodeScheme") {
@@ -373,6 +392,10 @@ function processPluginUIMessage(message: PluginMessage) {
     onResetGameObjects();
   } else if (type === "exportGameObjects") {
     onExportGameObjects();
+  } else if (type === "copyGameObjects") {
+    onCopyGameObjects();
+  } else if (type === "updateGameObject" && data?.gameObject) {
+    onUpdateGameObject(data.gameObject);
   }
 }
 

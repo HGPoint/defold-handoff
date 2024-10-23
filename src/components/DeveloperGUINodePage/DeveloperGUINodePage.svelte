@@ -2,8 +2,9 @@
   import config from "config/config.json";
   import selectionState from "state/selection";
   import { postMessageToPlugin } from "utilities/pluginUI";
-  import { isTextGUINodeType, isBoxGUINodeType, isTemplateGUINodeType, isFigmaComponentInstanceType, isFigmaComponentType, isFigmaFrameType } from "utilities/gui";
-    import { isZeroVector } from "utilities/math";
+  import { isTextGUINodeType, isBoxGUINodeType, isTemplateGUINodeType } from "utilities/gui";
+  import { isFigmaFrameType, isFigmaComponentType, isFigmaComponentInstanceType } from "utilities/figma";
+  import { isZeroVector } from "utilities/math";
   import Page from "components/Page";
   import Properties from "components/Properties";
   import Actions from "components/Actions";
@@ -109,7 +110,7 @@
         <ActionButton label="Match Parent to GUI Node" action="matchGUINodes" />
       {/if}
       {#if isFigmaFrameType(guiNode.figma_node_type) || isFigmaComponentType(guiNode.figma_node_type)}
-        <ActionButton label="Resize to Screen" action="resizeScreenNodes" />
+        <ActionButton label="Resize to Screen" action="resizeScreenGUINodes" />
       {/if}
       {#if isTextGUINodeType(guiNode.type)}
         <ActionButton label="Fix Text" action="fixTextNode" />

@@ -4,7 +4,7 @@
  */
 
 import { generateGUIDataSet, generateGUIData } from "utilities/guiDataGenerators";
-import { serializeGUIData, serializeGUIDataSet } from "utilities/guiDataSerializers";
+import { serializeGUIDataSet, serializeGUIData } from "utilities/guiDataSerializers";
 import { fitParent, fitChildren, shouldUpdateGUINode } from "utilities/gui";
 import { isFigmaText, getPluginData, setPluginData, removePluginData, tryUpdateLayerName, isFigmaFrame, isFigmaBox, isFigmaComponentInstance, isFigmaComponent } from "utilities/figma";
 import { restoreSlice9Node, tryRefreshSlice9Placeholder, isSlice9PlaceholderLayer, findOriginalLayer, parseSlice9Data, isSlice9Layer, findPlaceholderLayer } from "utilities/slice9";
@@ -111,7 +111,7 @@ export function matchGUINodes(layer: ExportableLayer) {
  * Resizes GUI nodes to the dimensions of the screen.
  * @param layers - The layers to resize.
  */
-export function resizeScreenNodes(layers: SceneNode[]) {
+export function resizeScreenGUINodes(layers: SceneNode[]) {
   const { screenSize: { x: screenWidth, y: screenHeight } } = projectConfig;
   layers.forEach((layer) => {
     if (isFigmaFrame(layer) || isFigmaComponent(layer)) {
@@ -124,7 +124,7 @@ export function resizeScreenNodes(layers: SceneNode[]) {
  * Infers properties for the text node from the properties of the Figma layer.
  * @param layer - The text node to fix.
  */
-export function fixTextNode(layer: SceneNode) {
+export function fixTextGUINode(layer: SceneNode) {
   if (isFigmaText(layer)) {
     inferTextNode(layer);
   }

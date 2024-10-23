@@ -8,7 +8,6 @@
 <Page>
   <Actions title="Tools" collapseKey="gameObjectsToolsCollapsed">
     <ActionButton label="Infer Properties" action="fixGameObjects" />
-    <ActionButton label="Validate Game Objects" action="validateGameObjects" disabled={true} />
     <ActionButton label="Reset Game Objects" action="resetGameObjects" />
   </Actions>
   <Actions collapseKey="gameObjectsActionsCollapsed">

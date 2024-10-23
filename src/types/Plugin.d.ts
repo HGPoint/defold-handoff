@@ -120,7 +120,7 @@ type PluginMessageAction =
   "copyGUINodeScheme" |
   "guiNodeSchemeCopied" |
   "fixGUINodes" |
-  "resizeScreenNodes" |
+  "resizeScreenGUINodes" |
   "matchGUINodes" |
   "validateGUINodes" |
   "resetGUINodes" |
@@ -155,7 +155,10 @@ type PluginMessageAction =
   "exportGameObjects" |
   "gameObjectsExported" |
   "fixGameObjects" |
-  "resetGameObjects"
+  "resetGameObjects" |
+  "updateGameObject" |
+  "copyGameObjects" |
+  "gameObjectsCopied"
 
 type PluginMessagePayload = {
   bundle?: BundleData,
@@ -163,6 +166,7 @@ type PluginMessagePayload = {
   mode?: UIMode,
   image?: Uint8Array,
   guiNode?: PluginGUINodeData,
+  gameObject?: PluginGameObjectData,
   section?: PluginSectionData,
   scheme?: string,
   project?: Partial<ProjectData>,

@@ -164,6 +164,42 @@ export async function isAtlasSprite(layer: SceneNode): Promise<boolean> {
 }
 
 /**
+ * Checks if the given node type is Figma component type.
+ * @param type - The type to check.
+ * @returns True if the type is Figma component, otherwise false.
+ */
+export function isFigmaComponentType(figmaNodeType: NodeType) {
+  return figmaNodeType === "COMPONENT";
+}
+
+/**
+ * Checks if the given node type is Figma component instance type.
+ * @param type - The type to check.
+ * @returns True if the type is Figma component instance, otherwise false.
+ */
+export function isFigmaComponentInstanceType(figmaNodeType: NodeType) {
+  return figmaNodeType === "INSTANCE";
+}
+
+/**
+ * Checks if the given node type is Figma frame type.
+ * @param type - The type to check.
+ * @returns True if the type is Figma frame, otherwise false.
+ */
+export function isFigmaFrameType(figmaNodeType: NodeType) {
+  return figmaNodeType === "FRAME";
+}
+
+/**
+ * Checks if the given node type is Figma section type.
+ * @param type - The type to check.
+ * @returns True if the type is Figma section, otherwise false.
+ */
+export function isFigmaSectionType(figmaNodeType: NodeType) {
+  return figmaNodeType === "SECTION";
+}
+
+/**
  * Checks if a layer has children.
  * @param layer - The Figma layer to check.
  * @returns True if the layer has children, otherwise false.

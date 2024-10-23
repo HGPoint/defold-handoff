@@ -4,13 +4,13 @@
   import Override from "components/Override";
 
   export let label: string;
-  export let value: Vector4;
+  export let value: Vector4 | undefined = { x: 0, y: 0, z: 0, w: 0 };
   export let originalValue: Vector4 | null = null;
   export let disabled = false;
 
   const id = generateRandomId();
   
-  let editedValue: Vector4 = { ...value };
+  let editedValue: Vector4 = value ? { ...value } : { x: 0, y: 0, z: 0, w: 0 };
   
   function onApplyClick() {
     value = { ...editedValue };
@@ -20,7 +20,7 @@
     editedValue = { ...updatedValue }
   }
 
-  $: refreshEditedValue(value);
+  $: refreshEditedValue(value || { x: 0, y: 0, z: 0, w: 0 });
 </script>
 
 <label

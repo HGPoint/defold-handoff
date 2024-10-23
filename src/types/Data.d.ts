@@ -216,4 +216,5 @@ type BundleData = {
   gui?: SerializedGUIData[],
   atlases?: SerializedAtlasData[],
   sprites?: SerializedSpriteData[],
+  gameObjects?: SerializedGameObjectData[],
 }
