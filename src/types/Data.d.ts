@@ -95,6 +95,9 @@ type GUINodeData = {
   text?: string,
   font?: string,
   outline?: Vector4,
+  line_break?: boolean,
+  text_leading?: number,
+  text_tracking?: number,
   shadow?: Vector4,
   texture?: string,
   size_mode: SizeMode,
@@ -223,7 +226,31 @@ type SerializedGameCollectionData = {
 }
 
 type GameObjectData = {
-  name: string,
+  id: string,
+  url: string,
+  position: Vector4,
+  rotation: Vector4,
+  scale: Vector4,
+  size?: Vector4,
+  text?: string,
+  color?: Vector4,
+  outline?: Vector4,
+  shadow?: Vector4,
+  text_leading?: number,
+  text_tracking?: number,
+  image?: string,
+  defaultAnimation?: string,
+  size_mode?: SizeMode,
+  slice9?: Vector4,
+  pivot?: Pivot,
+  blend_mode?: BlendingMode,
+  material?: string,
+  
+  skip: boolean,
+  path: string,
+  exclude: boolean,
+  inferred: boolean,
+  children?: GameObjectData[],
 }
 
 type SerializedGameObjectData = {

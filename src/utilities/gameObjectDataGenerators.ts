@@ -2,6 +2,7 @@ import config from "config/config.json";
 import { vector4 } from "utilities/math";
 import { getPluginData } from "utilities/figma";
 import { convertGameCollectionData } from "utilities/gameObjectDataConverters";
+import { generateTexturesData } from "utilities/textureExtraction";
 
 /**
  * Generates options for exporting the root GUI node data.
@@ -20,6 +21,26 @@ function generateRootOptions(layer: ExportableLayer): GameObjectDataExportOption
   }
 }
 
+function generateGameObjectData(options: GameObjectDataExportOptions, nodes: GameObjectData[]) {
+  
+}
+
+/**
+ * Flattens a tree of GUI node data by recursively including all children nodes.
+ * @param nodes - The array (tree) of GUI node data to flatten.
+ * @returns The flattened array of GUI node data.
+ */
+function flattenGameObjectData(nodes: GameObjectData[]): GameObjectData[] {
+  const flatNodes = [];
+  for (const node of nodes) {
+    flatNodes.push(node);
+    if (node.children && node.children.length > 0) {
+      flatNodes.push(...flattenGameObjectData(node.children));
+    }
+  }
+  return flatNodes;
+}
+
 /**
  * Generates game object data for a given Figma layer, including textures.
  * @async
@@ -31,10 +52,9 @@ export async function generateGameCollectionData(layer: ExportableLayer): Promis
   const rootData = getPluginData(layer, "defoldGameObject");
   const rootOptions = generateRootOptions(layer);
   const collection = convertGameCollectionData(rootData);
-  const nodes: GUINodeData[] = [];
+  const nodes: GameObjectData[] = [];
   await generateGameObjectData(rootOptions, nodes);
-  const collapsedNodes = nodes.map(collapseGameObjectData);
-  const flatNodes = flattenGameObjectData(collapsedNodes);
+  const flatNodes = flattenGameObjectData(nodes);
   const textures: TextureData = {};
   await generateTexturesData(layer, textures);
   const filePath = rootData?.path || config.guiNodeDefaultSpecialValues.path;

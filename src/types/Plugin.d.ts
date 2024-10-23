@@ -196,3 +196,5 @@ type PluginMessage = {
 type PluginUIMessage = {
   pluginMessage: PluginMessage,
 }
+
+type VariantExtractor = (layer: BoxLayer, texturesData: TextureData, skipVariants?: boolean) => Promise<void>;
