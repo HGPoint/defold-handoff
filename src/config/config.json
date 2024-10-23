@@ -92,6 +92,10 @@
     "exclude": false,
     "inferred": false
   },
+  "gameCollectionDefaultValues": {
+    "name": "game",
+    "scale_along_z": 0
+  },
   "gameObjectDefaultValues": {
     "position": { "x": 0, "y": 0, "z": 0, "w": 0 },
     "scale": { "x": 1, "y": 1, "z": 1, "w": 1 },

@@ -9,11 +9,12 @@
   import Properties from "components/Properties";
   import Actions from "components/Actions";
   import ActionButton from "components/ActionButton";
+  import LayerPositionProperty from "components/LayerPositionProperty";
   import OptionsProperty from "components/OptionsProperty";
+  import TextProperty from "components/TextProperty";
   import ToggleProperty from "components/ToggleProperty";
   import TransformationProperty from "components/TransformationProperty";
   import SidesProperty from "components/SidesProperty";
-  import TextProperty from "components/TextProperty";
 
   let { gameObjects: [ gameObject ] } = $selectionState;
   let fontFamilies: Record<string, string>;
@@ -49,13 +50,10 @@
   <Page>
     <Properties collapseKey="guiNodePropertiesCollapsed">
       <TextProperty label="Id" bind:value={gameObject.id} />
-      <TransformationProperty label="Position" bind:value={gameObject.position} disabled={true} />
+      <LayerPositionProperty label="Position" bind:value={gameObject.position} />
       <TransformationProperty label="Scale" bind:value={gameObject.scale} disabled={true} />
       {#if isSpriteGameObjectType(gameObject.type)}
         <OptionsProperty label="Material" bind:value={gameObject.material} options={materials} disabled={true} />
-      {/if}
-      {#if isLabelGameObjectType(gameObject.type)}
-        <OptionsProperty label="Pivot" bind:value={gameObject.pivot} options={config.pivots} />
       {/if}
       {#if isSpriteGameObjectType(gameObject.type) || isLabelGameObjectType(gameObject.type)}
         <OptionsProperty label="Blend Mode" bind:value={gameObject.blend_mode} options={config.blendModes} />

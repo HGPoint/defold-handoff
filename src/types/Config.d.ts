@@ -48,6 +48,10 @@ declare module "config/config.json" {
       wrapper: boolean,
       wrapper_padding: Vector4,
     }
+    gameCollectionDefaultValues: {
+      name: string,
+      scale_along_z: number,
+    }
     gameObjectDefaultValues: {
       position: Vector4,
       scale: Vector4,

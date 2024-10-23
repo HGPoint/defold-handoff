@@ -3,7 +3,7 @@
  * @packageDocumentation
  */
 
-import { generateGameObjectDataSet, generateGameObjectData } from "utilities/gameObjectDataGenerators";
+import { generateGameCollectionDataSet, generateGameCollectionData } from "utilities/gameObjectDataGenerators";
 import { serializeGameObjectDataSet, serializeGameObjectData } from "utilities/gameObjectDataSerializers";
 import { removePluginData, getPluginData, setPluginData, tryUpdateLayerName } from "utilities/figma";
 import { inferGameObjects } from "utilities/inference";
@@ -12,13 +12,13 @@ import { tryRefreshSlice9Placeholder, isSlice9PlaceholderLayer, findOriginalLaye
 import { tryRefreshScalePlaceholder } from "utilities/scale";
 
 export async function copyGameObject(layer: ExportableLayer): Promise<SerializedGameObjectData> {
-  const gameObjectData = await generateGameObjectData(layer);
+  const gameObjectData = await generateGameCollectionData(layer);
   const serializedGameObjectData = serializeGameObjectData(gameObjectData);
   return serializedGameObjectData;
 }
 
 export async function exportGameObjects(layers: ExportableLayer[]): Promise<SerializedGameObjectData[]> {
-  const gameObjectData = await generateGameObjectDataSet(layers);
+  const gameObjectData = await generateGameCollectionDataSet(layers);
   const serializedGameObjectsData = serializeGameObjectDataSet(gameObjectData);
   return serializedGameObjectsData;
 }

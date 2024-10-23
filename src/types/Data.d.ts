@@ -205,12 +205,40 @@ type SerializedGUIData = {
   templatePath?: string,
 }
 
+type GameCollectionComponentData = {
+  name: string,
+  scale_along_z: number
+}
+
+type GameCollectionData = {
+  name: string,
+  collection: GameCollectionComponentData,
+  nodes: GameObjectData[],
+  textures: TextureData,
+  filePath: string,
+}
+
+type SerializedGameCollectionData = {
+  name: string,
+}
+
 type GameObjectData = {
   name: string,
 }
 
 type SerializedGameObjectData = {
   name: string,
+}
+
+type GameObjectDataExportOptions = {
+  layer: ExportableLayer,
+  atRoot: boolean,
+  namePrefix: string,
+  forcedName?: string,
+  parentId: string,
+  parentSize: Vector4,
+  parentShift: Vector4,
+  parentChildren?: GameObjectData[],
 }
 
 type BundleData = {
