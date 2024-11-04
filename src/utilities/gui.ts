@@ -4,8 +4,7 @@
  */
 
 import config from "config/config.json";
-import { resolveAtlasTexture, resolveEmptyTexture } from "utilities/atlas";
-import { getPluginData, findMainComponent, isExportable, isFigmaComponentInstance, isFigmaSceneNode, isAtlas, isAtlasSection, isAtlasSprite } from "utilities/figma";
+import { getPluginData, isExportable, isFigmaComponentInstance, isAtlasSprite, isFigmaText } from "utilities/figma";
 import { inferGUINodeType } from "utilities/inference";
 
 /**
@@ -68,7 +67,7 @@ export const EXCLUDED_TEMPLATE_PROPERTY_KEYS = [
  * @param type - The type to check.
  * @returns True if the type is template, otherwise false.
  */
-export function isTemplateGUINodeType(type: GUINodeType) {
+export function isGUITemplateNodeType(type: GUINodeType) {
   return type === "TYPE_TEMPLATE";
 }
 
@@ -77,7 +76,7 @@ export function isTemplateGUINodeType(type: GUINodeType) {
  * @param type - The type to check.
  * @returns True if the type is text, otherwise false.
  */
-export function isTextGUINodeType(type: GUINodeType) {
+export function isGUITextNodeType(type: GUINodeType) {
   return type === "TYPE_TEXT";
 }
 
@@ -86,44 +85,8 @@ export function isTextGUINodeType(type: GUINodeType) {
  * @param type - The type to check.
  * @returns True if the type is box, otherwise false.
  */
-export function isBoxGUINodeType(type: GUINodeType) {
+export function isGUIBoxNodeType(type: GUINodeType) {
   return type === "TYPE_BOX";
-}
-
-/**
- * Checks if the given node type is Figma component type.
- * @param type - The type to check.
- * @returns True if the type is Figma component, otherwise false.
- */
-export function isFigmaComponentType(figmaNodeType: NodeType) {
-  return figmaNodeType === "COMPONENT";
-}
-
-/**
- * Checks if the given node type is Figma component instance type.
- * @param type - The type to check.
- * @returns True if the type is Figma component instance, otherwise false.
- */
-export function isFigmaComponentInstanceType(figmaNodeType: NodeType) {
-  return figmaNodeType === "INSTANCE";
-}
-
-/**
- * Checks if the given node type is Figma frame type.
- * @param type - The type to check.
- * @returns True if the type is Figma frame, otherwise false.
- */
-export function isFigmaFrameType(figmaNodeType: NodeType) {
-  return figmaNodeType === "FRAME";
-}
-
-/**
- * Checks if the given node type is Figma section type.
- * @param type - The type to check.
- * @returns True if the type is Figma section, otherwise false.
- */
-export function isFigmaSectionType(figmaNodeType: NodeType) {
-  return figmaNodeType === "SECTION";
 }
 
 /**
@@ -141,29 +104,11 @@ export function isTemplateGUINode(layer: ExportableLayer) {
 }
 
 /**
- * Finds the texture for the given Figma layer.
- * @param layer - The Figma layer to find the texture for.
- * @returns The texture for the layer.
- */
-export async function findTexture(layer: ExportableLayer) {
-  if (isFigmaComponentInstance(layer)) {
-    const mainComponent = await findMainComponent(layer);
-    if (mainComponent) {
-      const { parent } = mainComponent;
-      if (isFigmaSceneNode(parent) && isAtlas(parent)) {
-        return resolveAtlasTexture(parent, layer);
-      }
-    }
-  }
-  return resolveEmptyTexture();
-}
-
-/**
  * Retrieves the plugin data for a Figma layer representing a GUINode.
  * @param layer - The Figma scene node to retrieve plugin data from.
  * @returns The plugin data for the GUINode, with default values applied.
  */
-export function getDefoldGUINodePluginData(layer: SceneNode) {
+export function getGUINodePluginData(layer: SceneNode) {
   const pluginData = getPluginData(layer, "defoldGUINode");
   const id = pluginData?.id || layer.name;
   const type = pluginData?.type || inferGUINodeType(layer);
@@ -252,40 +197,12 @@ export async function shouldUpdateGUINode(layer: SceneNode, pluginData: PluginGU
   return await isDataUpdated(pluginData, updatedPluginData);
 }
 
-/**
- * Reduces an array of GUIData objects to an array of atlas IDs.
- * @param atlasIds - Accumulator array of atlas IDs.
- * @param defoldObject - GUIData object to extract atlas IDs from.
- * @returns An array of atlas IDs.
- */
-export function reduceAtlases(atlasIds: string[], defoldObject: GUIData) {
-  const textureNames = Object.values(defoldObject.textures).map((texture) => texture.id);
-  return atlasIds.concat(textureNames);
-}
-
-/**
- * Finds atlas components based on their IDs including combined jumbo atlases.
- * @param atlasIds - The IDs of the atlases to find.
- * @returns An array of found atlas components.
- */
-export async function findAtlases(atlasIds: string[]): Promise<ComponentSetNode[]> {
-  const atlases = [];
-  for (const atlasId of atlasIds) {
-    const layer = await figma.getNodeByIdAsync(atlasId);
-    if (layer && isFigmaSceneNode(layer)) {
-      if (isAtlas(layer)) {
-        atlases.push(layer);
-      } else if (isAtlasSection(layer)) {
-        const sectionData = getPluginData(layer, "defoldSection");
-        if (sectionData?.jumbo) {
-          for (const child of layer.children) {
-            if (isFigmaSceneNode(child) && isAtlas(child)) {
-              atlases.push(child);
-            }
-          }
-        }
-      }
-    }
+export function resolvesGUINodeType(layer: ExportableLayer, pluginData: PluginGUINodeData | null | undefined): GUINodeType {
+  if (isFigmaText(layer)) {
+    return "TYPE_TEXT";
   }
-  return atlases;
+  if (pluginData?.template) {
+    return "TYPE_TEMPLATE";
+  }
+  return "TYPE_BOX";
 }

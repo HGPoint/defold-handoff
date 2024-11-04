@@ -6,14 +6,14 @@
 import { selectNode } from "utilities/figma";
 import { isZeroVector, areVectorsEqual, vector4 } from "utilities/math";
 import { getPluginData, removePluginData, isFigmaComponentInstance, isAtlasSprite, setPluginData, isFigmaFrame, isExportable } from "utilities/figma";
-import { getDefoldGUINodePluginData } from "utilities/gui";
+import { getGUINodePluginData } from "utilities/gui";
 
 /**
  * Checks if a Figma layer has the specified plugin data indicating it is a slice9 layer.
  * @param layer - The Figma layer to check.
  * @returns A boolean indicating if the layer is a slice9 layer.
  */
-export function isSlice9Layer(layer: SceneNode) {
+export function isSlice9Layer(layer: SceneNode): layer is SliceNode {
   return isFigmaComponentInstance(layer) && !!getPluginData(layer, "defoldSlice9");
 }
 
@@ -590,7 +590,7 @@ export function parseSlice9Data(layer: SceneNode): Vector4 | null {
  */
 export function restoreSlice9Node(layer: SceneNode, slice9: Vector4) {
   setPluginData(layer, { defoldSlice9: true });
-  const guiNodeData = { defoldGUINode: { ...getDefoldGUINodePluginData(layer), slice9 } };
+  const guiNodeData = { defoldGUINode: { ...getGUINodePluginData(layer), slice9 } };
   setPluginData(layer, guiNodeData);
 }
 

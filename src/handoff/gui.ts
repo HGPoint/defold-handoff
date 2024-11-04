@@ -4,13 +4,14 @@
  */
 
 import { generateGUIDataSet, generateGUIData } from "utilities/guiDataGenerators";
-import { serializeGUIData, serializeGUIDataSet } from "utilities/guiDataSerializers";
-import { reduceAtlases, findAtlases, fitParent, fitChildren, fitChild, shouldUpdateGUINode } from "utilities/gui";
+import { serializeGUIDataSet, serializeGUIData } from "utilities/guiDataSerializers";
+import { reduceAtlases, findAtlases } from "utilities/atlas";
+import { fitParent, fitChildren, fitChild, shouldUpdateGUINode } from "utilities/gui";
 import { isFigmaText, getPluginData, setPluginData, removePluginData, tryUpdateLayerName, isFigmaFrame, isFigmaBox, isFigmaComponentInstance, isFigmaComponent } from "utilities/figma";
 import { restoreSlice9Node, tryRefreshSlice9Placeholder, isSlice9PlaceholderLayer, findOriginalLayer, parseSlice9Data, isSlice9Layer, findPlaceholderLayer } from "utilities/slice9";
 import { tryRefreshScalePlaceholder } from "utilities/scale";
 import { extractScheme } from "utilities/scheme";
-import { inferTextNode, inferGUINodes } from "utilities/inference";
+import { inferGUITextNode, inferGUINodes } from "utilities/inference";
 import { projectConfig } from "handoff/project";
 import { exportAtlases } from "handoff/atlas";
 
@@ -58,7 +59,6 @@ export async function updateGUINodes(layers: SceneNode[], data: PluginGUINodeDat
   for (let index = 0; index < layers.length; index++) {
     const layer = layers[index];
     const guiNodeData = data[index];
-    console.log(layer.name, guiNodeData.skip)
     await updateGUINode(layer, guiNodeData);
   }
 }
@@ -155,7 +155,7 @@ export function matchGUINodeToParent(layer: ExportableLayer) {
  * Resizes GUI nodes to the dimensions of the screen.
  * @param layers - The layers to resize.
  */
-export function resizeScreenNodes(layers: SceneNode[]) {
+export function resizeScreenGUINodes(layers: SceneNode[]) {
   const { screenSize: { x: screenWidth, y: screenHeight } } = projectConfig;
   layers.forEach((layer) => {
     if (isFigmaFrame(layer) || isFigmaComponent(layer)) {
@@ -168,9 +168,9 @@ export function resizeScreenNodes(layers: SceneNode[]) {
  * Infers properties for the text node from the properties of the Figma layer.
  * @param layer - The text node to fix.
  */
-export function fixTextNode(layer: SceneNode) {
+export function fixGUITextNode(layer: SceneNode) {
   if (isFigmaText(layer)) {
-    inferTextNode(layer);
+    inferGUITextNode(layer);
   }
 }
 
@@ -208,7 +208,7 @@ export function removeGUINodes(layers: SceneNode[]) {
  * Pulls GUI node data from the main component for a given Figma component instance layer.
  * @param layer - The layer to pull GUI node data for.
  */
-function pullFromMainComponentLayer(layer: SceneNode) {
+function pullFromMainComponent(layer: SceneNode) {
   if (isFigmaComponentInstance(layer)) {
     removePluginData(layer, "defoldGUINode");
     removeGUINodeOverride(layer);
@@ -219,8 +219,8 @@ function pullFromMainComponentLayer(layer: SceneNode) {
  * Pulls GUI node data from the main component for each Figma layer from an array.
  * @param layers - The layers to pull GUI node data for.
  */
-export function pullFromMainComponent(layers: SceneNode[]) {
-  layers.map(pullFromMainComponentLayer);
+export function pullFromMainComponents(layers: SceneNode[]) {
+  layers.map(pullFromMainComponent);
 }
 
 /**

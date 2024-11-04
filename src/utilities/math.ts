@@ -38,7 +38,10 @@ export function isVector4(value: unknown): value is Vector4 {
  * @param vector - The vector to check.
  * @returns True if the vector is a zero vector, otherwise false.
  */
-export function isZeroVector(vector: Vector4) {
+export function isZeroVector(vector?: Vector4) {
+  if (!vector) {
+    return true;
+  }
   return vector.x === 0 && vector.y === 0 && vector.z === 0 && vector.w === 0;
 }
 
@@ -47,7 +50,10 @@ export function isZeroVector(vector: Vector4) {
  * @param vector - The vector to check.
  * @returns True if the vector is a one-scale vector, otherwise false.
  */
-export function isOneScaleVector(vector: Vector4) {
+export function isOneScaleVector(vector?: Vector4) {
+  if (!vector) {
+    return false;
+  }
   return vector.x === 1 && vector.y === 1;
 }
 

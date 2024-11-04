@@ -4,7 +4,7 @@
 
 import config from "config/config.json";
 import JSZip from "jszip";
-import { generateAtlasFileName, generateGUIPath, generateSpriteFileName, generateTemplatePath } from "utilities/path";
+import { generateAtlasFileName, generateGUIPath, generateGameCollectionPath, generateSpriteFileName, generateTemplatePath } from "utilities/path";
 
 /**
  * Archives an individual atlas image into the provided images folder within the zip archive.
@@ -41,6 +41,15 @@ function archiveAtlases(atlases: SerializedAtlasData[], assetsFolder: JSZip, pat
   atlases.forEach((atlas) => { archiveAtlas(atlas, atlasesFolder, imagesFolder); })
 }
 
+function archiveGameObject({ name, data, filePath }: SerializedGameCollectionData, assetsFolder: JSZip) {
+  const gameCollectionFileName = generateGameCollectionPath(name, filePath);
+  assetsFolder.file(gameCollectionFileName, data);
+}
+
+function archiveGameObjects(gameObjects: SerializedGameCollectionData[], assetsFolder: JSZip) {
+  gameObjects.forEach((gameObject) => archiveGameObject(gameObject, assetsFolder));
+}
+
 /**
  * Archives a GUI node into the provided assets folder within the zip archive.
  * @param guiNodeData - The serialized GUI node to be archived.
@@ -65,10 +74,13 @@ function archiveGUINodes(guiNodes: SerializedGUIData[], assetsFolder: JSZip) {
  * @param bundle - The bundle data to be archived.
  * @returns A Blob containing the zip archive.
  */
-export function archiveBundle({ gui, atlases }: BundleData, projectConfig: Partial<ProjectData>) {
+export function archiveBundle({ gui, gameObjects, atlases }: BundleData, projectConfig: Partial<ProjectData>) {
   const zip = new JSZip();
   if (gui) {
     archiveGUINodes(gui, zip);
+  }
+  if (gameObjects) {
+    archiveGameObjects(gameObjects, zip);
   }
   if (atlases && atlases.length > 0) {
     const paths = {

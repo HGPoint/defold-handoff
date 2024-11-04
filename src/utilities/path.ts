@@ -96,6 +96,15 @@ export function generateGUIPath(name: string, filePath?: string): string {
   return fileName;
 }
 
+
+export function generateGameCollectionPath(name: string, filePath?: string): string {
+  const fileName = generateGameCollectionFileName(name);
+  if (filePath) {
+    return `${filePath}/${fileName}`;
+  }
+  return fileName;
+}
+
 /**
  * Generates the .gui_script or .lua file name with the specified script name.
  * @param scriptName - The name of the script.
@@ -119,12 +128,44 @@ export function generateGUIFileName(guiNodeName: string): string {
 }
 
 /**
+ * Generates a filename for the archive containing the exported GUI nodes.
+ * @param gui - The serialized GUI data.
+ * @returns The filename for the exported GUI nodes.
+ */
+export function generateGUINodesFileName(gui: SerializedGUIData[]) {
+  const fileName = gui.length > 1 ? gui.length : gui[0].name;
+  const suffix = gui.length > 1 ? "nodes" : "node";
+  return `${fileName}.${suffix}.zip`;
+}
+
+export function generateGameCollectionFileName(gameObjectName: string): string {
+  return `${gameObjectName}.collection`;
+}
+
+export function generateGameCollectionsFileName(gui: SerializedGameCollectionData[]) {
+  const fileName = gui.length > 1 ? gui.length : gui[0].name;
+  const suffix = gui.length > 1 ? "collections" : "collection";
+  return `${fileName}.${suffix}.zip`;
+}
+
+/**
  * Generates the .atlas file name with the specified atlas name.
  * @param atlasName - The name of the atlas.
  * @returns The atlas file name.
  */
 export function generateAtlasFileName(atlasName: string): string {
   return `${atlasName}.atlas`;
+}
+
+/**
+ * Generates a filename for the exported atlases.
+ * @param atlases - The atlases data.
+ * @returns The filename for the exported atlases.
+ */
+export function generateAtlasesFileName(atlases: AtlasData[] | SerializedAtlasData[]) {
+  const fileName = atlases.length > 1 ? atlases.length : atlases[0].name;
+  const suffix = atlases.length > 1 ? "atlases" : "atlas";
+  return `${fileName}.${suffix}.zip`;
 }
 
 /**
@@ -136,6 +177,15 @@ export function generateSpriteFileName(spriteName: string): string {
   return `${spriteName}.png`;
 }
 
+/**
+ * Generates a filename for the exported sprites.
+ * @param atlases - The atlases data.
+ * @returns The filename for the exported sprites.
+ */
+export function generateSpritesFileName(atlases: SerializedAtlasData[]) {
+  const fileName = atlases.length > 1 ? atlases.length : atlases[0].name;
+  return `${fileName}.sprites.zip`;
+}
 
 /**
  * Generates the .font file name with the specified font name.
@@ -151,7 +201,7 @@ export function generateFontFileName(fontName: string): string {
  * @param guiFileName - The GUI file name.
  * @returns The sanitized GUI file name.
  */
-export function sanitizeGUIFileName(guiNodeName: string): string {
+export function sanitizeFileName(guiNodeName: string): string {
   if (guiNodeName.startsWith(projectConfig.autoskip)) {
     return guiNodeName.replace(projectConfig.autoskip, "");
   }

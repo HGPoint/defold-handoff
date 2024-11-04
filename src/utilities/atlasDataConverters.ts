@@ -10,7 +10,9 @@ import config from "config/config.json";
  * @returns Default values for sprite data.
  */
 function injectSpriteDefaults() {
-  return config.atlasImageDefaultValues;
+  return {
+    ...config.atlasImageDefaultValues,
+  };
 }
 
 /**
@@ -29,7 +31,9 @@ export function convertSpriteData(): SpriteComponentData {
  * @returns Default values for atlas data.
  */
 function injectAtlasDefaults() {
-  return config.atlasDefaultValues;
+  return {
+    ...config.atlasDefaultValues,
+  };
 }
 
 /**

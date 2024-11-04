@@ -39,3 +39,13 @@ export function convertRGBAToHex(rgba: Vector4): string {
 export function nonWhiteRGB(rgb: RGB): boolean {
   return rgb.r !== 1 || rgb.g !== 1 || rgb.b !== 1;
 }
+
+/**
+ * Calculates the RGBA color value for a given solid paint.
+ * @param paint - The solid paint to calculate the color value for.
+ * @returns The RGBA color value.
+ */
+export function calculateColorValue(paint: SolidPaint) {
+  const { color: { r, g, b, }, opacity: a } = paint;
+  return vector4(r, g, b, a);
+}

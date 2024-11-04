@@ -4,7 +4,7 @@
  */
 
 import config from "config/config.json";
-import { isFigmaSceneNode, isFigmaSection, getPluginData } from "utilities/figma";
+import { getPluginData, isFigmaSceneNode, isFigmaSection, isAtlas, isAtlasSection, isFigmaSlice } from "utilities/figma";
 
 /**
  * Resolves the final atlas name. If the atlas is part of a section that is to be combined as a single atlas, the name of the combined atlas is returned.
@@ -20,26 +20,6 @@ export function resolveAtlasName(atlas: ComponentSetNode) {
     }
   }
   return atlas.name;
-}
-
-/**
- * Resolves the texture property for a sprite within an atlas.
- * @param atlas - The atlas node containing the sprite.
- * @param layer - The sprite layer for which the texture property is to be resolved.
- * @returns The resolved texture property.
- */
-export function resolveAtlasTexture(atlas: ComponentSetNode, layer: InstanceNode) {
-  const atlasName = resolveAtlasName(atlas);
-  const sprite = layer.variantProperties?.Sprite;
-  return sprite ? `${atlasName}/${sprite}` : "";
-}
-
-/**
- * Resolves an empty texture property.
- * @returns The resolved texture property.
- */
-export function resolveEmptyTexture() {
-  return "";
 }
 
 /**
@@ -76,4 +56,64 @@ export function packSprites(atlas: ComponentSetNode) {
     sprite.y = maxHeight;
     maxWidth += width + config.atlasSpritePadding;
   });
+}
+
+/**
+ * Reduces an array of GUIData objects to an array of atlas IDs.
+ * @param atlasIds - Accumulator array of atlas IDs.
+ * @param data - GUIData object to extract atlas IDs from.
+ * @returns An array of atlas IDs.
+ */
+export function reduceAtlases(atlasIds: (string | TextureDynamicAtlasSpritesData)[], data: GUIData | GameCollectionData) {
+  const textureNames = Object.values(data.textures).reduce((textures, texture) => {
+    if ("id" in texture) {
+      textures.push(texture.id);
+    }
+    if ("sprites" in texture) {
+      textures.push(texture.sprites);
+    }
+    return textures;
+  }, [] as (string | TextureDynamicAtlasSpritesData)[]);
+  return atlasIds.concat(textureNames);
+}
+
+/**
+ * Finds atlas components based on their IDs including combined jumbo atlases.
+ * @param textureAtlasesData - The IDs of the atlases to find.
+ * @returns An array of found atlas components.
+ */
+export async function findAtlases(textureAtlasesData: (string | TextureDynamicAtlasSpritesData)[]): Promise<(ComponentSetNode | { atlasName: string, images: SliceNode[] })[]> {
+  const atlases = [];
+  for (const textureAtlasData of textureAtlasesData) {
+    if (typeof textureAtlasData === "string") {
+      const layer = await figma.getNodeByIdAsync(textureAtlasData);
+      if (layer && isFigmaSceneNode(layer)) {
+        if (isAtlas(layer)) {
+          atlases.push(layer);
+        } else if (isAtlasSection(layer)) {
+          const sectionData = getPluginData(layer, "defoldSection");
+          if (sectionData?.jumbo) {
+            for (const child of layer.children) {
+              if (isFigmaSceneNode(child) && isAtlas(child)) {
+                atlases.push(child);
+              }
+            }
+          }
+        }
+      }
+    } else {
+      const slices = {
+        atlasName: textureAtlasData.atlasName,
+        images: [] as SliceNode[],
+      };
+      for (const id of textureAtlasData.ids) {
+        const layer = await figma.getNodeByIdAsync(id);
+        if (layer && isFigmaSlice(layer)) {
+          slices.images.push(layer);
+        }
+        atlases.push(slices);
+      }
+    }
+  }
+  return atlases;
 }

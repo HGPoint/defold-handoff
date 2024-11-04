@@ -5,35 +5,17 @@
 
 import config from "config/config.json";
 import { projectConfig } from "handoff/project";
-import { getDefoldGUINodePluginData } from "utilities/gui";
-import { setPluginData, findMainComponent, hasChildren, isAtlas, isAtlasSection, isFigmaSceneNode, isFigmaComponentInstance, isFigmaBox, isFigmaText, isExportable, isAtlasSprite, getPluginData, equalComponentProperties, equalExposedComponentProperties, isFigmaComponent } from "utilities/figma";
+import { getGUINodePluginData } from "utilities/gui";
+import { setPluginData, findMainComponent, hasChildren, isFigmaComponentInstance, isFigmaBox, isFigmaText, isExportable, isAtlasSprite, isSpriteHolderLayer, getPluginData, equalComponentProperties, equalExposedComponentProperties, isFigmaComponent } from "utilities/figma";
 import { vector4, areVectorsEqual, copyVector, addVectors, isZeroVector } from "utilities/math";
 import { convertGUIData, convertBoxGUINodeData, convertTextGUINodeData } from "utilities/guiDataConverters";
-import { convertChildPosition } from "utilities/pivot";
+import { calculateChildPosition } from "utilities/pivot";
 import { isSlice9PlaceholderLayer, findOriginalLayer, isSlice9Layer, isSlice9ServiceLayer, parseSlice9Data } from "utilities/slice9";
+import { generateTexturesData } from "utilities/textureExtraction";
 import { generateContextData } from "utilities/context";
-import { generateAtlasPath, generateFontPath } from "utilities/path";
-import { inferGUINode, inferTextNode } from "utilities/inference";
+import { generateFontPath } from "utilities/path";
+import { inferGUIBoxNode, inferGUITextNode } from "utilities/inference";
 import { delay } from "utilities/delay";
-
-/**
- * Checks if a layer is a sprite holder (layer is an instance of an atlas component set).
- * @param layer - The Figma layer to check.
- * @returns True if the layer is a sprite holder, otherwise false.
- */
-async function isSpriteHolderLayer(layer: ExportableLayer): Promise<boolean> {
-  if (isFigmaComponentInstance(layer)) {
-    if (layer.children.length === 1) {
-      const [child] = layer.children;
-      if (!isSlice9PlaceholderLayer(child)) {
-        const sameSize = layer.width === child.width && layer.height == child.height;        
-        return sameSize && await isAtlasSprite(child);
-      }
-      return await isAtlasSprite(child);
-    }
-  }
-  return false;
-}
 
 /**
  * Generates options for exporting the root GUI node data.
@@ -230,12 +212,12 @@ async function generateGUIBoxNodeData(layer: BoxLayer, options: GUINodeDataExpor
 /**
  * Checks if a layer is skippable based on export settings and type.
  * @param layer - The Figma layer to check.
- * @param gUINodeData - GUI node data of the layer.
+ * @param guiNodeData - GUI node data of the layer.
  * @returns True if the layer is skippable, otherwise false.
  */
-async function isSkippableLayer(layer: ExportableLayer, gUINodeData: GUINodeData): Promise<boolean> {
+async function isSkippableLayer(layer: ExportableLayer, guiNodeData: GUINodeData): Promise<boolean> {
   return (
-    gUINodeData.skip ||
+    guiNodeData.skip ||
     layer.name.startsWith(projectConfig.autoskip) ||
     isSlice9PlaceholderLayer(layer) ||
     await isSpriteHolderLayer(layer)
@@ -393,7 +375,10 @@ async function generateGUITextNodeData(layer: TextNode, options: GUINodeDataExpo
   await tryInferNode(layer);
   const guiNodeData = convertTextGUINodeData(layer, options);
   if (!guiNodeData.exclude) {
-    guiNodesData.push(guiNodeData);
+    const shouldSkip = await isSkippableLayer(layer, guiNodeData);
+    if (!shouldSkip) {
+      guiNodesData.push(guiNodeData);
+    }
   }
 }
 
@@ -407,97 +392,12 @@ function canProcessGUITextNode(layer: TextNode): layer is TextNode {
 }
 
 /**
- * Generates texture data for a given layer.
- * @param name - The name of the texture.
- * @param layer - The Figma layer.
- * @param texturesData - Object to store texture data.
- */
-function generateTextureData(name: string, layer: SceneNode, texturesData: TextureData) {
-  if (!texturesData[name]) {
-    const path = generateAtlasPath(name);
-    const { id } = layer;
-    texturesData[name] = {
-      path,
-      id
-    };
-  }
-}
-
-/**
- * Updates texture data for an atlas node.
- * @param atlas - The atlas layer.
- * @param texturesData - Object to store texture data.
- */
-function updateTextureData(atlas: SceneNode, texturesData: TextureData) {
-  const { parent: section } = atlas
-  if (isFigmaSceneNode(section) && isAtlasSection(section)) {
-    const sectionData = getPluginData(section, "defoldSection");
-    if (sectionData?.bundled) {
-      generateTextureData(atlas.name, atlas, texturesData);
-      for (const child of section.children) {
-        if (isFigmaSceneNode(child) && isAtlas(child)) {
-          generateTextureData(child.name, child, texturesData);
-        }
-      }
-    } else if (sectionData?.jumbo) {
-      const name = sectionData?.jumbo;
-      generateTextureData(name, section, texturesData);
-    }
-  } else {
-    generateTextureData(atlas.name, atlas, texturesData);
-  }
-}
-
-/**
- * Generates texture data recursively for a given Figma layer and stores it in the provided texture data object.
- * @param layer - The Figma layer.
- * @param texturesData - Object to store texture data.
- */
-async function generateTexturesData(layer: SceneNode, texturesData: TextureData, skipVariants = false) {
-  if (isFigmaBox(layer)) {
-    if (isFigmaComponentInstance(layer)) {
-      await processTextureData(layer, texturesData);
-    }
-    if (hasChildren(layer)) {
-      await processChildrenTextureData(layer, texturesData);
-    }
-    await tryProcessVariantsTextureData(layer, texturesData, skipVariants);
-  }
-}
-
-/**
- * Processes texture data for a given layer.
- * @param layer - The Figma layer to process texture data for.
- * @param texturesData - Object to store texture data.
- */
-async function processTextureData(layer: InstanceNode, texturesData: TextureData) {
-  const mainComponent = await findMainComponent(layer);
-  if (mainComponent) {
-    const { parent: atlas } = mainComponent;
-    if (isFigmaSceneNode(atlas) && isAtlas(atlas)) {
-      updateTextureData(atlas, texturesData);
-    }
-  }
-}
-
-/**
- * Processes texture data for the children of a given layer.
- * @param layer - The Figma layer to process texture data for its children.
- * @param texturesData - Object to store texture data.
- */
-async function processChildrenTextureData(layer: BoxLayer, texturesData: TextureData) {
-  for (const child of layer.children) {
-    await generateTexturesData(child, texturesData);
-  }
-}
-
-/**
  * Tries to generate texture data for bundled variants of a given layer.
  * @param layer - The Figma layer for whose bundled variants texture data should be generated.
  * @param texturesData - Object to store texture data.
  * @param skipVariants - Indicates if variants should be skipped. 
  */
-async function tryProcessVariantsTextureData(layer: BoxLayer, texturesData: TextureData, skipVariants: boolean) {
+async function tryProcessVariantsTextureData(layer: BoxLayer, texturesData: TextureData, skipVariants?: boolean) {
   const pluginData = getPluginData(layer, "defoldGUINode");
   if (pluginData && shouldProcessVariantTextureData(layer, pluginData, skipVariants)) {
     const exportVariants = resolveExportVariants(pluginData.export_variants);
@@ -509,7 +409,7 @@ async function tryProcessVariantsTextureData(layer: BoxLayer, texturesData: Text
         variantLayer.setProperties({ [exportVariantName]: exportVariantValue });
         await delay(100);
         await tryInferNode(layer);
-        await generateTexturesData(layer, texturesData, true);
+        await generateTexturesData(layer, texturesData, null, true);
         variantLayer.setProperties({ [exportVariantName]: variantInitialValue });
       }
     }
@@ -523,8 +423,8 @@ async function tryProcessVariantsTextureData(layer: BoxLayer, texturesData: Text
  * @param skipVariants - Indicates if variants should be skipped.
  * @returns True if texture data should be processed for bundled variants, otherwise false.
  */
-function shouldProcessVariantTextureData(layer: BoxLayer, pluginData: PluginGUINodeData, skipVariants: boolean): layer is InstanceNode {
-  return isFigmaComponentInstance(layer) && !skipVariants && !!pluginData.export_variants;
+function shouldProcessVariantTextureData(layer: BoxLayer, pluginData: PluginGUINodeData, skipVariants?: boolean): layer is InstanceNode {
+  return !skipVariants && isFigmaComponentInstance(layer) && !!pluginData.export_variants;
 }
 
 /**
@@ -633,7 +533,7 @@ async function tryRestoreSlice9Data(layer: ExportableLayer) {
         const slice9 = parseSlice9Data(layer);
         if (slice9) {
           setPluginData(originalLayer, { defoldSlice9: true });
-          const guiNodeData = { defoldGUINode: { ...getDefoldGUINodePluginData(originalLayer), slice9 } };
+          const guiNodeData = { defoldGUINode: { ...getGUINodePluginData(originalLayer), slice9 } };
           setPluginData(originalLayer, guiNodeData);
         }
       }
@@ -656,9 +556,9 @@ async function tryInferNode(layer: ExportableLayer) {
   const pluginData = getPluginData(layer, "defoldGUINode");
   if (!pluginData?.inferred) {
     if (isFigmaBox(layer)) {
-      await inferGUINode(layer);
+      await inferGUIBoxNode(layer);
     } else if (isFigmaText(layer)) {
-      inferTextNode(layer);
+      inferGUITextNode(layer);
     }
   }
 }
@@ -707,7 +607,7 @@ function collapseNodes(parent: GUINodeData, child: GUINodeData, childIndex: numb
         const { pivot, size } = collapsedChild;
         const { pivot: parentPivot, size: parentSize } = parent;
         const parentShift = vector4(0);
-        collapsedChild.position = convertChildPosition(collapsedChild.exportable_layer, pivot, parentPivot, size, parentSize, parentShift);
+        collapsedChild.position = calculateChildPosition(collapsedChild.exportable_layer, pivot, parentPivot, size, parentSize, parentShift);
       }
       collapsedChild.parent = parent.id;
       parent.children.splice(childIndex, childIndex + index, collapsedChild);
@@ -741,16 +641,15 @@ function collapseGUINodeData(node: GUINodeData) {
  * @param nodes - The array (tree) of GUI node data to flatten.
  * @returns The flattened array of GUI node data.
  */
-function flattenGUINodeData(nodes: GUINodeData[]): GUINodeData[] {
-  const flatNodes = [];
+function processGUINodeData(nodes: GUINodeData[]): GUINodeData[] {
+  const processedNodes = [];
   for (const node of nodes) {
-    flatNodes.push(node);
+    processedNodes.push(node);
     if (node.children && node.children.length > 0) {
-      flatNodes.push(...flattenGUINodeData(node.children));
+      processedNodes.push(...processGUINodeData(node.children));
     }
   }
-  return flatNodes;
-
+  return processedNodes;
 }
 
 /**
@@ -770,9 +669,9 @@ export async function generateGUIData(nodeExport: GUINodeExport): Promise<GUIDat
   const clones: GUINodeCloneData[] = [];
   await generateGUINodeData(rootOptions, nodes, clones);
   const collapsedNodes = nodes.map(collapseGUINodeData);
-  const flatNodes = flattenGUINodeData(collapsedNodes);
+  const processedNodes = processGUINodeData(collapsedNodes);
   const textures: TextureData = {};
-  await generateTexturesData(layer, textures);
+  await generateTexturesData(layer, textures, tryProcessVariantsTextureData);
   const fonts = {};
   await generateFontData(layer, fonts);
   const layers = generateLayersData(layer);
@@ -780,7 +679,7 @@ export async function generateGUIData(nodeExport: GUINodeExport): Promise<GUIDat
   return {
     name,
     gui,
-    nodes: flatNodes,
+    nodes: processedNodes,
     textures,
     fonts,
     layers,
@@ -789,7 +688,7 @@ export async function generateGUIData(nodeExport: GUINodeExport): Promise<GUIDat
   };
 }
 
-export async function generateGUIDataSet(layers: GUINodeExport[]): Promise<GUIData[]> {
-  const guiNodesDataSets = layers.map(generateGUIData);
+export async function generateGUIDataSet(nodeExports: GUINodeExport[]): Promise<GUIData[]> {
+  const guiNodesDataSets = nodeExports.map(generateGUIData);
   return Promise.all(guiNodesDataSets);
 }

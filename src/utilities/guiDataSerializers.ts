@@ -4,7 +4,7 @@
  */
 
 import { propertySerializer } from "utilities/dataSerializers";
-import { isTemplateGUINodeType } from "utilities/gui";
+import { isGUITemplateNodeType } from "utilities/gui";
 import { generateTemplatePath } from "utilities/path";
 
 /**
@@ -69,7 +69,7 @@ const EXCLUDED_TEMPLATE_PROPERTY_KEYS = [
  * @returns {string} Serialized GUI node data.
  */
 function guiNodeSerializer(data: string, guiNodeData: GUINodeData): string {
-  if (isTemplateGUINodeType(guiNodeData.type)) {
+  if (isGUITemplateNodeType(guiNodeData.type)) {
     const node = Object.entries(guiNodeData).reduce((serializedProperties: string, property) => {
       const [ key ] = property; 
       if (key === "template") {
@@ -101,7 +101,7 @@ function guiNodeSerializer(data: string, guiNodeData: GUINodeData): string {
  * @param texture - Texture data.
  * @returns Serialized texture data.
  */
-function textureDataSerializer(data: string, [name, texture]: [string, TextureAtlasData]): string {
+function textureDataSerializer(data: string, [name, texture]: [string, TextureAtlasData | TextureDynamicAtlasData]): string {
   return `${data}\ntextures\n{\nname:"${name}"\ntexture:"${texture.path}"\n}`;
 }
 

@@ -1,4 +1,4 @@
-type UIMode = "developer" | "designer";
+type UIMode = "developer" | "designer" | "game-designer";
 
 type UIData = {
   mode: UIMode,
@@ -21,4 +21,6 @@ type UIData = {
   sectionsActionsCollapsed?: boolean,
   layerActionsCollapsed?: boolean,
   layersActionsCollapsed?: boolean,
+  gameObjectsToolsCollapsed?: boolean,
+  gameObjectsActionsCollapsed?: boolean,
 };

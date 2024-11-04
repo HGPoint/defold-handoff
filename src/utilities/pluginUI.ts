@@ -5,7 +5,7 @@
  * @packageDocumentation
  */
 
-import { exportAtlases, exportSprites, copyComponent, exportGUI, exportResources, copyScheme } from "utilities/resources";
+import { exportAtlases, exportSprites, copyGUINodes, exportGUINodes, exportBundle, copyGUINodeScheme, copyGameObjects, exportGameObjects } from "utilities/resources";
 
 /**
  * Generates a random alphanumeric ID.
@@ -64,7 +64,38 @@ export function isSelectionData(selection?: SelectionUIData): selection is Selec
  * @returns A boolean indicating if the UI mode is valid.
  */
 export function isUIMode(mode?: string): mode is UIMode {
-  return mode === null || (!!mode && (mode === "developer" || mode === "designer"));
+  return mode === null || (!!mode && (mode === "developer" || mode === "designer" || mode === "game-designer"));
+}
+
+export function isDeveloperUIMode(mode?: UIMode): mode is "developer" {
+  return mode === "developer";
+}
+
+export function isDesignerUIMode(mode?: UIMode): mode is "designer" {
+  return mode === "designer";
+}
+
+export function isGameDesignerUIMode(mode?: UIMode): mode is "game-designer" {
+  return mode === "game-designer";
+}
+
+export function currentUIMode(): UIMode {
+  return figma.command as UIMode;
+}
+
+export function isCurrentDeveloperUIMode(): boolean {
+  const mode = currentUIMode();
+  return isDeveloperUIMode(mode);
+}
+
+export function isCurrentDesignerUIMode(): boolean {
+  const mode = currentUIMode();
+  return isDesignerUIMode(mode);
+}
+
+export function isCurrentGameDesignerUIMode(): boolean {
+  const mode = currentUIMode();
+  return isGameDesignerUIMode(mode);
 }
 
 /**
@@ -94,20 +125,28 @@ function onSpritesExported(data: PluginMessagePayload) {
   exportSprites(data);
 }
 
-function onComponentsCopiedToDefold(data: PluginMessagePayload) {
-  copyComponent(data);
+function onGUINodesCopied(data: PluginMessagePayload) {
+  copyGUINodes(data);
 }
 
-function onComponentsExportedToDefold(data: PluginMessagePayload) {
-  exportGUI(data);
-}
-
-function onBundleExportedToDefold(data: PluginMessagePayload) {
-  exportResources(data);
+function onGUINodesExported(data: PluginMessagePayload) {
+  exportGUINodes(data);
 }
 
 function onGUINodeSchemeCopied(data: PluginMessagePayload) {
-  copyScheme(data);
+  copyGUINodeScheme(data);
+}
+
+function onBundleExported(data: PluginMessagePayload) {
+  exportBundle(data);
+}
+
+function onGameObjectsCopied(data: PluginMessagePayload) {
+  copyGameObjects(data);
+}
+
+function onGameObjectsExported(data: PluginMessagePayload) {
+  exportGameObjects(data);
 }
 
 /**
@@ -116,18 +155,24 @@ function onGUINodeSchemeCopied(data: PluginMessagePayload) {
  * @param data - The data associated with the message.
  */
 export function processPluginMessage(type: PluginMessageAction, data?: PluginMessagePayload) {
-  if ((type === "atlasesExported" || type === "guiNodeAtlasesExported") && data) {
-    onAtlasesExported(data);
-  } else if (type === "spritesExported" && data) {
-    onSpritesExported(data);
-  } else if (type === "guiNodesCopied" && data) {
-    onComponentsCopiedToDefold(data);
-  } else if (type === "guiNodesExported" && data) {
-    onComponentsExportedToDefold(data);
-  } else if (type === "bundleExported" && data) {
-    onBundleExportedToDefold(data);
-  } else if (type === "guiNodeSchemeCopied" && data) {
-    onGUINodeSchemeCopied(data);
+  if (data) {
+    if ((type === "atlasesExported" || type === "guiNodeAtlasesExported" || type === "gameObjectAtlasesExported")) {
+      onAtlasesExported(data);
+    } else if (type === "spritesExported") {
+      onSpritesExported(data);
+    } else if (type === "guiNodesCopied") {
+      onGUINodesCopied(data);
+    } else if (type === "guiNodesExported") {
+      onGUINodesExported(data);
+    } else if (type === "guiNodeSchemeCopied") {
+      onGUINodeSchemeCopied(data);
+    } else if (type === "gameObjectsCopied") {
+      onGameObjectsCopied(data);
+    } else if (type === "gameObjectsExported") {
+      onGameObjectsExported(data);
+    } else if (type === "bundleExported") {
+      onBundleExported(data);
+    }
   }
 }
 

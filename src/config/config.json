@@ -19,7 +19,9 @@
     "sectionsToolsCollapsed": false,
     "sectionsActionsCollapsed": false,
     "layerActionsCollapsed": false,
-    "layersActionsCollapsed": false
+    "layersActionsCollapsed": false,
+    "gameObjectsToolsCollapsed": false,
+    "gameObjectsActionsCollapsed": false
   },
   "screenSize": {
     "x": 1136,
@@ -90,7 +92,29 @@
     "exclude": false,
     "inferred": false
   },
-  "atlasMaxSize": 2048,
+  "gameCollectionDefaultValues": {
+    "name": "game",
+    "scale_along_z": 0
+  },
+  "gameObjectDefaultValues": {
+    "position": { "x": 0, "y": 0, "z": 0, "w": 0 },
+    "scale": { "x": 1, "y": 1, "z": 1, "w": 1 },
+    "slice9": { "x": 0, "y": 0, "z": 0, "w": 0 },
+    "material": "",
+    "pivot": "PIVOT_CENTER",
+    "size_mode": "PARSED",
+    "blend_mode": "BLEND_MODE_ALPHA"
+  },
+  "gameObjectDefaultSpecialValues": {
+    "skip": false,
+    "implied_game_object": false,
+    "arrange_depth": false,
+    "depth_axis": "y0.001",
+    "path": "",
+    "exclude": false,
+    "inferred": false
+  },
+  "atlasMaxSize": 4096,
   "atlasSpritePadding": 10,
   "atlasDefaultValues": {
     "margin": 0,

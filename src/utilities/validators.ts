@@ -19,11 +19,17 @@ function validateAtlasSize(atlas: ComponentSetNode) {
  * @param atlas – The atlas to validate.
  * @returns Whether the atlas is valid.
  */
-export function validateAtlas(atlas: ComponentSetNode) {
+export function validateAtlas(atlas: ComponentSetNode | { atlasName: string, images: SliceNode[] }) {
   try {
-    return validateAtlasSize(atlas);
+    if ("atlasName" in atlas) {
+      return true;
+
+    } else {
+      return validateAtlasSize(atlas);
+    }
   } catch (error) {
-    console.error(`Error validating atlas: ${atlas.name}`);
+    const name = "atlasName" in atlas ? atlas.atlasName : atlas.name;
+    console.error(`Error validating atlas: ${name}`);
     console.error(error);
     return false;
   }
@@ -34,6 +40,6 @@ export function validateAtlas(atlas: ComponentSetNode) {
  * @param atlases – The array of atlases to validate.
  * @returns Whether all atlases are valid.
  */
-export function validateAtlases(atlases: ComponentSetNode[]) {
+export function validateAtlases(atlases: (ComponentSetNode | { atlasName: string, images: SliceNode[] })[]) {
   return atlases.every(validateAtlas);
 }

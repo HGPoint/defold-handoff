@@ -178,7 +178,7 @@ export function addSprites(atlas: ComponentSetNode, layers: SceneNode[]) {
  * @param atlases - The atlas components to export.
  * @returns An array of serialized atlas data.
  */
-export async function exportAtlases(atlases: ComponentSetNode[], scale: number = 1): Promise<SerializedAtlasData[]> {
+export async function exportAtlases(atlases: (ComponentSetNode | { atlasName: string, images: SliceNode[] })[], scale: number = 1): Promise<SerializedAtlasData[]> {
   if (validateAtlases(atlases)) {
     const atlasData = await generateAtlasDataSet(atlases, scale);
     const serializedAtlasData = serializeAtlasDataSet(atlasData);

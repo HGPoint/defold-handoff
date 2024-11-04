@@ -3,8 +3,8 @@
  * @packageDocumentation
  */
 
-import { generateImageAssetsPath, generateSpritePath } from "utilities/path";
 import { propertySerializer } from "utilities/dataSerializers";
+import { generateImageAssetsPath, generateSpritePath } from "utilities/path";
 
 /**
  * Serializes image data for a single sprite.

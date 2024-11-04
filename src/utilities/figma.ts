@@ -3,7 +3,8 @@
  * @packageDocumentation
  */
 
-import { nonWhiteRGB } from "utilities/color"
+import { nonWhiteRGB } from "utilities/color";
+import { isSlice9PlaceholderLayer } from "utilities/slice9";
 
 /**
  * Checks if a layer is a Figma scene node.
@@ -111,13 +112,17 @@ export function isFigmaBox(layer: BaseNode): layer is (FrameNode | InstanceNode 
   return isFigmaFrame(layer) || isFigmaComponentInstance(layer) || isFigmaComponent(layer);
 }
 
+export function isFigmaSlice(layer: BaseNode): layer is SliceNode {
+  return layer.type === "SLICE";
+}
+
 /**
  * Checks if a layer is exportable (either a (Defold) box node or a Figma text node).
  * @param layer - The Figma layer to check.
  * @returns True if the layer is exportable, otherwise false.
  */
 export function isExportable(layer: BaseNode): layer is ExportableLayer {
-  return isFigmaBox(layer) || isFigmaText(layer);
+  return isFigmaBox(layer) || isFigmaText(layer) || isFigmaSlice(layer);
 }
 
 /**
@@ -127,6 +132,10 @@ export function isExportable(layer: BaseNode): layer is ExportableLayer {
  */
 export function isGUINode(layer: SceneNode) {
   return !!getPluginData(layer, "defoldGUINode");
+}
+
+export function isGameObject(layer: SceneNode) {
+  return !!getPluginData(layer, "defoldGameObject");
 }
 
 /**
@@ -161,6 +170,61 @@ export async function isAtlasSprite(layer: SceneNode): Promise<boolean> {
     }
   }
   return false;
+}
+
+/**
+ * Checks if a layer is a sprite holder (layer is an instance of an atlas component set).
+ * @param layer - The Figma layer to check.
+ * @returns True if the layer is a sprite holder, otherwise false.
+ */
+export async function isSpriteHolderLayer(layer: ExportableLayer): Promise<boolean> {
+  if (isFigmaComponentInstance(layer)) {
+    if (layer.children.length === 1) {
+      const [child] = layer.children;
+      if (!isSlice9PlaceholderLayer(child)) {
+        const sameSize = layer.width === child.width && layer.height == child.height;
+        return sameSize && await isAtlasSprite(child);
+      }
+      return await isAtlasSprite(child);
+    }
+  }
+  return false;
+}
+
+/**
+ * Checks if the given node type is Figma component type.
+ * @param type - The type to check.
+ * @returns True if the type is Figma component, otherwise false.
+ */
+export function isFigmaComponentType(figmaNodeType: NodeType) {
+  return figmaNodeType === "COMPONENT";
+}
+
+/**
+ * Checks if the given node type is Figma component instance type.
+ * @param type - The type to check.
+ * @returns True if the type is Figma component instance, otherwise false.
+ */
+export function isFigmaComponentInstanceType(figmaNodeType: NodeType) {
+  return figmaNodeType === "INSTANCE";
+}
+
+/**
+ * Checks if the given node type is Figma frame type.
+ * @param type - The type to check.
+ * @returns True if the type is Figma frame, otherwise false.
+ */
+export function isFigmaFrameType(figmaNodeType: NodeType) {
+  return figmaNodeType === "FRAME";
+}
+
+/**
+ * Checks if the given node type is Figma section type.
+ * @param type - The type to check.
+ * @returns True if the type is Figma section, otherwise false.
+ */
+export function isFigmaSectionType(figmaNodeType: NodeType) {
+  return figmaNodeType === "SECTION";
 }
 
 /**

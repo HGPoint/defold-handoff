@@ -95,6 +95,9 @@ type GUINodeData = {
   text?: string,
   font?: string,
   outline?: Vector4,
+  line_break?: boolean,
+  text_leading?: number,
+  text_tracking?: number,
   shadow?: Vector4,
   texture?: string,
   size_mode: SizeMode,
@@ -108,7 +111,7 @@ type GUINodeData = {
   clipping_mode: ClippingMode,
   clipping_visible: boolean,
   clipping_inverted: boolean,
-  blend_mode: GUINodeBlendMode,
+  blend_mode: BlendingMode,
   custom_type: number,
   template_node_child: boolean,
 
@@ -179,7 +182,17 @@ type TextureAtlasData = {
   path: string,
 }
 
-type TextureData = Record<string, TextureAtlasData>;
+type TextureDynamicAtlasData = {
+  sprites: TextureDynamicAtlasSpritesData,
+  path: string,
+}
+
+type TextureDynamicAtlasSpritesData = {
+  atlasName: string,
+  ids: string[],
+}
+
+type TextureData = Record<string, TextureAtlasData | TextureDynamicAtlasData>;
 
 type FontData = Record<string, string>;
 
@@ -205,8 +218,81 @@ type SerializedGUIData = {
   templatePath?: string,
 }
 
+type GameCollectionComponentData = {
+  name: string,
+  scale_along_z: number
+}
+
+type GameCollectionData = {
+  name: string,
+  collection: GameCollectionComponentData,
+  nodes: GameObjectData[],
+  textures: TextureData,
+  filePath: string,
+}
+
+type SerializedGameCollectionData = {
+  name: string,
+  data: string,
+  filePath?: string,
+}
+
+type GameObjectData = {
+  type?: GameObjectType,
+  id: string,
+  children?: string[],
+  position: Vector4,
+  rotation: Vector4,
+  scale: Vector4,
+  size?: Vector4,
+  text?: string,
+  color?: Vector4,
+  outline?: Vector4,
+  shadow?: Vector4,
+  text_leading?: number,
+  text_tracking?: number,
+  image?: string,
+  default_animation?: string,
+  size_mode?: SizeMode,
+  slice9?: Vector4,
+  pivot?: Pivot,
+  blend_mode?: BlendingMode,
+  material?: string,
+  
+  skip: boolean,
+  implied_game_object: boolean,
+  arrange_depth: boolean,
+  depth_axis?: string,
+  path: string,
+  exclude: boolean,
+  inferred: boolean,
+  exportable_layer: ExportableLayer,
+  exportable_layer_name: string,
+  exportable_layer_id: string,
+  figma_position: Vector4,
+  components?: GameObjectData[],
+}
+
+type SerializedGameObjectData = {
+  name: string,
+}
+
+type GameObjectDataExportOptions = {
+  layer: ExportableLayer,
+  atRoot: boolean,
+  namePrefix: string,
+  forcedName?: string,
+  parentId: string,
+  parentSize: Vector4,
+  parentShift: Vector4,
+  parentChildren?: GameObjectData[],
+  arrangeDepth: boolean,
+  depthAxis?: string,
+}
+
 type BundleData = {
   gui?: SerializedGUIData[],
   atlases?: SerializedAtlasData[],
   sprites?: SerializedSpriteData[],
+  gameObjects?: SerializedGameCollectionData[],
 }

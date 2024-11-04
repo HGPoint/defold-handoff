@@ -4,18 +4,19 @@
  */
 
 import { getPluginData, selectNode, hasVariantPropertyChanged, hasNamePropertyChanged, isFigmaComponentInstance, isPropertyChange, setPluginData } from "utilities/figma";
-import { reducePluginSelection, convertPluginUISelection, reduceAtlases, reduceGUINodes } from "utilities/selection";  
+import { reducePluginSelection, convertPluginUISelection, reduceAtlases, reduceGUINodes, reduceBundle } from "utilities/selection";  
 import { isSlice9Layer, isSlice9PlaceholderLayer, tryRefreshSlice9Sprite, tryUpdateOriginalLayerName  } from "utilities/slice9";
 import { isTemplateGUINode } from "utilities/gui";
 import { decipherError } from "utilities/error";
 import { initializeProject, projectConfig, updateProject } from "handoff/project";
-import { updateGUINode, updateGUINodes, tryRestoreSlice9Node, copyGUINode, exportGUINodes, exportGUINodeAtlases, removeGUINodes, fixTextNode, fixGUINodes, matchParentToGUINode, matchGUINodeToParent, resizeScreenNodes, copyGUINodeScheme, pullFromMainComponent, forceChildrenOnScreen } from "handoff/gui";
+import { updateGUINode, updateGUINodes, tryRestoreSlice9Node, copyGUINode, exportGUINodes, exportGUINodeAtlases, removeGUINodes, fixGUITextNode, fixGUINodes, matchParentToGUINode, matchGUINodeToParent, resizeScreenGUINodes, copyGUINodeScheme, pullFromMainComponents, forceChildrenOnScreen } from "handoff/gui";
 import { createAtlas, addSprites, fixAtlases, sortAtlases, fitAtlases, exportAtlases, destroyAtlases, tryRestoreAtlases, tryExtractImage } from "handoff/atlas";
 import { updateSection, removeSections } from "handoff/section";
+import { copyGameObject, updateGameObject, exportGameObjects, removeGameObjects, fixGameObjects } from "handoff/gameObject";
 import { exportBundle } from "handoff/bundle";
 import { delay } from "utilities/delay";
 
-let selection: SelectionData = { gui: [], atlases: [], layers: [], sections: [] };
+let selection: SelectionData = { gui: [], atlases: [], layers: [], sections: [], gameObjects: [] };
 let lastExtractedImage: string;
 
 /**
@@ -52,16 +53,16 @@ function onSelectionChange() {
   updateSelection();
 }
 
-function onCopyGUINode() {
-  const { gui: [layer] } = selection;
+function onCopyGUINodes() {
+  const { gui: [ layer ] } = selection;
   const nodeExport = { layer, asTemplate: isTemplateGUINode(layer) };
   copyGUINode(nodeExport)
-    .then(onGUINodeCopied)
+    .then(onGUINodesCopied)
     .catch(processError);
 }
 
-function onGUINodeCopied(gui: SerializedGUIData) {
-  const bundle = { gui: [gui] };
+function onGUINodesCopied(gui: SerializedGUIData) {
+  const bundle = { gui: [ gui ] };
   postMessageToPluginUI("guiNodesCopied", { bundle })
   updateSelection();
   figma.notify("GUI node copied");
@@ -110,12 +111,12 @@ async function onCopyGUINodeScheme() {
   copyGUINodeScheme(nodeExport)
     .then(onGUINodeSchemeCopied)
     .catch(processError);
-  }
-  
-  function onGUINodeSchemeCopied(scheme: string) {
-    postMessageToPluginUI("guiNodeSchemeCopied", { scheme })
-    figma.notify("GUI node scheme copied");
-  } 
+}
+
+function onGUINodeSchemeCopied(scheme: string) {
+  postMessageToPluginUI("guiNodeSchemeCopied", { scheme })
+  figma.notify("GUI node scheme copied");
+}
 
 function onResetGUINodes() {
   removeGUINodes(selection.gui);
@@ -152,8 +153,8 @@ function onForceChildrenOnScreen() {
   figma.notify("Children will be exported on screen");
 }
 
-function onResizeScreenNodes() {
-  resizeScreenNodes(selection.gui);
+function onResizeScreenGUINodes() {
+  resizeScreenGUINodes(selection.gui);
   figma.notify("Nodes resized to screen size");
 }
 
@@ -228,8 +229,8 @@ function onSpritesExported(atlases: SerializedAtlasData[]) {
 }
 
 function onExportBundle() {
-  const nodes = reduceGUINodes(selection);
-  exportBundle(nodes)
+  const bundleExport = reduceBundle(selection);
+  exportBundle(bundleExport)
     .then(onBundleExported)
     .catch(processError);
 }
@@ -248,14 +249,14 @@ function onShowGUINodeData() {
 
 function onFixTextNode() {
   const { gui: [ layer ] } = selection;
-  fixTextNode(layer);
+  fixGUITextNode(layer);
   updateSelection();
   figma.notify("Text node fixed");
 }
 
 function onPullFromMainComponet() {
   const { gui } = selection;
-  pullFromMainComponent(gui)
+  pullFromMainComponents(gui)
   delay(500)
     .then(onGUINodeDataPulled);
 }
@@ -304,6 +305,55 @@ async function onRequestImage() {
   }
 }
 
+function onExportGameObjects() {
+  exportGameObjects(selection.gameObjects)
+    .then(onGameObjectsExported)
+    .catch(processError);
+}
+
+function onGameObjectsExported(gameObjects: SerializedGameCollectionData[]) {
+  const bundle = { gameObjects };
+  postMessageToPluginUI("gameObjectsExported", { bundle, project: projectConfig })
+  updateSelection();
+  figma.notify("Game objects exported");
+}
+
+function onFixGameObjects() {
+  fixGameObjects(selection.gameObjects);
+  delay(200)
+    .then(onGameObjectsFixed);
+}
+
+function onGameObjectsFixed() {
+  updateSelection();
+  figma.notify("Game objects fixed");
+}
+
+function onResetGameObjects() {
+  removeGameObjects(selection.gameObjects);
+  updateSelection();
+  figma.notify("Game objects reset");
+}
+
+function onCopyGameObjects() {
+  const { gameObjects: [ layer ] } = selection;
+  copyGameObject(layer)
+    .then(onGameObjectsCopied)
+    .catch(processError);
+}
+
+function onGameObjectsCopied(gameObject: SerializedGameCollectionData) {
+  const bundle = { gameObjects: [ gameObject ] };
+  postMessageToPluginUI("gameObjectsCopied", { bundle })
+  updateSelection();
+  figma.notify("Game object copied");
+}
+
+function onUpdateGameObject(data: PluginGameObjectData) {
+  const { gameObjects: [ layer ] } = selection;
+  updateGameObject(layer, data);
+}
+
 /**
  * Processes a message from the plugin UI.
  * @param message - The message from the plugin UI.
@@ -311,7 +361,7 @@ async function onRequestImage() {
 function processPluginUIMessage(message: PluginMessage) {
   const { type, data } = message;
   if (type === "copyGUINodes") {
-    onCopyGUINode();
+    onCopyGUINodes();
   } else if (type === "exportGUINodes") {
     onExportGUINodes();
   } else if (type === "exportGUINodeAtlases") {
@@ -326,8 +376,8 @@ function processPluginUIMessage(message: PluginMessage) {
     onMatchGUINodeToParent();
   } else if (type === "forceChildrenOnScreen") {
     onForceChildrenOnScreen();
-  } else if (type === "resizeScreenNodes") {
-    onResizeScreenNodes();
+  } else if (type === "resizeScreenGUINodes") {
+    onResizeScreenGUINodes();
   } else if (type === "updateGUINode" && data?.guiNode) {
     onUpdateGUINode(data.guiNode);
   } else if (type === "updateGUINodes" && data?.gui) {
@@ -374,6 +424,16 @@ function processPluginUIMessage(message: PluginMessage) {
     expandUI();
   } else if (type === "requestImage") {
     onRequestImage();
+  } else if (type === "fixGameObjects") {
+    onFixGameObjects();
+  } else if (type === "resetGameObjects") {
+    onResetGameObjects();
+  } else if (type === "exportGameObjects") {
+    onExportGameObjects();
+  } else if (type === "copyGameObjects") {
+    onCopyGameObjects();
+  } else if (type === "updateGameObject" && data?.gameObject) {
+    onUpdateGameObject(data.gameObject);
   }
 }
 

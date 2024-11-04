@@ -3,6 +3,7 @@ type SelectionUIData = {
   atlases: PluginAtlasData[],
   layers: SceneNode[],
   sections: PluginSectionData[],
+  gameObjects: PluginGameObjectData[],
   project: ProjectData,
   context?: PluginGUIContextData,
   canTryMatch: boolean,
@@ -14,6 +15,7 @@ type SelectionData = {
   atlases: ComponentSetNode[],
   layers: SceneNode[],
   sections: SectionNode[],
+  gameObjects: ExportableLayer[],
 }
 
 type PluginSectionData = {
@@ -41,7 +43,7 @@ type PluginGUINodeData = {
   enabled: boolean,
   visible: boolean,
   inherit_alpha: boolean,
-  blend_mode: GUINodeBlendMode,
+  blend_mode: BlendingMode,
   scale: Vector4,
   material: string,
   slice9: Vector4,
@@ -74,6 +76,28 @@ type PluginGUINodeData = {
   figma_node_type: NodeType,
 }
 
+type PluginGameObjectData = {
+  id: string,
+  type: GameObjectType,
+  blend_mode?: BlendingMode,
+  position: Vector4,
+  scale: Vector4,
+  material?: string,
+  slice9?: Vector4,
+  pivot?: Pivot,
+  size_mode?: SizeMode | "PARSED",
+  font?: string,
+
+  exclude: boolean,
+  skip: boolean,
+  implied_game_object: boolean,
+  arrange_depth: boolean,
+  depth_axis: string,
+  inferred: boolean,
+  path: string,
+  figma_node_type: NodeType
+}
+
 type PluginGUIMassNodeData = {
   exclude: boolean | null
   screen: boolean | null
@@ -87,10 +111,11 @@ type PluginDataOverrideKey = `defoldGUINodeOverride-${string}`
 type PluginData = {
   defoldGUINode?: PluginGUINodeData | null,
   defoldAtlas?: PluginAtlasData | null,
-  defoldSlice9?: boolean | null,
-  defoldScale?: boolean | null,
+  defoldGameObject?: PluginGameObjectData | null,
   defoldSection?: PluginSectionData | null,
   defoldProject?: ProjectData | null,
+  defoldSlice9?: boolean | null,
+  defoldScale?: boolean | null,
 } & {
   [key in PluginDataOverrideKey]?: PluginGUINodeData | null
 }
@@ -108,7 +133,8 @@ type PluginMessageAction =
   "copyGUINodeScheme" |
   "guiNodeSchemeCopied" |
   "fixGUINodes" |
-  "resizeScreenNodes" |
+  "resizeScreenGUINodes" |
+  "matchGUINodes" |
   "matchParentToGUINode" |
   "matchGUINodeToParent" |
   "forceChildrenOnScreen" |
@@ -142,7 +168,16 @@ type PluginMessageAction =
   "collapseUI" |
   "expandUI" |
   "requestImage" |
-  "requestedImage"
+  "requestedImage" |
+  "exportGameObjects" |
+  "gameObjectsExported" |
+  "fixGameObjects" |
+  "resetGameObjects" |
+  "updateGameObject" |
+  "copyGameObjects" |
+  "gameObjectsCopied" |
+  "exportGameObjectAtlases" |
+  "gameObjectAtlasesExported"
 
 type PluginMessagePayload = {
   bundle?: BundleData,
@@ -151,6 +186,7 @@ type PluginMessagePayload = {
   image?: Uint8Array,
   gui?: PluginGUINodeData[],
   guiNode?: PluginGUINodeData,
+  gameObject?: PluginGameObjectData,
   section?: PluginSectionData,
   scheme?: string,
   project?: Partial<ProjectData>,
@@ -165,3 +201,5 @@ type PluginMessage = {
 type PluginUIMessage = {
   pluginMessage: PluginMessage,
 }
+
+type VariantExtractor = (layer: BoxLayer, texturesData: TextureData, skipVariants?: boolean) => Promise<void>;

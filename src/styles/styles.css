@@ -101,6 +101,7 @@ input:disabled {
 }
 
 input:hover:disabled {
+  padding: 0 0.5em;
   border-bottom: 1px solid #3f444c;
   background: inherit;
 }
@@ -169,6 +170,7 @@ select:hover:disabled {
 
 .widgetContainer,
 .widgetTransformation,
+.widgetLayerPosition,
 .widgetSlice9,
 .widgetTextSet
 .widgetTextSetItem,

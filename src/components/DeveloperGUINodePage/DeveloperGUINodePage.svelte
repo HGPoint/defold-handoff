@@ -2,7 +2,8 @@
   import config from "config/config.json";
   import selectionState from "state/selection";
   import { postMessageToPlugin } from "utilities/pluginUI";
-  import { isTextGUINodeType, isBoxGUINodeType, isTemplateGUINodeType, isFigmaComponentInstanceType, isFigmaComponentType, isFigmaFrameType } from "utilities/gui";
+  import { isGUITextNodeType, isGUIBoxNodeType, isGUITemplateNodeType } from "utilities/gui";
+  import { isFigmaFrameType, isFigmaComponentType, isFigmaComponentInstanceType } from "utilities/figma";
   import { isZeroVector } from "utilities/math";
   import Page from "components/Page";
   import Properties from "components/Properties";
@@ -55,17 +56,17 @@
       <OptionsProperty label="Size Mode" bind:value={guiNode.size_mode} originalValue={originalValues?.size_mode} options={config.sizeModes} />
       <ToggleProperty label="Enabled" bind:value={guiNode.enabled} originalValue={originalValues?.enabled} />
       <ToggleProperty label="Visible" bind:value={guiNode.visible} originalValue={originalValues?.visible} />
-      {#if isTextGUINodeType(guiNode.type)}
+      {#if isGUITextNodeType(guiNode.type)}
         <OptionsProperty label="Font" bind:value={guiNode.font} originalValue={originalValues?.font} options={fontFamilies} />
       {/if}
       <OptionsProperty label="Material" bind:value={guiNode.material} originalValue={originalValues?.material} options={materials} disabled={true} />
-      {#if isBoxGUINodeType(guiNode.type) || isTemplateGUINodeType(guiNode.type)}
+      {#if isGUIBoxNodeType(guiNode.type) || isGUITemplateNodeType(guiNode.type)}
         <SidesProperty label="Slice 9" bind:value={guiNode.slice9} originalValue={originalValues?.slice9} />
       {/if}
       <ToggleProperty label="Inherit Alpha" bind:value={guiNode.inherit_alpha} originalValue={originalValues?.inherit_alpha} />
       <OptionsProperty label="Layer" bind:value={guiNode.layer} originalValue={originalValues?.layer} options={layers} />
       <OptionsProperty label="Blend Mode" bind:value={guiNode.blend_mode} originalValue={originalValues?.blend_mode} options={config.blendModes} />
-      {#if isBoxGUINodeType(guiNode.type) || isTemplateGUINodeType(guiNode.type)}
+      {#if isGUIBoxNodeType(guiNode.type) || isGUITemplateNodeType(guiNode.type)}
         <OptionsProperty label="Pivot" bind:value={guiNode.pivot} originalValue={originalValues?.pivot} options={config.pivots} />
       {/if}
       <OptionsProperty label="X Anchor" bind:value={guiNode.xanchor} originalValue={originalValues?.xanchor} options={config.xAnchors} />
@@ -111,12 +112,12 @@
       {/if}
       <ActionButton label="Force Children on Screen" action="forceChildrenOnScreen" />
       {#if isFigmaFrameType(guiNode.figma_node_type) || isFigmaComponentType(guiNode.figma_node_type)}
-        <ActionButton label="Resize to Screen" action="resizeScreenNodes" />
+        <ActionButton label="Resize to Screen" action="resizeScreenGUINodes" />
       {/if}
-      {#if isTextGUINodeType(guiNode.type)}
+      {#if isGUITextNodeType(guiNode.type)}
         <ActionButton label="Fix Text" action="fixTextNode" />
       {/if}
-      {#if (isBoxGUINodeType(guiNode.type) || isTemplateGUINodeType(guiNode.type)) && !isZeroVector(guiNode.slice9)}
+      {#if (isGUIBoxNodeType(guiNode.type) || isGUITemplateNodeType(guiNode.type)) && !isZeroVector(guiNode.slice9)}
         <ActionButton label="Refresh Slice 9" action="restoreSlice9Node" />
       {/if}
       {#if isFigmaComponentInstanceType(guiNode.figma_node_type)}

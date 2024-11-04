@@ -3,7 +3,7 @@
  * @packageDocumentation
  */
 
-import { generateGUIFileName, sanitizeGUIFileName } from "utilities/path";
+import { generateGUIFileName, generateGameCollectionFileName, generateGUINodesFileName, generateAtlasesFileName, generateSpritesFileName, generateGameCollectionsFileName, sanitizeFileName } from "utilities/path";
 import { archiveBundle, archiveSprites } from "utilities/archive";
 import copyOnClipboard from "utilities/clipboard";
 import download from "utilities/download";
@@ -14,7 +14,7 @@ import download from "utilities/download";
  * @returns A boolean indicating if the bundle data contains valid component data.
  */
 export function isBundleData(bundle?: BundleData): bundle is BundleData {
-  return !!bundle && ("gui" in bundle || "atlases" in bundle);
+  return !!bundle && ("gui" in bundle || "gameObjects" in bundle || "atlases" in bundle);
 }
 
 /**
@@ -35,11 +35,15 @@ function isSerializedGUIData(gui?: SerializedGUIData[]): gui is SerializedGUIDat
   return !!gui && Array.isArray(gui);
 }
 
+function isSerializedGameCollectionData(gameObjects?: SerializedGameCollectionData[]): gameObjects is SerializedGameCollectionData[] {
+  return !!gameObjects && Array.isArray(gameObjects);
+}
+
 /**
  * Copies the serialized data of a GUI component to the clipboard.
  * @param bundle - The bundle data containing GUI components.
  */
-export function copyComponent({ bundle }: PluginMessagePayload) {
+export function copyGUINodes({ bundle }: PluginMessagePayload) {
   if (isBundleData(bundle)) {
     const { gui } = bundle;
     if (isSerializedGUIData(gui)) {
@@ -53,13 +57,13 @@ export function copyComponent({ bundle }: PluginMessagePayload) {
  * Exports a GUI component as a .gui file.
  * @param bundle - The bundle data containing GUI components.
  */
-export function exportComponent({ bundle }: PluginMessagePayload) {
+export function exportGUIComponent({ bundle }: PluginMessagePayload) {
   if (isBundleData(bundle)) {
     const { gui } = bundle;
     if (isSerializedGUIData(gui)) {
       const [ guiNode ] = gui;
       const { name: guiNodeName } = guiNode;
-      const sanitizedGUIName = sanitizeGUIFileName(guiNodeName);
+      const sanitizedGUIName = sanitizeFileName(guiNodeName);
       const fileName = generateGUIFileName(sanitizedGUIName);
       const blob = new Blob([guiNode.data], { type: "text/plain" });
       download(blob, fileName);
@@ -68,22 +72,11 @@ export function exportComponent({ bundle }: PluginMessagePayload) {
 }
 
 /**
- * Generates a filename for the archive containing the exported GUI nodes.
- * @param gui - The serialized GUI data.
- * @returns The filename for the exported GUI nodes.
- */
-function generateGUINodesFileName(gui: SerializedGUIData[]) {
-  const fileName = gui.length > 1 ? gui.length : gui[0].name;
-  const suffix = gui.length > 1 ? "nodes" : "node";
-  return `${fileName}.${suffix}.zip`;
-}
-
-/**
  * Exports multiple GUI components as a single zip file.
  * @param bundle - The bundle data containing GUI components.
  * @param project - The project config data.
  */
-export async function exportComponents({ bundle, project }: PluginMessagePayload) {
+export async function exportGUIComponents({ bundle, project }: PluginMessagePayload) {
   if (isBundleData(bundle)) {
     const { gui } = bundle;
     if (project && isSerializedGUIData(gui)) {
@@ -98,18 +91,31 @@ export async function exportComponents({ bundle, project }: PluginMessagePayload
  * Exports GUI components as files.
  * @param data - The plugin message payload.
  */
-export async function exportGUI(data: PluginMessagePayload) {
+export async function exportGUINodes(data: PluginMessagePayload) {
   const { bundle } = data;
   if (isBundleData(bundle)) {
     const { gui } = bundle;
     if (gui) {
       if (gui.length > 1) {
-        exportComponents(data);
+        exportGUIComponents(data);
       } else if (gui.length === 1) {
-        exportComponent(data);
+        exportGUIComponent(data);
       }
     }
   }
+}
+
+function resolveBundleName({ gui, gameObjects }: BundleData) {
+  const length = (gui?.length || gui?.filter(node => !node.template).length || 0) + (gameObjects?.length || 0);
+  if (length === 1) {
+    if (gui?.length === 1) {
+      return gui.filter(node => !node.template)[0].name;
+    }
+    if (gameObjects?.length === 1) {
+      return gameObjects[0].name;
+    } 
+  }
+  return (gui?.length || 0) + (gameObjects?.length || 0);
 }
 
 /**
@@ -117,27 +123,16 @@ export async function exportGUI(data: PluginMessagePayload) {
  * @param bundle - The bundle data containing resources.
  * @param project - The project config data.
  */
-export async function exportResources({ bundle, project }: PluginMessagePayload) {
+export async function exportBundle({ bundle, project }: PluginMessagePayload) {
   if (isBundleData(bundle)) {
     const { gui } = bundle;
     if (project && isSerializedGUIData(gui)) {
-      const bundleName = gui.length === 1 || gui.filter(node => !node.template).length == 1 ? gui[0].name : gui.length;
+      const bundleName = resolveBundleName(bundle);
       const fileName = `${bundleName}.resources.zip`;
       const blob = await archiveBundle(bundle, project);
       download(blob, fileName);
     }
   }
-}
-
-/**
- * Generates a filename for the exported atlases.
- * @param atlases - The atlases data.
- * @returns The filename for the exported atlases.
- */
-function generateAtlasesFileName(atlases: AtlasData[] | SerializedAtlasData[]) {
-  const fileName = atlases.length > 1 ? atlases.length : atlases[0].name;
-  const suffix = atlases.length > 1 ? "atlases" : "atlas";
-  return `${fileName}.${suffix}.zip`;
 }
 
 /**
@@ -154,16 +149,6 @@ export async function exportAtlases({ bundle, project }: PluginMessagePayload) {
       download(blob, fileName);
     }
   }
-}
-
-/**
- * Generates a filename for the exported sprites.
- * @param atlases - The atlases data.
- * @returns The filename for the exported sprites.
- */
-function generateSpritesFileName(atlases: SerializedAtlasData[]) {
-  const fileName = atlases.length > 1 ? atlases.length : atlases[0].name;
-  return `${fileName}.sprites.zip`;
 }
 
 /**
@@ -185,8 +170,57 @@ export async function exportSprites({ bundle }: PluginMessagePayload) {
  * Copies the boilerplate scheme code on the clipboard.
  * @param scheme - The extracted scheme data.
  */
-export function copyScheme({ scheme }: PluginMessagePayload) {
+export function copyGUINodeScheme({ scheme }: PluginMessagePayload) {
   if (scheme) {
     copyOnClipboard(scheme);
+  }
+}
+
+export function copyGameObjects({ bundle }: PluginMessagePayload) {
+  if (isBundleData(bundle)) {
+    const { gameObjects } = bundle;
+    if (isSerializedGameCollectionData(gameObjects)) {
+      const [ gameObject ] = gameObjects;
+      copyOnClipboard(gameObject.data);
+    }
+  }
+}
+
+export function exportGameObjectsComponent({ bundle }: PluginMessagePayload) {
+  if (isBundleData(bundle)) {
+    const { gameObjects } = bundle;
+    if (isSerializedGameCollectionData(gameObjects)) {
+      const [ gameObject ] = gameObjects;
+      const { name: gameObjectName } = gameObject;
+      const sanitizedGameObjectName = sanitizeFileName(gameObjectName);
+      const fileName = generateGameCollectionFileName(sanitizedGameObjectName);
+      const blob = new Blob([gameObject.data], { type: "text/plain" });
+      download(blob, fileName);
+    }
+  }
+}
+
+export async function exportGameObjectsComponents({ bundle, project }: PluginMessagePayload) {
+  if (isBundleData(bundle)) {
+    const { gameObjects } = bundle;
+    if (project && isSerializedGameCollectionData(gameObjects)) {
+      const fileName = generateGameCollectionsFileName(gameObjects);
+      const blob = await archiveBundle(bundle, project);
+      download(blob, fileName);
+    }
+  }
+}
+
+export function exportGameObjects(data: PluginMessagePayload) {
+  const { bundle } = data;
+  if (isBundleData(bundle)) {
+    const { gameObjects } = bundle;
+    if (gameObjects) {
+      if (gameObjects.length > 1) {
+        exportGameObjectsComponents(data);
+      } else if (gameObjects.length === 1) {
+        exportGameObjectsComponent(data);
+      }
+    }
   }
 }
