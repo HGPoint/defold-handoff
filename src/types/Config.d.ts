@@ -1,6 +1,16 @@
 declare module "config/config.json" {
   const value: {
     ui: Required<UIData>,
+    uiSize: {
+      expanded: {
+        width: number,
+        height: number
+      },
+      collapsed: {
+        width: number,
+        height: number
+      }
+    }
     screenSize: Vector4,
     paths: ProjectPathData
     constKeys: string[]
@@ -71,6 +81,7 @@ declare module "config/config.json" {
       inferred: boolean,
     },
     atlasMaxSize: number,
+    atlasPadding: number,
     atlasSpritePadding: number,
     atlasDefaultValues: {
       margin: number,
@@ -94,7 +105,7 @@ declare module "config/config.json" {
     defaultFontFamilies: ProjectFontData[],
     fontStrokeRatio: number,
     autoskip: string,
-    sizeModes: Record<string, SizeMode | "PARSED">,
+    sizeModes: Record<string, SizeMode>,
     blendModes: Record<string, BlendingMode>,
     pivots: Record<string, Pivot>,
     xAnchors: Record<string, XAnchor>,

@@ -1,74 +1,160 @@
 /**
- * Utility module for handling slice9 placeholders in Figma.
+ * Handles operations with selection in Figma.
  * @module ScalePlaceholderUtils
  */
 
-import { selectNode } from "utilities/figma";
-import { isZeroVector, areVectorsEqual, vector4 } from "utilities/math";
-import { getPluginData, removePluginData, isFigmaComponentInstance, isAtlasSprite, setPluginData, isFigmaFrame, isExportable } from "utilities/figma";
+import { resolvePluginDataKey } from "utilities/data";
+import { getPluginData, hasChildren, isFigmaBox, isFigmaComponentInstance, isLayerExportable, isLayerSprite, removePluginData, setPluginData } from "utilities/figma";
+import { getGameObjectPluginData } from "utilities/gameCollection";
 import { getGUINodePluginData } from "utilities/gui";
+import { areVectorsEqual, isZeroVector, vector4 } from "utilities/math";
 
 /**
- * Checks if a Figma layer has the specified plugin data indicating it is a slice9 layer.
+ * Determines whether a Figma layer is a slice9 layer.
  * @param layer - The Figma layer to check.
- * @returns A boolean indicating if the layer is a slice9 layer.
+ * @returns True if the layer is a slice9 layer, false otherwise.
  */
-export function isSlice9Layer(layer: SceneNode): layer is SliceNode {
+export function isSlice9Layer(layer: SceneNode): layer is InstanceNode {
   return isFigmaComponentInstance(layer) && !!getPluginData(layer, "defoldSlice9");
 }
 
 /**
- * Checks if a layer is a slice9 placeholder layer.
- * @param layer - The layer to check.
- * @returns True if the layer is a slice9 placeholder layer, false otherwise.
+ * Determines whether a Figma layer is a slice9 placeholder frame by its name.
+ * @param layer - The Figma layer to check.
+ * @returns True if the layer is a slice9 placeholder frame, false otherwise.
  */
 export function isSlice9PlaceholderLayer(layer: BaseNode): layer is FrameNode {
   return layer.name.endsWith("-slice9Placeholder");
 }
 
 /**
- * Checks if a layer is a slice9 service layer.
- * @param layer - The layer to check.
- * @returns True if the layer is a slice9 service layer, false otherwise.
+ * Checks if a Figma layer is a slice9 service frame by its name.
+ * @param layer - The Figma layer to check.
+ * @returns True if the layer is a slice9 service frame, false otherwise.
  */
-export function isSlice9ServiceLayer(layer: SceneNode): boolean {
+export function isSlice9ServiceLayer(layer: SceneNode): layer is FrameNode {
   return layer.name.startsWith("slice9Frame-")
 }
 
-function isOriginalSlice9Layer(layer: SceneNode): layer is InstanceNode {
-  return isFigmaComponentInstance(layer) && isSlice9Layer(layer);
+/**
+ * Checks if a Figma layer is a slice9 service left top frame by its name.
+ * @param layer - The Figma layer to check.
+ * @returns True if the layer is a slice9 service left top layer, false otherwise.
+ */
+function isSlice9ServiceLeftTopLayer(layer: SceneNode): layer is FrameNode {
+  return layer.name.endsWith("leftTop")
 }
 
 /**
- * Finds the original layer corresponding to a slice9 placeholder.
- * @param placeholder - The slice9 placeholder layer.
- * @returns The original layer if found, otherwise null.
+ * Checks if a Figma layer is a slice9 service center top frame by its name.
+ * @param layer - The Figma layer to check.
+ * @returns True if the layer is a slice9 service center top frame, false otherwise.
  */
-export function findOriginalLayer(placeholder: FrameNode): ExportableLayer | null {
+function isSlice9ServiceCenterTopLayer(layer: SceneNode): layer is FrameNode {
+  return layer.name.endsWith("centerTop")
+}
+
+/**
+ * Checks if a Figma layer is a slice9 service right top frame by its name.
+ * @param layer - The Figma layer to check.
+ * @returns True if the layer is a slice9 service right top frame, false otherwise.
+ */
+function isSlice9ServiceRightTopLayer(layer: SceneNode): layer is FrameNode {
+  return layer.name.endsWith("rightTop")
+}
+
+/**
+ * Checks if a Figma layer is a slice9 service left center frame by its name.
+ * @param layer - The Figma layer to check.
+ * @returns True if the layer is a slice9 service left center frame, false otherwise.
+ */
+function isSlice9ServiceLeftCenterLayer(layer: SceneNode): layer is FrameNode {
+  return layer.name.endsWith("leftCenter")
+}
+
+/**
+ * Checks if a Figma layer is a slice9 service center frame by its name.
+ * @param layer - The Figma layer to check.
+ * @returns True if the layer is a slice9 service center frame, false otherwise.
+ */
+function isSlice9ServiceRightCenterLayer(layer: SceneNode): layer is FrameNode {
+  return layer.name.endsWith("rightCenter")
+}
+
+/**
+ * Checks if a Figma layer is a slice9 service left bottom frame by its name.
+ * @param layer - The Figma layer to check.
+ * @returns True if the layer is a slice9 service left bottom frame, false otherwise.
+ */
+function isSlice9ServiceLeftBottomLayer(layer: SceneNode): layer is FrameNode {
+  return layer.name.endsWith("leftBottom")
+}
+
+/**
+ * Checks if a Figma layer is a slice9 service center bottom frame by its name.
+ * @param layer - The Figma layer to check.
+ * @returns True if the layer is a slice9 service center bottom frame, false otherwise.
+ */
+function isSlice9ServiceCenterBottomLayer(layer: SceneNode): layer is FrameNode {
+  return layer.name.endsWith("centerBottom")
+}
+
+/**
+ * Checks if a Figma layer is a slice9 service right bottom frame by its name.
+ * @param layer - The Figma layer to check.
+ * @returns True if the layer is a slice9 service right bottom frame, false otherwise.
+ */
+function isSlice9ServiceRightBottomLayer(layer: SceneNode): layer is FrameNode {
+  return layer.name.endsWith("rightBottom")
+}
+
+/**
+ * Locates the original layer corresponding to a slice9 placeholder frame.
+ * @param placeholder - The slice9 placeholder frame to find the original layer for.
+ * @returns The original layer if found.
+ */
+export function findSlice9Layer(placeholder: FrameNode): WithNull<InstanceNode> {
   const { children } = placeholder;
-  const layer = children.find(isOriginalSlice9Layer);
-  if (!layer) {
-    return null;
+  const layer = children.find(isSlice9Layer);
+  if (layer) {
+    return layer;
   }
-  return layer;
+  return null;
 }
 
 /**
- * Finds the placeholder layer corresponding to a slice9 layer.
+ * Locates the placeholder frame corresponding to a slice9 layer.
  * @param layer - The layer to find the placeholder for.
- * @returns The placeholder layer if found, otherwise null.
+ * @returns The placeholder layer if found.
  */
-export function findPlaceholderLayer(layer: ExportableLayer): FrameNode | null {
+export function findSlice9PlaceholderLayer(layer: ExportableLayer): WithNull<FrameNode> {
   const { parent: placeholder } = layer;
-  if (!placeholder || !isSlice9PlaceholderLayer(placeholder) || !isFigmaFrame(placeholder)) {
-    return null;
+  if (placeholder && isSlice9PlaceholderLayer(placeholder)) {
+    return placeholder;
   }
+  return null;
+}
+
+/**
+ * Creates a slice9 placeholder for a layer with specified slice9 values.
+ * @param layer - The layer to create the placeholder for.
+ * @param slice9 - The slice9 values.
+ * @returns The created slice9 placeholder frame.
+ */
+export async function createSlice9Placeholder(layer: InstanceNode, slice9: Vector4) {
+  const placeholder = createSlice9PlaceholderFrame(layer);
+  await createSlice9ServiceFrames(placeholder, layer, slice9);
+  layer.x = 0;
+  layer.y = 0;
+  layer.visible = false;
+  layer.locked = true;
+  setPluginData(layer, { defoldSlice9: true });
   return placeholder;
 }
 
 /**
  * Creates a slice9 placeholder frame for a layer.
- * @param layer - The layer for which to create the placeholder.
+ * @param layer - The layer to create the placeholder for.
  * @returns The created placeholder frame.
  */
 function createSlice9PlaceholderFrame(layer: InstanceNode) {
@@ -94,13 +180,34 @@ function createSlice9PlaceholderFrame(layer: InstanceNode) {
 }
 
 /**
- * Creates a slice9 service layer for the left top slice.
+ * Creates slice9 service frames for a slice9 placeholder frame.
+ * @param placeholder - The slice9 placeholder frame.
+ * @param layer - The layer to create the slice for.
+ * @param slice9 - The slice9 values.
+ */
+async function createSlice9ServiceFrames(placeholder: FrameNode, layer: InstanceNode, slice9: Vector4) {
+  const promises = [
+    createSlice9LeftTopServiceFrame(placeholder, layer, slice9),
+    createSlice9CenterTopServiceFrame(placeholder, layer, slice9),
+    createSlice9RightTopServiceFrame(placeholder, layer, slice9),
+    createSlice9LeftCenterServiceFrame(placeholder, layer, slice9),
+    createSlice9CenterServiceFrame(placeholder, layer, slice9),
+    createSlice9RightCenterServiceFrame(placeholder, layer, slice9),
+    createSlice9LeftBottomServiceFrame(placeholder, layer, slice9),
+    createSlice9CenterBottomServiceFrame(placeholder, layer, slice9),
+    createSlice9RightBottomServiceFrame(placeholder, layer, slice9),
+  ]
+  await Promise.all(promises);
+}
+
+/**
+ * Creates a slice9 service frame for the left top slice.
  * @param placeholder - The slice9 placeholder frame.
  * @param layer - The layer to create the slice for.
  * @param slice9 - The slice9 values.
  * @returns The created slice9 service layer.
  */
-async function createSlice9LeftTopFrame(placeholder: FrameNode, layer: InstanceNode, slice9: Vector4) {
+async function createSlice9LeftTopServiceFrame(placeholder: FrameNode, layer: InstanceNode, slice9: Vector4) {
   const { x: left, y: top } = slice9;
   if (left && top) {
     const width = left;
@@ -127,13 +234,13 @@ async function createSlice9LeftTopFrame(placeholder: FrameNode, layer: InstanceN
 }
 
 /**
- * Creates a slice9 service layer for the center top slice.
+ * Creates a slice9 service frame for the center top slice.
  * @param placeholder - The slice9 placeholder frame.
  * @param layer - The layer to create the slice for.
  * @param slice9 - The slice9 values.
  * @returns The created slice9 service layer.
  */
-async function createSlice9CenterTopFrame(placeholder: FrameNode, layer: InstanceNode, slice9: Vector4) {
+async function createSlice9CenterTopServiceFrame(placeholder: FrameNode, layer: InstanceNode, slice9: Vector4) {
   const { x: left, y: top, z: right } = slice9;
   if (top) {
     const width = layer.width - left - right;
@@ -162,17 +269,17 @@ async function createSlice9CenterTopFrame(placeholder: FrameNode, layer: Instanc
 }
 
 /**
- * Creates a slice9 service layer for the right top slice.
+ * Creates a slice9 service frame for the right top slice.
  * @param placeholder - The slice9 placeholder frame.
  * @param layer - The layer to create the slice for.
  * @param slice9 - The slice9 values.
  * @returns The created slice9 service layer.
  */
-async function createSlice9RightTopFrame(placeholder: FrameNode, layer: InstanceNode, slice9: Vector4) {
+async function createSlice9RightTopServiceFrame(placeholder: FrameNode, layer: InstanceNode, slice9: Vector4) {
   const { z: right, y: top } = slice9;
   if (right && top) {
     const width = right;
-    const height = top; 
+    const height = top;
     const frame = figma.createFrame();
     frame.resize(width, height);
     frame.x = layer.width - right;
@@ -197,13 +304,13 @@ async function createSlice9RightTopFrame(placeholder: FrameNode, layer: Instance
 }
 
 /**
- * Creates a slice9 service layer for the left center slice.
+ * Creates a slice9 service frame for the left center slice.
  * @param placeholder - The slice9 placeholder frame.
  * @param layer - The layer to create the slice for.
  * @param slice9 - The slice9 values.
  * @returns The created slice9 service layer.
  */
-async function createSlice9LeftCenterFrame(placeholder: FrameNode, layer: InstanceNode, slice9: Vector4) {
+async function createSlice9LeftCenterServiceFrame(placeholder: FrameNode, layer: InstanceNode, slice9: Vector4) {
   const { x: left, y: top, w: bottom } = slice9;
   if (left) {
     const width = left;
@@ -232,13 +339,13 @@ async function createSlice9LeftCenterFrame(placeholder: FrameNode, layer: Instan
 }
 
 /**
- * Creates a slice9 service layer for the center slice.
+ * Creates a slice9 service frame for the center slice.
  * @param placeholder - The slice9 placeholder frame.
  * @param layer - The layer to create the slice for.
  * @param slice9 - The slice9 values.
  * @returns The created slice9 service layer.
  */
-async function createSlice9CenterFrame(placeholder: FrameNode, layer: InstanceNode, slice9: Vector4) {
+async function createSlice9CenterServiceFrame(placeholder: FrameNode, layer: InstanceNode, slice9: Vector4) {
   const { x: left, y: top, z: right, w: bottom } = slice9;
   const width = layer.width - left - right;
   const height = layer.height - top - bottom;
@@ -265,13 +372,13 @@ async function createSlice9CenterFrame(placeholder: FrameNode, layer: InstanceNo
 }
 
 /**
- * Creates a slice9 service layer for the right center slice.
+ * Creates a slice9 service frame for the right center slice.
  * @param placeholder - The slice9 placeholder frame.
  * @param layer - The layer to create the slice for.
  * @param slice9 - The slice9 values.
  * @returns The created slice9 service layer.
  */
-async function createSlice9RightCenterFrame(placeholder: FrameNode, layer: InstanceNode, slice9: Vector4) {
+async function createSlice9RightCenterServiceFrame(placeholder: FrameNode, layer: InstanceNode, slice9: Vector4) {
   const { z: right, y: top, w: bottom } = slice9;
   if (right) {
     const width = right;
@@ -302,13 +409,13 @@ async function createSlice9RightCenterFrame(placeholder: FrameNode, layer: Insta
 }
 
 /**
- * Creates a slice9 service layer for the left bottom slice.
+ * Creates a slice9 service frame for the left bottom slice.
  * @param placeholder - The slice9 placeholder frame.
  * @param layer - The layer to create the slice for.
  * @param slice9 - The slice9 values.
  * @returns The created slice9 service layer.
  */
-async function createSlice9LeftBottomFrame(placeholder: FrameNode, layer: InstanceNode, slice9: Vector4) {
+async function createSlice9LeftBottomServiceFrame(placeholder: FrameNode, layer: InstanceNode, slice9: Vector4) {
   const { x: left, w: bottom } = slice9;
   if (left && bottom) {
     const width = left;
@@ -337,13 +444,13 @@ async function createSlice9LeftBottomFrame(placeholder: FrameNode, layer: Instan
 }
 
 /**
- * Creates a slice9 service layer for the center bottom slice.
+ * Creates a slice9 service frame for the center bottom slice.
  * @param placeholder - The slice9 placeholder frame.
  * @param layer - The layer to create the slice for.
  * @param slice9 - The slice9 values.
  * @returns The created slice9 service layer.
  */
-async function createSlice9CenterBottomFrame(placeholder: FrameNode, layer: InstanceNode, slice9: Vector4) {
+async function createSlice9CenterBottomServiceFrame(placeholder: FrameNode, layer: InstanceNode, slice9: Vector4) {
   const { x: left, z: right, w: bottom } = slice9;
   if (bottom) {
     const width = layer.width - left - right;
@@ -374,13 +481,13 @@ async function createSlice9CenterBottomFrame(placeholder: FrameNode, layer: Inst
 }
 
 /**
- * Creates a slice9 service layer for the right bottom slice.
+ * Creates a slice9 service frame for the right bottom slice.
  * @param placeholder - The slice9 placeholder frame.
  * @param layer - The layer to create the slice for.
  * @param slice9 - The slice9 values.
  * @returns The created slice9 service layer.
  */
-async function createSlice9RightBottomFrame(placeholder: FrameNode, layer: InstanceNode, slice9: Vector4) {
+async function createSlice9RightBottomServiceFrame(placeholder: FrameNode, layer: InstanceNode, slice9: Vector4) {
   const { z: right, w: bottom } = slice9;
   if (right && bottom) {
     const width = right;
@@ -411,77 +518,102 @@ async function createSlice9RightBottomFrame(placeholder: FrameNode, layer: Insta
 }
 
 /**
- * Creates slice9 service layers for a slice9 placeholder.
- * @param placeholder - The slice9 placeholder frame.
- * @param layer - The layer to create the slice for.
- * @param slice9 - The slice9 values.
+ * Attempts to refresh the slice9 layer.
+ * @param layer - The layer to try to refresh.
  */
-async function createSlice9SliceFrames(placeholder: FrameNode, layer: InstanceNode, slice9: Vector4) {
-  await createSlice9LeftTopFrame(placeholder, layer, slice9);
-  await createSlice9CenterTopFrame(placeholder, layer, slice9);
-  await createSlice9RightTopFrame(placeholder, layer, slice9);
-  await createSlice9LeftCenterFrame(placeholder, layer, slice9);
-  await createSlice9CenterFrame(placeholder, layer, slice9);
-  await createSlice9RightCenterFrame(placeholder, layer, slice9);
-  await createSlice9LeftBottomFrame(placeholder, layer, slice9);
-  await createSlice9CenterBottomFrame(placeholder, layer, slice9);
-  await createSlice9RightBottomFrame(placeholder, layer, slice9);
-}
-
-/**
- * Removes slice9 service layers from a slice9 placeholder.
- * @param placeholder - The slice9 placeholder frame.
- */
-function removeSlice9SliceFrames(placeholder: FrameNode) {
-  const { children } = placeholder;
-  for (const layer of children) {
-    if (isSlice9ServiceLayer(layer)) {
-      layer.remove();
+export async function tryRefreshSlice9(layer: InstanceNode) {
+  const pluginDataKey = resolvePluginDataKey(layer);
+  if (pluginDataKey) {
+    const pluginData = getPluginData(layer, pluginDataKey);
+    if (pluginData) {
+      const { slice9 } = pluginData;
+      await tryRefreshSlice9Placeholder(layer, slice9);
     }
   }
 }
 
 /**
- * Creates a slice9 placeholder for a layer with specified slice9 values.
- * @param layer - The layer to create the placeholder for.
+ * Attempts to refresh the slice9 placeholder.
+ * @param layer - The layer to try to refresh the slice9 placeholder for.
  * @param slice9 - The slice9 values.
+ * @param oldSlice9 - The old slice9 values.
  */
-export async function createSlice9Placeholder(layer: InstanceNode, slice9: Vector4) {
-  const placeholder = createSlice9PlaceholderFrame(layer);
-  await createSlice9SliceFrames(placeholder, layer, slice9);
-  layer.x = 0;
-  layer.y = 0;
-  layer.visible = false;
-  layer.locked = true;
-  setPluginData(layer, { defoldSlice9: true });
-  selectNode([placeholder], true);
+export async function tryRefreshSlice9Placeholder(layer: ExportableLayer, slice9?: Vector4, oldSlice9?: Vector4) {
+  if (isFigmaComponentInstance(layer) && shouldRefreshSlice9Placeholder(slice9, oldSlice9)) {
+    refreshSlice9Placeholder(layer, slice9);
+  }
 }
 
 /**
- * Removes the slice9 placeholder and associated slice9 service layers.
- * @param layer - The layer for which to remove the slice9 placeholder.
+ * Determines if the slice9 placeholder should be refreshed.
+ * @param slice9 - The new slice9 values.
+ * @param oldSlice9 - The old slice9 values.
+ * @returns True if the slice9 placeholder should be refreshed, false otherwise.
  */
-export function removeSlice9Placeholder(layer: InstanceNode) {
-  const placeholder = findPlaceholderLayer(layer);
-  if (placeholder && isSlice9PlaceholderLayer(placeholder)) {
+function shouldRefreshSlice9Placeholder(slice9?: Vector4, oldSlice9?: Vector4): slice9 is Vector4 {
+  return !!slice9 && (!oldSlice9 || !areVectorsEqual(oldSlice9, slice9))
+}
+
+/**
+ * Refreshes the slice9 placeholder for a layer with new slice9 values.
+ * @param layer - The layer to refresh the slice9 placeholder for.
+ * @param slice9 - The new slice9 values.
+ */
+async function refreshSlice9Placeholder(layer: InstanceNode, slice9: Vector4) {
+  if (isSlice9Layer(layer)) {
+    if (isZeroVector(slice9)) {
+      removeSlice9Placeholder(layer);
+    } else {
+      updateSlice9Placeholder(layer, slice9);
+    }
+  } else if (!isZeroVector(slice9) && await isLayerSprite(layer)) {
+    createSlice9Placeholder(layer, slice9);
+  }
+}
+
+/**
+ * Removes the slice9 placeholder and associated slice9 service frames.
+ * @param layer - The layer to remove the slice9 placeholder for.
+ */
+async function removeSlice9Placeholder(layer: InstanceNode) {
+  const placeholder = findSlice9PlaceholderLayer(layer);
+  if (placeholder) {
     const { parent, children } = placeholder;
     if (parent) {
-      const { x, y, width, height } = placeholder;
-      for (const layer of children) {
-        if (isSlice9ServiceLayer(layer)) {
-          layer.remove();
-        } else {
-          layer.x = x + (width - layer.width) / 2;
-          layer.y = y + (height - layer.height) / 2;
-          layer.locked = false;
-          layer.visible = true;
-          parent.appendChild(layer);
-        }
-      }
-      placeholder.remove();
+      children.forEach(child => removeSlice9PlaceholderComponentLayer(child, placeholder, parent));
       removePluginData(layer, "defoldSlice9");
+      placeholder.remove();
     }
   }
+}
+
+/**
+ * Removes a slice9 placeholder component layer.
+ * @param layer - The layer to remove the slice9 placeholder for.
+ * @param placeholder - The slice9 placeholder frame.
+ * @param parent - The parent frame of the placeholder.
+ */
+function removeSlice9PlaceholderComponentLayer(layer: SceneNode, placeholder: FrameNode, parent: BaseNode & ChildrenMixin) {
+  if (isSlice9ServiceLayer(layer)) {
+    layer.remove();
+  } else {
+    unwrapSlice9Layer(layer, placeholder, parent);
+  }
+}
+
+/**
+ * Unwraps a slice9 layer from a slice9 placeholder.
+ * @param layer - The layer to unwrap.
+ * @param placeholder - The slice9 placeholder frame.
+ * @param parent - The parent frame of the placeholder.
+ */
+function unwrapSlice9Layer(layer: SceneNode, placeholder: FrameNode, parent: BaseNode & ChildrenMixin) {
+  const { x, y, width, height } = placeholder;
+  layer.x = x + (width - layer.width) / 2;
+  layer.y = y + (height - layer.height) / 2;
+  layer.locked = false;
+  layer.visible = true;
+  parent.appendChild(layer);
 }
 
 /**
@@ -489,72 +621,74 @@ export function removeSlice9Placeholder(layer: InstanceNode) {
  * @param layer - The layer to update the slice9 placeholder for.
  * @param slice9 - The new slice9 values.
  */
-export async function updateSlice9Placeholder(layer: InstanceNode, slice9: Vector4) {
-  const placeholder = findPlaceholderLayer(layer);
-  if (placeholder && isSlice9PlaceholderLayer(placeholder)) {
-    removeSlice9SliceFrames(placeholder);
+async function updateSlice9Placeholder(layer: InstanceNode, slice9: Vector4) {
+  const placeholder = findSlice9PlaceholderLayer(layer);
+  if (placeholder) {
+    removeSlice9ServiceFrames(placeholder);
     layer.visible = true;
-    await createSlice9SliceFrames(placeholder, layer, slice9);
+    await createSlice9ServiceFrames(placeholder, layer, slice9);
     layer.visible = false;
   }
 }
 
 /**
- * Attempts to refresh the slice9 placeholder.
- * @param layer - The layer for which to refresh the slice9 placeholder.
- * @param slice9 - The slice9 data.
- * @param oldSlice9 - The old slice9 data.
+ * Removes slice9 service frames from a slice9 placeholder.
+ * @param placeholder - The slice9 placeholder frame.
  */
-export async function tryRefreshSlice9Placeholder(layer: SceneNode, slice9?: Vector4, oldSlice9?: Vector4) {
-  if (slice9 && (!oldSlice9 || !areVectorsEqual(oldSlice9, slice9))) {
-    if (isSlice9Layer(layer) && isFigmaComponentInstance(layer)) {
-      if (isZeroVector(slice9)) {
-        removeSlice9Placeholder(layer);
-      } else {
-        updateSlice9Placeholder(layer, slice9);
-      }
-    } else if (!isZeroVector(slice9) && isFigmaComponentInstance(layer) && await isAtlasSprite(layer)) {
-      createSlice9Placeholder(layer, slice9);
+function removeSlice9ServiceFrames(placeholder: FrameNode) {
+  const { children } = placeholder;
+  children.forEach(tryRemoveSlice9ServiceFrame);
+}
+
+/**
+ * Attempts to remove a slice9 service frame.
+ * @param layer - The layer to try to remove as a slice9 service frame.
+ */
+function tryRemoveSlice9ServiceFrame(layer: SceneNode) {
+  if (isSlice9ServiceLayer(layer)) {
+    layer.remove();
+  }
+}
+
+/**
+ * Attempts to restore the slice 9 placeholder for a layer.
+ * @param layer - The layer to try restoring slice 9 data for.
+ */
+export async function tryRestoreSlice9Placeholder(layer: SceneNode, pluginDataKey: "defoldGUINode" | "defoldGameObject") {
+  const originalLayer = isSlice9PlaceholderLayer(layer) ? findSlice9Layer(layer) : layer;
+  if (originalLayer && isSlice9Layer(originalLayer)) {
+    const slice9 = parseSlice9Data(originalLayer);
+    if (slice9) {
+      restoreSlice9LayerData(originalLayer, slice9, pluginDataKey);
+      await tryRefreshSlice9Placeholder(originalLayer, slice9);
     }
   }
 }
 
-/**
- * Attempts to refresh the base sprite for a slice9 placeholder.
- * @param layer - The sprite layer for which to refresh the slice9 placeholder.
- */
-export async function tryRefreshSlice9Sprite(layer: SceneNode) {
-  const pluginData = getPluginData(layer, "defoldGUINode");
-  if (pluginData) {
-    await tryRefreshSlice9Placeholder(layer, pluginData.slice9);
-  }
-}
 
 /**
- * Parses the slice9 frame data from the service layer name and dimensions.
- * @param layer - The slice9 service layer.
- * @returns A vector containing the slice9 values.
+ * Attempts to restore slice9 data for a given box layer and its children.
+ * @param layer - The Figma layer to try restoring slice 9 data for.
  */
-function parseSlice9FrameData(layer: SceneNode): Vector4 {
-  const { width, height, name } = layer;
-  if (name.endsWith("leftTop")) {
-    return vector4(width, height, 0, 0);
-  } else if (name.endsWith("centerTop")) {
-    return vector4(0, height, 0, 0);
-  } else if (name.endsWith("rightTop")) {
-    return vector4(0, height, width, 0);
-  } else if (name.endsWith("leftCenter")) {
-    return vector4(width, 0, 0, 0);
-  } else if (name.endsWith("rightCenter")) {
-    return vector4(0, 0, width, 0);
-  } else if (name.endsWith("leftBottom")) {
-    return vector4(width, 0, 0, height);
-  } else if (name.endsWith("centerBottom")) {
-    return vector4(0, 0, 0, height);
-  } else if (name.endsWith("rightBottom")) {
-    return vector4(0, 0, width, height);
+export async function tryRestoreSlice9LayerData(layer: SceneNode, pluginDataKey: "defoldGUINode" | "defoldGameObject") {
+  if (isFigmaBox(layer)) {
+    if (isSlice9PlaceholderLayer(layer)) {
+      const originalLayer = findSlice9Layer(layer);
+      if (originalLayer) {
+        const slice9 = parseSlice9Data(layer);
+        if (slice9) {
+          await restoreSlice9LayerData(originalLayer, slice9, pluginDataKey);
+        }
+      }
+    }
+    if (hasChildren(layer)) {
+      for (const child of layer.children) {
+        if (isFigmaBox(child)) {
+          await tryRestoreSlice9LayerData(child, pluginDataKey);
+        }
+      }
+    }
   }
-  return vector4(0, 0, 0, 0);
 }
 
 /**
@@ -562,15 +696,15 @@ function parseSlice9FrameData(layer: SceneNode): Vector4 {
  * @param layer - The layer possibly containing the slice9 data.
  * @returns A vector containing the slice9 values, or null if no slice9 data is found.
  */
-export function parseSlice9Data(layer: SceneNode): Vector4 | null {
-  if (isExportable(layer)) {
-    const placeholder = findPlaceholderLayer(layer);
+export function parseSlice9Data(layer: SceneNode): WithNull<Vector4> {
+  if (isLayerExportable(layer)) {
+    const placeholder = findSlice9PlaceholderLayer(layer);
     if (placeholder) {
       const slice9 = vector4(0);
       const { children } = placeholder;
       for (const child of children) {
         if (isSlice9ServiceLayer(child)) {
-          const { x, y, z, w } = parseSlice9FrameData(child);
+          const { x, y, z, w } = parseSlice9LayerData(child);
           slice9.x = x || slice9.x;
           slice9.y = y || slice9.y;
           slice9.z = z || slice9.z;
@@ -584,25 +718,69 @@ export function parseSlice9Data(layer: SceneNode): Vector4 | null {
 }
 
 /**
+ * Parses the slice9 frame data from the service layer name and dimensions.
+ * @param layer - The slice9 service layer.
+ * @returns A vector containing the slice9 values.
+ */
+function parseSlice9LayerData(layer: SceneNode): Vector4 {
+  const { width, height } = layer;
+  if (isSlice9ServiceLeftTopLayer(layer)) {
+    return vector4(width, height, 0, 0);
+  } else if (isSlice9ServiceCenterTopLayer(layer)) {
+    return vector4(0, height, 0, 0);
+  } else if (isSlice9ServiceRightTopLayer(layer)) {
+    return vector4(0, height, width, 0);
+  } else if (isSlice9ServiceLeftCenterLayer(layer)) {
+    return vector4(width, 0, 0, 0);
+  } else if (isSlice9ServiceRightCenterLayer(layer)) {
+    return vector4(0, 0, width, 0);
+  } else if (isSlice9ServiceLeftBottomLayer(layer)) {
+    return vector4(width, 0, 0, height);
+  } else if (isSlice9ServiceCenterBottomLayer(layer)) {
+    return vector4(0, 0, 0, height);
+  } else if (isSlice9ServiceRightBottomLayer(layer)) {
+    return vector4(0, 0, width, height);
+  }
+  return vector4(0, 0, 0, 0);
+}
+
+/**
  * Restores the slice9 data for a layer.
  * @param layer - The layer to restore the slice9 node for.
  * @param slice9 - The slice9 values.
+ * TODO: Refactor to be more generic, abstract and functional
  */
-export function restoreSlice9Node(layer: SceneNode, slice9: Vector4) {
+export async function restoreSlice9LayerData(layer: InstanceNode, slice9: Vector4, pluginDataKey: "defoldGUINode" | "defoldGameObject") {
   setPluginData(layer, { defoldSlice9: true });
-  const guiNodeData = { defoldGUINode: { ...getGUINodePluginData(layer), slice9 } };
-  setPluginData(layer, guiNodeData);
+  if (pluginDataKey === "defoldGUINode") {
+    const guiNodeData = getGUINodePluginData(layer);
+    const pluginData = { "defoldGUINode": { ...guiNodeData, slice9 } };
+    setPluginData(layer, pluginData);
+  } else if (pluginDataKey === "defoldGameObject") {
+    const gameObjectData = await getGameObjectPluginData(layer);
+    const pluginData = { "defoldGameObject": { ...gameObjectData, slice9 } };
+    setPluginData(layer, pluginData);
+  }
 }
 
 /**
  * Attempts to update the original layer name based on the placeholder layer name.
  * @param placeholderLayer - The placeholder layer.
  */
-export function tryUpdateOriginalLayerName(placeholderLayer: FrameNode) {
-  const originalLayer = findOriginalLayer(placeholderLayer);
-  if (originalLayer) {
-    const { name } = placeholderLayer;
-    const newName = name.replace("-slice9Placeholder", "");
-    originalLayer.name = newName;
+export function tryUpdateSlice9LayerName(placeholderLayer: FrameNode) {
+  const layer = findSlice9Layer(placeholderLayer);
+  if (layer) {
+    updateSlice9LayerName(layer, placeholderLayer);
   }
+}
+
+function updateSlice9LayerName(layer: InstanceNode, placeholderLayer: FrameNode) {
+  const name = parseSlice9LayerName(placeholderLayer);
+  layer.name = name;
+}
+
+function parseSlice9LayerName(placeholderLayer: FrameNode) {
+  const { name } = placeholderLayer;
+  const newName = name.replace("-slice9Placeholder", "");
+  return newName;
 }

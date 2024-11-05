@@ -1,109 +1,22 @@
 /**
- * Module for managing Defold project configuration data within Figma.
+ * Provides endpoints for managing project-related features, primarily focusing on configuration (e.g., screen size, paths, fonts).
  * @packageDocumentation
  */
 
 import config from "config/config.json";
 import { getPluginData, setPluginData } from "utilities/figma";
+import { purgeUnusedGUIOverridesPluginData } from "utilities/gui";
 
 /**
- * The project configuration data structure.
+ * The project configuration data.
  */
-export const projectConfig: ProjectData = {
+export const PROJECT_CONFIG: ProjectData = {
   screenSize: { ...config.screenSize },
   paths: { ...config.paths },
   fontSize: config.defaultFontSize,
   fontStrokeRatio: config.defaultFontStrokeRatio,
-  fontFamilies: [...config.defaultFontFamilies],
+  fontFamilies: [ ...config.defaultFontFamilies ],
   autoskip: config.autoskip,
-}
-
-/**
- * Updates the screen size configuration of the project.
- * @param screenSize - The new screen size configuration to apply.
- */
-function updateScreenSize(screenSize?: Vector4) {
-  if (screenSize) {
-    projectConfig.screenSize = screenSize ? { ...screenSize } : config.screenSize;
-  }
-}
-
-/**
- * Updates a path configuration of the project.
- * @param updatedPath - The updated path to apply.
- * @param projectPath - The current project path.
- * @param defaultPath - The default path to apply if the updated path is empty.
- * @returns The updated path.
- */
-function updatePath(updatedPath: string | undefined, projectPath: string, defaultPath: string) {
-  return updatedPath || updatedPath == "" ? updatedPath : projectPath || defaultPath;
-}
-
-/**
- * Updates the paths configuration of the project.
- * @param paths - The new paths configuration to apply.
- */
-function updatePaths(paths?: Partial<ProjectPathData>) {
-  if (paths) {
-    projectConfig.paths.assetsPath = paths?.assetsPath || paths?.assetsPath == "" ? paths.assetsPath : config.paths.assetsPath;
-    projectConfig.paths.atlasAssetsPath = updatePath(paths?.atlasAssetsPath, projectConfig.paths.atlasAssetsPath, config.paths.atlasAssetsPath);
-    projectConfig.paths.imageAssetsPath = updatePath(paths?.imageAssetsPath, projectConfig.paths.imageAssetsPath, config.paths.imageAssetsPath);
-    projectConfig.paths.fontAssetsPath = updatePath(paths?.fontAssetsPath, projectConfig.paths.fontAssetsPath, config.paths.fontAssetsPath);
-    projectConfig.paths.spineAssetsPath = updatePath(paths?.spineAssetsPath, projectConfig.paths.spineAssetsPath, config.paths.spineAssetsPath);
-  }
-}
-
-/**
- * Updates the font size configuration of the project.
- * @param fontSize - The new font size configuration to apply.
- */
-function updateFontSize(fontSize?: number) {
-  if (fontSize) {
-    projectConfig.fontSize = fontSize;
-  }
-}
-
-/**
- * Updates the font stroke ratio configuration of the project.
- * @param fontStrokeRatio - The new font stroke ratio configuration to apply.
- */
-function updateFontStrokeRatio(fontStrokeRatio?: number) {
-  if (fontStrokeRatio) {
-    projectConfig.fontStrokeRatio = fontStrokeRatio;
-  }
-}
-
-/**
- * Updates the font families configuration of the project.
- * @param fontFamilies - The new font families configuration to apply.
- */
-function updateFontFamilies(fontFamilies?: ProjectFontData[]) {
-  if (fontFamilies) {
-    projectConfig.fontFamilies = fontFamilies ? [...fontFamilies] : config.defaultFontFamilies;
-  }
-}
-
-/**
- * Updates the autoskip configuration of the project.
- * @param autoskip - The new autoskip configuration to apply.
- */
-function updateAutoskip(autoskip?: string) {
-  if (autoskip) {
-    projectConfig.autoskip = autoskip;
-  }
-}
-
-/**
- * Updates the project data.
- * @param data - Project data update.
- */
-function updateProjectData(data: Partial<ProjectData>) {
-  updateScreenSize(data.screenSize);
-  updatePaths(data.paths);
-  updateFontSize(data.fontSize);
-  updateFontStrokeRatio(data.fontStrokeRatio);
-  updateFontFamilies(data.fontFamilies);
-  updateAutoskip(data.autoskip);
 }
 
 /**
@@ -113,24 +26,122 @@ export function initializeProject() {
   const { root: document } = figma;
   const projectData = getPluginData(document, "defoldProject");
   if (projectData) {
-    updateProjectData(projectData);
+    updateProjectProperties(projectData);
   }
 }
 
 /**
  * Updates the project configuration data.
- * @param data - Project configuration update.
+ * @param update - Project configuration update to apply.
  */
-export function updateProject(data: Partial<ProjectData>) {
-  updateProjectData(data);
+export function updateProject(update: Partial<ProjectData>) {
+  updateProjectProperties(update);
+  updateProjectData();
+}
+
+/**
+ * Updates the project configuration properties.
+ * @param update - Project configuration update to apply.
+ */
+function updateProjectProperties(update: Partial<ProjectData>) {
+  updateScreenSize(update.screenSize);
+  updatePaths(update.paths);
+  updateFontSize(update.fontSize);
+  updateFontStrokeRatio(update.fontStrokeRatio);
+  updateFontFamilies(update.fontFamilies);
+  updateAutoskip(update.autoskip);
+}
+
+/**
+ * Updates the screen size property.
+ * @param screenSize - The screen size property update to apply. 
+ */
+function updateScreenSize(screenSize?: Vector4) {
+  if (screenSize) {
+    PROJECT_CONFIG.screenSize = screenSize ? { ...screenSize } : config.screenSize;
+  }
+}
+
+/**
+ * Updates the path properties.
+ * @param paths - The path properties update to apply.
+ */
+function updatePaths(paths?: Partial<ProjectPathData>) {
+  if (paths) {
+    const entries = Object.entries(paths) as [keyof ProjectPathData, ProjectPathData[keyof ProjectPathData]][];
+    entries.forEach(updatePath);
+  }
+}
+
+/**
+ * Updates the particular path property.
+ * @param key - The path property key to update.
+ * @param updateValue - The new path property value update to apply.
+ */
+function updatePath([ key, updateValue ]: [ keyof ProjectPathData, ProjectPathData[keyof ProjectPathData] ]) {
+  const value = updateValue || updateValue == "" ? updateValue : config.paths[key];
+  PROJECT_CONFIG.paths[key] = value;
+}
+
+/**
+ * Updates the font size property.
+ * @param fontSize - The font size property update to apply..
+ */
+function updateFontSize(fontSize?: number) {
+  if (fontSize) {
+    PROJECT_CONFIG.fontSize = fontSize;
+  }
+}
+
+/**
+ * Updates the font stroke ratio property.
+ * @param fontStrokeRatio - The font stroke ratio property update to apply.
+ */
+function updateFontStrokeRatio(fontStrokeRatio?: number) {
+  if (fontStrokeRatio) {
+    PROJECT_CONFIG.fontStrokeRatio = fontStrokeRatio;
+  }
+}
+
+/**
+ * Updates the font families property.
+ * @param fontFamilies - The new font families property update to apply.
+ */
+function updateFontFamilies(fontFamilies?: ProjectFontData[]) {
+  if (fontFamilies) {
+    PROJECT_CONFIG.fontFamilies = fontFamilies ? [...fontFamilies] : config.defaultFontFamilies;
+  }
+}
+
+/**
+ * Updates the autoskip property.
+ * @param autoskip - The new autoskip property update to apply.
+ */
+function updateAutoskip(autoskip?: string) {
+  if (autoskip) {
+    PROJECT_CONFIG.autoskip = autoskip;
+  }
+}
+
+/**
+ * Updates the project data from the project configuration.
+ */
+function updateProjectData() {
   const { root: document } = figma;
   const projectData = {
-    screenSize: { ...projectConfig.screenSize },
-    paths: { ...projectConfig.paths },
-    fontSize: projectConfig.fontSize,
-    fontStrokeRatio: projectConfig.fontStrokeRatio,
-    fontFamilies: [...projectConfig.fontFamilies],
-    autoskip: projectConfig.autoskip,
+    screenSize: { ...PROJECT_CONFIG.screenSize },
+    paths: { ...PROJECT_CONFIG.paths },
+    fontSize: PROJECT_CONFIG.fontSize,
+    fontStrokeRatio: PROJECT_CONFIG.fontStrokeRatio,
+    fontFamilies: [...PROJECT_CONFIG.fontFamilies],
+    autoskip: PROJECT_CONFIG.autoskip,
   }
   setPluginData(document, { defoldProject: projectData });
+}
+
+/**
+ * Purges unused project data.
+ */
+export function purgeUnusedData() {
+  purgeUnusedGUIOverridesPluginData();
 }

@@ -1,44 +1,27 @@
 /**
- * Module for handling bundled assets.
+ * Provides endpoints for managing resource bundles, primarily focusing on export features.
  * @packageDocumentation
  */
 
-import { generateGUIDataSet } from "utilities/guiDataGenerators";
-import { serializeGUIDataSet } from "utilities/guiDataSerializers";
-import { generateGameCollectionDataSet } from "utilities/gameObjectDataGenerators";
-import { serializeGameObjectDataSet } from "utilities/gameObjectDataSerializers"
-import { reduceAtlases, findAtlases } from "utilities/atlas";
-import { exportAtlases } from "handoff/atlas";
+import { exportGameCollectionAtlases, exportGUIAtlases } from "handoff/atlas";
+import { exportGameCollections } from "handoff/gameCollection";
+import { exportGUI } from "handoff/gui";
 
 /**
- * Exports GUI nodes, templates, associated atlases and graphic assets.
- * @param layers - Figma layers representing GUI nodes to export.
- * @returns A BundleData object containing serialized data for the GUI nodes and atlases.
+ * Exports a bundle containing serialized GUI data, game collection data, and corresponding atlases from arrays of GUI node layers and game object layers.
+ * @param layers - An object containing arrays of GUI node layers and game object layers to export.
+ * @returns The serialized bundle data.
  */
-export async function exportBundle(bundle: { gui: GUINodeExport[], gameObjects: ExportableLayer[] }): Promise<BundleData> {
-  const { gui, gameObjects } = bundle;
-  let serializedGUINodesData: SerializedGUIData[] = [];
-  let serializedGameObjectsData: SerializedGameCollectionData[] = [];
-  const serializedAtlasData: SerializedAtlasData[] = [];
-  if (gui.length > 0) {
-    const guiNodesData = await generateGUIDataSet(gui);
-    serializedGUINodesData = serializeGUIDataSet(guiNodesData);
-    const textureAtlasesData = guiNodesData.reduce(reduceAtlases, []);
-    const atlasLayers = await findAtlases(textureAtlasesData);
-    const atlases = await exportAtlases(atlasLayers);
-    serializedAtlasData.push(...atlases);
-  }
-  if (gameObjects.length > 0) {
-    const gameObjectsData = await generateGameCollectionDataSet(gameObjects);
-    serializedGameObjectsData = serializeGameObjectDataSet(gameObjectsData);
-    const textureAtlasesData = gameObjectsData.reduce(reduceAtlases, []);
-    const atlasLayers = await findAtlases(textureAtlasesData);
-    const atlases = await exportAtlases(atlasLayers);
-    serializedAtlasData.push(...atlases);
-  }
-  return {
-    gui: serializedGUINodesData,
-    gameObjects: serializedGameObjectsData,
-    atlases: serializedAtlasData
+export async function exportBundle(layers: { gui: Exclude<ExportableLayer, SliceLayer>[], gameObjects: Exclude<ExportableLayer, SliceLayer>[] }): Promise<BundleData> {
+  const { gui, gameObjects } = layers;
+  const serializedGUIData = await exportGUI(gui);
+  const serializedGUIAtlasData = await exportGUIAtlases(gui);
+  const serializedGameCollectionsData = await exportGameCollections(gameObjects);
+  const serializedGameCollectionsAtlasData  = await exportGameCollectionAtlases(gameObjects);
+  const bundle: BundleData = {
+    gui: serializedGUIData,
+    gameObjects: serializedGameCollectionsData,
+    atlases: [ ...serializedGUIAtlasData, ...serializedGameCollectionsAtlasData ],
   };
+  return bundle;
 }

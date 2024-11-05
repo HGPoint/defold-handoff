@@ -1,8 +1,8 @@
 <script lang="ts">
+  import NumberInput from "components/NumberInput";
   import imageState from "state/image";
   import { vector4 } from "utilities/math";
-  import { generateRandomId } from "utilities/pluginUI";
-  import NumberInput from "components/NumberInput";
+  import { generateRandomId } from "utilities/ui";
 
   export let value: Vector4;
   export let label: string;
@@ -54,7 +54,7 @@
     borderTransforms = vector4(transformX, transformY, transformZ, transformW);
   }
 
-  function updateImage(data: Uint8Array | null) {
+  function updateImage(data: WithNull<Uint8Array>) {
     if (data) {
       function onLoad() {
         size = vector4(img.width, img.height, 0, 0);

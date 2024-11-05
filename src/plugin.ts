@@ -1,556 +1,38 @@
 /**
- * Entry point for the plugin. Facilitates the exchange of data between the Figma document and the plugin UI.
+ * The entry point for the Figma plugin application. It manages business logic, including atlases, GUI nodes, game objects, and the overall project.
  * @packageDocumentation
  */
 
-import { getPluginData, selectNode, hasVariantPropertyChanged, hasNamePropertyChanged, isFigmaComponentInstance, isPropertyChange, setPluginData } from "utilities/figma";
-import { reducePluginSelection, convertPluginUISelection, reduceAtlases, reduceGUINodes, reduceBundle } from "utilities/selection";  
-import { isSlice9Layer, isSlice9PlaceholderLayer, tryRefreshSlice9Sprite, tryUpdateOriginalLayerName  } from "utilities/slice9";
-import { isTemplateGUINode } from "utilities/gui";
-import { decipherError } from "utilities/error";
-import { initializeProject, projectConfig, updateProject } from "handoff/project";
-import { updateGUINode, updateGUINodes, tryRestoreSlice9Node, copyGUINode, exportGUINodes, exportGUINodeAtlases, removeGUINodes, fixGUITextNode, fixGUINodes, matchParentToGUINode, matchGUINodeToParent, resizeScreenGUINodes, copyGUINodeScheme, pullFromMainComponents, forceChildrenOnScreen } from "handoff/gui";
-import { createAtlas, addSprites, fixAtlases, sortAtlases, fitAtlases, exportAtlases, destroyAtlases, tryRestoreAtlases, tryExtractImage } from "handoff/atlas";
-import { updateSection, removeSections } from "handoff/section";
-import { copyGameObject, updateGameObject, exportGameObjects, removeGameObjects, fixGameObjects } from "handoff/gameObject";
+import config from "config/config.json";
+import { addSprites, createAtlas, exportAtlases, exportGameCollectionAtlases, exportGUIAtlases, fitAtlases, fixAtlases, removeAtlases, sortAtlases, tryExtractSprite, tryRestoreAtlases } from "handoff/atlas";
 import { exportBundle } from "handoff/bundle";
-import { delay } from "utilities/delay";
+import { copyGameCollection, exportGameCollections, fixGameObjects, removeGameObjects, updateGameObject } from "handoff/gameCollection";
+import { copyGUI, copyGUIScheme, exportGUI, fixGUI, logGUI, removeGUI, resetGUIOverrides, resizeGUIToScreen, tryFixGUIText, tryForceGUIChildrenOnScreen, tryMatchGUINodeToGUIChild, tryMatchGUINodeToGUIParent, updateGUI, updateGUINode } from "handoff/gui";
+import { initializeProject, PROJECT_CONFIG, purgeUnusedData, updateProject } from "handoff/project";
+import { removeSections, updateSection } from "handoff/section";
+import delay from "utilities/delay";
+import { processDocumentChanges } from "utilities/document";
+import { processError } from "utilities/error";
+import { selectFigmaLayer } from "utilities/figma";
+import { convertSelectionDataToSelectionUIData, pickFirstAtlasFromSelectionData, pickFirstGameObjectFromSelectionData, pickFirstGUINodeFromSelectionData, pickGUIFromSelectionData, pickGameObjectsFromSelectionData, pickLayersFromSelectionData, reduceAtlasesFromSelectionData, reduceSelectionDataFromSelection } from "utilities/selection";
+import { tryRestoreSlice9Placeholder } from "utilities/slice9";
 
-let selection: SelectionData = { gui: [], atlases: [], layers: [], sections: [], gameObjects: [] };
-let lastExtractedImage: string;
+let SELECTION: SelectionData = { gui: [], atlases: [], layers: [], sections: [], gameObjects: [] };
+let LAST_EXTRACTED_IMAGE: string | null = null;
 
 /**
- * Posts a message to the plugin UI.
- * @param type - The message type.
- * @param data - The message data.
+ * Initializes the plugin application.
  */
-function postMessageToPluginUI(type: PluginMessageAction, data: PluginMessagePayload) {
-  if (isPluginUIShown()) {
-    figma.ui.postMessage({ type, data });
-  }
-}
-
-/**
- * Checks if the plugin UI is shown.
- * @returns A boolean indicating if the plugin UI is shown.
- */
-function isPluginUIShown() {
-  return figma.ui;
-}
-
-/**
- * Updates the selection data and sends it to the plugin UI.
- * @async
- */
-async function updateSelection() {
-  lastExtractedImage = "";
-  selection = reducePluginSelection();
-  const selectionUI = await convertPluginUISelection(selection);
-  postMessageToPluginUI("selectionChanged", { selection: selectionUI });
-}
-
-function onSelectionChange() {
-  updateSelection();
-}
-
-function onCopyGUINodes() {
-  const { gui: [ layer ] } = selection;
-  const nodeExport = { layer, asTemplate: isTemplateGUINode(layer) };
-  copyGUINode(nodeExport)
-    .then(onGUINodesCopied)
-    .catch(processError);
-}
-
-function onGUINodesCopied(gui: SerializedGUIData) {
-  const bundle = { gui: [ gui ] };
-  postMessageToPluginUI("guiNodesCopied", { bundle })
-  updateSelection();
-  figma.notify("GUI node copied");
-}
-
-function onExportGUINodes() {
-  const nodes = reduceGUINodes(selection);
-  exportGUINodes(nodes)
-    .then(onGUINodesExported)
-    .catch(processError);
-}
-
-function onGUINodesExported(gui: SerializedGUIData[]) {
-  const bundle = { gui };
-  postMessageToPluginUI("guiNodesExported", { bundle, project: projectConfig })
-  updateSelection();
-  figma.notify("GUI nodes exported");
-}
-
-function onExportGUINodeAtlases() {
-  const nodes = reduceGUINodes(selection);
-  exportGUINodeAtlases(nodes)
-    .then(onGUINodeAtlasesExported)
-    .catch(processError);
-}
-
-function onGUINodeAtlasesExported(atlases: SerializedAtlasData[]) {
-  const bundle = { atlases };
-  postMessageToPluginUI("guiNodeAtlasesExported", { bundle, project: projectConfig })
-  figma.notify("Atlases exported");
-}
-
-function onUpdateGUINode(data: PluginGUINodeData) {
-  const { gui: [ layer ] } = selection;
-  updateGUINode(layer, data);
-}
-
-function onUpdateGUINodes(data: PluginGUINodeData[]) {
-  const { gui: layers } = selection;
-  updateGUINodes(layers, data);
-}
-
-async function onCopyGUINodeScheme() {
-  const { gui: [ layer ] } = selection;
-  const nodeExport = { layer, asTemplate: isTemplateGUINode(layer) };
-  copyGUINodeScheme(nodeExport)
-    .then(onGUINodeSchemeCopied)
-    .catch(processError);
-}
-
-function onGUINodeSchemeCopied(scheme: string) {
-  postMessageToPluginUI("guiNodeSchemeCopied", { scheme })
-  figma.notify("GUI node scheme copied");
-}
-
-function onResetGUINodes() {
-  removeGUINodes(selection.gui);
-  updateSelection();
-  figma.notify("GUI nodes reset");
-}
-
-function onFixGUINodes() {
-  fixGUINodes(selection.gui);
-  delay(200)
-    .then(onGUINodesFixed);
-}
-
-function onGUINodesFixed() {
-  updateSelection();
-  figma.notify("GUI nodes fixed");
-}
-
-function onMatchParentToGUINode() {
-  const { gui: [layer] } = selection;
-  matchParentToGUINode(layer);
-  figma.notify("Parent is matched to GUI node");
-}
-
-function onMatchGUINodeToParent() {
-  const { gui: [layer] } = selection;
-  matchGUINodeToParent(layer);
-  figma.notify("GUI node is matched to the parent");
-}
-
-function onForceChildrenOnScreen() {
-  const { gui: [layer] } = selection;
-  forceChildrenOnScreen(layer);
-  figma.notify("Children will be exported on screen");
-}
-
-function onResizeScreenGUINodes() {
-  resizeScreenGUINodes(selection.gui);
-  figma.notify("Nodes resized to screen size");
-}
-
-function onCreateAtlas() {
-  const atlas = createAtlas(selection.layers);
-  selectNode([atlas]);
-  figma.notify("Atlas created");
-}
-
-function onRestoreAtlases() {
-  tryRestoreAtlases(selection.layers);
-  updateSelection();
-  figma.notify("Atlases restored");
-}
-
-function onAddSprites() {
-  const [ atlas ] = selection.atlases
-  addSprites(atlas, selection.layers);
-  selectNode([atlas]);
-  figma.notify("Sprites added to atlas");
-}
-
-function onFixAtlases() {
-  const atlases = reduceAtlases(selection);
-  fixAtlases(atlases);
-  figma.notify("Atlases fixed");
-}
-
-function onSortAtlases() {
-  const atlases = reduceAtlases(selection);
-  sortAtlases(atlases);
-  figma.notify("Atlases sorted");
-}
-
-function onFitAtlases() {
-  const atlases = reduceAtlases(selection);
-  fitAtlases(atlases);
-  figma.notify("Atlases fitted");
-}
-
-function onExportAtlases() {
-  const atlases = reduceAtlases(selection);
-  exportAtlases(atlases)
-    .then(onAtlasesExported)
-    .catch(processError);
-}
-
-function onAtlasesExported(atlases: SerializedAtlasData[]) {
-  const bundle = { atlases };
-  postMessageToPluginUI("atlasesExported", { bundle, project: projectConfig });
-  figma.notify("Atlases exported");
-}
-
-function onDestroyAtlases() {
-  const atlases = reduceAtlases(selection);
-  destroyAtlases(atlases);
-  updateSelection();
-  figma.notify("Atlases destroyed");
-}
-
-function onExportSprites(scale: number = 1) {
-  const atlases = reduceAtlases(selection);
-  exportAtlases(atlases, scale)
-    .then(onSpritesExported)
-    .catch(processError);
-}
-
-function onSpritesExported(atlases: SerializedAtlasData[]) {
-  const bundle = { atlases };
-  postMessageToPluginUI("spritesExported", { bundle, project: projectConfig });
-  figma.notify("Sprites exported");
-}
-
-function onExportBundle() {
-  const bundleExport = reduceBundle(selection);
-  exportBundle(bundleExport)
-    .then(onBundleExported)
-    .catch(processError);
-}
-
-function onBundleExported(bundle: BundleData) {
-  postMessageToPluginUI("bundleExported", { bundle, project: projectConfig });
-  updateSelection();
-  figma.notify("Bundle exported");
-}
-
-function onShowGUINodeData() {
-  selection.gui.forEach(layer => {
-    console.log(getPluginData(layer, "defoldGUINode"))
-  })
-}
-
-function onFixTextNode() {
-  const { gui: [ layer ] } = selection;
-  fixGUITextNode(layer);
-  updateSelection();
-  figma.notify("Text node fixed");
-}
-
-function onPullFromMainComponet() {
-  const { gui } = selection;
-  pullFromMainComponents(gui)
-  delay(500)
-    .then(onGUINodeDataPulled);
-}
-
-function onGUINodeDataPulled() {
-  updateSelection();
-  figma.notify("GUI node data pulled");
-}
-
-function onRestoreSlice9Node() {
-  const { gui: [ layer ] } = selection;
-  tryRestoreSlice9Node(layer)
-    .then(onSlice9NodeRestored)
-    .catch(processError);
-}
-
-function onSlice9NodeRestored() {
-  updateSelection();
-  figma.notify("Slice 9 fixed");
-}
-
-function onUpdateSection(data: PluginSectionData) {
-  const { sections: [ section ] } = selection;
-  updateSection(section, data);
-}
-
-function onResetSections() {
-  removeSections(selection.sections);
-  updateSelection();
-  figma.notify("Sections reset");
-}
-
-function onUpdateProject(data: Partial<ProjectData>) {
-  updateProject(data);
-  figma.notify("Project updated");
-}
-
-async function onRequestImage() {
-  const { gui: [layer] } = selection;
-  if (layer && layer.id !== lastExtractedImage) {
-    lastExtractedImage = layer.id;
-    const image = await tryExtractImage(layer);
-    if (image) {
-      postMessageToPluginUI("requestedImage", { image });
-    }
-  }
-}
-
-function onExportGameObjects() {
-  exportGameObjects(selection.gameObjects)
-    .then(onGameObjectsExported)
-    .catch(processError);
-}
-
-function onGameObjectsExported(gameObjects: SerializedGameCollectionData[]) {
-  const bundle = { gameObjects };
-  postMessageToPluginUI("gameObjectsExported", { bundle, project: projectConfig })
-  updateSelection();
-  figma.notify("Game objects exported");
-}
-
-function onFixGameObjects() {
-  fixGameObjects(selection.gameObjects);
-  delay(200)
-    .then(onGameObjectsFixed);
-}
-
-function onGameObjectsFixed() {
-  updateSelection();
-  figma.notify("Game objects fixed");
-}
-
-function onResetGameObjects() {
-  removeGameObjects(selection.gameObjects);
-  updateSelection();
-  figma.notify("Game objects reset");
-}
-
-function onCopyGameObjects() {
-  const { gameObjects: [ layer ] } = selection;
-  copyGameObject(layer)
-    .then(onGameObjectsCopied)
-    .catch(processError);
-}
-
-function onGameObjectsCopied(gameObject: SerializedGameCollectionData) {
-  const bundle = { gameObjects: [ gameObject ] };
-  postMessageToPluginUI("gameObjectsCopied", { bundle })
-  updateSelection();
-  figma.notify("Game object copied");
-}
-
-function onUpdateGameObject(data: PluginGameObjectData) {
-  const { gameObjects: [ layer ] } = selection;
-  updateGameObject(layer, data);
-}
-
-/**
- * Processes a message from the plugin UI.
- * @param message - The message from the plugin UI.
- */
-function processPluginUIMessage(message: PluginMessage) {
-  const { type, data } = message;
-  if (type === "copyGUINodes") {
-    onCopyGUINodes();
-  } else if (type === "exportGUINodes") {
-    onExportGUINodes();
-  } else if (type === "exportGUINodeAtlases") {
-    onExportGUINodeAtlases();
-  } else if (type === "resetGUINodes") {
-    onResetGUINodes();
-  } else if (type === "fixGUINodes") {
-    onFixGUINodes();
-  } else if (type === "matchParentToGUINode") {
-    onMatchParentToGUINode();
-  } else if (type === "matchGUINodeToParent") {
-    onMatchGUINodeToParent();
-  } else if (type === "forceChildrenOnScreen") {
-    onForceChildrenOnScreen();
-  } else if (type === "resizeScreenGUINodes") {
-    onResizeScreenGUINodes();
-  } else if (type === "updateGUINode" && data?.guiNode) {
-    onUpdateGUINode(data.guiNode);
-  } else if (type === "updateGUINodes" && data?.gui) {
-    onUpdateGUINodes(data.gui);
-  } else if (type === "copyGUINodeScheme") {
-    onCopyGUINodeScheme();
-  } else if (type === "showGUINodeData") {
-    onShowGUINodeData();
-  } else if (type === "createAtlas") {
-    onCreateAtlas();
-  } else if (type === "restoreAtlases") {
-    onRestoreAtlases();
-  } else if (type === "addSprites") {
-    onAddSprites()
-  } else if (type === "fixAtlases") {
-    onFixAtlases();
-  } else if (type === "sortAtlases") {
-    onSortAtlases();
-  } else if (type === "fitAtlases") {
-    onFitAtlases();
-  } else if (type === "exportAtlases") {
-    onExportAtlases();
-  } else if (type === "destroyAtlases") {
-    onDestroyAtlases();
-  } else if (type === "exportSprites" && data?.option && typeof data.option === "number") {
-    onExportSprites(data.option);
-  } else if (type === "exportBundle") {
-    onExportBundle();
-  } else if (type === "fixTextNode") {
-    onFixTextNode();
-  } else if (type === "pullFromMainComponent") {
-    onPullFromMainComponet();
-  } else if (type === "restoreSlice9Node") {
-    onRestoreSlice9Node();
-  } else if (type === "updateSection" && data?.section) {
-    onUpdateSection(data.section);
-  } else if (type === "resetSections") {
-    onResetSections();
-  } else if (type === "updateProject" && data?.project) {
-    onUpdateProject(data.project);
-  } else if (type === "collapseUI") {
-    collapseUI();
-  } else if (type === "expandUI") {
-    expandUI();
-  } else if (type === "requestImage") {
-    onRequestImage();
-  } else if (type === "fixGameObjects") {
-    onFixGameObjects();
-  } else if (type === "resetGameObjects") {
-    onResetGameObjects();
-  } else if (type === "exportGameObjects") {
-    onExportGameObjects();
-  } else if (type === "copyGameObjects") {
-    onCopyGameObjects();
-  } else if (type === "updateGameObject" && data?.gameObject) {
-    onUpdateGameObject(data.gameObject);
-  }
-}
-
-function processError(error: Error) {
-  const text = decipherError(error);
-  figma.notify(text);
-  console.error(error);
-  console.warn(text);
-}
-
-function onPluginUIMessage(message: PluginMessage) {
-  try {
-    processPluginUIMessage(message);
-  } catch (error) {
-    processError(error as Error);
-  }
-}
-
-/**
- * Handler for when a name property changes on a node.
- * @param node - The node with the name property change.
- */
-function onNamePropertyChange(node: SceneNode) {
-  if (isSlice9PlaceholderLayer(node)) {
-    tryUpdateOriginalLayerName(node);
-  }
+async function initializePlugin() {
+  await figma.loadAllPagesAsync();
+  initializeUI();
+  initializeProject();
+  subscribeToMessages();
   updateSelection();
 }
 
 /**
- * Handler for when a variant property changes on a node.
- * @param node - The node with the variant property change.
- */
-function onVariantPropertyChange(node: SceneNode) {
-  if (isSlice9Layer(node) && isFigmaComponentInstance(node)) {
-    tryRefreshSlice9Sprite(node);
-  }
-}
-
-/**
- * Processes a single document change.
- * @param change - The document change.
- */
-function processDocumentChange(change: DocumentChange) {
-  if (isPropertyChange(change)) {
-    const { node } = change;
-    if (!node?.removed) {
-      if (hasNamePropertyChanged(change)) {
-        onNamePropertyChange(node);
-      }
-      if (hasVariantPropertyChanged(change)) {
-        onVariantPropertyChange(node);
-      }
-    }
-  }
-}
-
-/**
- * Tries to restore GUI node data from overrides (in case component instance node was reset).
- * @param node - The Figma component instance node to restore data for.
- */
-function tryRestoreDataFromOverrides(node: InstanceNode) {
-  const { root: document } = figma;
-  const key: PluginDataOverrideKey = `defoldGUINodeOverride-${node.id}`;
-  const guiNodeDataOverrides = getPluginData(document, key);
-  if (guiNodeDataOverrides) {
-    const guiNodeData = { defoldGUINode: guiNodeDataOverrides }
-    setPluginData(node, guiNodeData);
-  }
-}
-
-/**
- * Reduces unique component instances from document changes.
- * @param instances - The reduced component instances.
- * @param change - The document change.
- * @returns The reduced component instances.
- */
-function reduceComponentInstances(instances: InstanceNode[], change: DocumentChange) {
-  if (isPropertyChange(change)) {
-    const { node } = change;
-    if (!node.removed && isFigmaComponentInstance(node) && !instances.includes(node)) {
-      instances.push(node);
-    }
-  }
-  return instances;
-}
-
-/**
- * Processes changes to the document.
- * @param event - The document change event.
- */
-function processDocumentChanges(event: DocumentChangeEvent) {
-  event.documentChanges.forEach(processDocumentChange);
-  const componentInstances = event.documentChanges.reduce(reduceComponentInstances, [] as InstanceNode[]);
-  componentInstances.forEach(tryRestoreDataFromOverrides);
-}
-
-function onDocumentChange(event: DocumentChangeEvent) {
-  processDocumentChanges(event);
-}
-
-/**
- * Collapses the plugin UI.
- */
-function collapseUI() {
-  figma.ui.resize(400, 47);
-}
-
-/**
- * Expands the plugin UI.
- */
-function expandUI() {
-  figma.ui.resize(400, 600);
-}
-
-/**
- * Initializes the plugin UI.
+ * Initializes the plugin's UI.
  */
 function initializeUI() {
   const html = __html__.replace("{{defoldHandoffUIMode}}", `"${figma.command}"`);
@@ -560,21 +42,528 @@ function initializeUI() {
 /**
  * Initializes the plugin message listeners.
  */
-function initializeMessages() {
+function subscribeToMessages() {
   figma.on("selectionchange", onSelectionChange);
   figma.on("documentchange", onDocumentChange);
-  figma.ui.on("message", onPluginUIMessage);
+  figma.ui.on("message", onUIMessage);
 }
 
 /**
- * Initializes the plugin.
+ * Handler function for selection changes.
  */
-async function initializePlugin() {
-  await figma.loadAllPagesAsync();
-  initializeProject();
-  initializeMessages();
-  initializeUI();
+function onSelectionChange() {
   updateSelection();
+}
+
+/**
+ * Handler function for document changes.
+ * @param event - The document change event.
+ */
+function onDocumentChange(event: DocumentChangeEvent) {
+  processDocumentChanges(event);
+}
+
+/**
+ * Handler function for messages from the UI application.
+ * @param message - The message from the UI application.
+ * @async
+ */
+function onUIMessage(message: PluginMessage) {
+  try {
+    processUIMessage(message);
+  } catch (error) {
+    processError(error as Error);
+  }
+}
+
+/**
+ * Attempts to post a message to the the UI application.
+ * @param type - The message type.
+ * @param data - The message data.
+ */
+function tryPostMessageToUI(type: PluginMessageAction, data: PluginMessagePayload) {
+  if (isUIShown()) {
+    figma.ui.postMessage({ type, data });
+  }
+}
+
+
+/**
+ * Checks if the plugin UI is shown.
+ * @returns True if the plugin UI is shown, otherwise false.
+ */
+function isUIShown() {
+  return !!figma.ui;
+}
+
+/**
+ * Updates the selection data and sends it to the UI application.
+ * @async
+ */
+async function updateSelection() {
+  SELECTION = reduceSelectionDataFromSelection();
+  const selectionUI = await convertSelectionDataToSelectionUIData(SELECTION);
+  tryPostMessageToUI("selectionChanged", { selection: selectionUI });
+}
+
+/**
+ * Processes a message from the UI application.
+ * @param message - The message from the UI application.
+ */
+function processUIMessage(message: PluginMessage) {
+  const { type, data } = message;
+  if (type === "updateProject" && data?.project) {
+    onUpdateProject(data.project);
+  } else if (type === "purgeUnusedData") {
+    onPurgeUnusedData();
+  } else if (type === "logGUI") {
+    onLogGUI();
+  } else if (type === "exportGUI") {
+    onExportGUI();
+  } else if (type === "copyGUI") {
+    onCopyGUI();
+  } else if (type === "copyGUIScheme") {
+    onCopyGUIScheme();
+  } else if (type === "updateGUI" && data?.gui) {
+    onUpdateGUI(data.gui);
+  } else if (type === "updateGUINode" && data?.guiNode) {
+    onUpdateGUINode(data.guiNode);
+  } else if (type === "removeGUI") {
+    onRemoveGUI();
+  } else if (type === "removeGUIOverrides") {
+    onRemoveGUIOverrides();
+  } else if (type === "fixGUI") {
+    onFixGUI();
+  } else if (type === "fixGUIText") {
+    onFixGUIText();
+  } else if (type === "matchGUINodeToGUIParent") {
+    onMatchGUINodeToGUIParent();
+  } else if (type === "matchGUINodeToGUIChild") {
+    onMatchGUINodeToGUIChild();
+  } else if (type === "resizeGUIToScreen") {
+    onResizeGUIToScreen();
+  } else if (type === "forceGUIChildrenOnScreen") {
+    onForceGUIChildrenOnScreen();
+  } else if (type === "exportGameCollections") {
+    onExportGameCollections();
+  } else if (type === "copyGameCollection") {
+    onCopyGameCollection();
+  } else if (type === "updateGameObject" && data?.gameObject) {
+    onUpdateGameObject(data.gameObject);
+  } else if (type === "removeGameObjects") {
+    onRemoveGameObjects();
+  } else if (type === "fixGameObjects") {
+    onFixGameObjects();
+  } else if (type === "exportAtlases") {
+    onExportAtlases();
+  } else if (type === "exportGUIAtlases") {
+    onExportGUIAtlases();
+  } else if (type === "exportGameCollectionAtlases") {
+    onExportGameCollectionAtlases();
+  } else if (type === "exportSprites" && data?.option && typeof data.option === "number") {
+    onExportSprites(data.option);
+  } else if (type === "createAtlas") {
+    onCreateAtlas();
+  } else if (type === "restoreAtlases") {
+    onRestoreAtlases();
+  } else if (type === "addSprites") {
+    onAddSprites()
+  } else if (type === "removeAtlases") {
+    onRemoveAtlases();
+  } else if (type === "fixAtlases") {
+    onFixAtlases();
+  } else if (type === "sortAtlases") {
+    onSortAtlases();
+  } else if (type === "fitAtlases") {
+    onFitAtlases();
+  } else if (type === "updateSection" && data?.section) {
+    onUpdateSection(data.section);
+  } else if (type === "removeSections") {
+    onRemoveSections();
+  } else if (type === "exportBundle") {
+    onExportBundle();
+  } else if (type === "restoreSlice9") {
+    onRestoreSlice9();
+  } else if (type === "requestImage") {
+    onRequestImage();
+  } else if (type === "collapseUI") {
+    onCollapseUI();
+  } else if (type === "expandUI") {
+    onExpandUI();
+  }
+}
+
+function onUpdateProject(data: Partial<ProjectData>) {
+  updateProject(data);
+  figma.notify("Project updated");
+}
+
+function onPurgeUnusedData() {
+  purgeUnusedData();
+  figma.notify("Unused data purged");
+}
+
+function onLogGUI() {
+  const gui = pickGUIFromSelectionData(SELECTION);
+  logGUI(gui);
+}
+
+function onExportGUI() {
+  const gui = pickGUIFromSelectionData(SELECTION);
+  exportGUI(gui)
+    .then(onGUIExported)
+    .catch(processError);
+}
+
+function onGUIExported(gui: SerializedGUIData[]) {
+  const bundle = { gui };
+  const data = { bundle, project: PROJECT_CONFIG };
+  tryPostMessageToUI("guiExported", data);
+  updateSelection();
+  figma.notify("GUI nodes exported");
+}
+
+
+function onCopyGUI() {
+  const layer = pickFirstGUINodeFromSelectionData(SELECTION);
+  copyGUI(layer)
+    .then(onGUICopied)
+    .catch(processError);
+}
+
+function onGUICopied(gui: SerializedGUIData) {
+  const bundle = { gui: [ gui ] };
+  const data = { bundle };
+  tryPostMessageToUI("guiCopied", data);
+  updateSelection();
+  figma.notify("GUI node copied");
+}
+
+async function onCopyGUIScheme() {
+  const layer = pickFirstGUINodeFromSelectionData(SELECTION);
+  copyGUIScheme(layer)
+    .then(onGUISchemeCopied)
+    .catch(processError);
+  }
+  
+  function onGUISchemeCopied(guiData: SerializedGUIData) {
+  const { data: scheme } = guiData;
+  const data = { scheme };
+  tryPostMessageToUI("guiSchemeCopied", data);
+  figma.notify("GUI node scheme copied");
+}
+
+function onUpdateGUI(data: PluginGUINodeData[]) {
+  const gui = pickGUIFromSelectionData(SELECTION);
+  updateGUI(gui, data);
+}
+
+function onUpdateGUINode(data: PluginGUINodeData) {
+  const layer = pickFirstGUINodeFromSelectionData(SELECTION);
+  updateGUINode(layer, data);
+}
+
+function onRemoveGUI() {
+  const gui = pickGUIFromSelectionData(SELECTION);
+  removeGUI(gui);
+  updateSelection();
+  figma.notify("GUI nodes reset");
+}
+
+function onRemoveGUIOverrides() {
+  const gui = pickGUIFromSelectionData(SELECTION);
+  resetGUIOverrides(gui)
+  delay(500)
+    .then(onGUIOverridesRemoved);
+}
+
+function onGUIOverridesRemoved() {
+  updateSelection();
+  figma.notify("GUI node data pulled");
+}
+
+function onFixGUI() {
+  const gui = pickGUIFromSelectionData(SELECTION);
+  fixGUI(gui);
+  delay(200)
+    .then(onGUFixed);
+}
+
+function onGUFixed() {
+  updateSelection();
+  figma.notify("GUI nodes fixed");
+}
+
+function onFixGUIText() {
+  const layer = pickFirstGUINodeFromSelectionData(SELECTION);
+  tryFixGUIText(layer);
+  updateSelection();
+  figma.notify("Text node fixed");
+}
+
+function onMatchGUINodeToGUIParent() {
+  const layer = pickFirstGUINodeFromSelectionData(SELECTION);
+  tryMatchGUINodeToGUIParent(layer);
+  figma.notify("GUI node is matched to the parent");
+}
+
+function onMatchGUINodeToGUIChild() {
+  const layer = pickFirstGUINodeFromSelectionData(SELECTION);
+  tryMatchGUINodeToGUIChild(layer);
+  figma.notify("Parent is matched to GUI node");
+}
+
+function onResizeGUIToScreen() {
+  const gui = pickGUIFromSelectionData(SELECTION);
+  resizeGUIToScreen(gui);
+  figma.notify("Nodes resized to screen size");
+}
+
+function onForceGUIChildrenOnScreen() {
+  const layer = pickFirstGUINodeFromSelectionData(SELECTION);
+  tryForceGUIChildrenOnScreen(layer);
+  figma.notify("Children will be exported on screen");
+}
+
+function onExportGameCollections() {
+  const gameObjects = pickGameObjectsFromSelectionData(SELECTION);
+  exportGameCollections(gameObjects)
+    .then(onGameCollectionsExported)
+    .catch(processError);
+}
+
+function onGameCollectionsExported(gameObjects: SerializedGameCollectionData[]) {
+  const bundle = { gameObjects };
+  const data = { bundle, project: PROJECT_CONFIG };
+  tryPostMessageToUI("gameCollectionsExported", data);
+  updateSelection();
+  figma.notify("Game collections exported");
+}
+
+function onCopyGameCollection() {
+  const layer = pickFirstGameObjectFromSelectionData(SELECTION);
+  copyGameCollection(layer)
+    .then(onGameCollectionCopied)
+    .catch(processError);
+}
+
+function onGameCollectionCopied(gameObject: SerializedGameCollectionData) {
+  const bundle = { gameObjects: [ gameObject ] };
+  const data = { bundle };
+  tryPostMessageToUI("gameCollectionCopied", data)
+  updateSelection();
+  figma.notify("Game collection copied");
+}
+
+function onUpdateGameObject(data: PluginGameObjectData) {
+  const layer = pickFirstGameObjectFromSelectionData(SELECTION);
+  updateGameObject(layer, data);
+}
+
+function onRemoveGameObjects() {
+  const gameObjects = pickGameObjectsFromSelectionData(SELECTION);
+  removeGameObjects(gameObjects);
+  updateSelection();
+  figma.notify("Game objects reset");
+}
+
+function onFixGameObjects() {
+  const gameObjects = pickGameObjectsFromSelectionData(SELECTION);
+  fixGameObjects(gameObjects);
+  delay(200)
+    .then(onGameObjectsFixed);
+}
+
+function onGameObjectsFixed() {
+  updateSelection();
+  figma.notify("Game objects fixed");
+}
+
+function onExportAtlases() {
+  const atlases = reduceAtlasesFromSelectionData(SELECTION);
+  exportAtlases(atlases)
+    .then(onAtlasesExported)
+    .catch(processError);
+  }
+
+  
+function onExportGUIAtlases() {
+  const gui = pickGUIFromSelectionData(SELECTION);
+  exportGUIAtlases(gui)
+    .then(onAtlasesExported)
+    .catch(processError);
+}
+
+function onExportGameCollectionAtlases() {
+  const gameObjects = pickGameObjectsFromSelectionData(SELECTION);
+  exportGameCollectionAtlases(gameObjects)
+    .then(onAtlasesExported)
+    .catch(processError);
+}
+
+function onAtlasesExported(atlases: SerializedAtlasData[]) {
+  const bundle = { atlases };
+  const data = { bundle, project: PROJECT_CONFIG };
+  tryPostMessageToUI("atlasesExported", data);
+  figma.notify("Atlases exported");
+}
+
+function onExportSprites(scale: number = 1) {
+  const atlases = reduceAtlasesFromSelectionData(SELECTION);
+  exportAtlases(atlases, scale)
+    .then(onSpritesExported)
+    .catch(processError);
+}
+
+function onSpritesExported(atlases: SerializedAtlasData[]) {
+  const bundle = { atlases };
+  const data = { bundle, project: PROJECT_CONFIG };
+  tryPostMessageToUI("spritesExported", data);
+  figma.notify("Sprites exported");
+}
+
+function onCreateAtlas() {
+  const layers = pickLayersFromSelectionData(SELECTION);
+  const atlas = createAtlas(layers);
+  selectFigmaLayer(atlas);
+  figma.notify("Atlas created");
+}
+
+function onRestoreAtlases() {
+  const layers = pickLayersFromSelectionData(SELECTION);
+  tryRestoreAtlases(layers);
+  updateSelection();
+  figma.notify("Atlases restored");
+}
+
+function onAddSprites() {
+  const atlas = pickFirstAtlasFromSelectionData(SELECTION);
+  const layers = pickLayersFromSelectionData(SELECTION);
+  addSprites(atlas, layers);
+  selectFigmaLayer(atlas);
+  figma.notify("Sprites added to atlas");
+}
+
+function onRemoveAtlases() {
+  const atlases = reduceAtlasesFromSelectionData(SELECTION);
+  removeAtlases(atlases);
+  updateSelection();
+  figma.notify("Atlases destroyed");
+}
+
+function onFixAtlases() {
+  const atlases = reduceAtlasesFromSelectionData(SELECTION);
+  fixAtlases(atlases);
+  figma.notify("Atlases fixed");
+}
+
+function onSortAtlases() {
+  const atlases = reduceAtlasesFromSelectionData(SELECTION);
+  sortAtlases(atlases);
+  figma.notify("Atlases sorted");
+}
+
+function onFitAtlases() {
+  const atlases = reduceAtlasesFromSelectionData(SELECTION);
+  fitAtlases(atlases);
+  figma.notify("Atlases fitted");
+}
+
+function onUpdateSection(data: PluginSectionData) {
+  const { sections: [ section ] } = SELECTION;
+  updateSection(section, data);
+}
+
+function onRemoveSections() {
+  const { sections } = SELECTION;
+  removeSections(sections);
+  updateSelection();
+  figma.notify("Sections reset");
+}
+
+function onExportBundle() {
+  const { gui, gameObjects } = SELECTION;
+  const bundle = { gui, gameObjects };
+  exportBundle(bundle)
+    .then(onBundleExported)
+    .catch(processError);
+}
+
+function onBundleExported(bundle: BundleData) {
+  const data = { bundle, project: PROJECT_CONFIG }
+  tryPostMessageToUI("bundleExported", data);
+  updateSelection();
+  figma.notify("Bundle exported");
+}
+
+
+async function onRequestImage() {
+  const layer = pickFirstGUINodeFromSelectionData(SELECTION);
+  tryExtractImage(layer)
+    .then(onImageExtracted)
+    .catch(processError);
+}
+
+function onImageExtracted(image?: WithNull<Uint8Array>) {
+  if (image) {
+    const data = { image };
+    tryPostMessageToUI("imageExtracted", data);
+    figma.notify("Image extracted");
+  }
+}
+
+function onRestoreSlice9() {
+  const layer = pickFirstGUINodeFromSelectionData(SELECTION);
+  tryRestoreSlice9Placeholder(layer, "defoldGUINode")
+    .then(onSlice9Restored)
+    .catch(processError);
+}
+
+function onSlice9Restored() {
+  updateSelection();
+  figma.notify("Slice 9 restored");
+}
+
+function onCollapseUI() {
+  const { uiSize: { collapsed } } = config;
+  resizeUI(collapsed);
+}
+
+function onExpandUI() {
+  const { uiSize: { expanded } } = config;
+  resizeUI(expanded);
+}
+
+/**
+ * Attempts to extract an image from a sprite layer.
+ * @param layer - The Figma layer to attempt to extract the image from.
+ * @returns The extracted image.
+ * @async
+ */
+async function tryExtractImage(layer: SceneNode) {
+  if (shouldExtractSpite(layer)) {
+    LAST_EXTRACTED_IMAGE = layer.id;
+    const image = await tryExtractSprite(layer);
+    return image;
+  }
+}
+
+/**
+ * Determines if a sprite should be extracted.
+ * @param layer - The Figma layer to check.
+ * @returns True if the sprite should be extracted, otherwise false.
+ */
+function shouldExtractSpite(layer: SceneNode) {
+  return layer && layer.id !== LAST_EXTRACTED_IMAGE;
+}
+
+/**
+ * Resizes the plugin UI.
+ * @param width - The width of the plugin UI.
+ * @param height - The height of the plugin UI.
+ */
+function resizeUI({ width, height }: { width: number, height: number }) {
+  figma.ui.resize(width, height);
 }
 
 initializePlugin();

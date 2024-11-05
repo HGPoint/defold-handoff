@@ -1,114 +1,94 @@
 /**
- * Utility module for handling Defold GUI nodes.
+ * Handles operations with GUI nodes.
  * @packageDocumentation
  */
 
 import config from "config/config.json";
-import { getPluginData, isExportable, isFigmaComponentInstance, isAtlasSprite, isFigmaText } from "utilities/figma";
+import { getPluginData, isFigmaComponent, isFigmaComponentInstance, isFigmaRemoved, isFigmaSceneNode, isFigmaSlice, isLayerData, isLayerExportable, isLayerSprite, isLayerSpriteHolder, removePluginData } from "utilities/figma";
+import { extractGUIAtlasData, exportGUIData, exportGUIResources } from "utilities/guiExport";
+import { postprocessGUIData, preprocessGUIData } from "utilities/guiProcessing";
+import { serializeGUIData, serializeGUISchemeData } from "utilities/guiSerialization";
+import { completeGUIData, updateGUIData, updateGUILayer, ensureGUILayer, extractGUIOriginalData } from "utilities/guiUpdate";
 import { inferGUINodeType } from "utilities/inference";
+import { isSlice9PlaceholderLayer } from "utilities/slice9";
 
-/**
- * An array containing keys of properties to be excluded during serialization.
- * @constant
- */
-export const EXCLUDED_PROPERTY_KEYS = [
-  "exclude",
-  "screen",
-  "skip",
-  "fixed",
-  "cloneable",
-  "export_variants",
-  "path",
-  "template",
-  "template_path",
-  "template_name",
-  "script",
-  "script_path",
-  "script_name",
-  "wrapper",
-  "wrapper_padding",
-  "inferred",
-  "exportable_layer",
-  "exportable_layer_id",
-  "exportable_layer_name",
-  "figma_position",
-  "figma_node_type",
-  "children"
-];
+export const GUI_EXPORT_PIPELINE: TransformPipeline<GUIExportPipelineData, GUIData> = {
+  extractResources: exportGUIResources,
+  beforeTransform: preprocessGUIData,
+  transform: exportGUIData,
+  afterTransform: postprocessGUIData,
+}
 
-/**
- * An array containing keys of properties to be excluded during template serialization.
- * @constant
- */
-export const EXCLUDED_TEMPLATE_PROPERTY_KEYS = [
-  "visible",
-  "text",
-  "font",
-  "outline",
-  "shadow",
-  "texture",
-  "size_mode",
-  "slice9",
-  "material",
-  "xanchor",
-  "yanchor",
-  "pivot",
-  "adjust_mode",
-  "clipping_mode",
-  "clipping_visible",
-  "clipping_inverted",
-  "blend_mode",
-  "custom_type",
-  ...EXCLUDED_PROPERTY_KEYS,
-];
+export const GUI_SERIALIZATION_PIPELINE: TransformPipeline<GUIData, SerializedGUIData> = {
+  transform: serializeGUIData,
+}
 
-/**
- * Checks if the given node type is a template type.
- * @param type - The type to check.
- * @returns True if the type is template, otherwise false.
- */
-export function isGUITemplateNodeType(type: GUINodeType) {
-  return type === "TYPE_TEMPLATE";
+export const GUI_SCHEME_SERIALIZATION_PIPELINE: TransformPipeline<GUIData, SerializedGUIData> = {
+  transform: serializeGUISchemeData
+}
+
+export const GUI_ATLASES_EXTRACT_PIPELINE: TransformPipeline<GUIExportPipelineData, AtlasLayer[]> = {
+  extractResources: exportGUIResources,
+  transform: extractGUIAtlasData,
+}
+
+export const GUI_UPDATE_PIPELINE: UpdatePipeline<PluginGUINodeData> = {
+  ensureLayer: ensureGUILayer,
+  extractOriginalData: extractGUIOriginalData,
+  beforeUpdate: completeGUIData,
+  update: updateGUIData,
+  afterUpdate: updateGUILayer,
 }
 
 /**
- * Checks if the given node type is a text type.
- * @param type - The type to check.
- * @returns True if the type is text, otherwise false.
- */
-export function isGUITextNodeType(type: GUINodeType) {
-  return type === "TYPE_TEXT";
-}
-
-/**
- * Checks if the given node type is a box type.
+ * Determines whether the GUI node type is box.
  * @param type - The type to check.
  * @returns True if the type is box, otherwise false.
  */
-export function isGUIBoxNodeType(type: GUINodeType) {
+export function isGUIBoxType(type: GUINodeType) {
   return type === "TYPE_BOX";
 }
 
 /**
- * Checks if the given Figma layer is a template GUI node.
- * @param layer - The Figma layer to check.
- * @returns True if the layer is a template GUI node, otherwise false.
+ * Determines whether the GUI node type is text.
+ * @param type - The type to check.
+ * @returns True if the type is text, otherwise false.
  */
-export function isTemplateGUINode(layer: ExportableLayer) {
-  const pluginData = getPluginData(layer, "defoldGUINode");
-  if (pluginData) {
-    const { template } = pluginData;
-    return template;
+export function isGUITextType(type: GUINodeType) {
+  return type === "TYPE_TEXT";
+}
+
+/**
+ * Determines whether the GUI node type is template.
+ * @param type - The type to check.
+ * @returns True if the type is template, otherwise false.
+ */
+export function isGUITemplateType(type: GUINodeType) {
+  return type === "TYPE_TEMPLATE";
+}
+
+/**
+ * Determines whether the Figma layer is a GUI node template.
+ * @param layer - The Figma layer to check.
+ * @returns True if the Figma layer is a GUI node template, otherwise false.
+ */
+export function isGUITemplate(layer: ExportableLayer) {
+  if (isLayerData(layer)) {
+    const pluginData = getPluginData(layer, "defoldGUINode");
+    if (pluginData) {
+      const { template } = pluginData;
+      return template;
+    }
   }
   return false;
 }
 
 /**
- * Retrieves the plugin data for a Figma layer representing a GUINode.
- * @param layer - The Figma scene node to retrieve plugin data from.
- * @returns The plugin data for the GUINode, with default values applied.
+ * Retrieves the GUI node plugin data bound to the Figma layer, from default and inferred values.
+ * @param layer - The Figma layer to retrieve the plugin data from.
+ * @returns The GUI node plugin data.
  */
-export function getGUINodePluginData(layer: SceneNode) {
+export function getGUINodePluginData(layer: Exclude<ExportableLayer, SliceLayer>): PluginGUINodeData {
   const pluginData = getPluginData(layer, "defoldGUINode");
   const id = pluginData?.id || layer.name;
   const type = pluginData?.type || inferGUINodeType(layer);
@@ -125,84 +105,182 @@ export function getGUINodePluginData(layer: SceneNode) {
 }
 
 /**
- * Resizes the parent frame to fit the given dimensions and shifts it by the given amount.
- * @param parent - The parent frame to resize.
- * @param layer - The layer to fit the parent to.
+ * Resolves the GUI node plugin data from the Figma layer.
+ * @param layer - The Figma layer to resolve the plugin data from.
+ * @returns The resolved GUI node plugin data or null if not found.
  */
-export function fitParent(parent: BoxLayer, layer: ExportableLayer) {
-  const { width, height, x, y } = layer; 
-  parent.resizeWithoutConstraints(width, height);
-  parent.x += x;
-  parent.y += y;
-  layer.x = 0;
-  layer.y = 0;
+export function resolveGUINodePluginData(layer: ExportableLayer) {
+  if (!isFigmaSlice(layer)) {
+    const data = getPluginData(layer, "defoldGUINode");
+    if (data) {
+      return data;
+    }
+  }
+  return null;
 }
 
 /**
- * Fits the children of the given frame node by shifting them by the given amount.
- * @param parent - The frame node to fit the children of.
- * @param layer - The layer to fit the children to.
- * @param shiftX - The amount to shift the children on the x-axis.
- * @param shiftY - The amount to shift the children on the y-axis.
+ * Purges unused GUI node override plugin data from the document.
  */
-export function fitChildren(parent: BoxLayer, layer: BoxLayer, shiftX: number, shiftY: number) {
-  for (const parentChild of parent.children) {
-    if (layer != parentChild && isExportable(parentChild)) {
-      parentChild.x -= shiftX;
-      parentChild.y -= shiftY;
+export function purgeUnusedGUIOverridesPluginData() {
+  const { root: document } = figma;
+  const keys = document.getPluginDataKeys();
+  keys.forEach(tryPurgeUnusedGUINodeOverridesPluginData);
+}
+
+/**
+ * Attempts to purge unused GUI node override plugin data.
+ * @async
+ * @param key - The key to check.
+ */
+async function tryPurgeUnusedGUINodeOverridesPluginData(key: string) {
+  if (isGUINodeOverridesDataKey(key)) {
+    const { root: document } = figma;
+    const id = parseLayerIDFromGUINodeOverridesDataKey(key);
+    const layer = await figma.getNodeByIdAsync(id);
+    if (shouldPurgeGUINodeOverridesPluginData(layer)) {
+      removePluginData(document, key);
     }
   }
 }
 
 /**
- * Fits the given child layer to the parent layer.
- * @param parent - The parent layer to fit the child to.
- * @param layer - The child layer to fit to the parent.
+ * Determines whether the GUI node override plugin data should be purged.
+ * @param layer - The Figma layer to check.
+ * @returns True if the GUI node overrides plugin data should be purged, otherwise false.
  */
-export function fitChild(parent: BoxLayer, layer: BoxLayer) {
-  const { width, height } = parent;
-  layer.resizeWithoutConstraints(width, height);
-  layer.x = 0;
-  layer.y = 0;
+function shouldPurgeGUINodeOverridesPluginData(layer: WithNull<BaseNode>) {
+  return !layer || (isFigmaSceneNode(layer) && isFigmaRemoved(layer))
 }
 
 /**
- * Checks if the plugin data was actually updated.
+ * Attempts to remove GUI node override plugin data.
  * @async
- * @param pluginData - The current plugin data.
- * @param updatedPluginData - The updated plugin data.
- * @returns True if the plugin data is updated, otherwise false.
+ * @param layer - The Figma layer to remove the plugin data from.
  */
-async function isDataUpdated(pluginData: PluginGUINodeData, updatedPluginData: PluginGUINodeData) {
-  const keys = Object.keys(updatedPluginData) as (keyof PluginGUINodeData)[];
-  return keys.some((key) => JSON.stringify(pluginData[key]) !== JSON.stringify(updatedPluginData[key]));
+export async function tryRemoveGUINodeOverridesPluginData(layer: DataLayer) {
+  if (await canChangeGUINodeOverridesPluginData(layer)) {
+    removeGUINodeOverridesPluginData(layer);
+  }
 }
 
 /**
- * Checks if the GUI node plugin data should be updated on the layer.
+ * Determines whether the GUI node override plugin data can be changed.
  * @async
- * @param pluginData - The current plugin data.
- * @param updatedPluginData - The updated plugin data.
- * @returns True if the plugin data should be updated, otherwise false.
+ * @param layer - The Figma layer to check.
+ * @returns True if the GUI node override plugin data can be changed, otherwise false.
  */
-export async function shouldUpdateGUINode(layer: SceneNode, pluginData: PluginGUINodeData | null | undefined, updatedPluginData: PluginGUINodeData) {
-  if (!pluginData) {
-    if (await isAtlasSprite(layer)) {
-      return true;
-    } else if (isFigmaComponentInstance(layer)) {
-      return false;
+export async function canChangeGUINodeOverridesPluginData(layer: DataLayer) {
+  return isFigmaComponentInstance(layer) && !await isLayerSprite(layer);
+}
+
+/**
+ * Removes GUI node override plugin data.
+ * @param layer - The Figma layer to remove the override plugin data for.
+ */
+export function removeGUINodeOverridesPluginData(layer: DataLayer | RemovedNode) {
+  const { root: document } = figma;
+  const { id } = layer;
+  const key = resolveGUINodeOverridesDataKey(id);
+  removePluginData(document, key);
+}
+
+/**
+ * Resolves the GUI node name prefix.
+ * @param shouldSkip - Whether the GUI node should be skipped.
+ * @param options - The GUI node data export options.
+ * @returns The resolved GUI node name prefix.
+ */
+export function resolveGUINodeNamePrefix(shouldSkip: boolean, options: GUINodeDataExportOptions): string {
+  if (shouldSkip) {
+    if (options.namePrefix) {
+      return options.namePrefix;
     }
-    return true;
+    return "";
+  } else if (isFigmaComponentInstance(options.layer) || isFigmaComponent(options.layer)) {
+    if (options.namePrefix) {
+      return `${options.namePrefix}${options.layer.name}_`;
+    }
+    return `${options.layer.name}_`;
+  } if (options.namePrefix) {
+    return options.namePrefix;
   }
-  return await isDataUpdated(pluginData, updatedPluginData);
+  return "";
 }
 
-export function resolvesGUINodeType(layer: ExportableLayer, pluginData: PluginGUINodeData | null | undefined): GUINodeType {
-  if (isFigmaText(layer)) {
-    return "TYPE_TEXT";
+/**
+ * Resolves the GUI node forced name.
+ * @param layer - The Figma layer to resolve the forced name for.
+ * @returns The resolved GUI node forced name.
+ */
+export async function resolveGUINodeForcedName(layer: ExportableLayer, parentOptions: GUINodeDataExportOptions, parentGUINodeData: GUINodeData): Promise<string | undefined> {
+  const { parent } = layer;
+  if (parent) {
+    if (parentGUINodeData.skip && parentOptions.forcedName && isSlice9PlaceholderLayer(parent)) {
+      return parentOptions.forcedName;
+    }
+    if (isLayerExportable(parent) && await isLayerSpriteHolder(parent)) {
+      return parent.name
+    }
   }
+  return undefined;
+}
+
+/**
+ * Resolves the GUI node file path.
+ * @param pluginData - The plugin data to resolve the file path from.
+ * @returns The resolved GUI node file path.
+ */
+export function resolveGUIFilePath(data?: WithNull<PluginGUINodeData>) {
+  return data?.path || config.guiNodeDefaultSpecialValues.path;
+}
+
+/**
+ * Resolves the GUI node type.
+ * @param layer - The Figma layer to resolve the type for.
+ * @param pluginData - The plugin data to resolve the type from.
+ * @returns The resolved GUI node type.
+ */
+export function resolvesGUINodeType(layer: ExportableLayer, pluginData?: WithNull<PluginGUINodeData>): GUINodeType {
   if (pluginData?.template) {
     return "TYPE_TEMPLATE";
   }
-  return "TYPE_BOX";
+  return inferGUINodeType(layer);
+}
+
+/**
+ * Resolves components of the export variant.
+ * @param exportVariant - The export variant to resolve the components from.
+ * @returns The resolved export variant components.
+ */
+export function resolveGUINodeExportVariantComponents(exportVariant: string) {
+  return exportVariant.split("=").map(value => value.trim());
+}
+
+/**
+ * Determines whether the key is a GUI node override plugin data key.
+ * @param key - The key to check.
+ * @returns True if the key is a GUI node override plugin data key, otherwise false.
+ */
+export function isGUINodeOverridesDataKey(key: string): key is PluginGUINodeDataOverrideKey {
+  return key.startsWith("defoldGUINodeOverride-");
+}
+
+/**
+ * Resolves the GUI node override plugin data key.
+ * @param id - The ID to resolve the key from.
+ * @returns The resolved GUI node override plugin data key.
+ */
+export function resolveGUINodeOverridesDataKey(id: string): PluginGUINodeDataOverrideKey {
+  const key: PluginGUINodeDataOverrideKey = `defoldGUINodeOverride-${id}`;
+  return key;
+}
+
+/**
+ * Parses the layer ID from the GUI node override plugin data key.
+ * @param key - The key to parse the layer ID from.
+ * @returns The parsed layer id.
+ */
+export function parseLayerIDFromGUINodeOverridesDataKey(key: PluginGUINodeDataOverrideKey): string {
+  return key.replace("defoldGUINodeOverride-", "");
 }

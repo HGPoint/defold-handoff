@@ -1,9 +1,9 @@
 <script lang="ts">
-  import selectionState from "state/selection";
-  import Page from "components/Page";
-  import Actions from "components/Actions";
   import ActionButton from "components/ActionButton";
-    import { isLayerSelected, areMultipleLayersSelected } from "utilities/selection";
+  import Actions from "components/Actions";
+  import Page from "components/Page";
+  import selectionState from "state/selection";
+  import { areMultipleLayersSelected, isLayerSelected } from "utilities/selection";
 </script>
 
 <Page>

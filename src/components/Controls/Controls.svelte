@@ -1,6 +1,6 @@
 <script lang="ts">
-  import uiState from "state/ui"
-  import { postMessageToPlugin } from "utilities/pluginUI"; 
+  import uiState from "state/ui";
+  import { postMessageToPlugin } from "utilities/ui";
 
   export let version: string;
   

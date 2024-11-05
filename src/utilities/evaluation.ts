@@ -1,5 +1,5 @@
 /**
- * Utility module for evaluating expressions.
+ * Handles evaluating math expressions using math-expression-evaluator
  * @packageDocumentation
  */
 
@@ -8,12 +8,12 @@ import Mexp from "math-expression-evaluator";
 const mexp = new Mexp();
 
 /**
- * Tries to evaluate the given mathematical expression and returns the result or null if an error occurs.
- * @param expression - The potential mathematical expression to evaluate.
- * @returns The result of the evaluation, or null if an error occurs.
+ * Attempts to evaluate a mathematical expression.
+ * @param expression - The mathematical expression to evaluate.
+ * @returns The result of the evaluation, or null if the expression is invalid.
  */
-export function evaluateExpression(expression: string): number | null {
-  let result;
+export default function evaluateExpression(expression: string): WithNull<number> {
+  let result: WithNull<number>;
   try {
     result = mexp.eval(expression)
   } catch (error) {

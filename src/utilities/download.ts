@@ -1,12 +1,12 @@
 /**
- * Utility module for handling file downloading.
+ * Handles downloads.
  * @packageDocumentation
  */
 
 /**
- * Downloads the specified Blob object as a file with the given filename.
- * @param blob - The Blob object to download.
- * @param filename - The filename for the downloadable file.
+ * Triggers the download of a blob as a file.
+ * @param blob - The blob to download.
+ * @param filename - The file name for the downloaded  file.
  */
 export default function download(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);

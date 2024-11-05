@@ -1,5 +1,5 @@
 <script lang="ts">
-  import uiState from "state/ui"
+  import uiState from "state/ui";
 
   export let title = "Actions"
   export let collapseKey: keyof Omit<UIData, "mode" | "collapsed"> | undefined = undefined;

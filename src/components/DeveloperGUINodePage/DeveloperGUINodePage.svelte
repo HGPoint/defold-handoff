@@ -1,22 +1,23 @@
 <script lang="ts">
-  import config from "config/config.json";
-  import selectionState from "state/selection";
-  import { postMessageToPlugin } from "utilities/pluginUI";
-  import { isGUITextNodeType, isGUIBoxNodeType, isGUITemplateNodeType } from "utilities/gui";
-  import { isFigmaFrameType, isFigmaComponentType, isFigmaComponentInstanceType } from "utilities/figma";
-  import { isZeroVector } from "utilities/math";
+  import ActionButton from "components/ActionButton";
+  import Actions from "components/Actions";
+  import OptionsProperty from "components/OptionsProperty";
   import Page from "components/Page";
   import Properties from "components/Properties";
-  import Actions from "components/Actions";
-  import ActionButton from "components/ActionButton";
-  import OptionsProperty from "components/OptionsProperty";
-  import ToggleProperty from "components/ToggleProperty";
-  import TransformationProperty from "components/TransformationProperty";
+  import PropertyTip from "components/PropertyTip";
   import SidesProperty from "components/SidesProperty";
   import TextProperty from "components/TextProperty";
-  import PropertyTip from "components/PropertyTip";
+  import ToggleProperty from "components/ToggleProperty";
+  import TransformationProperty from "components/TransformationProperty";
+  import config from "config/config.json";
+  import selectionState from "state/selection";
+  import { isFigmaComponentInstanceType, isFigmaComponentType, isFigmaFrameType } from "utilities/figma";
+  import { isGUIBoxType, isGUITemplateType, isGUITextType } from "utilities/gui";
+  import { isZeroVector } from "utilities/math";
+  import { postMessageToPlugin } from "utilities/ui";
 
-  let { gui: [ guiNode ], originalValues } = $selectionState;
+  let { gui: [ guiNode ] } = $selectionState;
+  let originalValues = $selectionState.meta?.originalValues;
   let fontFamilies: Record<string, string>;
   let layers: Record<string, string>;
   let materials: Record<string, string>;
@@ -38,7 +39,8 @@
   }
 
   function updateData(selection: SelectionUIData) {
-    ({ gui: [ guiNode ], originalValues } = $selectionState);
+    ({ gui: [ guiNode ] } = $selectionState);
+    originalValues = $selectionState.meta?.originalValues;
     fontFamilies = $selectionState.project.fontFamilies.reduce((fonts, font) => ({ ...fonts, [font.name]: font.id }), {});
     layers = $selectionState.context ? $selectionState.context.layers.reduce((layerOptions, layer) => ({ ...layerOptions, [layer.name]: layer.id }), {}) : {};
     materials = $selectionState.context ? $selectionState.context.materials.reduce((materialOptions, material) => ({ ...materialOptions, [material.name]: material.id }), {}) : {};
@@ -56,17 +58,17 @@
       <OptionsProperty label="Size Mode" bind:value={guiNode.size_mode} originalValue={originalValues?.size_mode} options={config.sizeModes} />
       <ToggleProperty label="Enabled" bind:value={guiNode.enabled} originalValue={originalValues?.enabled} />
       <ToggleProperty label="Visible" bind:value={guiNode.visible} originalValue={originalValues?.visible} />
-      {#if isGUITextNodeType(guiNode.type)}
+      {#if isGUITextType(guiNode.type)}
         <OptionsProperty label="Font" bind:value={guiNode.font} originalValue={originalValues?.font} options={fontFamilies} />
       {/if}
       <OptionsProperty label="Material" bind:value={guiNode.material} originalValue={originalValues?.material} options={materials} disabled={true} />
-      {#if isGUIBoxNodeType(guiNode.type) || isGUITemplateNodeType(guiNode.type)}
+      {#if isGUIBoxType(guiNode.type) || isGUITemplateType(guiNode.type)}
         <SidesProperty label="Slice 9" bind:value={guiNode.slice9} originalValue={originalValues?.slice9} />
       {/if}
       <ToggleProperty label="Inherit Alpha" bind:value={guiNode.inherit_alpha} originalValue={originalValues?.inherit_alpha} />
       <OptionsProperty label="Layer" bind:value={guiNode.layer} originalValue={originalValues?.layer} options={layers} />
       <OptionsProperty label="Blend Mode" bind:value={guiNode.blend_mode} originalValue={originalValues?.blend_mode} options={config.blendModes} />
-      {#if isGUIBoxNodeType(guiNode.type) || isGUITemplateNodeType(guiNode.type)}
+      {#if isGUIBoxType(guiNode.type) || isGUITemplateType(guiNode.type)}
         <OptionsProperty label="Pivot" bind:value={guiNode.pivot} originalValue={originalValues?.pivot} options={config.pivots} />
       {/if}
       <OptionsProperty label="X Anchor" bind:value={guiNode.xanchor} originalValue={originalValues?.xanchor} options={config.xAnchors} />
@@ -105,33 +107,33 @@
       {/if}
     </Properties>
     <Actions title="Tools" collapseKey="guiNodeToolsCollapsed">
-      <ActionButton label="Infer Properties" action="fixGUINodes" />
-      {#if $selectionState.canTryMatch}
-        <ActionButton label="Match Parent to GUI Node" action="matchParentToGUINode" />
-        <ActionButton label="Match GUI Node to Parent" action="matchGUINodeToParent" />
+      <ActionButton label="Infer Properties" action="fixGUI" />
+      <ActionButton label="Force Children on Screen" action="forceGUIChildrenOnScreen" />
+      {#if $selectionState.meta?.canTryMatch}
+        <ActionButton label="Match Parent to GUI Node" action="matchGUINodeToGUIChild" />
+        <ActionButton label="Match GUI Node to Parent" action="matchGUINodeToGUIParent" />
       {/if}
-      <ActionButton label="Force Children on Screen" action="forceChildrenOnScreen" />
       {#if isFigmaFrameType(guiNode.figma_node_type) || isFigmaComponentType(guiNode.figma_node_type)}
-        <ActionButton label="Resize to Screen" action="resizeScreenGUINodes" />
+        <ActionButton label="Resize to Screen" action="resizeGUIToScreen" />
       {/if}
-      {#if isGUITextNodeType(guiNode.type)}
-        <ActionButton label="Fix Text" action="fixTextNode" />
+      {#if isGUITextType(guiNode.type)}
+        <ActionButton label="Fix Text" action="fixGUIText" />
       {/if}
-      {#if (isGUIBoxNodeType(guiNode.type) || isGUITemplateNodeType(guiNode.type)) && !isZeroVector(guiNode.slice9)}
-        <ActionButton label="Refresh Slice 9" action="restoreSlice9Node" />
+      {#if (isGUIBoxType(guiNode.type) || isGUITemplateType(guiNode.type)) && !isZeroVector(guiNode.slice9)}
+        <ActionButton label="Refresh Slice 9" action="restoreSlice9" />
       {/if}
       {#if isFigmaComponentInstanceType(guiNode.figma_node_type)}
-        <ActionButton label="Pull GUI Data from Main Component" action="pullFromMainComponent" />
+        <ActionButton label="Pull GUI Data from Main Component" action="removeGUIOverrides" />
       {/if}
-      <ActionButton label="Validate GUI" action="validateGUINodes" disabled={true} />
-      <ActionButton label="Reset GUI Node" action="resetGUINodes" />
+      <ActionButton label="Validate GUI" action="validateGUI" disabled={true} />
+      <ActionButton label="Reset GUI Node" action="removeGUI" />
     </Actions>
     <Actions collapseKey="guiNodeActionsCollapsed">
-      <ActionButton label="Export GUI" action="exportGUINodes" />
-      <ActionButton label="Export Atlases" action="exportGUINodeAtlases" />
+      <ActionButton label="Export GUI" action="exportGUI" />
+      <ActionButton label="Export Used Atlases" action="exportGUIAtlases" />
       <ActionButton label="Export Bundle" action="exportBundle" />
-      <ActionButton label="Copy GUI" action="copyGUINodes" />
-      <ActionButton label="Copy GUI Scheme" action="copyGUINodeScheme" />
+      <ActionButton label="Copy GUI" action="copyGUI" />
+      <ActionButton label="Copy GUI Scheme" action="copyGUIScheme" />
     </Actions>
     {#if $selectionState.layers.length > 1}
       <Actions title="Atlas Actions" collapseKey="layersActionsCollapsed">

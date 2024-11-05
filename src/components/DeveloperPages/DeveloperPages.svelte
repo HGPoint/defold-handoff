@@ -1,15 +1,15 @@
 <script lang="ts">
-  import selectionState from "state/selection";
-  import { isLayerSelected, areMultipleAtlasesSelected, areMultipleLayersSelected, isGUINodeSelected, areMultipleGUINodesSelected, isAtlasSelected, areMultipleSectionsSelected, isSectionSelected } from "utilities/selection";
   import DeveloperAtlasPage from "components/DeveloperAtlasPage";
   import DeveloperAtlasesPage from "components/DeveloperAtlasesPage";
   import DeveloperGUINodePage from "components/DeveloperGUINodePage";
   import DeveloperGUINodesPage from "components/DeveloperGUINodesPage";
   import DeveloperLayerPage from "components/DeveloperLayerPage";
   import DeveloperLayersPage from "components/DeveloperLayersPage";
+  import DeveloperProjectPage from "components/DeveloperProjectPage";
   import DeveloperSectionPage from "components/DeveloperSectionPage";
   import DeveloperSectionsPage from "components/DeveloperSectionsPage";
-  import DeveloperProjectPage from "components/DeveloperProjectPage";
+  import selectionState from "state/selection";
+  import { areMultipleAtlasesSelected, areMultipleGUINodesSelected, areMultipleLayersSelected, areMultipleSectionsSelected, isAtlasSelected, isGUINodeSelected, isLayerSelected, isSectionSelected } from "utilities/selection";
 </script>
 
 {#if $selectionState}

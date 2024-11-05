@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { evaluateExpression } from "utilities/evaluation";
+  import evaluateExpression from "utilities/evaluation";
   import { clamp } from "utilities/math";
 
-  export let id: string | null = null;
+  export let id: WithNull<string> = null;
   export let value: number;
   export let min: number = 0;
   export let max: number = Number.MAX_SAFE_INTEGER;

@@ -1,10 +1,10 @@
 <script lang="ts">
-  import selectionState from "state/selection";
-  import Page from "components/Page";
-  import Actions from "components/Actions";
   import ActionButton from "components/ActionButton";
   import ActionOptionButton from "components/ActionOptionButton";
-  import { isLayerSelected, areMultipleLayersSelected } from "utilities/selection";
+  import Actions from "components/Actions";
+  import Page from "components/Page";
+  import selectionState from "state/selection";
+  import { areMultipleLayersSelected, isLayerSelected } from "utilities/selection";
 </script>
 
 <Page>
@@ -20,6 +20,6 @@
   <Actions collapseKey="atlasActionsCollapsed">
     <ActionButton label="Export Atlas" action="exportAtlases" />
     <ActionOptionButton label="Export Sprites at Scale" value={1} action="exportSprites" />
-    <ActionButton label="Destroy Atlas" action="destroyAtlases" />
+    <ActionButton label="Destroy Atlas" action="removeAtlases" />
   </Actions>
 </Page>

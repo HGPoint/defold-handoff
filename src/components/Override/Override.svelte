@@ -1,8 +1,8 @@
 <script lang="ts" generics="T extends PluginGUINodeData[keyof PluginGUINodeData]">
-  import { isOverride } from "utilities/pluginUI";
+  import { isValueOverridden } from "utilities/ui";
   
-  export let value: T | null;
-  export let originalValue: T | null;
+  export let value: WithNull<T>;
+  export let originalValue: WithNull<T>;
 
   function restoreValue() {
     if (originalValue !== null) {
@@ -11,7 +11,7 @@
   }
 </script>
 
-{#if isOverride(value, originalValue)}
+{#if isValueOverridden(value, originalValue)}
   <button
     class="restoreButton"
     on:click={restoreValue}>

@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { generateRandomId, isOverride } from "utilities/pluginUI";
   import NumberInput from "components/NumberInput";
   import Override from "components/Override";
+  import { generateRandomId, isValueOverridden } from "utilities/ui";
   
   export let label: string;
   export let value: Vector4;
-  export let originalValue: Vector4 | null = null;
+  export let originalValue: WithNull<Vector4> = null;
   export let disabled = false;
 
   const id = generateRandomId();
@@ -13,13 +13,13 @@
 
 <label
   class="widgetLabel"
-  class:widgetLabel-is-overridden={isOverride(value, originalValue)}
+  class:widgetLabel-is-overridden={isValueOverridden(value, originalValue)}
   for={id}>
     {label}
 </label>
 <div
   class="widgetLayerPosition"
-  class:widgetTransformation-is-overridden={isOverride(value, originalValue)}>
+  class:widgetTransformation-is-overridden={isValueOverridden(value, originalValue)}>
     <span class="widgetComponentLabel">X:</span>
     <NumberInput
       {id}

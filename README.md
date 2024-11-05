@@ -1,69 +1,99 @@
 # [Defold Handoff](https://www.figma.com/community/plugin/1359029081454325668/defold-handoff)
 
-With this plugin, you can easily manage GUI template designs and atlases, streamlining the resource handoff process for the Defold game engine. It features a robust customization system for GUI nodes, a Slice 9 generator/editor, and various support utilities and export tools.
+This plugin streamlines the resource handoff process for the Defold game engine, enabling you to manage GUI and game-related designs, as well as sprite atlases, directly from Figma. It includes a powerful editor and additional tools, such as a Slice9 generator/editor.
+
+The plugin offers three modes, each tailored to specific needs:
+
+1. GUI Developer Mode – for handing off GUI resources.
+2. GUI Designer Mode – for managing and refining GUI designs.
+3. Game Designer Mode – for handing off game-related resources.
 
 **Atlases:**
 
 - Create and manage sprite atlases directly within your Figma project.
 - Bundle or combine atlases for streamlined export.
-- Export atlases and image resources for your Defold project with a single click.
+- Export atlases and other image resources for your Defold project with a single click.
 
-**GUI Nodes:**
+**GUI and Game Objects:**
 
-- Design Defold GUI templates as simple frames in Figma.
-- Fully leverage Figma's design tools without any limitations from Defold's side.
-- Edit additional GUI node properties using the custom editor.
-- Export GUI templates as they are, or bundled with atlases and other resources.
-- Includes additional support utilities for developers.
+- Design and manage Defold's GUI components, game objects and collections as frames in Figma.
+- Fully leverage Figma's design tools without limitations.
+- Edit native Defold properties using a custom editor inside Figma.
+- Export components as-is or bundled with atlases and other resources.
+- Use a variety of additional tools to speed up or fully automate handoff process.
 
 ## Code Structure
 
-### Entry Points
+### Plugin Entry Points
 
-- `src/app.ts` – Serves as the entry point for the UI application. It contains code responsible for creating the editor UI and handling interactions with browser API.
-- `src/plugin.ts`– Serves as the entry point for the Figma plugin application. It contains the business logic of the application, handling everything that pertains to management of atlases, GUI nodes and the project itself.
+- `src/app.ts` – The entry point for the UI application. It handles the editor UI and interactions with browser APIs. [Svelte 5](https://github.com/sveltejs/svelte) is used as the framework for UI and state management.
+- `src/plugin.ts`– The entry point for the Figma plugin application. It manages business logic, including atlases, GUI nodes, game objects, and the overall project.
 
 ### Pseudo-API
 
-- `src/handoff/atlas.ts` – Contains endpoints responsible for managing atlas-related functionalities within the application. It handles tasks such as creating, updating, exporting, and deleting atlases.
-- `src/handoff/bundle.ts` – Contains endpoints responsible for managing resource bundles within the application. It handles the bundling of resources for export.
-- `src/handoff/gui.ts` – Contains endpoints responsible for managing GUI-related tasks within the application. It handles tasks such as updating, exporting, and copying GUI components.
-- `src/handoff/project.ts` – Contains endpoints responsible for managing project-related functionalities. It handles project configuration, including screen size, paths, and fonts.
-- `src/handoff/section.ts` – Contains endpoints responsible for managing resource organization functionalities using sections. It handles tasks such as bundling and combining atlases, etc.
+- `src/handoff/atlas.ts` – Provides endpoints for managing atlas-related features, including creating, updating, and exporting atlases.
+- `src/handoff/bundle.ts` – Provides endpoints for managing resource bundles, primarily focusing on export features.
+- `src/handoff/gameCollection.ts` – Provides endpoints for managing game object-related features, including editing, updating, and exporting game objects.
+- `src/handoff/gui.ts` – Provides endpoints for managing GUI-related features, including editing, updating, and exporting GUI nodes.
+- `src/handoff/project.ts` – Provides endpoints for managing project-related features, primarily focusing on configuration (e.g., screen size, paths, fonts).
+- `src/handoff/section.ts` – Provides endpoints for managing contextual resource organization features using Figma sections, primarily focusing on configuration (e.g., bundling and combining atlases, managing layers and materials).
 
 ### Utilities
 
-- `src/utilities/archive.ts` – Module for handling archives. It utilizes JSZip library for creating zip archives.
-- `src/utilities/atlas.ts` – Module for handling Defold atlases.
-- `src/utilities/atlasDataConverters.ts` – Module for handling atlas data conversion.
-- `src/utilities/atlasDataGenerators.ts` – Module for generating atlas data.
-- `src/utilities/atlasDataSerializers.ts` – Module for handling atlas data serialization.
-- `src/utilities/clipboard.ts` – Module for handling the clipboard operations.
-- `src/utilities/color.ts` – Module for handling color operations.
-- `src/utilities/context.ts` – Module for handling shared context for GUI nodes (Layers, materials, etc.).
-- `src/utilities/dataSerializers.ts` – Module for handling Defold property serialization.
-- `src/utilities/delay.ts` – Module for handling time delays.
-- `src/utilities/download.ts` – Module for handling file downloading.
-- `src/utilities/error.ts` – Module for handling errors and error messages. 
-- `src/utilities/evaluation.ts` – Module for evaluating expressions.
-- `src/utilities/figma.ts` – Module for handling the work with Figma layers and properties.
-- `src/utilities/font.ts` – Module for handling fonts.
-- `src/utilities/gui.ts` – Module for handling Defold GUI nodes.
-- `src/utilities/guiDataConverters.ts` – Module for handling GUI node data conversion.
-- `src/utilities/guiDataGenerators.ts` – Module for generating GUI data.
-- `src/utilities/guiDataSerializers.ts` – Module for handling GUI node data serialization.
-- `src/utilities/inference.ts` – Module for inferring GUINode properties from Figma layers.
-- `src/utilities/math.ts` – Module for handling math.
-- `src/utilities/path.ts` – Module handling file paths based on project configuration.
-- `src/utilities/pivot.ts` – Module for handling calculating positions and shifts based on pivot points and parent sizes.
-- `src/utilities/pluginUI.ts` – Utility moule for handling plugin UI.
-- `src/utilities/resources.ts` – Module for handling resource exports.
-- `src/utilities/scale.ts` – Module for handling scale placeholders in Figma.
-- `src/utilities/scheme.ts` – Module for handling scheme boilerplate code.
-- `src/utilities/selection.ts` – Module for handling selection data.
-- `src/utilities/slice9.ts` – Module for handling slice9 placeholders in Figma.
-- `src/utilities/validators.ts` – Module for handling validation.
+- `src/utilities/archive.ts` – Handles file archiving using [JSZip](https://github.com/Stuk/jszip).
+- `src/utilities/array.ts` – Handles array operations.
+- `src/utilities/atlas.ts` – Handles operations with atlases.
+- `src/utilities/atlasConversion.ts` – Handles atlas data conversion from Figma into Defold-like properties.
+- `src/utilities/atlasExport.ts` – Handles atlas data export.
+- `src/utilities/atlasProcessing.ts` – Handles atlas data processing and transformation.
+- `src/utilities/atlasSerialization.ts` – Handles atlas data serialization.
+- `src/utilities/blob.ts` – Handles operations with blob data.
+- `src/utilities/clipboard.ts` – Handles clipboard interactions.
+- `src/utilities/color.ts` – Handles color operations.
+- `src/utilities/context.ts` – Handles contextual resource organization (e.g., bundling and combining atlases, managing layers and materials).
+- `src/utilities/data.ts` – Handles basic data processing.
+- `src/utilities/dataSerialization.ts` – Handles Defold property serialization.
+- `src/utilities/defaults.ts` – Handles operations with default values for the Defold and special properties.
+- `src/utilities/defold.ts` – Handles operations with Defold's component text format.
+- `src/utilities/delay.ts` – Handles time delay operations.
+- `src/utilities/document.ts` – Handles changes to the Figma document.
+- `src/utilities/download.ts` – Handles downloads.
+- `src/utilities/error.ts` – Handles error management.
+- `src/utilities/evaluation.ts` – Handles evaluating math expressions using [math-expression-evaluator](https://github.com/bugwheels94/math-expression-evaluator).
+- `src/utilities/figma.ts` – Handles operations with Figma layers, properties and plugin data storage.
+- `src/utilities/font.ts` – Handles fonts, including extraction and processing of font data.
+- `src/utilities/gameCollection.ts` – Handles operations with game objects and collections.
+- `src/utilities/gameCollectionConversion.ts` – Handles game-related data conversion from Figma into Defold-like properties.
+- `src/utilities/gameCollectionExport.ts` – Handles game-related data export.
+- `src/utilities/gameCollectionProcessing.ts` – Handles game-related data processing and transformation.
+- `src/utilities/gameCollectionSerialization.ts` – Handles game-related data serialization.
+- `src/utilities/gameCollectionUpdate.ts` – Handles editing of game objects in Figma.
+- `src/utilities/gui.ts` – Handles operations with GUI nodes.
+- `src/utilities/guiConversion.ts` – Handles GUI-related data conversion from Figma into Defold-like properties.
+- `src/utilities/guiExport.ts` – Handles GUI-related data export.
+- `src/utilities/guiProcessing.ts` – Handles GUI-related data processing and transformation.
+- `src/utilities/guiSerialization.ts` – Handles GUI-related data serialization.
+- `src/utilities/guiUpdate.ts` – Handles editing of GUI nodes in Figma.
+- `src/utilities/inference.ts` – Handles Defold-like property inference from Figma layer properties.
+- `src/utilities/layer.ts` – Handles GUI layer data, including extraction and processing of it.
+- `src/utilities/math.ts` – Handles math.
+- `src/utilities/path.ts` – Handles operations with paths based on the project configuration.
+- `src/utilities/pivot.ts` – Handles calculating positions relative to different pivots and environments.
+- `src/utilities/resources.ts` – Handles resource handoff.
+- `src/utilities/scheme.ts` – Handles GUI scheme boilerplate code.
+- `src/utilities/selection.ts` – Handles operations with selection in Figma.
+- `src/utilities/slice9.ts` – Handles Slice9 placeholders in Figma.
+- `src/utilities/text.ts` – Handles operations with text.
+- `src/utilities/texture.ts` – Handles texture data, including extraction and processing of it.
+- `src/utilities/transformPipeline.ts` – Provides pipeline for data transformation.
+- `src/utilities/ui.ts` – Handles operations within UI application.
+- `src/utilities/updatePipeline.ts` – Provides pipeline for data editing.
+- `src/utilities/validation.ts` – Handles data and resource validation.
 
 ### Types
 
-`src/types/*.*` – Contains type definitions.
+`src/types/*.d.ts` – Type definitions.
+
+### UI
+
+`src/components/**/*.*` – Svelte components for the UI application.

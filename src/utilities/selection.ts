@@ -1,20 +1,21 @@
 /**
- * Utility module for handling selection data.
+ * Handles operations with selection in Figma.
  * @packageDocumentation
  */
 
 import config from "config/config.json";
-import { isSlice9PlaceholderLayer, isSlice9ServiceLayer, findOriginalLayer } from "utilities/slice9";
-import { isAtlas, isFigmaFrame, isFigmaSection, isFigmaComponent, isFigmaComponentInstance, isFigmaBox, isFigmaText, isExportable, getPluginData, hasChildren, findMainComponent, isGUINode, isGameObject } from "utilities/figma";
-import { isTemplateGUINode, resolvesGUINodeType } from "utilities/gui";
-import { resolvesGameObjectType, resolveGameObjectDefoldPosition, resolveLabelComponentDefoldPosition } from "utilities/gameObject";
-import { generateContextData } from "utilities/context";
-import { isCurrentDeveloperUIMode, isCurrentGameDesignerUIMode } from "utilities/pluginUI";
-import { projectConfig } from "handoff/project";
+import { PROJECT_CONFIG } from "handoff/project";
+import { copyArray, removeDoubles } from "utilities/array";
+import { findSectionWithContextData, generateContextData } from "utilities/context";
+import { findMainFigmaComponent, getPluginData, isFigmaComponentInstance, isFigmaFrame, isFigmaGroup, isFigmaSection, isFigmaSlice, isFigmaText, isLayerAtlas, isLayerGUINode, isLayerGameObject, isLayerNode } from "utilities/figma";
+import { resolvesGUINodeType } from "utilities/gui";
+import { inferGameObjectType, resolveGameObjectPosition, resolveLabelComponentPosition } from "utilities/inference";
+import { findSlice9Layer, isSlice9PlaceholderLayer, isSlice9ServiceLayer } from "utilities/slice9";
+import { isCurrentUIModeDeveloper, isCurrentUIModeGameDesigner } from "utilities/ui";
 
 /**
- * Checks if a layer is selectable.
- * @param layer - The layer to check.
+ * Checks if a Figma layer is selectable.
+ * @param layer - The Figma layer to check.
  * @returns True if the layer is selectable, false otherwise.
  */
 function isSelectable(layer: SceneNode): boolean {
@@ -40,6 +41,24 @@ export function areMultipleGUINodesSelected(selection: SelectionData | Selection
 }
 
 /**
+ * Checks if a single game object is selected.
+ * @param selection - The selection data.
+ * @returns True if a single game object is selected, false otherwise.
+ */
+export function isGameObjectSelected(selection: SelectionData | SelectionUIData) {
+  return selection?.gameObjects?.length === 1;
+}
+
+/**
+ * Checks if multiple game objects are selected.
+ * @param selection - The selection data.
+ * @returns True if multiple game objects are selected, false otherwise.
+ */
+export function areMultipleGameObjectsSelected(selection: SelectionData | SelectionUIData) {
+  return selection?.gameObjects?.length > 1;
+}
+
+/**
  * Checks if a single atlas is selected.
  * @param selection - The selection data.
  * @returns True if a single atlas is selected, false otherwise.
@@ -55,24 +74,6 @@ export function isAtlasSelected(selection: SelectionData | SelectionUIData) {
  */
 export function areMultipleAtlasesSelected(selection: SelectionData | SelectionUIData) {
   return selection?.atlases?.length > 1;
-}
-
-/**
- * Checks if a single Figma layer is selected.
- * @param selection - The selection data.
- * @returns True if a single layer is selected, false otherwise.
- */
-export function isLayerSelected(selection: SelectionData | SelectionUIData) {
-  return selection?.layers?.length === 1;
-}
-
-/**
- * Checks if multiple Figma layers are selected.
- * @param selection - The selection data.
- * @returns True if multiple layers are selected, false otherwise.
- */
-export function areMultipleLayersSelected(selection: SelectionData | SelectionUIData) {
-  return selection?.layers?.length > 1;
 }
 
 /**
@@ -94,47 +95,57 @@ export function areMultipleSectionsSelected(selection: SelectionData | Selection
 }
 
 /**
- * Checks if a single game object is selected.
+ * Checks if a single Figma layer is selected.
  * @param selection - The selection data.
- * @returns True if a single game object is selected, false otherwise.
+ * @returns True if a single layer is selected, false otherwise.
  */
-export function isGameObjectSelected(selection: SelectionData | SelectionUIData) {
-  return selection?.gameObjects?.length === 1;
+export function isLayerSelected(selection: SelectionData | SelectionUIData) {
+  return selection?.layers?.length === 1;
 }
 
 /**
- * Checks if multiple game objects are selected.
+ * Checks if multiple Figma layers are selected.
  * @param selection - The selection data.
- * @returns True if multiple game objects are selected, false otherwise.
+ * @returns True if multiple layers are selected, false otherwise.
  */
-export function areMultipleGameObjectsSelected(selection: SelectionData | SelectionUIData) {
-  return selection?.gameObjects?.length > 1;
+export function areMultipleLayersSelected(selection: SelectionData | SelectionUIData) {
+  return selection?.layers?.length > 1;
 }
 
 /**
- * Reducer function for plugin selection data. Sorts selected Figma layers into categories - GUI nodes, atlases, sections and layers.
- * @param selection - The selection data accumulator.
- * @param layer - The current layer being processed.
- * @returns The updated selection data.
+ * Reduces the current page selection to the selection data.
+ * @returns The selection data.
  */
-function pluginSelectionReducer(selection: SelectionData, layer: SceneNode): SelectionData {
+export function reduceSelectionDataFromSelection(): SelectionData {
+  const selection: SelectionData = { gui: [], gameObjects: [], atlases: [], sections: [], layers: [] };
+  const pluginSelection = figma.currentPage.selection.reduce(selectionDataReducer, selection);
+  return pluginSelection;
+}
+
+/**
+ * Reducer function that sorts selected Figma layers into categories - GUI nodes, game objects, atlases, sections and layers.
+ * @param selection - The cumulative selection data.
+ * @param layer - The layer to sort into one of the categories.
+ * @returns The updated cumulative selection data.
+ */
+function selectionDataReducer(selection: SelectionData, layer: SceneNode): SelectionData {
   if (isSelectable(layer)) {
-    if (isAtlas(layer)) {
+    if (isLayerAtlas(layer)) {
       selection.atlases.push(layer);
     } else if (isFigmaSection(layer)) {
       selection.sections.push(layer);
-    } else if (isFigmaFrame(layer) || isFigmaComponent(layer) || isFigmaComponentInstance(layer) || isFigmaText(layer)) {
-      const originalLayer = isSlice9PlaceholderLayer(layer) ? findOriginalLayer(layer) : layer;
+    } else if (isLayerNode(layer)) {
+      const originalLayer = isSlice9PlaceholderLayer(layer) ? findSlice9Layer(layer) : layer;
       if (originalLayer) {
-        if (isCurrentDeveloperUIMode()) {
+        if (isCurrentUIModeDeveloper()) {
           selection.gui.push(originalLayer);
-        } else if (isCurrentGameDesignerUIMode()) {
+        } else if (isCurrentUIModeGameDesigner()) {
           selection.gameObjects.push(originalLayer);
         } else {
-          if (isGUINode(originalLayer)) {
+          if (isLayerGUINode(originalLayer)) {
             selection.gui.push(originalLayer);
           }
-          if (isGameObject(originalLayer)) {
+          if (isLayerGameObject(originalLayer)) {
             selection.gameObjects.push(originalLayer);
           }
         }
@@ -142,7 +153,7 @@ function pluginSelectionReducer(selection: SelectionData, layer: SceneNode): Sel
       if (!isFigmaText(layer)) {
         selection.layers.push(layer);
       }
-    } else {
+    } else if (!isFigmaSlice(layer) && !isFigmaGroup(layer)) {
       selection.layers.push(layer);
     }
   }
@@ -150,21 +161,47 @@ function pluginSelectionReducer(selection: SelectionData, layer: SceneNode): Sel
 }
 
 /**
- * Reduces the current page selection to plugin selection data.
- * @returns The plugin selection data.
+ * Converts plugin selection data to the UI selection data.
+ * @param selection - The selection data to convert.
+ * @returns The UI selection data.
  */
-export function reducePluginSelection(): SelectionData {
-  const selection: SelectionData = { gui: [], atlases: [], layers: [], sections: [], gameObjects: [] };
-  return figma.currentPage.selection.reduce(pluginSelectionReducer, selection);
+export async function convertSelectionDataToSelectionUIData(selection: SelectionData): Promise<SelectionUIData> {
+  const gui = convertGUI(selection);
+  const gameObjects = await convertGameObjects(selection);
+  const atlases = convertAtlases(selection);
+  const sections = convertSections(selection);
+  const { layers } = selection;
+  const project = PROJECT_CONFIG;
+  const context = generateSelectionContextData(selection);
+  const meta = await generateSelectionMetaData(selection);
+  return {
+    gui,
+    gameObjects,
+    atlases,
+    sections,
+    layers,
+    project,
+    context,
+    meta
+  }
 }
 
 /**
- * Reducer function that converts GUI node selection data to UI GUI node selection data.
- * @param data - The plugin selection data.
- * @param layer - The current layer being processed.
- * @returns The converted plugin selection data.
+ * Converts GUI node selection data to the plugin GUI node data.
+ * @param selection - The selection data.
+ * @returns The converted array of the plugin GUI node data.
  */
-function guiNodePluginUISelectionConverter(data: PluginGUINodeData[], layer: ExportableLayer): PluginGUINodeData[] {
+function convertGUI(selection: SelectionData) {
+  return selection.gui.reduce(guiNodeConverter, []);
+}
+
+/**
+ * Reducer function that converts GUI node selection data to the plugin GUI node data.
+ * @param data - The cumulative plugin GUI node data.
+ * @param layer - The layer to convert to the plugin GUI node data.
+ * @returns The updated cumulative plugin GUI node data.
+ */
+function guiNodeConverter(data: PluginGUINodeData[], layer: Exclude<ExportableLayer, SliceLayer>): PluginGUINodeData[] {
   const pluginData = getPluginData(layer, "defoldGUINode");
   const { name: id } = layer;
   const type = resolvesGUINodeType(layer, pluginData);
@@ -183,15 +220,29 @@ function guiNodePluginUISelectionConverter(data: PluginGUINodeData[], layer: Exp
 }
 
 /**
- * Reducer function that converts game object selection data to UI game object selection data.
- * @param layer - The current layer being processed.
- * @returns Promise that resolves to the converted plugin selection data.
+ * Converts game object selection data to the plugin game object data.
+ * @param gameObjects - The selection data.
+ * @returns The converted array of the plugin game object data.
  */
-async function gameObjectsPluginUISelectionConverter(layer: ExportableLayer): Promise<PluginGameObjectData> {
+async function convertGameObjects(selection: SelectionData): Promise<PluginGameObjectData[]> {
+  const { gameObjects } = selection;
+  const gameObjectData: Promise<PluginGameObjectData>[] = [];
+  for (const layer of gameObjects) {
+    gameObjectData.push(gameObjectConverter(layer));
+  }
+  return Promise.all(gameObjectData);
+}
+
+/**
+ * Converts game object selection data to the plugin game object data.
+ * @param layer - The layer to convert to the plugin game object data.
+ * @returns The converted plugin game object data.
+ */
+async function gameObjectConverter(layer: Exclude<ExportableLayer, SliceLayer>): Promise<PluginGameObjectData> {
   const pluginData = getPluginData(layer, "defoldGameObject");
   const { name: id } = layer;
-  const type = await resolvesGameObjectType(layer);
-  const position = isFigmaText(layer) ? resolveLabelComponentDefoldPosition(layer, pluginData) : resolveGameObjectDefoldPosition(layer, pluginData);
+  const type = await inferGameObjectType(layer);
+  const position = isFigmaText(layer) ? resolveLabelComponentPosition(layer, pluginData) : resolveGameObjectPosition(layer, pluginData);
   const gameObjectData: PluginGameObjectData = {
     ...config.gameObjectDefaultValues,
     ...config.gameObjectDefaultSpecialValues,
@@ -205,37 +256,44 @@ async function gameObjectsPluginUISelectionConverter(layer: ExportableLayer): Pr
 }
 
 /**
- * Converts game object selection data to UI game object selection data.
- * @param gameObjects - The plugin selection data.
- * @returns Promises that resolve to the converted plugin selection data array.
+ * Converts atlas selection data to the plugin atlas data.
+ * @param selection - The selection data.
+ * @returns The converted array of the plugin atlas data.
  */
-async function convertGameObjects(gameObjects: ExportableLayer[]): Promise<PluginGameObjectData[]> {
-  const gameObjectData: Promise<PluginGameObjectData>[] = [];
-  for (const layer of gameObjects) {
-    gameObjectData.push(gameObjectsPluginUISelectionConverter(layer));
-  }
-  return Promise.all(gameObjectData);
+function convertAtlases(selection: SelectionData) {
+  return selection.atlases.reduce(atlasConverter, []);
 }
 
 /**
- * Reducer function that converts atlas selection data to UI atlas selection data.
- * @param data - The plugin selection data.
- * @param layer - The current layer being processed.
+ * Reducer function that converts atlas selection data to the plugin atlas data.
+ * @param data - The cumulative plugin atlas data.
+ * @param layer - The layer to convert to the plugin atlas data.
  */
-function atlasPluginUISelectionConverter(data: PluginAtlasData[], layer: SceneNode): PluginAtlasData[] {
-  const pluginData = getPluginData(layer, "defoldAtlas");
-  if (pluginData) {
-    data.push(pluginData);
+function atlasConverter(data: PluginAtlasData[], layer: DataLayer): PluginAtlasData[] {
+  if (isLayerAtlas(layer)) {
+    const pluginData = getPluginData(layer, "defoldAtlas");
+    if (pluginData) {
+      data.push(pluginData);
+    }
   }
   return data;
 }
 
 /**
- * Reducer function that converts section selection data to UI section selection data.
- * @param data - The plugin selection data.
- * @param layer - The current layer being processed.
+ * Converts section selection data to the plugin section data.
+ * @param selection - The selection data.
+ * @returns The converted array of the plugin section data.
  */
-function sectionPluginUISelectionConverter(data: PluginSectionData[], layer: SectionNode): PluginSectionData[] {
+function convertSections(selection: SelectionData) {
+  return selection.sections.reduce(sectionConverter, []);
+}
+
+/**
+ * Reducer function that converts section selection data to the plugin section data.
+ * @param data - The cumulative plugin section data.
+ * @param layer - The layer to convert to the plugin section data.
+ */
+function sectionConverter(data: PluginSectionData[], layer: SectionNode): PluginSectionData[] {
   const pluginData = getPluginData(layer, "defoldSection");
   const { name: id } = layer;
   const sectionData: PluginSectionData = {
@@ -248,28 +306,42 @@ function sectionPluginUISelectionConverter(data: PluginSectionData[], layer: Sec
 }
 
 /**
- * Generates GUI node context data for current selection.
+ * Generates the context data based on the selection data.
  * @param selection - The selection data.
- * @returns The context data.
+ * @returns The plugin context data.
  */
-export function generateSelectionContextData(selection: SelectionData): PluginGUIContextData {
+export function generateSelectionContextData(selection: SelectionData): PluginContextData {
   if (selection.gui.length === 1) {
     const { gui: [ guiNode ] } = selection;
     return generateContextData(guiNode);
   }
+  const layers = copyArray(config.sectionDefaultValues.layers);
+  const materials = copyArray(config.sectionDefaultValues.materials);
+  const ignorePrefixes = config.sectionDefaultValues.ignorePrefixes;
   return {
-    layers: JSON.parse(JSON.stringify(config.sectionDefaultValues.layers)),
-    materials: JSON.parse(JSON.stringify(config.sectionDefaultValues.materials)),
-    ignorePrefixes: config.sectionDefaultValues.ignorePrefixes
+    layers,
+    materials,
+    ignorePrefixes,
   }
 }
 
 /**
- * Checks if the selected GUI nodes can be matched by size.
+ * Generates the selection UI metadata based on the selection data.
  * @param selection - The selection data.
- * @returns True if the selected GUI nodes form potentially matchable pair, false otherwise.
+ * @returns The selection UI metadata.
  */
-export function checkForMatchingPairs(selection: SelectionData): boolean {
+async function generateSelectionMetaData(selection: SelectionData): Promise<SelectionUIMetaData> {
+  const canTryMatch = checkForMatchingGUINodes(selection);
+  const originalValues = await tryFindOriginalGUINodeData(selection);
+  return { canTryMatch, originalValues };
+}
+
+/**
+ * Determines whether the selected GUI node can be matched with the parent GUI node.
+ * @param selection - The selection data.
+ * @returns True if the selected GUI node can be matched with the parent GUI node, false otherwise.
+ */
+export function checkForMatchingGUINodes(selection: SelectionData): boolean {
   if (selection.gui.length === 1) {
     const [ guiNode ] = selection.gui;
     const { parent } = guiNode;
@@ -279,15 +351,14 @@ export function checkForMatchingPairs(selection: SelectionData): boolean {
 }
 
 /**
- * Checks if the selected GUI node has overridden values. Works only for single GUI node selection.
- * @async
+ * Attempts to find the original GUI node data of the selected GUI node.
  * @param selection - The selection data.
- * @returns True if the selected GUI nodes have overridden values, false otherwise.
+ * @returns The original GUI node data.
  */
-async function findOriginalValues(selection: SelectionData): Promise<PluginGUINodeData | null> {
+async function tryFindOriginalGUINodeData(selection: SelectionData): Promise<WithNull<PluginGUINodeData>> {
   if (selection.gui.length === 1 && isFigmaComponentInstance(selection.gui[0])) {
     const [ node ] = selection.gui; 
-    const mainComponent = await findMainComponent(node);
+    const mainComponent = await findMainFigmaComponent(node);
     if (mainComponent) {
       const pluginData = getPluginData(mainComponent, "defoldGUINode");
       if (pluginData) {
@@ -299,87 +370,108 @@ async function findOriginalValues(selection: SelectionData): Promise<PluginGUINo
 }
 
 /**
- * Converts plugin selection data to UI selection data.
- * @param selection - The plugin selection data.
- * @returns The UI selection data.
- */
-export async function convertPluginUISelection(selection: SelectionData): Promise<SelectionUIData> {
-  return {
-    gui: selection.gui.reduce(guiNodePluginUISelectionConverter, []),
-    atlases: selection.atlases.reduce(atlasPluginUISelectionConverter, []),
-    layers: selection.layers,
-    sections: selection.sections.reduce(sectionPluginUISelectionConverter, []),
-    gameObjects: await convertGameObjects(selection.gameObjects),
-    project: projectConfig,
-    context: generateSelectionContextData(selection),
-    canTryMatch: checkForMatchingPairs(selection),
-    originalValues: await findOriginalValues(selection)
-  }
-}
-
-/**
- * Reduces the selected section to a list of atlases it contains.
+ * Reduces the selected section to an array of unique atlases it contains.
  * @param selection - The selection data.
- * @returns The list of atlases.
+ * @returns The array of unique atlases.
  */
-export function reduceAtlases(selection: SelectionData): ComponentSetNode[] {
-  const atlases = selection.sections.reduce((atlases, section) => {
-    const sectionAtlases = section.children.filter((child): child is ComponentSetNode => isAtlas(child) && !atlases.includes(child));
-    return [ ...atlases, ...sectionAtlases ]
-  },  [...selection.atlases ] as ComponentSetNode[]);
+export function reduceAtlasesFromSelectionData(selection: SelectionData): ComponentSetNode[] {
+  const impliedSections = selection.atlases.reduce(impliedSectionAtlasesReducer, { sections: [], atlases: [] });
+  const totalSections = removeDoubles([ ...selection.sections, ...impliedSections.sections ]);
+  const restAtlases = removeDoubles([ ...impliedSections.atlases ]);
+  const atlases = totalSections.reduce(sectionAtlasesReducer, [...restAtlases ]);
   return atlases;
 }
 
-/**
- * Finds template nodes within a GUI node.
- * @param guiNode - The GUI node to search within.
- * @returns The list of template nodes found.
- */
-export function findTemplateNodes(guiNode: ExportableLayer): GUINodeExport[] {
-  const templateNodes: GUINodeExport[] = [];
-  if (isFigmaBox(guiNode) && hasChildren(guiNode)) {
-    const data = getPluginData(guiNode, "defoldGUINode");
-    if (!data?.exclude) {
-      const { children } = guiNode;
-      for (const child of children) {
-        if (child.visible && isExportable(child)) {
-          if (isTemplateGUINode(child)) {
-            templateNodes.push({ layer: child, asTemplate: true });
-          } else {
-            const childTemplateNodes = findTemplateNodes(child);
-            templateNodes.push(...childTemplateNodes);
-          }
-        }
-      }
+function impliedSectionAtlasesReducer(impliedSections: { sections: SectionNode[], atlases: ComponentSetNode[] }, atlas: ComponentSetNode): { sections: SectionNode[], atlases: ComponentSetNode[] } {
+  const atlasContextSection = findSectionWithContextData(atlas);
+  if (atlasContextSection) {
+    const atlasContextData = getPluginData(atlasContextSection, "defoldSection")
+    if (atlasContextData?.jumbo) {
+      impliedSections.sections.push(atlasContextSection);
+    } else {
+      impliedSections.atlases.push(atlas);
     }
   }
-  return templateNodes;
+  return impliedSections;
 }
 
 /**
- * Detects if a root GUI node is a template node
- * @param nodes - The list of GUI nodes to check.
- * @returns The list of root nodes.
+ * Reducer function that sorts atlases from the selected section.
+ * @param atlases - The cumulative array of unique atlases.
+ * @param section - The section to sort atlases from.
+ * @returns The updated cumulative array of atlases.
  */
-export function detectRootTemplates(nodes: ExportableLayer[]): GUINodeExport[] {
-  return nodes.map(guiNode => ({ layer: guiNode, asTemplate: isTemplateGUINode(guiNode) }));
+function sectionAtlasesReducer(atlases: ComponentSetNode[], section: SectionNode): ComponentSetNode[] {
+    const sectionAtlases = section.children.filter((child) => uniqueAtlasFilter(child, atlases));
+    return [ ...atlases, ...sectionAtlases ]
 }
 
 /**
- * Reduces the selection to a list of GUI nodes. If a GUI node is a template, it will be added to the list of GUI nodes.
+ * Filter function that checks if the Figma layer is a unique atlas.
+ * @param layer - The Figma layer to check.
+ * @param atlases - The list of unique atlases.
+ * @returns True if the layer is a unique atlas, false otherwise.
+ */
+function uniqueAtlasFilter(layer: SceneNode, atlases: ComponentSetNode[]): layer is ComponentSetNode {
+  return isLayerAtlas(layer) && !atlases.includes(layer)
+}
+
+/**
+ * Picks all the GUI nodes from the selection data.
+ * @param selection - The selection data. 
+ * @returns The array of GUI nodes.
+ */
+export function pickGUIFromSelectionData(selection: SelectionData) {
+  const { gui } = selection;
+  return gui;
+}
+
+/**
+ * Picks the first GUI node from the selection data.
  * @param selection - The selection data.
- * @returns The list of GUI nodes.
+ * @returns The first GUI node.
  */
-export function reduceGUINodes(selection: SelectionData): GUINodeExport[] {
-  const guiNodes = selection.gui.reduce((nodes, guiNode) => {
-    const templateNodes = findTemplateNodes(guiNode);
-    return [ ...nodes, ...templateNodes ]
-  }, detectRootTemplates(selection.gui));
-  return guiNodes;
+export function pickFirstGUINodeFromSelectionData(selection: SelectionData) {
+  const { gui: [ layer ] } = selection
+  return layer;
 }
 
-export function reduceBundle(selection: SelectionData) {
-  const gui = reduceGUINodes(selection);
-  const gameObjects = selection.gameObjects;
-  return { gui, gameObjects };
+/**
+ * Picks all the game objects from the selection data.
+ * @param selection - The selection data.
+ * @returns The array of game objects.
+ */
+export function pickGameObjectsFromSelectionData(selection: SelectionData) {
+  const { gameObjects } = selection;
+  return gameObjects;
+}
+
+/**
+ * Picks the first game object from the selection data.
+ * @param selection - The selection data.
+ * @returns The first game object.
+ */
+export function pickFirstGameObjectFromSelectionData(selection: SelectionData) {
+  const { gameObjects: [ layer ] } = selection;
+  return layer;
+}
+
+/**
+ * Picks all the atlases from the selection data.
+ * @param selection - The selection data.
+ * @returns The array of atlases.
+ */
+export function pickFirstAtlasFromSelectionData(selection: SelectionData) {
+  const { atlases: [ layer ] } = selection;
+  return layer;
+}
+
+/**
+ * Picks the first atlas from the selection data.
+ * @param selection - The selection data.
+ * @returns The first atlas.
+ */
+export function pickLayersFromSelectionData(selection: SelectionData) {
+  const { layers } = selection;
+  return layers;
 }

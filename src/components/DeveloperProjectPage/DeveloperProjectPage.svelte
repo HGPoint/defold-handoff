@@ -1,13 +1,15 @@
 <script lang="ts">
-  import selectionState from "state/selection";
-  import { postMessageToPlugin } from "utilities/pluginUI";
-  import Page from "components/Page";
+  import Actions from "components/Actions";
+  import ActionButton from "components/ActionButton";
   import DimensionsProperty from "components/DimensionsProperty";
-  import Properties from "components/Properties";
   import NumberProperty from "components/NumberProperty";
+  import Page from "components/Page";
+  import Properties from "components/Properties";
+  import PropertyTip from "components/PropertyTip";
   import TextProperty from "components/TextProperty";
   import TextSetProperty from "components/TextSetProperty";
-  import PropertyTip from "components/PropertyTip";
+  import selectionState from "state/selection";
+  import { postMessageToPlugin } from "utilities/ui";
 
   let { project } = $selectionState
   let lastSentUpdate = JSON.stringify(project);
@@ -59,5 +61,8 @@
         </PropertyTip>
       </TextProperty>
     </Properties>
+    <Actions title="Project Tools">
+      <ActionButton label="Purge Unused Plugin Data" action="purgeUnusedData" />
+    </Actions>
   </Page>
 {/if}

@@ -1,4 +1,5 @@
 {
+  "$schema": "./config.schema.json",
   "ui": {
     "mode": null,
     "collapsed": false,
@@ -8,6 +9,12 @@
     "guiNodeActionsCollapsed": false,
     "guiNodesToolsCollapsed": false,
     "guiNodesActionsCollapsed": false,
+    "gameObjectPropertiesCollapsed": false,
+    "gameObjectSpecialPropertiesCollapsed": false,
+    "gameObjectToolsCollapsed": false,
+    "gameObjectActionsCollapsed": false,
+    "gameObjectsToolsCollapsed": false,
+    "gameObjectsActionsCollapsed": false,
     "atlasToolsCollapsed": false,
     "atlasActionsCollapsed": false,
     "atlasesToolsCollapsed": false,
@@ -19,9 +26,17 @@
     "sectionsToolsCollapsed": false,
     "sectionsActionsCollapsed": false,
     "layerActionsCollapsed": false,
-    "layersActionsCollapsed": false,
-    "gameObjectsToolsCollapsed": false,
-    "gameObjectsActionsCollapsed": false
+    "layersActionsCollapsed": false
+  },
+  "uiSize": {
+    "collapsed": {
+      "width": 400,
+      "height": 47
+    },
+    "expanded": {
+      "width": 400,
+      "height": 600
+    }
   },
   "screenSize": {
     "x": 1136,
@@ -65,7 +80,7 @@
     "xanchor": "XANCHOR_NONE",
     "yanchor": "YANCHOR_NONE",
     "pivot": "PIVOT_CENTER",
-    "size_mode": "PARSED",
+    "size_mode": "SIZE_MODE_AUTO",
     "adjust_mode": "ADJUST_MODE_FIT",
     "clipping_mode": "CLIPPING_MODE_NONE",
     "clipping_visible": true,
@@ -75,10 +90,13 @@
     "template_node_child": false
   },
   "guiNodeDefaultSpecialValues": {
+    "exclude": false,
     "screen": false,
     "skip": false,
     "fixed": false,
     "cloneable": false,
+    "inferred": false,
+    "export_variants": "",
     "path": "",
     "template": false,
     "template_path": "/common/view",
@@ -86,11 +104,8 @@
     "script": false,
     "script_path": "",
     "script_name": "",
-    "export_variants": "",
     "wrapper": false,
-    "wrapper_padding": null,
-    "exclude": false,
-    "inferred": false
+    "wrapper_padding": null
   },
   "gameCollectionDefaultValues": {
     "name": "game",
@@ -102,19 +117,20 @@
     "slice9": { "x": 0, "y": 0, "z": 0, "w": 0 },
     "material": "",
     "pivot": "PIVOT_CENTER",
-    "size_mode": "PARSED",
+    "size_mode": "SIZE_MODE_AUTO",
     "blend_mode": "BLEND_MODE_ALPHA"
   },
   "gameObjectDefaultSpecialValues": {
+    "exclude": false,
     "skip": false,
+    "inferred": false,
     "implied_game_object": false,
     "arrange_depth": false,
     "depth_axis": "y0.001",
-    "path": "",
-    "exclude": false,
-    "inferred": false
+    "path": ""
   },
   "atlasMaxSize": 4096,
+  "atlasPadding": 20,
   "atlasSpritePadding": 10,
   "atlasDefaultValues": {
     "margin": 0,
@@ -143,7 +159,6 @@
   "defaultFontFamilies": [],
   "autoskip": "skip_",
   "sizeModes": {
-    "Parsed": "PARSED",
     "Auto": "SIZE_MODE_AUTO",
     "Manual": "SIZE_MODE_MANUAL" 
   },

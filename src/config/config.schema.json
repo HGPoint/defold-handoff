@@ -1,0 +1,869 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "ui": {
+      "type": "object",
+      "properties": {
+        "mode": {
+          "type": "null"
+        },
+        "collapsed": {
+          "type": "boolean"
+        },
+        "guiNodePropertiesCollapsed": {
+          "type": "boolean"
+        },
+        "guiNodeSpecialPropertiesCollapsed": {
+          "type": "boolean"
+        },
+        "guiNodeToolsCollapsed": {
+          "type": "boolean"
+        },
+        "guiNodeActionsCollapsed": {
+          "type": "boolean"
+        },
+        "guiNodesToolsCollapsed": {
+          "type": "boolean"
+        },
+        "guiNodesActionsCollapsed": {
+          "type": "boolean"
+        },
+        "atlasToolsCollapsed": {
+          "type": "boolean"
+        },
+        "atlasActionsCollapsed": {
+          "type": "boolean"
+        },
+        "atlasesToolsCollapsed": {
+          "type": "boolean"
+        },
+        "atlasesActionsCollapsed": {
+          "type": "boolean"
+        },
+        "sectionGUIPropertiesCollapsed": {
+          "type": "boolean"
+        },
+        "sectionAtlasPropertiesCollapsed": {
+          "type": "boolean"
+        },
+        "sectionToolsCollapsed": {
+          "type": "boolean"
+        },
+        "sectionActionsCollapsed": {
+          "type": "boolean"
+        },
+        "sectionsToolsCollapsed": {
+          "type": "boolean"
+        },
+        "sectionsActionsCollapsed": {
+          "type": "boolean"
+        },
+        "layerActionsCollapsed": {
+          "type": "boolean"
+        },
+        "layersActionsCollapsed": {
+          "type": "boolean"
+        },
+        "gameObjectsToolsCollapsed": {
+          "type": "boolean"
+        },
+        "gameObjectsActionsCollapsed": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "mode",
+        "collapsed",
+        "guiNodePropertiesCollapsed",
+        "guiNodeSpecialPropertiesCollapsed",
+        "guiNodeToolsCollapsed",
+        "guiNodeActionsCollapsed",
+        "guiNodesToolsCollapsed",
+        "guiNodesActionsCollapsed",
+        "atlasToolsCollapsed",
+        "atlasActionsCollapsed",
+        "atlasesToolsCollapsed",
+        "atlasesActionsCollapsed",
+        "sectionGUIPropertiesCollapsed",
+        "sectionAtlasPropertiesCollapsed",
+        "sectionToolsCollapsed",
+        "sectionActionsCollapsed",
+        "sectionsToolsCollapsed",
+        "sectionsActionsCollapsed",
+        "layerActionsCollapsed",
+        "layersActionsCollapsed",
+        "gameObjectPropertiesCollapsed",
+        "gameObjectSpecialPropertiesCollapsed",
+        "gameObjectToolsCollapsed",
+        "gameObjectActionsCollapsed",
+        "gameObjectsToolsCollapsed",
+        "gameObjectsActionsCollapsed"
+      ]
+    },
+    "uiSize": {
+      "type": "object",
+      "properties": {
+        "collapsed": {
+          "type": "object",
+          "properties": {
+            "width": {
+              "type": "integer"
+            },
+            "height": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "width",
+            "height"
+          ]
+        },
+        "expanded": {
+          "type": "object",
+          "properties": {
+            "width": {
+              "type": "integer"
+            },
+            "height": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "width",
+            "height"
+          ]
+        }
+      }
+    },
+    "screenSize": {
+      "type": "object",
+      "properties": {
+        "x": {
+          "type": "integer"
+        },
+        "y": {
+          "type": "integer"
+        },
+        "z": {
+          "type": "integer"
+        },
+        "w": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "x",
+        "y",
+        "z",
+        "w"
+      ]
+    },
+    "paths": {
+      "type": "object",
+      "properties": {
+        "assetsPath": {
+          "type": "string"
+        },
+        "atlasAssetsPath": {
+          "type": "string"
+        },
+        "imageAssetsPath": {
+          "type": "string"
+        },
+        "fontAssetsPath": {
+          "type": "string"
+        },
+        "spineAssetsPath": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "assetsPath",
+        "atlasAssetsPath",
+        "imageAssetsPath",
+        "fontAssetsPath",
+        "spineAssetsPath"
+      ]
+    },
+    "constKeys": {
+      "type": "array",
+      "items": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "string"
+        },
+        {
+          "type": "string"
+        },
+        {
+          "type": "string"
+        },
+        {
+          "type": "string"
+        },
+        {
+          "type": "string"
+        },
+        {
+          "type": "string"
+        },
+        {
+          "type": "string"
+        },
+        {
+          "type": "string"
+        },
+        {
+          "type": "string"
+        }
+      ]
+    },
+    "guiDefaultValues": {
+      "type": "object",
+      "properties": {
+        "script": {
+          "type": "string"
+        },
+        "material": {
+          "type": "string"
+        },
+        "adjust_reference": {
+          "type": "string"
+        },
+        "max_nodes": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "script",
+        "material",
+        "adjust_reference",
+        "max_nodes"
+      ]
+    },
+    "guiNodeDefaultValues": {
+      "type": "object",
+      "properties": {
+        "scale": {
+          "type": "object",
+          "properties": {
+            "x": {
+              "type": "integer"
+            },
+            "y": {
+              "type": "integer"
+            },
+            "z": {
+              "type": "integer"
+            },
+            "w": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "x",
+            "y",
+            "z",
+            "w"
+          ]
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "visible": {
+          "type": "boolean"
+        },
+        "slice9": {
+          "type": "object",
+          "properties": {
+            "x": {
+              "type": "integer"
+            },
+            "y": {
+              "type": "integer"
+            },
+            "z": {
+              "type": "integer"
+            },
+            "w": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "x",
+            "y",
+            "z",
+            "w"
+          ]
+        },
+        "layer": {
+          "type": "string"
+        },
+        "material": {
+          "type": "string"
+        },
+        "inherit_alpha": {
+          "type": "boolean"
+        },
+        "xanchor": {
+          "type": "string"
+        },
+        "yanchor": {
+          "type": "string"
+        },
+        "pivot": {
+          "type": "string"
+        },
+        "size_mode": {
+          "type": "string"
+        },
+        "adjust_mode": {
+          "type": "string"
+        },
+        "clipping_mode": {
+          "type": "string"
+        },
+        "clipping_visible": {
+          "type": "boolean"
+        },
+        "clipping_inverted": {
+          "type": "boolean"
+        },
+        "blend_mode": {
+          "type": "string"
+        },
+        "custom_type": {
+          "type": "integer"
+        },
+        "template_node_child": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "scale",
+        "enabled",
+        "visible",
+        "slice9",
+        "layer",
+        "material",
+        "inherit_alpha",
+        "xanchor",
+        "yanchor",
+        "pivot",
+        "size_mode",
+        "adjust_mode",
+        "clipping_mode",
+        "clipping_visible",
+        "clipping_inverted",
+        "blend_mode",
+        "custom_type",
+        "template_node_child"
+      ]
+    },
+    "guiNodeDefaultSpecialValues": {
+      "type": "object",
+      "properties": {
+        "screen": {
+          "type": "boolean"
+        },
+        "skip": {
+          "type": "boolean"
+        },
+        "fixed": {
+          "type": "boolean"
+        },
+        "cloneable": {
+          "type": "boolean"
+        },
+        "path": {
+          "type": "string"
+        },
+        "template": {
+          "type": "boolean"
+        },
+        "template_path": {
+          "type": "string"
+        },
+        "template_name": {
+          "type": "string"
+        },
+        "script": {
+          "type": "boolean"
+        },
+        "script_path": {
+          "type": "string"
+        },
+        "script_name": {
+          "type": "string"
+        },
+        "export_variants": {
+          "type": "string"
+        },
+        "wrapper": {
+          "type": "boolean"
+        },
+        "wrapper_padding": {
+          "type": "null"
+        },
+        "exclude": {
+          "type": "boolean"
+        },
+        "inferred": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "screen",
+        "skip",
+        "fixed",
+        "cloneable",
+        "path",
+        "template",
+        "template_path",
+        "template_name",
+        "script",
+        "script_path",
+        "script_name",
+        "export_variants",
+        "wrapper",
+        "wrapper_padding",
+        "exclude",
+        "inferred"
+      ]
+    },
+    "gameCollectionDefaultValues": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "scale_along_z": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "name",
+        "scale_along_z"
+      ]
+    },
+    "gameObjectDefaultValues": {
+      "type": "object",
+      "properties": {
+        "position": {
+          "type": "object",
+          "properties": {
+            "x": {
+              "type": "integer"
+            },
+            "y": {
+              "type": "integer"
+            },
+            "z": {
+              "type": "integer"
+            },
+            "w": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "x",
+            "y",
+            "z",
+            "w"
+          ]
+        },
+        "scale": {
+          "type": "object",
+          "properties": {
+            "x": {
+              "type": "integer"
+            },
+            "y": {
+              "type": "integer"
+            },
+            "z": {
+              "type": "integer"
+            },
+            "w": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "x",
+            "y",
+            "z",
+            "w"
+          ]
+        },
+        "slice9": {
+          "type": "object",
+          "properties": {
+            "x": {
+              "type": "integer"
+            },
+            "y": {
+              "type": "integer"
+            },
+            "z": {
+              "type": "integer"
+            },
+            "w": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "x",
+            "y",
+            "z",
+            "w"
+          ]
+        },
+        "material": {
+          "type": "string"
+        },
+        "pivot": {
+          "type": "string"
+        },
+        "size_mode": {
+          "type": "string"
+        },
+        "blend_mode": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "position",
+        "scale",
+        "slice9",
+        "material",
+        "pivot",
+        "size_mode",
+        "blend_mode"
+      ]
+    },
+    "gameObjectDefaultSpecialValues": {
+      "type": "object",
+      "properties": {
+        "skip": {
+          "type": "boolean"
+        },
+        "implied_game_object": {
+          "type": "boolean"
+        },
+        "arrange_depth": {
+          "type": "boolean"
+        },
+        "depth_axis": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "exclude": {
+          "type": "boolean"
+        },
+        "inferred": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "skip",
+        "implied_game_object",
+        "arrange_depth",
+        "depth_axis",
+        "path",
+        "exclude",
+        "inferred"
+      ]
+    },
+    "atlasMaxSize": {
+      "type": "integer"
+    },
+    "atlasPadding": {
+      "type": "integer"
+    },
+    "atlasSpritePadding": {
+      "type": "integer"
+    },
+    "atlasDefaultValues": {
+      "type": "object",
+      "properties": {
+        "margin": {
+          "type": "integer"
+        },
+        "extrude_borders": {
+          "type": "integer"
+        },
+        "inner_padding": {
+          "type": "integer"
+        },
+        "max_page_width": {
+          "type": "integer"
+        },
+        "max_page_height": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "margin",
+        "extrude_borders",
+        "inner_padding",
+        "max_page_width",
+        "max_page_height"
+      ]
+    },
+    "atlasImageDefaultValues": {
+      "type": "object",
+      "properties": {
+        "sprite_trim_mode": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "sprite_trim_mode"
+      ]
+    },
+    "sectionDefaultValues": {
+      "type": "object",
+      "properties": {
+        "bundled": {
+          "type": "boolean"
+        },
+        "jumbo": {
+          "type": "string"
+        },
+        "layers": {
+          "type": "array",
+          "items": [
+            {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "name"
+              ]
+            }
+          ]
+        },
+        "materials": {
+          "type": "array",
+          "items": {}
+        },
+        "ignorePrefixes": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "bundled",
+        "jumbo",
+        "layers",
+        "materials",
+        "ignorePrefixes"
+      ]
+    },
+    "defaultFontSize": {
+      "type": "integer"
+    },
+    "defaultFontStrokeRatio": {
+      "type": "number"
+    },
+    "defaultFontFamilies": {
+      "type": "array",
+      "items": {}
+    },
+    "autoskip": {
+      "type": "string"
+    },
+    "sizeModes": {
+      "type": "object",
+      "properties": {
+        "Auto": {
+          "type": "string"
+        },
+        "Manual": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "Auto",
+        "Manual"
+      ]
+    },
+    "blendModes": {
+      "type": "object",
+      "properties": {
+        "Alpha": {
+          "type": "string"
+        },
+        "Add": {
+          "type": "string"
+        },
+        "Multiply": {
+          "type": "string"
+        },
+        "Screen": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "Alpha",
+        "Add",
+        "Multiply",
+        "Screen"
+      ]
+    },
+    "pivots": {
+      "type": "object",
+      "properties": {
+        "Center": {
+          "type": "string"
+        },
+        "North (Top)": {
+          "type": "string"
+        },
+        "North East (Top Right)": {
+          "type": "string"
+        },
+        "East (Right)": {
+          "type": "string"
+        },
+        "South East (Bottom Right)": {
+          "type": "string"
+        },
+        "South (Bottom)": {
+          "type": "string"
+        },
+        "South West (Bottom Left)": {
+          "type": "string"
+        },
+        "West (Left)": {
+          "type": "string"
+        },
+        "North West (Top Left)": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "Center",
+        "North (Top)",
+        "North East (Top Right)",
+        "East (Right)",
+        "South East (Bottom Right)",
+        "South (Bottom)",
+        "South West (Bottom Left)",
+        "West (Left)",
+        "North West (Top Left)"
+      ]
+    },
+    "xAnchors": {
+      "type": "object",
+      "properties": {
+        "None": {
+          "type": "string"
+        },
+        "Left": {
+          "type": "string"
+        },
+        "Right": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "None",
+        "Left",
+        "Right"
+      ]
+    },
+    "yAnchors": {
+      "type": "object",
+      "properties": {
+        "None": {
+          "type": "string"
+        },
+        "Top": {
+          "type": "string"
+        },
+        "Bottom": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "None",
+        "Top",
+        "Bottom"
+      ]
+    },
+    "adjustModes": {
+      "type": "object",
+      "properties": {
+        "Fit": {
+          "type": "string"
+        },
+        "Zoom": {
+          "type": "string"
+        },
+        "Stretch": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "Fit",
+        "Zoom",
+        "Stretch"
+      ]
+    },
+    "clippingModes": {
+      "type": "object",
+      "properties": {
+        "None": {
+          "type": "string"
+        },
+        "Stencil": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "None",
+        "Stencil"
+      ]
+    }
+  },
+  "required": [
+    "ui",
+    "screenSize",
+    "paths",
+    "constKeys",
+    "guiDefaultValues",
+    "guiNodeDefaultValues",
+    "guiNodeDefaultSpecialValues",
+    "gameCollectionDefaultValues",
+    "gameObjectDefaultValues",
+    "gameObjectDefaultSpecialValues",
+    "atlasMaxSize",
+    "atlasSpritePadding",
+    "atlasDefaultValues",
+    "atlasImageDefaultValues",
+    "sectionDefaultValues",
+    "defaultFontSize",
+    "defaultFontStrokeRatio",
+    "defaultFontFamilies",
+    "autoskip",
+    "sizeModes",
+    "blendModes",
+    "pivots",
+    "xAnchors",
+    "yAnchors",
+    "adjustModes",
+    "clippingModes"
+  ]
+}

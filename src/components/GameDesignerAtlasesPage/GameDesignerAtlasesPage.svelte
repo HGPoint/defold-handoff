@@ -1,7 +1,7 @@
 <script lang="ts">
-  import Page from "components/Page";
-  import Actions from "components/Actions";
   import ActionButton from "components/ActionButton";
+  import Actions from "components/Actions";
+  import Page from "components/Page";
 </script>
 
 <Page>
@@ -9,5 +9,8 @@
     <ActionButton label="Fix Atlases" action="fixAtlases" />
     <ActionButton label="Sort Atlases" action="sortAtlases" />
     <ActionButton label="Fit Atlases" action="fitAtlases" />
+  </Actions>
+  <Actions collapseKey="atlasesToolsCollapsed">
+    <ActionButton label="Export Atlases" action="exportAtlases" />
   </Actions>
 </Page>

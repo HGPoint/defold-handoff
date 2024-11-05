@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { postMessageToPlugin } from "utilities/pluginUI";
   import Button from "components/Button";
   import NumberInput from "components/NumberInput";
+  import { postMessageToPlugin } from "utilities/ui";
 
   export let label: string;
   export let value: number;

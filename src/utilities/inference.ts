@@ -1,21 +1,166 @@
 /**
- * Utility module for inferring Defold properties from Figma layers.
-  * @packageDocumentation
+ * Handles Defold-like property inference from Figma layer properties.
+ * @packageDocumentation
  */
 
 import config from "config/config.json";
-import { projectConfig } from "handoff/project";
-import { vector4, isZeroVector } from "utilities/math";
+import { PROJECT_CONFIG } from "handoff/project";
 import { resolveAtlasName } from "utilities/atlas";
-import { getPluginData, setPluginData, isFigmaBox, isFigmaText, hasFont, findMainComponent, isFigmaComponentInstance, isFigmaSceneNode, isAtlas, hasSolidFills, hasSolidStrokes, isSolidPaint, isShadowEffect, hasSolidVisibleFills, isAtlasSprite, isFigmaSlice } from "utilities/figma";
-import { isSlice9Layer, findPlaceholderLayer, parseSlice9Data } from "utilities/slice9";
-import { tryFindFont } from "utilities/font";
+import { resolveBaseBackgroundColor, resolveBaseColor, resolveBaseTextOutline, resolveBaseTextShadowColor } from "utilities/color";
 import { generateContextData } from "utilities/context";
-import { calculateColorValue } from "utilities/color";
+import { isLayerInferred } from "utilities/data";
+import { injectEmptyComponentDefaults, injectGUINodeDefaults, injectLabelComponentDefaults, injectSpriteComponentDefaults } from "utilities/defaults";
+import { findMainFigmaComponent, getPluginData, hasChildren, hasFont, hasParent, hasSolidNonWhiteFills, hasSolidStrokes, hasSolidVisibleFills, isFigmaBox, isFigmaComponentInstance, isFigmaSlice, isFigmaText, isLayerAtlas, isLayerExportable, isLayerNode, isLayerSprite, isShadowEffect, resolveFillColor, resolveTextOutlineColor, resolveTextShadowColor, setPluginData } from "utilities/figma";
+import { tryFindFont } from "utilities/font";
+import { isZeroVector, vector4 } from "utilities/math";
+import { calculateCenteredPosition, convertCenteredPositionToPivotedPosition } from "utilities/pivot";
+import { findSlice9PlaceholderLayer, isSlice9Layer, parseSlice9Data } from "utilities/slice9";
+import { calculateTextScale, calculateTextStrokeWeight, resolveText } from "utilities/text";
 
 /**
- * Infers the GUI node type based on the Figma layer type.
- * @param layer - The Figma layer to infer the GUI node type for.
+ * Infers properties for GUI.
+ * @param layers - The Figma layers to infer properties from.
+ */
+export function inferGUI(layers: readonly SceneNode[], inferChildren = true, forceInfer = false) {
+  for (const layer of layers) {
+    inferGUINode(layer, inferChildren, forceInfer);
+  }
+}
+
+/**
+ * Infers properties for the GUI node.
+ * @param layer - The Figma layer to infer properties from.
+ * @param inferChildren - Whether to infer children of the layer.
+ * @param forceInfer - Whether to force inference even if the layer is already inferred.
+ */
+export async function inferGUINode(layer: SceneNode, inferChildren = true, forceInfer = false) {
+  const shouldInfer = !isLayerInferred(layer, "defoldGUINode") || forceInfer;
+  if (isFigmaBox(layer)) {
+    if (shouldInfer) {
+      inferGUIBox(layer);
+    }
+    if (inferChildren && layer.children) {
+      inferGUI(layer.children, inferChildren, forceInfer);
+    }
+  } else if (isFigmaText(layer) && shouldInfer) {
+    inferGUIText(layer);
+  }
+}
+
+/**
+ * Infers properties for the GUI text node and bounds the inferred data to the Figma layer.
+ * @param layer - The Figma layer to infer properties from.
+ */
+export function inferGUIText(layer: TextNode) {
+  const pluginData = getPluginData(layer, "defoldGUINode");
+  const inferredData = inferGUITextData(layer, pluginData);
+  const defaults = injectGUINodeDefaults();
+  const data = {
+    ...defaults,
+    ...pluginData,
+    ...inferredData,
+    inferred: true,
+    figma_node_type: layer.type,
+  };
+  const guiNodeData = { defoldGUINode: data };
+  setPluginData(layer, guiNodeData);
+  inferTextStrokeWeight(layer);
+}
+
+/**
+ * Infers properties for the GUI text node.
+ * @param layer - The Figma layer to infer properties from.
+ * @param pluginData - The plugin data already bound to the Figma layer.
+ * @returns The inferred GUI text node data.
+ */
+export function inferGUITextData(layer: TextNode, pluginData?: WithNull<PluginGUINodeData>) {
+  const context = generateContextData(layer);
+  const id = resolveId(layer, pluginData);
+  const type = resolveType("TYPE_TEXT", pluginData);
+  const sizeMode = inferGUITextSizeMode();
+  const visible = inferGUITextVisible();
+  const font = inferFont(layer);
+  const guiLayer = resolveGUILayer(context, pluginData);
+  return {
+    id,
+    type,
+    layer: guiLayer,
+    visible,
+    size_mode: sizeMode,
+    font,
+  };
+}
+
+/**
+ * Infers properties for the GUI box node and bounds the inferred data to the Figma layer.
+ * @param layer - The Figma layer to infer properties from.
+ */
+export async function inferGUIBox(layer: BoxLayer) {
+  const pluginData = getPluginData(layer, "defoldGUINode");
+  const inferredData = await inferGUIBoxData(layer, pluginData);
+  const defaults = injectGUINodeDefaults();
+  const data = {
+    ...defaults,
+    ...pluginData,
+    ...inferredData,
+    inferred: true,
+    figma_node_type: layer.type,
+  };
+  const guiNodeData = { defoldGUINode: data };
+  setPluginData(layer, guiNodeData);
+}
+
+/**
+ * Infers properties for the GUI box node.
+ * @param layer - The Figma layer to infer properties from.
+ * @param pluginData - The plugin data already bound to the Figma layer.
+ * @returns The inferred GUI box node data.
+ */
+export async function inferGUIBoxData(layer: BoxLayer, pluginData?: WithNull<PluginGUINodeData>) {
+  const context = generateContextData(layer);
+  const id = resolveId(layer, pluginData);
+  const type = resolveType("TYPE_BOX", pluginData);
+  const texture = await inferGUIBoxTexture(layer);
+  const sizeMode = await inferSizeMode(layer, texture);
+  const visible = inferGUIBoxVisible(layer, texture);
+  const guiLayer = resolveGUILayer(context, pluginData);
+  const data = {
+    id,
+    type,
+    layer: guiLayer,
+    visible,
+    size_mode: sizeMode,
+    inferred: true,
+  };
+  return data;
+}
+
+/**
+ * Resolves the ID for the GUI node or game object.
+ * @param layer - The Figma layer to infer ID from.
+ * @param pluginData - The plugin data already bound to the Figma layer.
+ * @returns The resolved ID for the GUI node or game object.
+ */
+function resolveId(layer: SceneNode, pluginData?: WithNull<PluginGUINodeData | PluginGameObjectData>) {
+  return pluginData?.id || layer.name;
+}
+
+/**
+ * Resolves the type for the GUI node or game object.
+ * @param fallbackType - The fallback type to use if the type cannot be inferred.
+ * @param pluginData - The plugin data already bound to the Figma layer.
+ * @returns The resolved type for the GUI node or game object.
+ */
+function resolveType(fallbackType: GameObjectType, pluginData?: WithNull<PluginGameObjectData>): GameObjectType;
+function resolveType(fallbackType: GUINodeType, pluginData?: WithNull<PluginGUINodeData>): GUINodeType;
+function resolveType(fallbackType: GameObjectType | GUINodeType, pluginData?: WithNull<PluginGameObjectData | PluginGUINodeData>): GameObjectType | GUINodeType {
+  return pluginData?.type || fallbackType;
+}
+
+
+/**
+ * Infers the type of the GUI node based on the type of Figma layer.
+ * @param layer - The Figma layer to infer GUI node type from.
  * @returns The inferred GUI node type.
  */
 export function inferGUINodeType(layer: SceneNode) {
@@ -26,46 +171,38 @@ export function inferGUINodeType(layer: SceneNode) {
 }
 
 /**
- * Infers if the box node is visible.
- * @param layer - The box layer to infer visibility for.
- * @param texture - The texture for the box layer.
- * @returns True if the box layer is visible, otherwise false.
+ * Infers the visibility of the box GUI node.
+ * @param layer - The Figma layer to infer visibility from.
+ * @param texture - The the box GUI node texture.
+ * @returns The inferred visibility of the box GUI node.
  */
-export function inferGUIBoxNodeVisible(layer: BoxLayer, texture?: string): boolean {
+export function inferGUIBoxVisible(layer: BoxLayer, texture?: string): boolean {
   if (!texture) {
     const fills = layer.fills;
-    return hasSolidVisibleFills(fills);
+    return hasSolidNonWhiteFills(fills);
   }
   return true;
 }
 
 /**
- * Infers if the text node is visible.
- * @returns Always returns true.
+ * Infers the visibility of the text GUI node.
+ * @returns The inferred visibility of the text GUI node, which is always true.
  */
 export function inferGUITextVisible(): boolean {
   return true;
 }
 
 /**
- * Infers the size mode for a box node.
- * @param layer - The box layer to infer size mode for.
- * @param texture - The texture for the box layer.
- * @returns The inferred size mode for the box layer.
+ * Infers the size mode for the GUI box node or game object.
+ * @param layer - The Figma layer to infer size mode from.
+ * @param texture - The the box GUI node or game object texture.
+ * @returns The inferred size mode for the GUI box node.
  */
-export async function inferBoxSizeMode(layer: ExportableLayer, texture?: string): Promise<SizeMode> {
-  if (isSlice9Layer(layer)) {
-    return "SIZE_MODE_MANUAL";
-  }
+export async function inferSizeMode(layer: ExportableLayer, texture?: string): Promise<SizeMode> {
   if (texture) {
     if (isFigmaComponentInstance(layer)) {
-      const mainComponent = await findMainComponent(layer);
-      if (mainComponent) {
-        const { parent } = mainComponent;
-        if (isFigmaSceneNode(parent) && isAtlas(parent)) {
-          return mainComponent.width == layer.width && mainComponent.height == layer.height ? "SIZE_MODE_AUTO" : "SIZE_MODE_MANUAL";
-        }
-      }
+      const sizeMode = await inferSpriteSizeMode(layer);
+      return sizeMode;
     }
     return "SIZE_MODE_AUTO";
   }
@@ -73,17 +210,37 @@ export async function inferBoxSizeMode(layer: ExportableLayer, texture?: string)
 }
 
 /**
- * Infers the size mode for text layers.
- * @returns The inferred size mode, which is always 'SIZE_MODE_MANUAL'.
+ * Infers the size mode for the box GUI node based on the size of the sprite layer.
+ * @param layer - The Figam layer to infer size mode from.
+ * @returns The inferred size mode for the box GUI node.
  */
-export function inferGUITextNodeSizeMode(): SizeMode {
+async function inferSpriteSizeMode(layer: InstanceNode): Promise<SizeMode> {
+  const mainComponent = await findMainFigmaComponent(layer);
+  if (mainComponent) {
+    const { parent } = mainComponent;
+    if (parent && isLayerAtlas(parent)) {
+      const { width: mainWidth, height: mainHeight } = mainComponent;
+      const { width, height } = layer;
+      const isSameSize = mainWidth == width && mainHeight == height;
+      const sizeMode = isSameSize ? "SIZE_MODE_AUTO" : "SIZE_MODE_MANUAL";
+      return sizeMode;
+    }
+  }
+  return "SIZE_MODE_AUTO";
+}
+
+/**
+ * Infers the size mode for the text GUI node.
+ * @returns The inferred size mode for the text GUI node, which is always manual.
+ */
+export function inferGUITextSizeMode(): SizeMode {
   return "SIZE_MODE_MANUAL";
 }
 
 /**
- * Resolve the pivot point for a text layer.
- * @param layer - The text layer to resolve pivot point for.
- * @returns The resolved pivot point for the text layer.
+ * Infers the pivot point for the text GUI node.
+ * @param layer - The Figma layer to infer pivot point from.
+ * @returns The inferred pivot point for the text GUI node.
  */
 export function inferTextPivot(layer: TextLayer): Pivot {
   const alignVertical = layer.textAlignVertical;
@@ -108,49 +265,36 @@ export function inferTextPivot(layer: TextLayer): Pivot {
   return "PIVOT_CENTER";
 }
 
-function resolvePosition(pluginData ?: PluginGameObjectData | null) {
+/**
+ * Infers the position for the GUI node or game object.
+ * @param pluginData - The plugin data bound to the Figma layer.
+ * @returns The inferred position for GUI node the game object.
+ */
+function resolvePosition(pluginData ?: WithNull<PluginGameObjectData>) {
   return pluginData?.position || config.gameObjectDefaultValues.position
 }
 
 /**
- * Converts the rotation of a layer into a vector4 format.
- * @param layer - The Figma layer to convert rotation for.
- * @returns The converted rotation vector of the layer.
+ * Infers the rotation for the GUI node or game object.
+ * @param layer - The Figma layer to infer rotation from.
+ * @returns The inferred rotation for the GUI node or game object.
  */
 export function inferRotation(layer: ExportableLayer) {
   return vector4(0, 0, layer.rotation, 1);
 }
 
 /**
- * Converts the box scale of a layer into a vector4 format.
- * @returns The converted box scale vector.
+ * Infers the scale for the GUI node or game object.
+ * @returns The inferred scale for the GUI node or game object, which is always 1.
  */
 export function inferScale() {
   return vector4(1);
 }
 
 /**
- * Calculates the text scale based on the font size and the default font size.
- * @param fontSize - The font size of the text layer.
- * @returns The calculated text scale vector.
- */
-function calculateTextScale(fontSize: number) {
-  const scale = fontSize / projectConfig.fontSize;
-  return vector4(scale, scale, scale, 1);
-}
-
-/**
- * Calculates the mixed text scale based on the font size.
- * @returns The calculated mixed text scale vector.
- */
-function resolveMixedTextScale() {
-  return vector4(1);
-}
-
-/**
- * Converts the text scale of a text layer into a vector4 format.
- * @param layer - The text layer to convert text scale for.
- * @returns The converted text scale vector.
+ * Infers the text scale for the text GUI node or label game object.
+ * @param layer - The Figma layer to infer text scale from.
+ * @returns The inferred text scale for the text GUI node or label game object.
  */
 export function inferTextScale(layer: TextNode) {
   const { fontSize } = layer;
@@ -161,13 +305,21 @@ export function inferTextScale(layer: TextNode) {
 }
 
 /**
- * Converts the size of a Figma layer into a vector4 format.
- * @param layer - The Figma layer to convert size for.
- * @returns The converted size vector of the box layer.
+ * Resolves the mixed text scale.
+ * @returns The resolved mixed text scale, which is always 1.
+ */
+function resolveMixedTextScale() {
+  return vector4(1);
+}
+
+/**
+ * Infers the size of the GUI node or game object.
+ * @param layer - The Figma layer to infer size from.
+ * @returns The inferred size of the GUI node or game object.
  */
 export function inferSize(layer: ExportableLayer) {
   if (isSlice9Layer(layer)) {
-    const placeholder = findPlaceholderLayer(layer);
+    const placeholder = findSlice9PlaceholderLayer(layer);
     if (placeholder) {
       return vector4(placeholder.width, placeholder.height, 0, 1);
     }
@@ -176,24 +328,10 @@ export function inferSize(layer: ExportableLayer) {
 }
 
 /**
- * Resolves the slice9 data for a Figma layer.
- * @param layer - The Figma layer to resolve slice9 data for.
- * @param data - GUI node data.
- * @returns The resolved slice9 data for the Figma layer.
- */
-export function inferSlice9(layer: BoxLayer, data?: PluginGUINodeData | PluginGameObjectData | null) {
-  const parsedSlice9 = parseSlice9Data(layer);
-  if (parsedSlice9 && !isZeroVector(parsedSlice9)) {
-    return parsedSlice9;
-  }
-  return data?.slice9 || vector4(0)
-}
-
-/**
- * Converts the size of a text layer into a vector4 format.
- * @param layer - The text layer to convert size for.
- * @param scale - The scale vector of the text layer.
- * @returns The converted size of the text layer.
+ * Infers the size of the text box for the text GUI node or label game object.
+ * @param layer - The text layer to infer text box size from.
+ * @param scale - The scale of the text layer.
+ * @returns The inferred size of the text box for the text GUI node or label game object.
  */
 export function inferTextBoxSize(layer: TextLayer, scale: Vector4) {
   const { width, height } = layer;
@@ -203,12 +341,26 @@ export function inferTextBoxSize(layer: TextLayer, scale: Vector4) {
 }
 
 /**
+ * Infers the slice9 data for the GUI node or game object.
+ * @param layer - The Figma layer to infer slice9 data from.
+ * @param data - The plugin data bound to the Figma layer.
+ * @returns The inferred slice9 data for the GUI node or game object.
+ */
+export function inferSlice9(layer: BoxLayer, data?: WithNull<PluginGUINodeData | PluginGameObjectData>) {
+  const parsedSlice9 = parseSlice9Data(layer);
+  if (parsedSlice9 && !isZeroVector(parsedSlice9)) {
+    return parsedSlice9;
+  }
+  return data?.slice9 || vector4(0)
+}
+
+/**
  * Infers the layer for the GUI node.
  * @param context - The GUI context data.
- * @param pluginData - The plugin data for the GUI node.
+ * @param pluginData - The plugin data bound to the Figma layer.
  * @returns The inferred layer for the GUI node.
  */
-export function resolveGUINodeLayer(context: PluginGUIContextData, pluginData?: PluginGUINodeData | null) {
+export function resolveGUILayer(context: PluginContextData, pluginData?: WithNull<PluginGUINodeData>) {
   if (!pluginData?.layer) {
     return config.guiNodeDefaultValues.layer;
   }
@@ -217,9 +369,9 @@ export function resolveGUINodeLayer(context: PluginGUIContextData, pluginData?: 
 }
 
 /**
- * Infers the font for the given text layer.
- * @param layer - The text layer to infer the font for.
- * @returns The inferred font for the text layer.
+ * Infers the font for the GUI text node or label game object.
+ * @param layer - The Figam layer to infer font from.
+ * @returns The inferred font for the GUI text node or label game object.
  */
 export function inferFont(layer: TextNode) {
   if (hasFont(layer.fontName)) {
@@ -228,89 +380,58 @@ export function inferFont(layer: TextNode) {
     if (foundFont) {
       return foundFont;
     }
-    return projectConfig.fontFamilies[0].id;
+    return PROJECT_CONFIG.fontFamilies[0].id;
   }
   return "";
-} 
+}
 
 /**
- * Resolves the texture property for a sprite within an atlas.
- * @param atlas - The atlas node containing the sprite.
- * @param layer - The sprite layer for which the texture property is to be resolved.
+ * Infers the texture for the GUI box node.
+ * @param layer - The Figma layer to infer texture from.
+ * @returns The inferred texture for the GUI box node.
+ */
+export async function inferGUIBoxTexture(layer: ExportableLayer) {
+  if (isFigmaComponentInstance(layer)) {
+    const mainComponent = await findMainFigmaComponent(layer);
+    if (mainComponent) {
+      const { parent } = mainComponent;
+      if (parent && isLayerAtlas(parent)) {
+        return resolveGUIBoxTexture(parent, layer);
+      }
+    }
+  }
+  return resolveEmptyGUIBoxTexture();
+}
+
+/**
+ * Resolves the texture property for the GUI box node.
+ * @param atlas - The atlas containing the sprite layer.
+ * @param layer - The sprite layer to resolve texture from.
  * @returns The resolved texture property.
  */
-function resolveGUIBoxNodeTexture(atlas: ComponentSetNode, layer: InstanceNode) {
+function resolveGUIBoxTexture(atlas: ComponentSetNode, layer: InstanceNode) {
   const atlasName = resolveAtlasName(atlas);
   const sprite = layer.variantProperties?.Sprite;
   return sprite ? `${atlasName}/${sprite}` : "";
 }
 
 /**
- * Resolves an empty texture property.
- * @returns The resolved texture property.
+ * Resolves the empty texture property for the GUI box node.
+ * @returns The resolved empty texture property, which is always an empty string.
  */
-function resolveEmptyGUIBoxNodeTexture() {
+function resolveEmptyGUIBoxTexture() {
   return "";
 }
 
 /**
- * Finds the texture for the given Figma layer.
- * @param layer - The Figma layer to find the texture for.
- * @returns The texture for the layer.
- */
-export async function inferGUIBoxNodeTexture(layer: ExportableLayer) {
-  if (isFigmaComponentInstance(layer)) {
-    const mainComponent = await findMainComponent(layer);
-    if (mainComponent) {
-      const { parent } = mainComponent;
-      if (isFigmaSceneNode(parent) && isAtlas(parent)) {
-        return resolveGUIBoxNodeTexture(parent, layer);
-      }
-    }
-  }
-  return resolveEmptyGUIBoxNodeTexture();
-}
-
-/**
- * Resolve the base color for a layer.
- * @returns The resolved base color.
- */
-function resolveBaseColor() {
-  return vector4(1);
-}
-
-/**
- * Resolves the base fill color.
- * @returns The resolved base fill color.
- */
-function resolveBaseFill() {
-  return vector4(1, 1, 1, 0);
-}
-
-/**
- * Resolve the fill color for a layer.
- * @param fills - The array of paint fills applied to the layer.
- * @returns The resolved fill color vector.
- */
-function resolveFillColor(fills: readonly Paint[] | typeof figma.mixed) {
-  if (Array.isArray(fills)) {
-    const fill: SolidPaint | undefined = fills.find(isSolidPaint);
-    if (fill) {
-      return calculateColorValue(fill);
-    }
-  }
-  return resolveBaseFill();
-}
-
-/**
- * Resolve the color for a layer.
- * @param layer - The layer to resolve color for.
- * @returns The resolved color vector.
+ * Infers the color for the GUI node or game object.
+ * @param layer - The Figma layer to infer color from.
+ * @returns The inferred color for the GUI node or game object.
  */
 export function inferColor(layer: ExportableLayer) {
-  if (isFigmaBox(layer) || isFigmaText(layer)) {
+  if (isLayerNode(layer)) {
     const { fills } = layer;
-    if (hasSolidFills(fills)) {
+    if (hasSolidVisibleFills(fills)) {
       return resolveFillColor(fills);
     }
   }
@@ -318,83 +439,64 @@ export function inferColor(layer: ExportableLayer) {
 }
 
 /**
- * Resolves the base outline color.
- * @returns The resolved base outline color.
+ * Infers the background color for the GUI.
+ * @returns The inferred background color for the GUI.
  */
-function resolveDefaultTextOutline() {
-  return vector4(1, 1, 1, 0);
+export function inferBackgroundColor() {
+  return resolveBaseBackgroundColor();
 }
 
 /**
- * Resolves the outline color for a text layer.
- * @param strokes - The array of strokes applied to the layer.
- * @returns The resolved outline color.
- */
-function resolveOutlineTextColor(strokes: readonly Paint[]) {
-  const stroke: SolidPaint | undefined = strokes.find(isSolidPaint);
-  if (stroke) {
-    return calculateColorValue(stroke);
-  }
-  return resolveDefaultTextOutline();
-}
-
-/**
- * Resolves the outline for a text layer.
- * @param layer - The text layer to resolve outline for.
- * @returns The resolved outline.
+ * Infers the outline for the GUI text node or label game object.
+ * @param layer - The Figma layer to infer outline from.
+ * @returns The inferred outline for the GUI text node or label game object.
  */
 export function inferTextOutline(layer: TextLayer) {
   const { strokes } = layer;
   if (hasSolidStrokes(strokes)) {
-    return resolveOutlineTextColor(strokes);
+    return resolveTextOutlineColor(strokes);
   }
-  return resolveDefaultTextOutline();
+  return resolveBaseTextOutline();
 }
 
 /**
- * Resolves the base shadow.
- * @returns The resolved base shadow.
+ * Infers the stroke weight for the GUI text node or label game object. 
+ * @param layer - The Figma layer to infer stroke weight from.
  */
-function resolveDefaultTextShadowColor() {
-  return vector4(1, 1, 1, 0);
+export function inferTextStrokeWeight(layer: TextNode) {
+  if (typeof layer.fontSize === "number") {
+    const { fontSize } = layer;
+    const strokeWeight = calculateTextStrokeWeight(fontSize);
+    layer.strokeWeight = strokeWeight;
+  }
 }
 
 /**
- * Resolves the shadow for a text layer.
- * @param effect - The drop shadow effect applied to the layer.
- * @returns The resolved shadow.
- */
-function resolveTextShadowColor(effect: DropShadowEffect) {
-  const { color: { r, g, b, a } } = effect;
-  return vector4(r, g, b, a);
-}
-
-/**
- * Resolves the shadow for a text layer.
- * @param layer - The text layer to resolve a shadow for.
- * @returns The resolved shadow.
+ * Infers the shadow for the GUI text node or label game object.
+ * @param layer - The Figma layer to infer shadow from.
+ * @returns The inferred shadow for the GUI text node or label game object.
  */
 export function inferTextShadow(layer: TextLayer) {
   const effect = layer.effects.find(isShadowEffect);
   if (effect) {
     return resolveTextShadowColor(effect);
   }
-  return resolveDefaultTextShadowColor();
+  return resolveBaseTextShadowColor();
 }
 
 /**
- * Resolves whether the text has line breaks.
- * @param layer - The text layer to resolve line break for.
- * @returns True if the text has line breaks, otherwise false.
+ * Infers whether the text has line breaks for the GUI text node or label game object.
+ * @param layer - The Figma layer to infer line breaks from.
+ * @returns Whether the text has line breaks.
  */
 export function inferLineBreak(layer: TextLayer) {
   return layer.textAutoResize === "HEIGHT" || layer.textAutoResize === "NONE";
 }
 
 /**
- * Calculates the leading (line height) of the text.
- * @param layer - The text layer to calculate leading for.
- * @returns The calculated text leading.
+ * Infers the text leading (line height) for the GUI text node or label game object.
+ * @param layer - The Figma layer to infer text leading from.
+ * @returns The inferred text leading for the GUI text node or label game object.
  */
 export function inferTextLeading(layer: TextLayer) {
   const { lineHeight, fontSize } = layer;
@@ -405,9 +507,9 @@ export function inferTextLeading(layer: TextLayer) {
 }
 
 /**
- * Calculates the tracking (letter spacing) of the text.
- * @param layer - The text layer to calculate tracking for.
- * @returns The calculated text tracking.
+ * Infers the text tracking (letter spacing) for the GUI text node or label game object.
+ * @param layer - The Figma layer to infer text tracking from.
+ * @returns The inferred text tracking for the GUI text node or label game object.
  */
 export function inferTextTracking(layer: TextLayer) {
   if (typeof layer.letterSpacing == "number") {
@@ -417,232 +519,71 @@ export function inferTextTracking(layer: TextLayer) {
 }
 
 /**
- * Resolves the clipping visible property for a layer.
- * @param layer - The layer to resolve clipping visible for.
- * @returns The resolved clipping visible property.
+ * Infers the clipping visible property for the GUI node.
+ * @param layer - The Figma layer to infer clipping visible property from.
+ * @returns The inferred clipping visible property for the GUI node.
  */
 export function inferClippingVisible(layer: BoxLayer) {
   return layer.clipsContent;
 }
 
 /**
- * Resolves the text content for a text layer
- * @param layer - The text layer to resolve text for.
- * @returns The resolved text for the text layer.
+ * Infers the text content for the GUI text node or label game object.
+ * @param layer - The Figma layer to infer text content from.
+ * @returns The inferred text content for the GUI text node or label game object.
  */
 export function inferText(layer: TextLayer) {
   const text = layer.characters.trim();
-  const lines = text.split("\n");
-  if (lines.length > 1) {
-    return lines.join("\\n\"\n\"");
-  }
-  return text;
-}
-
-function resolveId(layer: SceneNode, pluginData?: PluginGUINodeData | PluginGameObjectData | null) {
-  return pluginData?.id || layer.name;
-}
-
-function resolveType(fallbackType: GameObjectType, pluginData?: PluginGameObjectData | null): GameObjectType;
-function resolveType(fallbackType: GUINodeType, pluginData?: PluginGUINodeData | null): GUINodeType;
-function resolveType(fallbackType: GameObjectType | GUINodeType, pluginData?: PluginGameObjectData | PluginGUINodeData | null): GameObjectType | GUINodeType {
-  return pluginData?.type || fallbackType;
-}
-
-function resolveGUINodeDefaultValues() {
-  return {
-    ...config.guiNodeDefaultValues,
-    ...config.guiNodeDefaultSpecialValues,
-  };
+  const resolvedText = resolveText(text);
+  return resolvedText;
 }
 
 /**
- * Infers properties for a text node.
- * @param layer - The text node to infer data for.
- * @param pluginData - The plugin data for the text node.
- * @returns The inferred text node data.
+ * Infers properties for the game objects.
+ * @param layers - The Figma layers to infer properties from.
  */
-export function inferGUITextNodeData(layer: TextNode, pluginData?: PluginGUINodeData | null) {
-  const context = generateContextData(layer);
-  const id = resolveId(layer, pluginData);
-  const type = resolveType("TYPE_TEXT", pluginData);
-  const sizeMode = inferGUITextNodeSizeMode();
-  const visible = inferGUITextVisible();
-  const font = inferFont(layer);
-  const guiLayer = resolveGUINodeLayer(context, pluginData);
-  return {
-    id,
-    type,
-    layer: guiLayer,
-    visible,
-    size_mode: sizeMode,
-    font,
-  };
+export async function inferGameObjects(layers: readonly SceneNode[], inferChildren = true, forceInfer = false) {
+  const inferencePromises = layers.map((layer) => inferGameObject(layer, inferChildren, forceInfer));
+  await Promise.all(inferencePromises);
 }
 
 /**
- * Infers properties for a text node and sets plugin data.
- * @param layer - The text layer to infer properties for.
+ * Infers properties for the game object.
+ * @param layer - The Figma layer to infer properties from.
+ * @param inferChildren - Whether to infer children of the layer.
+ * @param forceInfer - Whether to force inference even if the layer is already inferred.
  */
-export function inferGUITextNode(layer: TextNode) {
-  const pluginData = getPluginData(layer, "defoldGUINode");
-  const inferredData = inferGUITextNodeData(layer, pluginData); 
-  const defaultValues = resolveGUINodeDefaultValues();
-  const data = {
-    ...defaultValues,
-    ...pluginData,
-    ...inferredData,
-    inferred: true,
-    figma_node_type: layer.type,
-  };
-  const guiNodeData = { defoldGUINode: data };
-  setPluginData(layer, guiNodeData);
-  inferTextStrokeWeight(layer);
-}
-
-/**
- * Infers properties for a GUI node.
- * @param layer - The GUI node layer to infer properties for.
- * @param pluginData - The plugin data for the GUI node.
- * @returns The inferred GUI node data.
- */
-export async function inferGUIBoxNodeData(layer: BoxLayer, pluginData?: PluginGUINodeData | null) {
-  const context = generateContextData(layer);
-  const id = resolveId(layer, pluginData);
-  const type = resolveType("TYPE_BOX", pluginData);
-  const texture = await inferGUIBoxNodeTexture(layer);
-  const sizeMode = await inferBoxSizeMode(layer, texture);
-  const visible = inferGUIBoxNodeVisible(layer, texture);
-  const guiLayer = resolveGUINodeLayer(context, pluginData);
-  const data = {
-    id,
-    type,
-    layer: guiLayer,
-    visible,
-    size_mode: sizeMode,
-    inferred: true,
-  };
-  return data;
-}
-
-/**
- * Infers properties for a box node and sets plugin data.
- * @param layer - The box layer to infer properties for.
- */
-export async function inferGUIBoxNode(layer: BoxLayer) {
-  const pluginData = getPluginData(layer, "defoldGUINode");
-  const inferredData = await inferGUIBoxNodeData(layer, pluginData);
-  const defaultValues = resolveGUINodeDefaultValues();
-  const data = {
-    ...defaultValues,
-    ...pluginData,
-    ...inferredData,
-    inferred: true,
-    figma_node_type: layer.type,
-  };
-  const guiNodeData = { defoldGUINode: data };
-  setPluginData(layer, guiNodeData);
-}
-
-export async function inferGUINode(layer: SceneNode, inferChildren = true) {
+export async function inferGameObject(layer: SceneNode, inferChildren = true, forceInfer = false) {
+  const shouldInfer = !isLayerInferred(layer, "defoldGameObject") || forceInfer;
   if (isFigmaBox(layer)) {
-    inferGUIBoxNode(layer);
-    if (inferChildren && layer.children) {
-      inferGUINodes(layer.children);
-    }
-  } else if (isFigmaText(layer)) {
-    inferGUITextNode(layer);
-  }
-}
-
-/**
- * Infers properties for multiple GUI nodes.
- * @param layers - The array of Figma layers to infer properties for.
- */
-export function inferGUINodes(layers: readonly SceneNode[]) {
-  for (const layer of layers) {
-    inferGUINode(layer);
-  }
-}
-
-/**
- * Resolves the background color for the GUI component.
- * @returns The resolved background color.
- */
-export function inferBackgroundColor() {
-  return vector4(0);
-}
-
-function resolveGameObjectSprite(atlas: ComponentSetNode, layer: InstanceNode) {
-  const atlasName = resolveAtlasName(atlas);
-  const sprite = layer.variantProperties?.Sprite;
-  return {
-    image: sprite ? atlasName : "",
-    default_animation: sprite ?? ""
-  };
-}
-
-function resolveGameObjectImpliedSprite(layer: SliceLayer) {
-  const parent = layer.parent;
-  const atlasName = parent ? parent.name : layer.name;
-  return {
-    image: atlasName,
-    default_animation: layer.name
-  };
-}
-
-function resolveGameObjectEmptySprite() {
-  return {
-    image: undefined,
-    default_animation: undefined
-  };
-}
-
-export async function inferSpriteComponentSprite(layer: ExportableLayer) {
-  if (isFigmaComponentInstance(layer)) {
-    const mainComponent = await findMainComponent(layer);
-    if (mainComponent) {
-      const { parent } = mainComponent;
-      if (isFigmaSceneNode(parent) && isAtlas(parent)) {
-        return resolveGameObjectSprite(parent, layer);
+    if ((shouldInfer) && await isLayerSprite(layer)) {
+      inferSpriteComponent(layer);
+    } else {
+      if (shouldInfer) {
+        inferEmptyComponent(layer);
+      }
+      if (inferChildren && hasChildren(layer)) {
+        inferGameObjects(layer.children, inferChildren, forceInfer);
       }
     }
+  } else if (isFigmaText(layer)) {
+    if (shouldInfer) {
+      inferLabelComponent(layer);
+    }
   }
-  if (isFigmaSlice(layer)) {
-    return resolveGameObjectImpliedSprite(layer);
-  }
-  return resolveGameObjectEmptySprite();
 }
 
-async function inferSpriteComponentData(layer: BoxLayer, pluginData?: PluginGameObjectData | null) {
-  const id = resolveId(layer, pluginData);
-  const type = resolveType("TYPE_SPRITE", pluginData);
-  const position = resolvePosition(pluginData);
-  return {
-    id,
-    type,
-    position,
-  };
-}
-
-export function injectSpriteComponentDefaultValues() {
-  const { scale, size_mode, slice9, material, blend_mode } = config.gameObjectDefaultValues;
-  return {
-    scale,
-    size_mode,
-    slice9,
-    material,
-    blend_mode,
-    ...config.gameObjectDefaultSpecialValues,
-  };
-}
-
-async function inferSpriteComponent(layer: BoxLayer) {
+/**
+ * Infers properties for the base game object and bounds the inferred data to the Figma layer.
+ * @param layer - The Figma layer to infer properties from.
+ * @param forceInfer - Whether to force inference even if the layer is already inferred.
+ */
+function inferEmptyComponent(layer: BoxLayer) {
   const pluginData = getPluginData(layer, "defoldGameObject");
-  const inferredData = await inferSpriteComponentData(layer, pluginData);
-  const defaultValues = injectSpriteComponentDefaultValues();
+  const inferredData = inferEmptyComponentData(layer, pluginData);
+  const defaults = injectEmptyComponentDefaults();
   const data = {
-    ...defaultValues,
+    ...defaults,
     ...pluginData,
     ...inferredData,
     inferred: true,
@@ -652,7 +593,13 @@ async function inferSpriteComponent(layer: BoxLayer) {
   setPluginData(layer, gameObjectData);
 }
 
-function inferEmptyComponentData(layer: BoxLayer, pluginData?: PluginGameObjectData | null) {
+/**
+ * Infers properties for the base game object.
+ * @param layer - The Figma layer to infer properties from.
+ * @param pluginData - The plugin data already bound to the Figma layer.
+ * @returns The inferred base game object data.
+ */
+function inferEmptyComponentData(layer: BoxLayer, pluginData?: WithNull<PluginGameObjectData>) {
   const id = resolveId(layer, pluginData);
   const type = resolveType("TYPE_EMPTY", pluginData);
   const position = resolvePosition(pluginData);
@@ -663,20 +610,16 @@ function inferEmptyComponentData(layer: BoxLayer, pluginData?: PluginGameObjectD
   };
 }
 
-export function injectEmptyComponentDefaultValues() {
-  const { scale } = config.gameObjectDefaultValues;
-  return {
-    scale,
-    ...config.gameObjectDefaultSpecialValues,
-  };
-}
-
-function inferEmptyComponent(layer: BoxLayer) {
+/**
+ * Infers properties for the sprite game object and bounds the inferred data to the Figma layer.
+ * @param layer - The Figma layer to infer properties from.
+ */
+async function inferSpriteComponent(layer: BoxLayer) {
   const pluginData = getPluginData(layer, "defoldGameObject");
-  const inferredData = inferEmptyComponentData(layer, pluginData);
-  const defaultValues = injectEmptyComponentDefaultValues();
+  const inferredData = await inferSpriteComponentData(layer, pluginData);
+  const defaults = injectSpriteComponentDefaults();
   const data = {
-    ...defaultValues,
+    ...defaults,
     ...pluginData,
     ...inferredData,
     inferred: true,
@@ -686,9 +629,15 @@ function inferEmptyComponent(layer: BoxLayer) {
   setPluginData(layer, gameObjectData);
 }
 
-function inferLabelComponentData(layer: TextNode, pluginData?: PluginGameObjectData | null) {
+/**
+ * Infers properties for the sprite game object.
+ * @param layer - The Figma layer to infer properties from.
+ * @param pluginData - The plugin data already bound to the Figma layer.
+ * @returns The inferred sprite game object data.
+ */
+async function inferSpriteComponentData(layer: BoxLayer, pluginData?: WithNull<PluginGameObjectData>) {
   const id = resolveId(layer, pluginData);
-  const type = resolveType("TYPE_LABEL", pluginData);
+  const type = resolveType("TYPE_SPRITE", pluginData);
   const position = resolvePosition(pluginData);
   return {
     id,
@@ -697,22 +646,16 @@ function inferLabelComponentData(layer: TextNode, pluginData?: PluginGameObjectD
   };
 }
 
-export function injectLabelComponentDefaultValues() {
-  const { scale, pivot, blend_mode } = config.gameObjectDefaultValues;
-  return {
-    scale,
-    pivot,
-    blend_mode,
-    ...config.gameObjectDefaultSpecialValues,
-  };
-}
-
+/**
+ * Infers properties for the label game object and bounds the inferred data to the Figma layer.
+ * @param layer - The Figma layer to infer properties from.
+ */
 export function inferLabelComponent(layer: TextNode) {
   const pluginData = getPluginData(layer, "defoldGameObject");
   const inferredData = inferLabelComponentData(layer, pluginData);
-  const defaultValues = injectLabelComponentDefaultValues();
+  const defaults = injectLabelComponentDefaults();
   const data = {
-    ...defaultValues,
+    ...defaults,
     ...pluginData,
     ...inferredData,
     inferred: true,
@@ -723,38 +666,161 @@ export function inferLabelComponent(layer: TextNode) {
   inferTextStrokeWeight(layer);
 }
 
-export async function inferGameObject(layer: SceneNode, inferChildren = true) {
-  if (isFigmaBox(layer)) {
-    if (await isAtlasSprite(layer)) {
-      inferSpriteComponent(layer);
-    } else {
-      inferEmptyComponent(layer);
-      if (inferChildren && layer.children) {
-        inferGameObjects(layer.children);
+/**
+ * Infers properties for the label game object.
+ * @param layer - The Figma layer to infer properties from.
+ * @param pluginData - The plugin data already bound to the Figma layer.
+ * @returns The inferred label game object data.
+ */
+function inferLabelComponentData(layer: TextNode, pluginData?: WithNull<PluginGameObjectData>) {
+  const id = resolveId(layer, pluginData);
+  const type = resolveType("TYPE_LABEL", pluginData);
+  const position = resolvePosition(pluginData);
+  return {
+    id,
+    type,
+    position,
+  };
+}
+
+/**
+ * Infers the game object type based on the Figma layer type.
+ * @param layer - The Figma layer to infer game object type from.
+ * @returns The inferred game object type.
+ */
+export async function inferGameObjectType(layer: SceneNode) {
+  if (isFigmaText(layer)) {
+    return "TYPE_LABEL";
+  }
+  if (await isLayerSprite(layer)) {
+    return "TYPE_SPRITE";
+  }
+  return "TYPE_EMPTY";
+}
+
+/**
+ * Infers the game collection parent transformations.
+ * @param layer - The Figma layer to infer parent transformations from.
+ * @returns The inferred game collection parent transformations.
+ */
+export function inferGameCollectionParentTransformations(layer: ExportableLayer) {
+  if (hasParent(layer)) {
+    const { parent: { width, height, x, y } } = layer;
+    return {
+      parentSize: vector4(width, height, 0, 0),
+      parentShift: vector4(-x, -y, 0, 0),
+    }
+  }
+  return {
+    parentSize: vector4(0),
+    parentShift: vector4(0),
+  }
+}
+
+/**
+ * Infers the game object position.
+ * @param layer - The Figma layer to infer position from.
+ * @param pluginData - The plugin data already bound to the Figma layer.
+ * @returns The inferred game object position.
+ */
+export function resolveGameObjectPosition(layer: BoxLayer | SliceNode, pluginData?: WithNull<PluginGameObjectData>): Vector4 {
+  const backupPosition = pluginData?.position || config.gameObjectDefaultValues.position
+  const { parent } = layer;
+  if (parent && isLayerExportable(parent)) {
+    const size = inferSize(layer);
+    const parentSize = inferSize(parent);
+    const centeredPosition = calculateCenteredPosition(layer, size, parentSize);
+    centeredPosition.z = backupPosition.z
+    return {
+      ...config.gameObjectDefaultValues.position,
+      ...pluginData?.position,
+      ...centeredPosition
+    }
+  }
+  return backupPosition
+}
+
+/**
+ * Infers the label game object position.
+ * @param layer - The Figma layer to infer position from.
+ * @param pluginData - The plugin data already bound to the Figma layer.
+ * @returns The inferred the label game object position.
+ */
+export function resolveLabelComponentPosition(layer: TextLayer, pluginData?: WithNull<PluginGameObjectData>): Vector4 {
+  const backupPosition = pluginData?.position || config.gameObjectDefaultValues.position
+  const { parent } = layer;
+  if (parent && isLayerExportable(parent)) {
+    const size = inferSize(layer);
+    const parentSize = inferSize(parent);
+    const centeredPosition = calculateCenteredPosition(layer, size, parentSize);
+    const position = convertCenteredPositionToPivotedPosition(centeredPosition, "PIVOT_CENTER", parentSize);
+    position.z = backupPosition.z
+    return {
+      ...config.gameObjectDefaultValues.position,
+      ...pluginData?.position,
+      ...position
+    }
+  }
+  return backupPosition
+}
+
+/**
+ * Infers the sprite for the sprite game object.
+ * @param layer - The Figma layer to infer sprite from.
+ * @returns The inferred sprite for the sprite game object.
+ */
+export async function inferSpriteComponentSprite(layer: ExportableLayer) {
+  if (isFigmaComponentInstance(layer)) {
+    const mainComponent = await findMainFigmaComponent(layer);
+    if (mainComponent) {
+      const { parent } = mainComponent;
+      if (!!parent && isLayerAtlas(parent)) {
+        return resolveGameObjectSprite(parent, layer);
       }
     }
-  } else if (isFigmaText(layer)) {
-    inferLabelComponent(layer);
   }
+  if (isFigmaSlice(layer)) {
+    return resolveGameObjectImpliedSprite(layer);
+  }
+  return resolveGameObjectEmptySprite();
 }
 
 /**
- * Infers properties for multiple game objects.
- * @param layers - The array of Figma layers to infer properties for.
+ * Resolves the sprite for the sprite game object.
+ * @param atlas - The atlas containing the sprite layer.
+ * @param layer - The sprite layer to resolve sprite from.
+ * @returns The resolved sprite for the sprite game object.
  */
-export async function inferGameObjects(layers: readonly SceneNode[]) {
-  for (const layer of layers) {
-    await inferGameObject(layer);
-  }
+function resolveGameObjectSprite(atlas: ComponentSetNode, layer: InstanceNode) {
+  const atlasName = resolveAtlasName(atlas);
+  const sprite = layer.variantProperties?.Sprite;
+  return {
+    image: sprite ? atlasName : "",
+    default_animation: sprite ?? ""
+  };
 }
 
 /**
- * Infers the stroke weight for the text layer.
- * @param layer - The text layer to infer the stroke weight for.
+ * Resolves the implied sprite for the sprite game object.
+ * @param layer - The slice layer to resolve implied sprite from.
+ * @returns The resolved implied sprite for the sprite game object.
  */
-export function inferTextStrokeWeight(layer: TextNode) {
-  if (typeof layer.fontSize === "number") {
-    const strokeWeight = layer.fontSize * projectConfig.fontStrokeRatio;
-    layer.strokeWeight = strokeWeight;
-  }
+function resolveGameObjectImpliedSprite(layer: SliceLayer) {
+  const { parent } = layer;
+  const atlasName = parent ? parent.name : layer.name;
+  return {
+    image: atlasName,
+    default_animation: layer.name
+  };
+}
+
+/**
+ * Resolves the empty sprite for the sprite game object.
+ * @returns The resolved empty sprite for the sprite game object.
+ */
+function resolveGameObjectEmptySprite() {
+  return {
+    image: undefined,
+    default_animation: undefined
+  };
 }

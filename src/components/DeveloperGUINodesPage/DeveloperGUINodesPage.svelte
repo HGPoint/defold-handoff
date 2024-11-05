@@ -1,17 +1,17 @@
 <script lang="ts">
-  import selectionState from "state/selection";
-  import { postMessageToPlugin } from "utilities/pluginUI";
+  import ActionButton from "components/ActionButton";
+  import Actions from "components/Actions";
   import Page from "components/Page";
   import Properties from "components/Properties";
-  import Actions from "components/Actions";
-  import ActionButton from "components/ActionButton";
   import ToggleProperty from "components/ToggleProperty";
+  import selectionState from "state/selection";
+  import { postMessageToPlugin } from "utilities/ui";
 
   let { gui } = $selectionState;
   let massProperties = generateMassProperties(gui)
   let lastSentUpdate = JSON.stringify(massProperties);
 
-  function resolveProperty(gui: PluginGUINodeData[], key: keyof PluginGUIMassNodeData) {
+  function resolveProperty(gui: PluginGUINodeData[], key: keyof PluginGUINodesData) {
     let values = gui.map(node => node[key]);
     let [ firstValue ] = values;
     if (values.every(value => value === firstValue)) {
@@ -44,10 +44,10 @@
     massProperties = generateMassProperties(gui)
   }
 
-  function updatePlugin(updatedProperties: PluginGUIMassNodeData) {
+  function updatePlugin(updatedProperties: PluginGUINodesData) {
     if (shouldSendUpdate()) {
       gui.forEach(guiNode => { Object.assign(guiNode, updatedProperties); });
-      postMessageToPlugin("updateGUINodes", { gui });
+      postMessageToPlugin("updateGUI", { gui });
     }
   }
 
@@ -64,12 +64,12 @@
     <ToggleProperty label="Extract" bind:value={massProperties.cloneable} disabled={massProperties.exclude} />
   </Properties>
   <Actions title="Tools" collapseKey="guiNodesToolsCollapsed">
-    <ActionButton label="Infer Properties" action="fixGUINodes" />
-    <ActionButton label="Validate GUI" action="validateGUINodes" disabled={true} />
-    <ActionButton label="Reset GUI Nodes" action="resetGUINodes" />
+    <ActionButton label="Infer Properties" action="fixGUI" />
+    <ActionButton label="Validate GUI" action="validateGUI" disabled={true} />
+    <ActionButton label="Reset GUI Nodes" action="removeGUI" />
   </Actions>
   <Actions collapseKey="guiNodesActionsCollapsed">
-    <ActionButton label="Export GUI" action="exportGUINodes" />
+    <ActionButton label="Export GUI" action="exportGUI" />
     <ActionButton label="Export Bundle" action="exportBundle" />
   </Actions>
   {#if $selectionState.layers.length > 1}

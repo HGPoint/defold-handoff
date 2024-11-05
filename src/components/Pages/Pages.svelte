@@ -1,8 +1,8 @@
 <script lang="ts">
-  import uiState from "state/ui";
-  import DeveloperPages from "components/DeveloperPages";
   import DesignerPages from "components/DesignerPages";
+  import DeveloperPages from "components/DeveloperPages";
   import GameDesignerPages from "components/GameDesignerPages";
+  import uiState from "state/ui";
 </script>
 
 {#if $uiState.mode === "developer"}

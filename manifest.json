@@ -11,15 +11,15 @@
   ],
   "menu": [
     {
-      "name": "Developer Mode",
+      "name": "GUI Developer Mode",
       "command": "developer"
     }, 
     {
-      "name": "Designer Mode",
+      "name": "GUI Designer Mode",
       "command": "designer"
     },
     {
-      "name": "Game Designer Mode (Early Beta)",
+      "name": "Game Designer Mode",
       "command": "game-designer"
     }
   ],

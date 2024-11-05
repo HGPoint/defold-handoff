@@ -1,14 +1,14 @@
 <script lang="ts">
-  import selectionState from "state/selection";
-  import { postMessageToPlugin } from "utilities/pluginUI";
-  import Page from "components/Page";
-  import Properties from "components/Properties";
-  import Actions from "components/Actions";
   import ActionButton from "components/ActionButton";
   import ActionOptionButton from "components/ActionOptionButton";
-  import ToggleProperty from "components/ToggleProperty";
+  import Actions from "components/Actions";
+  import Page from "components/Page";
+  import Properties from "components/Properties";
   import TextProperty from "components/TextProperty";
   import TextSetProperty from "components/TextSetProperty";
+  import ToggleProperty from "components/ToggleProperty";
+  import selectionState from "state/selection";
+  import { postMessageToPlugin } from "utilities/ui";
 
   let { sections: [ section ] } = $selectionState;
   let lastSentUpdate = JSON.stringify(section);
@@ -22,7 +22,7 @@
     return false;
   }
   
-  function updatePlugin(updateProperties: PluginSectionData | null) {
+  function updatePlugin(updateProperties: WithNull<PluginSectionData>) {
     if (shouldSendUpdate()) {
       postMessageToPlugin("updateSection", { section });
     }
@@ -50,12 +50,12 @@
     <Actions title="Tools" collapseKey="sectionToolsCollapsed">
       <ActionButton label="Fix Atlases" action="fixAtlases" />
       <ActionButton label="Validate Atlases" action="validateAtlases" disabled={true} />
-      <ActionButton label="Reset Section" action="resetSections" />
+      <ActionButton label="Reset Section" action="removeSections" />
     </Actions>
     <Actions collapseKey="sectionActionsCollapsed">
       <ActionButton label="Export Atlases" action="exportAtlases" />
       <ActionOptionButton label="Export Sprites at Scale" value={1} action="exportSprites" />
-      <ActionButton label="Destroy Atlases" action="destroyAtlases" />
+      <ActionButton label="Destroy Atlases" action="removeAtlases" />
     </Actions>
   </Page>
 {/if}

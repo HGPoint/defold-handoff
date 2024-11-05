@@ -1,9 +1,9 @@
 <script lang="ts">
-  import selectionState from "state/selection";
-  import Page from "components/Page";
-  import Actions from "components/Actions";
   import ActionButton from "components/ActionButton";
-    import { isLayerSelected, areMultipleLayersSelected } from "utilities/selection";
+  import Actions from "components/Actions";
+  import Page from "components/Page";
+  import selectionState from "state/selection";
+  import { areMultipleLayersSelected, isLayerSelected } from "utilities/selection";
 </script>
 
 <Page>
@@ -14,5 +14,8 @@
     <ActionButton label="Fix Atlas" action="fixAtlases" />
     <ActionButton label="Sort Atlas" action="sortAtlases" />
     <ActionButton label="Fit Atlas" action="fitAtlases" />
+  </Actions>
+  <Actions collapseKey="atlasActionsCollapsed">
+    <ActionButton label="Export Atlas" action="exportAtlases" />
   </Actions>
 </Page>

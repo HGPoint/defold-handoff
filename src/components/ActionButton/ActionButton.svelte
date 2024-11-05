@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { postMessageToPlugin } from "utilities/pluginUI";
   import Button from "components/Button";
+  import { postMessageToPlugin } from "utilities/ui";
 
   export let label: string;
   export let action: PluginMessageAction;

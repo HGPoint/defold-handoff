@@ -1,18 +1,20 @@
 /**
- * Utility module for handling the work with Figma layers and properties.
+ * Handles operations with Figma layers, properties and plugin data storage.
  * @packageDocumentation
  */
 
-import { nonWhiteRGB } from "utilities/color";
+import { vector4 } from "utilities/math";
+import { isNonWhiteRGBColor, convertPaintToRGBA, resolveBaseFill, resolveBaseTextOutline } from "utilities/color";
 import { isSlice9PlaceholderLayer } from "utilities/slice9";
+import { resolveGUINodeOverridesDataKey, canChangeGUINodeOverridesPluginData } from "utilities/gui";
 
 /**
- * Checks if a layer is a Figma scene node.
+ * Determines whether the Figma layer is a scene node.
  * @param layer - The Figma layer to check.
- * @returns True if the layer is a Figma scene node, otherwise false.
+ * @returns True if the Figma layer is a scene node, otherwise false.
  */
-export function isFigmaSceneNode(layer: BaseNode | null): layer is SceneNode {
-  return !!layer && (
+export function isFigmaSceneNode(layer: BaseNode): layer is SceneNode {
+  return (
     isFigmaComponent(layer) ||
     isFigmaComponentSet(layer) ||
     isFigmaComponentInstance(layer) ||
@@ -23,34 +25,16 @@ export function isFigmaSceneNode(layer: BaseNode | null): layer is SceneNode {
 }
 
 /**
- * Checks if a Figma scene node has been removed from the canvas.
- * @param layer - The Figma scene node to check.
- * @returns True if the scene node has been removed, otherwise false.
- */
-export function isFigmaRemoved(layer: SceneNode): boolean {
-  return layer.removed;
-}
-
-/**
- * Checks if a layer is a Figma group node.
+ * Determines whether the Figma layer is the document.
  * @param layer - The Figma layer to check.
- * @returns True if the layer is a Figma group node, otherwise false.
+ * @returns True if the Figma layer is the document, otherwise false.
  */
-export function isFigmaGroup(layer: BaseNode): layer is GroupNode {
-  return layer.type === "GROUP";
+export function isFigmaDocument(layer: BaseNode): layer is DocumentNode {
+  return layer.type === "DOCUMENT";
 }
 
 /**
- * Checks if a layer is a Figma section node.
- * @param layer - The Figma layer to check.
- * @returns True if the layer is a Figma section node, otherwise false.
- */
-export function isFigmaSection(layer: BaseNode): layer is SectionNode {
-  return layer.type === "SECTION";
-}
-
-/**
- * Checks if a layer is a Figma page.
+ * Determines whether the Figma layer is a page.
  * @param layer - The Figma layer to check.
  * @returns True if the layer is a Figma page, otherwise false.
  */
@@ -59,212 +43,350 @@ export function isFigmaPage(layer: BaseNode): layer is PageNode {
 }
 
 /**
- * Checks if a layer is a Figma component node.
+ * Determines whether the Figma layer is a group.
  * @param layer - The Figma layer to check.
- * @returns True if the layer is a Figma component node, otherwise false.
+ * @returns True if the Figma layer is a group, otherwise false.
+ */
+export function isFigmaGroup(layer: BaseNode): layer is GroupNode {
+  return layer.type === "GROUP";
+}
+
+/**
+ * Determines whether the Figma layer is a section.
+ * @param layer - The Figma layer to check.
+ * @returns True if the layer is a section, otherwise false.
+ */
+export function isFigmaSection(layer: BaseNode): layer is SectionNode {
+  return layer.type === "SECTION";
+}
+
+/**
+ * Determines whether the Figma layer is a box node.
+ * @param layer - The Figma layer to check.
+ * @returns True if the Figma layer is a box node, otherwise false.
+ */
+export function isFigmaBox(layer: BaseNode): layer is BoxLayer {
+  return isFigmaFrame(layer) || isFigmaComponentInstance(layer) || isFigmaComponent(layer);
+}
+
+/**
+ * Determines whether the Figma layer is a component.
+ * @param layer - The Figma layer to check.
+ * @returns True if the Figma layer is a component, otherwise false.
  */
 export function isFigmaComponent(layer: BaseNode): layer is ComponentNode {
   return layer.type === "COMPONENT";
 }
 
 /**
- * Checks if a layer is a Figma component set node.
+ * Determines whether the Figma layer is a component set.
  * @param layer - The Figma layer to check.
- * @returns True if the layer is a Figma component set node, otherwise false.
+ * @returns True if the Figma layer is a component set, otherwise false.
  */
 export function isFigmaComponentSet(layer: BaseNode): layer is ComponentSetNode {
   return layer.type === "COMPONENT_SET";
 }
 
 /**
- * Checks if a layer is a Figma component instance node.
+ * Determines whether the Figma layer is a component instance.
  * @param layer - The Figma layer to check.
- * @returns True if the layer is a Figma component instance node, otherwise false.
+ * @returns True if the Figma layer is a component instance, otherwise false.
  */
 export function isFigmaComponentInstance(layer: BaseNode): layer is InstanceNode {
   return layer.type === "INSTANCE";
 }
 
 /**
- * Checks if a layer is a Figma frame node.
+ * Determines whether the Figma layer is a frame.
  * @param layer - The Figma layer to check.
- * @returns True if the layer is a Figma frame node, otherwise false.
+ * @returns True if the Figma layer is a frame, otherwise false.
  */
 export function isFigmaFrame(layer: BaseNode): layer is FrameNode {
   return layer.type === "FRAME";
 }
 
 /**
- * Checks if a layer is a Figma text node.
+ * Determines whether the Figma layer is a text layer.
  * @param layer - The Figma layer to check.
- * @returns True if the layer is a Figma text node, otherwise false.
+ * @returns True if the Figma layer is a text layer, otherwise false.
  */
 export function isFigmaText(layer: BaseNode): layer is TextNode {
   return layer.type === "TEXT";
 }
 
 /**
- * Checks if a layer is a (Defold) box node (either a frame, a component instance or a component).
+ * Determines whether the Figma layer is a slice.
  * @param layer - The Figma layer to check.
- * @returns True if the layer is a Figma box node, otherwise false.
+ * @returns True if the Figma layer is a slice, otherwise false.
  */
-export function isFigmaBox(layer: BaseNode): layer is (FrameNode | InstanceNode | ComponentNode) {
-  return isFigmaFrame(layer) || isFigmaComponentInstance(layer) || isFigmaComponent(layer);
-}
-
 export function isFigmaSlice(layer: BaseNode): layer is SliceNode {
   return layer.type === "SLICE";
 }
 
 /**
- * Checks if a layer is exportable (either a (Defold) box node or a Figma text node).
- * @param layer - The Figma layer to check.
- * @returns True if the layer is exportable, otherwise false.
- */
-export function isExportable(layer: BaseNode): layer is ExportableLayer {
-  return isFigmaBox(layer) || isFigmaText(layer) || isFigmaSlice(layer);
-}
-
-/**
- * Checks if a Figma layer has the specified plugin data indicating it's a Defold GUI node.
- * @param layer - The Figma layer to check.
- * @returns True if the layer is a GUI node, otherwise false.
- */
-export function isGUINode(layer: SceneNode) {
-  return !!getPluginData(layer, "defoldGUINode");
-}
-
-export function isGameObject(layer: SceneNode) {
-  return !!getPluginData(layer, "defoldGameObject");
-}
-
-/**
- * Checks if a Figma layer has the specified plugin data indicating it's a Defold atlas.
- * @param layer - The Figma layer to check.
- * @returns True if the layer is an atlas, otherwise false.
- */
-export function isAtlas(layer: SceneNode): layer is ComponentSetNode {
-  return isFigmaComponentSet(layer) && !!getPluginData(layer, "defoldAtlas");
-}
-
-/**
- * Checks if a Figma layer has the specified plugin data indicating it's a Defold atlas section.
- * @param layer - The Figma layer to check.
- * @returns True if the layer is an atlas section, otherwise false.
- */
-export function isAtlasSection(layer: SceneNode): layer is SectionNode {
-  return isFigmaSection(layer) && !!getPluginData(layer, "defoldSection");
-}
-
-/**
- * Checks if a Figma layer is an atlas sprite (a component instance of an atlas component).
- * @param layer - The Figma layer to check.
- * @returns True if the layer is an atlas sprite, otherwise false.
- */
-export async function isAtlasSprite(layer: SceneNode): Promise<boolean> {
-  if (isFigmaComponentInstance(layer)) {
-    const mainComponent = await findMainComponent(layer);
-    if (mainComponent) {
-      const { parent } = mainComponent;
-      return isFigmaSceneNode(parent) && isAtlas(parent);
-    }
-  }
-  return false;
-}
-
-/**
- * Checks if a layer is a sprite holder (layer is an instance of an atlas component set).
- * @param layer - The Figma layer to check.
- * @returns True if the layer is a sprite holder, otherwise false.
- */
-export async function isSpriteHolderLayer(layer: ExportableLayer): Promise<boolean> {
-  if (isFigmaComponentInstance(layer)) {
-    if (layer.children.length === 1) {
-      const [child] = layer.children;
-      if (!isSlice9PlaceholderLayer(child)) {
-        const sameSize = layer.width === child.width && layer.height == child.height;
-        return sameSize && await isAtlasSprite(child);
-      }
-      return await isAtlasSprite(child);
-    }
-  }
-  return false;
-}
-
-/**
- * Checks if the given node type is Figma component type.
+ * Determines whether Figma layer type is a component type.
  * @param type - The type to check.
- * @returns True if the type is Figma component, otherwise false.
+ * @returns True if the Figma layer type is a component type, otherwise false.
  */
 export function isFigmaComponentType(figmaNodeType: NodeType) {
   return figmaNodeType === "COMPONENT";
 }
 
 /**
- * Checks if the given node type is Figma component instance type.
+ * Determines whether Figma layer type is a component instance type.
  * @param type - The type to check.
- * @returns True if the type is Figma component instance, otherwise false.
+ * @returns True if the Figma layer type is a component instance type, otherwise false.
  */
 export function isFigmaComponentInstanceType(figmaNodeType: NodeType) {
   return figmaNodeType === "INSTANCE";
 }
 
 /**
- * Checks if the given node type is Figma frame type.
+ * Determines whether Figma layer type is a frame type.
  * @param type - The type to check.
- * @returns True if the type is Figma frame, otherwise false.
+ * @returns True if the Figma layer type is a frame type, otherwise false.
  */
 export function isFigmaFrameType(figmaNodeType: NodeType) {
   return figmaNodeType === "FRAME";
 }
 
 /**
- * Checks if the given node type is Figma section type.
+ * Determines whether Figma layer type is a section type.
  * @param type - The type to check.
- * @returns True if the type is Figma section, otherwise false.
+ * @returns True if the Figma layer type is a section type, otherwise false.
  */
 export function isFigmaSectionType(figmaNodeType: NodeType) {
   return figmaNodeType === "SECTION";
 }
 
 /**
- * Checks if a layer has children.
+ * Determines whether the Figma scene node has been removed.
+ * @param layer - The Figma scene node to check.
+ * @returns True if the Figma scene node has been removed, otherwise false.
+ */
+export function isFigmaRemoved(layer: SceneNode | RemovedNode): layer is RemovedNode {
+  return layer.removed;
+}
+
+/**
+ * Determines whether the Figma layer can have data bound to it.
  * @param layer - The Figma layer to check.
- * @returns True if the layer has children, otherwise false.
+ * @returns True if the layer can have data bound to it, otherwise false.
+ */
+export function isLayerData(layer: BaseNode): layer is DataLayer {
+  return isLayerNode(layer) || isFigmaComponentSet(layer) || isFigmaSection(layer) || isFigmaDocument(layer);
+}
+
+/**
+ * Determines whether the Figma layer is exportable.
+ * @param layer - The Figma layer to check.
+ * @returns True if the Figma layer is exportable, otherwise false.
+ */
+export function isLayerExportable(layer: BaseNode): layer is ExportableLayer {
+  return isLayerNode(layer) || isFigmaSlice(layer);
+}
+
+export function isLayerContext(layer: BaseNode): layer is ContextLayer {
+  return isLayerExportable(layer) || isFigmaComponentSet(layer);
+}
+
+/**
+ * Determines whether the Figma layer is a node layer.
+ * @param layer - The Figma layer to check.
+ * @returns True if the Figma layer is a node layer, otherwise false.
+ */
+export function isLayerNode(layer: BaseNode): layer is BoxLayer | TextNode {
+  return isFigmaBox(layer) || isFigmaText(layer);
+}
+
+/**
+ * Determines whether the Figma layer is a GUI node.
+ * @param layer - The Figma layer to check.
+ * @returns True if the Figma layer is a GUI node, otherwise false.
+ */
+export function isLayerGUINode(layer: BaseNode) {
+  return hasPluginData(layer, "defoldGUINode");
+}
+
+/**
+ * Determines whether the Figma layer is a game object.
+ * @param layer - The Figma layer to check.
+ * @returns True if the Figma layer is a game object, otherwise false.
+ */
+export function isLayerGameObject(layer: BaseNode) {
+  return hasPluginData(layer, "defoldGameObject");
+}
+
+/**
+ * Determines whether the Figma layer is a context section.
+ * @param layer - The Figma layer to check.
+ * @returns True if the Figma layer is a context section, otherwise false.
+ */
+export function isLayerContextSection(layer: BaseNode): layer is SectionNode {
+  return isFigmaSection(layer) && hasPluginData(layer, "defoldSection");
+}
+
+/**
+ * Determines whether the Figma layer is an atlas.
+ * @param layer - The Figma layer to check.
+ * @returns True if the Figma layer is an atlas, otherwise false.
+ */
+export function isLayerAtlas(layer: BaseNode): layer is ComponentSetNode {
+  return isFigmaComponentSet(layer) && hasPluginData(layer, "defoldAtlas");
+}
+
+/**
+ * Determines whether the Figma layer is a sprite.
+ * @param layer - The Figma layer to check.
+ * @returns True if the Figma layer is a sprite, otherwise false.
+ */
+export async function isLayerSprite(layer: BaseNode): Promise<boolean> {
+  if (isFigmaComponentInstance(layer)) {
+    const mainComponent = await findMainFigmaComponent(layer);
+    if (mainComponent) {
+      const { parent } = mainComponent;
+      return !!parent && isLayerAtlas(parent);
+    }
+  }
+  return false;
+}
+
+/**
+ * Determines whether the Figma layer is a sprite holder.
+ * @param layer - The Figma layer to check.
+ * @returns True if the Figma layer is a sprite holder, otherwise false.
+ */
+export async function isLayerSpriteHolder(layer: BaseNode): Promise<boolean> {
+  if (isFigmaComponentInstance(layer)) {
+    if (layer.children.length === 1) {
+      const [child] = layer.children;
+      if (!isSlice9PlaceholderLayer(child)) {
+        const sameSize = layer.width === child.width && layer.height == child.height;
+        return sameSize && await isLayerSprite(child);
+      }
+      return await isLayerSprite(child);
+    }
+  }
+  return false;
+}
+
+export function isVisible(layer: SceneNode): boolean {
+  return layer.visible;
+}
+
+/**
+ * Determines whether the Figma layer has a parent.
+ * @param layer - The Figma layer to check.
+ * @returns True if the Figma layer has a parent, otherwise false.
+ */
+export function hasParent(layer: BaseNode): layer is SceneNode & { parent: SceneNode } {
+  const { parent } = layer;
+  return !!parent && isFigmaSceneNode(parent)
+}
+
+/**
+ * Determines whether the Figma layer has children.
+ * @param layer - The Figma layer to check.
+ * @returns True if the Figma layer has children, otherwise false.
  */
 export function hasChildren(layer: BoxLayer): boolean {
   return !!layer.children?.length;
 }
 
 /**
- * Checks if fills contain solid colors.
+ * Determines whether there are solid fills among the fills of a Figma layer.
  * @param fills - The fills to check.
- * @returns True if the fills contain solid colors, otherwise false.
- */
-export function hasSolidFills(fills: readonly Paint[] | typeof figma.mixed) {
-  return typeof fills === "object" && !!fills.length && fills.some(fill => fill.visible && fill.type === "SOLID");
-}
-
-/**
- * Checks if fills contain solid non-default colors.
- * @param fills - The fills to check.
- * @returns True if the fills contain solid non-default colors, otherwise false.
+ * @returns True if there are solid fills among the fills, otherwise false.
  */
 export function hasSolidVisibleFills(fills: readonly Paint[] | typeof figma.mixed) {
-  return typeof fills === "object" && !!fills.length && fills.some(fill => fill.visible && fill.type === "SOLID" && nonWhiteRGB(fill.color));
+  return typeof fills === "object" && !!fills.length && fills.some(isVisibleSolidFill);
 }
 
 /**
- * Checks if strokes contain solid colors.
+ * Determines whether the fill is a visible solid fill.
+ * @param fill - The fill to check.
+ * @returns True if the fill is a visible solid fill, otherwise false.
+ */
+function isVisibleSolidFill(fill: Paint): fill is SolidPaint {
+  return !!fill.visible && fill.type === "SOLID";
+}
+
+/**
+ * Determines whether there are solid non-white fills among the fills of a Figma layer.
+ * @param fills - The fills to check.
+ * @returns True if there are solid non-white fills among the fills, otherwise false.
+ */
+export function hasSolidNonWhiteFills(fills: readonly Paint[] | typeof figma.mixed) {
+  return typeof fills === "object" && !!fills.length && fills.some(isVisibleSolidNonWhiteFill);
+}
+
+/**
+ * Determines whether the fill is a visible solid non-white fill.
+ * @param fill - The fill to check.
+ * @returns True if the fill is a visible solid non-white fill, otherwise false.
+ */
+function isVisibleSolidNonWhiteFill(fill: Paint): fill is SolidPaint {
+  return isVisibleSolidFill(fill) && isNonWhiteRGBColor(fill.color);
+}
+
+/**
+ * Resolves the fill color.
+ * @param fills - The fills to resolve the color from.
+ * @returns The resolved fill color.
+ */
+export function resolveFillColor(fills: readonly Paint[] | typeof figma.mixed) {
+  if (Array.isArray(fills)) {
+    const fill: SolidPaint | undefined = fills.find(isSolidPaint);
+    if (fill) {
+      return convertPaintToRGBA(fill);
+    }
+  }
+  return resolveBaseFill();
+}
+
+/**
+ * Resolves the outline color.
+ * @param strokes - The strokes to resolve the color from.
+ * @returns The resolved outline color.
+ */
+export function resolveTextOutlineColor(strokes: readonly Paint[]) {
+  const stroke: SolidPaint | undefined = strokes.find(isSolidPaint);
+  if (stroke) {
+    return convertPaintToRGBA(stroke);
+  }
+  return resolveBaseTextOutline();
+}
+
+/**
+ * Resolves the shadow color.
+ * @param effect - The drop shadow effect to resolve the shadow color from.
+ * @returns The resolved shadow color.
+ */
+export function resolveTextShadowColor(effect: DropShadowEffect) {
+  const { color: { r, g, b, a } } = effect;
+  return vector4(r, g, b, a);
+}
+
+/**
+ * Determines whether there are solid strokes among the strokes of a Figma layer.
  * @param strokes - The strokes to check.
- * @returns True if the strokes contain solid colors, otherwise false.
+ * @returns True if there are solid strokes among the strokes, otherwise false.
  */
 export function hasSolidStrokes(strokes: readonly Paint[] | typeof figma.mixed) {
-  return typeof strokes == "object" && !!strokes.length && strokes.some(stroke => stroke.type === "SOLID");
+  return typeof strokes == "object" && !!strokes.length && strokes.some(isSolidStroke);
 }
 
 /**
- * Checks if a paint is a solid color.
+ * Determines whether the stroke is a solid stroke.
+ * @param stroke - The stroke to check.
+ * @returns True if the stroke is a solid stroke, otherwise false.
+ */
+function isSolidStroke(stroke: Paint): stroke is SolidPaint {
+  return stroke.type === "SOLID";
+}
+
+/**
+ * Determines whether the paint is a solid color.
  * @param paint - The paint to check.
  * @returns True if the paint is a solid color, otherwise false.
  */
@@ -273,7 +395,7 @@ export function isSolidPaint(paint: Paint): paint is SolidPaint {
 }
 
 /**
- * Checks if an effect is a drop shadow effect.
+ * Determines whether the effect is a drop shadow effect.
  * @param effect - The effect to check.
  * @returns True if the effect is a drop shadow effect, otherwise false.
  */
@@ -282,7 +404,7 @@ export function isShadowEffect(effect: Effect): effect is DropShadowEffect {
 }
 
 /**
- * Checks if a font name is provided.
+ * Determines whether the font name is provided.
  * @param fontName - The font name to check.
  * @returns True if the font name is provided, otherwise false.
  */
@@ -291,200 +413,271 @@ export function hasFont(fontName: FontName | typeof figma.mixed): fontName is Fo
 }
 
 /**
- * Checks a particular property has changed.  
- * @param change - The document change to check.
- * @param property - The property to check.
- * @returns True if the property has changed, otherwise false
- */
-function hasPropertyChange(change: PropertyChange, property: NodeChangePropertyExtended) {
-  return change.properties.some(prop => prop === property);
-}
-
-/**
- * Checks if a variant property has changed.
- * @param change - The document change to check.
+ * Determines whether the variant property has changed.
+ * @param change - The property change to check.
  * @returns True if the variant property has changed, otherwise false.
  */
 export function hasVariantPropertyChanged(change: PropertyChange) {
-  return hasPropertyChange(change, "variant");
+  return hasPropertyChanged(change, "variant");
 }
 
 /**
- * Checks if a name property has changed.
- * @param change - The document change to check.
+ * Determines whether the name property has changed.
+ * @param change - The property change to check.
  * @returns True if the name property has changed, otherwise false.
  */
 export function hasNamePropertyChanged(change: PropertyChange) {
-  return hasPropertyChange(change, "name");
+  return hasPropertyChanged(change, "name");
 }
 
 /**
- * Checks if a particular document change is a property change.
+ * Determines whether the property has changed.
+ * @param change - The property change to check.
+ * @param property - The property to check.
+ * @returns True if the property has changed, otherwise false.
+ */
+function hasPropertyChanged(change: PropertyChange, property: NodeChangePropertyExtended) {
+  return change.properties.some(changeProperty => changeProperty === property);
+}
+
+/**
+ * Determines whether the document change is a property change.
  * @param change - The document change to check.
  * @returns True if the document change is a property change, otherwise false.
  */
-export function isPropertyChange(change: DocumentChange): change is PropertyChange {
+export function isDocumentPropertyChange(change: DocumentChange): change is PropertyChange {
   return change.type === "PROPERTY_CHANGE";
 }
 
 /**
- * Finds the main component of a Figma instance node.
- * @param layer - The Figma instance node to find the main component for.
- * @returns A promise that resolves with the main component if found, otherwise null.
+ * Determines whether the document change is a delete change.
+ * @param change - The document change to check.
+ * @returns True if the document change is a delete change, otherwise false.
  */
-export async function findMainComponent(layer: InstanceNode) {
-  return await layer.getMainComponentAsync();
-}
+export function isDocumentDeleteChange(change: DocumentChange): change is DeleteChange {
+  return change.type === "DELETE";
+} 
 
 /**
- * Tries to update the name of a Figma layer if a new name is provided.
- * @param layer - The Figma layer to update the name for.
- * @param name - The new name for the layer.
- */
-export function tryUpdateLayerName(layer: SceneNode, name?: string) {
-  if (!!name && layer.name !== name) {
-    layer.name = name;
-  }
-}
-
-/**
- * Sets a particular type of plugin data for a Figma layer.
- * @param layer - The Figma layer to set plugin data for.
- * @param data - The plugin data to set.
- */
-function pluginDataSetter<K extends PluginDataKey>(key: K, value: PluginData[K], layer: BaseNode) {
-  layer.setPluginData(key, JSON.stringify(value))
-}
-
-/**
- * Checks if a Figma layer should have override plugin data preserved.
- * @param layer - The Figma layer to check.
- * @param data - The plugin data.
- * @returns True if the layer should have override plugin data preserved, otherwise false.
- */
-async function shouldSetOverridePluginData(layer: BaseNode, data: PluginData) {
-  return (
-    isFigmaComponentInstance(layer) &&
-    Object.keys(data).includes("defoldGUINode") &&
-    !(await isAtlasSprite(layer))
-  );
-}
-
-/**
- * Tries to preserve override plugin data for a Figma layer.
- * @async
- * @param layer - The Figma layer for which to preserve override plugin data.
- * @param data - The override plugin data to set.
- */
-async function trySetOverridePluginData(layer: BaseNode, data: PluginData) {
-  if (await shouldSetOverridePluginData(layer, data)) {
-    const { root: document } = figma;
-    const key: PluginDataOverrideKey = `defoldGUINodeOverride-${layer.id}`;
-    pluginDataSetter(key, data.defoldGUINode, document);
-  }
-}
-
-/**
- * Sets plugin data for a Figma layer.
- * @async
- * @param layer - The Figma layer to set plugin data for.
- * @param data - The plugin data to set.
- */
-export async function setPluginData(layer: BaseNode, data: PluginData) {
-  Object.entries(data).forEach(([key, value]) => { pluginDataSetter(key as PluginDataKey, value, layer); });
-  trySetOverridePluginData(layer, data);
-}
-
-/**
- * Retrieves plugin data from a Figma layer.
- * @param layer - The Figma layer to retrieve plugin data from.
- * @param key - The key of the plugin data to retrieve.
- * @returns The plugin data associated with the specified key, or null if not found.
- */
-export function getPluginData<T extends PluginDataKey>(layer: BaseNode, key: T): PluginData[T] | null {
-  const value = layer.getPluginData(key);
-  if (value) {
-    const data: PluginData[T] = JSON.parse(value);
-    return data;
-  }
-  return null;
-}
-
-/**
- * Removes plugin data from a Figma layer.
- * @param layer - The Figma layer to remove plugin data from.
- * @param key - The key of the plugin data to remove.
- */
-export function removePluginData<T extends PluginDataKey>(layer: BaseNode, key: T) {
-  layer.setPluginData(key, "");
-}
-
-/**
- * Checks if values of two properties are equal. Text values are always considered equal.
+ * Determines whether two component properties are equal. Text properties are always considered equal.
  * @param property1 - The first component property to compare.
  * @param property2 - The second component property to compare.
  * @returns True if the component properties are equal, otherwise false.
  */
-export function equalComponentProperty(property1: ComponentProperties[keyof ComponentProperties], property2: ComponentProperties[keyof ComponentProperties]) {
+export function areEqualComponentProperties(property1: ComponentProperties[keyof ComponentProperties], property2: ComponentProperties[keyof ComponentProperties]) {
   return (property1.type == "TEXT" && property2.type == "TEXT") || property1.value === property2.value;
 }
 
 /**
- * Checks if two sets of component properties are equal.
+ * Determines whether two sets of component properties are equal.
  * @param properties1 - The first set of component properties to compare.
  * @param properties2 - The second set of component properties to compare.
- * @returns True if the component properties are equal, otherwise false.
+ * @returns True if the component property sets are equal, otherwise false.
  */
-export function equalComponentProperties(properties1: ComponentProperties, properties2: ComponentProperties) {
+export function areEqualComponentPropertySets(properties1: ComponentProperties, properties2: ComponentProperties) {
   if (properties1 == null && properties1 === properties2) {
     return true;
   }
   if (properties1 && properties2) {
-    return Object.keys(properties1).every(key => equalComponentProperty(properties1[key], properties2[key]));
+    return Object.keys(properties1).every(key => areEqualComponentProperties(properties1[key], properties2[key]));
   }
   return false;
 }
 
 /**
- * Checks if two exposed component instances have equal properties.
- * @param instance1 - The first exposed component instance to compare.
- * @param instance2 - The second exposed component instance to compare.
- * @returns True if the exposed component instances have equal properties, otherwise false.
+ * Determines if the two exposed component instances are equal by comparing their properties.
+ * @param exposedInstance1 - The first exposed component instance to compare.
+ * @param exposedInstance2 - The second exposed component instance to compare.
+ * @returns True if the exposed component instances are equal, otherwise false.
  */
-export function equalExposedComponentProperty(instance1: InstanceNode, instance2: InstanceNode) {
+export function haveEqualExposedComponentProperties(exposedInstance1: InstanceNode, exposedInstance2: InstanceNode) {
   return (
-    (!instance1.visible && !instance2.visible) ||
+    (!isVisible(exposedInstance1) && !isVisible(exposedInstance2)) ||
     (
-      instance1.visible &&
-      instance2.visible &&
-      equalComponentProperties(instance1.componentProperties, instance2.componentProperties)
+      isVisible(exposedInstance1) &&
+      isVisible(exposedInstance2) &&
+      areEqualComponentPropertySets(exposedInstance1.componentProperties, exposedInstance2.componentProperties)
     )
   )
 }
 
 /**
- * Checks if two sets of exposed component instances have equal properties.
+ * Determines if the two sets of exposed component instances are equal by comparing their properties.
  * @param exposedInstances1 - The first set of exposed component instances to compare.
  * @param exposedInstances2 - The second set of exposed component instances to compare.
- * @returns True if the exposed component instances have equal properties, otherwise false.
+ * @returns True if the exposed component instances are equal, otherwise false.
  */
 export function equalExposedComponentProperties(exposedInstances1: InstanceNode[], exposedInstances2: InstanceNode[]) {
   if ((exposedInstances1 == null && exposedInstances1 === exposedInstances2) || (exposedInstances1.length === 0 && exposedInstances1.length === exposedInstances2.length)) {
     return true;
   }
   if (exposedInstances1 && exposedInstances2) {
-    return exposedInstances1.every((instance1, index) => equalExposedComponentProperty(instance1, exposedInstances2[index]));
+    return exposedInstances1.every((instance1, index) => haveEqualExposedComponentProperties(instance1, exposedInstances2[index]));
   }
   return false;
 }
 
 /**
- * Selects the specified nodes in the Figma document.
- * @param nodes - The nodes to select.
+ * Retrieves the bound plugin data from the Figma layer.
+ * @param layer - The Figma layer to retrieve plugin data from.
+ * @param key - The key of the plugin data to retrieve.
+ * @returns The bound plugin data if found, otherwise null.
  */
-export function selectNode(nodes: SceneNode[], dontFocus?: boolean) {
-  figma.currentPage.selection = nodes;
-  if (!dontFocus) {
-    figma.viewport.scrollAndZoomIntoView(nodes);
+export function getPluginData<T extends PluginDataKey>(layer: DataLayer, key: T): WithNull<NonNullable<PluginData[T]>> {
+  const value = layer.getPluginData(key);
+  if (value) {
+    const data: PluginData[T] = JSON.parse(value);
+    if (data) {
+      return data;
+    }
   }
+  return null;
+}
+
+/**
+ * Determines whether the Figma layer has plugin data bound to it. 
+ * @param layer - The Figma layer to check.
+ * @param key - The key of the plugin data to check.
+ * @returns True if the Figma layer has plugin data bound to it, otherwise false.
+ */
+export function hasPluginData(layer: BaseNode, key: PluginDataKey): layer is DataLayer {
+  return !!layer.getPluginData(key);
+}
+
+/**
+ * Determines whether the Figma layer has GUI node plugin data bound to it.
+ * @param data - The plugin data to check.
+ * @returns True if the Figma layer has GUI node plugin data bound to it, otherwise false.
+ */
+function hasGUINodePluginData(data: PluginData): data is PluginData & { defoldGUINode: PluginGUINodeData } {
+  return "defoldGUINode" in data && !!data.defoldGUINode;
+}
+
+/**
+ * Sets the plugin data for the Figma layer.
+ * @async
+ * @param layer - The Figma layer to set plugin data for.
+ * @param data - The plugin data to set.
+ */
+export async function setPluginData(layer: DataLayer, data: PluginData) {
+  const entries = Object.entries(data) as [PluginDataKey, PluginData[PluginDataKey]][];
+  entries.forEach(([key, value]) => { pluginDataSetter(layer, key, value); });
+  trySetOverridesPluginData(layer, data);
+}
+
+/**
+ * Setter function for setting plugin data for the Figma layer.
+ * @param layer - The Figma layer to set plugin data for.
+ * @param data - The plugin data to set.
+ */
+function pluginDataSetter<TKey extends PluginDataKey>(layer: DataLayer, key: TKey, value: PluginData[TKey]) {
+  layer.setPluginData(key, JSON.stringify(value))
+}
+
+/**
+ * Attempts to set the overrides plugin data for the Figma layer.
+ * @param layer - The Figma layer to set the overrides plugin data for.
+ * @param data - The plugin data to set as overrides.
+ */
+function trySetOverridesPluginData(layer: DataLayer, data: PluginData) {
+  if (hasGUINodePluginData(data)) {
+    const { defoldGUINode } = data;
+    trySetGUINodeOverridesPluginData(layer, defoldGUINode);
+  }
+}
+
+/**
+ * Attempts to set the GUI node overrides plugin data for the Figma layer.
+ * @param layer - The Figma layer to set the GUI node overrides plugin data for.
+ * @param data - The plugin data to set as GUI node overrides.
+ */
+async function trySetGUINodeOverridesPluginData(layer: DataLayer, data: PluginGUINodeData) {
+  if (await canChangeGUINodeOverridesPluginData(layer)) {
+    const { root: document } = figma;
+    const { id } = layer;
+    const key = resolveGUINodeOverridesDataKey(id);
+    pluginDataSetter(document, key, data);
+  }
+}
+
+/**
+ * Removes the bound plugin data from the Figma layer.
+ * @param layer - The Figma layer to remove bound plugin data from.
+ * @param key - The key of the plugin data to remove.
+ */
+export function removePluginData<T extends PluginDataKey>(layer: DataLayer, key: T) {
+  if (hasPluginData(layer, key)) {
+    layer.setPluginData(key, "");
+  }
+}
+
+/**
+ * Resizes the parent layer to fit the child layer.
+ * @param parent - The parent layer to resize.
+ * @param layer - The layer to fit the parent to.
+ */
+export function fitLayerToChildLayer(parent: BoxLayer, layer: ExportableLayer) {
+  const { width, height, x, y } = layer;
+  parent.resizeWithoutConstraints(width, height);
+  parent.x += x;
+  parent.y += y;
+  layer.x = 0;
+  layer.y = 0;
+  for (const child of parent.children) {
+    if (child != layer) {
+      child.x -= x;
+      child.y -= y;
+    }
+  }
+}
+
+/**
+ * Resizes the child layer to fit the parent layer.
+ * @param parent - The parent layer to fit the child to.
+ * @param layer - The child layer to resize.
+ */
+export function fitLayerToParentLayer(parent: BoxLayer, layer: BoxLayer) {
+  const { width, height } = parent;
+  layer.resizeWithoutConstraints(width, height);
+  layer.x = 0;
+  layer.y = 0;
+}
+
+/**
+ * Finds the main component of a Figma instance node.
+ * @param layer - The Figma instance node to find the main component for.
+ * @returns The main component of the Figma instance node.
+ */
+export async function findMainFigmaComponent(layer: InstanceNode) {
+  return await layer.getMainComponentAsync();
+}
+
+/**
+ * Attempts to update the name of the Figma layer.
+ * @param layer - The Figma layer to update the name for.
+ * @param name - The new name to set for the Figma layer.
+ */
+export function tryUpdateFigmaLayerName(layer: ExportableLayer, name?: string) {
+  if (!!name && layer.name !== name) {
+    layer.name = name;
+  }
+}
+
+/**
+ * Selects the Figma layers.
+ * @param layers - The Figma layers to select.
+ */
+export function selectFigmaLayers(layers: SceneNode[], dontFocus?: boolean) {
+  figma.currentPage.selection = layers;
+  if (!dontFocus) {
+    figma.viewport.scrollAndZoomIntoView(layers);
+  }
+}
+
+/**
+ * Selects the Figma layer.
+ * @param layer - The Figma layer to select.
+ */
+export function selectFigmaLayer(layer: SceneNode, dontFocus?: boolean) {
+  selectFigmaLayers([layer], dontFocus);
 }

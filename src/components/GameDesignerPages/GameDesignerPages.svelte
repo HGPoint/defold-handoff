@@ -1,14 +1,14 @@
 <script lang="ts">
-  import selectionState from "state/selection";
-  import { isLayerSelected, areMultipleAtlasesSelected, areMultipleLayersSelected, isAtlasSelected, areMultipleSectionsSelected, isSectionSelected, areMultipleGameObjectsSelected, isGameObjectSelected } from "utilities/selection";
   import GameDesignerAtlasPage from "components/GameDesignerAtlasPage";
   import GameDesignerAtlasesPage from "components/GameDesignerAtlasesPage";
+  import GameDesignerGameObjectPage from "components/GameDesignerGameObjectPage";
+  import GameDesignerGameObjectsPage from "components/GameDesignerGameObjectsPage";
   import GameDesignerLayerPage from "components/GameDesignerLayerPage";
   import GameDesignerLayersPage from "components/GameDesignerLayersPage";
   import GameDesignerSectionPage from "components/GameDesignerSectionPage";
   import GameDesignerSectionsPage from "components/GameDesignerSectionsPage";
-  import GameDesignerGameObjectPage from "components/GameDesignerGameObjectPage";
-  import GameDesignerGameObjectsPage from "components/GameDesignerGameObjectsPage";
+  import selectionState from "state/selection";
+  import { areMultipleAtlasesSelected, areMultipleGameObjectsSelected, areMultipleLayersSelected, areMultipleSectionsSelected, isAtlasSelected, isGameObjectSelected, isLayerSelected, isSectionSelected } from "utilities/selection";
 </script>
 
 {#if $selectionState}

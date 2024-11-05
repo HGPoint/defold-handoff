@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { generateRandomId } from "utilities/pluginUI";
   import NumberInput from "components/NumberInput";
+  import { generateRandomId } from "utilities/ui";
 
   export let label: string;
   export let value: Vector4;

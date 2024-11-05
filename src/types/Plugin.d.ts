@@ -1,21 +1,25 @@
-type SelectionUIData = {
-  gui: PluginGUINodeData[],
-  atlases: PluginAtlasData[],
-  layers: SceneNode[],
-  sections: PluginSectionData[],
-  gameObjects: PluginGameObjectData[],
-  project: ProjectData,
-  context?: PluginGUIContextData,
-  canTryMatch: boolean,
-  originalValues: PluginGUINodeData | null,
-}
-
 type SelectionData = {
-  gui: ExportableLayer[],
+  gui: Exclude<ExportableLayer, SliceLayer>[],
+  gameObjects: Exclude<ExportableLayer, SliceLayer>[],
   atlases: ComponentSetNode[],
   layers: SceneNode[],
   sections: SectionNode[],
-  gameObjects: ExportableLayer[],
+}
+
+type SelectionUIData = {
+  gui: PluginGUINodeData[],
+  gameObjects: PluginGameObjectData[],
+  atlases: PluginAtlasData[],
+  layers: SceneNode[],
+  sections: PluginSectionData[],
+  project: ProjectData,
+  context?: WithNull<PluginContextData>,
+  meta?: WithNull<SelectionUIMetaData>,
+}
+
+type SelectionUIMetaData = {
+  canTryMatch?: boolean,
+  originalValues?: WithNull<PluginGUINodeData>
 }
 
 type PluginSectionData = {
@@ -27,14 +31,14 @@ type PluginSectionData = {
   ignorePrefixes: boolean,
 }
 
-type PluginAtlasData = {
-  id: string,
-}
-
-type PluginGUIContextData = {
+type PluginContextData = {
   layers: ProjectLayerData[],
   materials: ProjectMaterialData[],
   ignorePrefixes: boolean,
+}
+
+type PluginAtlasData = {
+  id: string,
 }
 
 type PluginGUINodeData = {
@@ -49,7 +53,7 @@ type PluginGUINodeData = {
   slice9: Vector4,
   layer: string,
   pivot: Pivot,
-  size_mode: SizeMode | "PARSED",
+  size_mode: SizeMode,
   xanchor: XAnchor,
   yanchor: YAnchor,
   adjust_mode: AdjustMode,
@@ -76,6 +80,14 @@ type PluginGUINodeData = {
   figma_node_type: NodeType,
 }
 
+type PluginGUINodesData = {
+  exclude: WithNull<boolean>,
+  screen: WithNull<boolean>,
+  skip: WithNull<boolean>,
+  fixed: WithNull<boolean>,
+  cloneable: WithNull<boolean>,
+}
+
 type PluginGameObjectData = {
   id: string,
   type: GameObjectType,
@@ -85,7 +97,7 @@ type PluginGameObjectData = {
   material?: string,
   slice9?: Vector4,
   pivot?: Pivot,
-  size_mode?: SizeMode | "PARSED",
+  size_mode?: SizeMode,
   font?: string,
 
   exclude: boolean,
@@ -95,102 +107,26 @@ type PluginGameObjectData = {
   depth_axis: string,
   inferred: boolean,
   path: string,
-  figma_node_type: NodeType
+  figma_node_type: NodeType,
 }
-
-type PluginGUIMassNodeData = {
-  exclude: boolean | null
-  screen: boolean | null
-  skip: boolean | null
-  fixed: boolean | null
-  cloneable: boolean | null
-}
-
-type PluginDataOverrideKey = `defoldGUINodeOverride-${string}`
 
 type PluginData = {
-  defoldGUINode?: PluginGUINodeData | null,
-  defoldAtlas?: PluginAtlasData | null,
-  defoldGameObject?: PluginGameObjectData | null,
-  defoldSection?: PluginSectionData | null,
-  defoldProject?: ProjectData | null,
-  defoldSlice9?: boolean | null,
-  defoldScale?: boolean | null,
+  defoldProject?: WithNull<ProjectData>,
+  defoldSection?: WithNull<PluginSectionData>,
+  defoldGUINode?: WithNull<PluginGUINodeData>,
+  defoldGameObject?: WithNull<PluginGameObjectData>,
+  defoldAtlas?: WithNull<PluginAtlasData>,
+  defoldSlice9?: WithNull<boolean>,
 } & {
-  [key in PluginDataOverrideKey]?: PluginGUINodeData | null
+  [key in PluginGUINodeDataOverrideKey]?: WithNull<PluginGUINodeData>
 }
+
+type PluginGUINodeDataOverrideKey = `defoldGUINodeOverride-${string}`
 
 type PluginDataKey = keyof PluginData;
 
-type PluginMessageAction =
-  "refreshPlugin" |
-  "copyGUINodes" |
-  "guiNodesCopied" |
-  "exportGUINodes" |
-  "guiNodesExported" |
-  "exportGUINodeAtlases" |
-  "guiNodeAtlasesExported" |
-  "copyGUINodeScheme" |
-  "guiNodeSchemeCopied" |
-  "fixGUINodes" |
-  "resizeScreenGUINodes" |
-  "matchGUINodes" |
-  "matchParentToGUINode" |
-  "matchGUINodeToParent" |
-  "forceChildrenOnScreen" |
-  "validateGUINodes" |
-  "resetGUINodes" |
-  "updateGUINode" |
-  "updateGUINodes" |
-  "showGUINodeData" |
-  "createAtlas" |
-  "restoreAtlases" |
-  "addSprites" |
-  "exportAtlases" |
-  "atlasesExported" |
-  "fixAtlases" |
-  "sortAtlases" |
-  "fitAtlases" |
-  "validateAtlases" |
-  "destroyAtlases" |
-  "exportSprites" |
-  "spritesExported" |
-  "exportBundle" |
-  "bundleExported" |
-  "pullFromMainComponent" |
-  "selectionChanged" |
-  "modeChanged" |
-  "fixTextNode" |
-  "restoreSlice9Node" |
-  "updateSection" |
-  "resetSections" |
-  "updateProject" | 
-  "collapseUI" |
-  "expandUI" |
-  "requestImage" |
-  "requestedImage" |
-  "exportGameObjects" |
-  "gameObjectsExported" |
-  "fixGameObjects" |
-  "resetGameObjects" |
-  "updateGameObject" |
-  "copyGameObjects" |
-  "gameObjectsCopied" |
-  "exportGameObjectAtlases" |
-  "gameObjectAtlasesExported"
-
-type PluginMessagePayload = {
-  bundle?: BundleData,
-  selection?: SelectionUIData,
-  mode?: UIMode,
-  image?: Uint8Array,
-  gui?: PluginGUINodeData[],
-  guiNode?: PluginGUINodeData,
-  gameObject?: PluginGameObjectData,
-  section?: PluginSectionData,
-  scheme?: string,
-  project?: Partial<ProjectData>,
-  option?: number | string | boolean,
+type uiMessage = {
+  pluginMessage: PluginMessage,
 }
 
 type PluginMessage = {
@@ -198,8 +134,100 @@ type PluginMessage = {
   data?: PluginMessagePayload,
 }
 
-type PluginUIMessage = {
-  pluginMessage: PluginMessage,
+type PluginMessagePayload = {
+  mode?: UIMode,
+  project?: Partial<ProjectData>,
+  selection?: SelectionUIData,
+  bundle?: BundleData,
+  gui?: PluginGUINodeData[],
+  guiNode?: PluginGUINodeData,
+  gameObject?: PluginGameObjectData,
+  section?: PluginSectionData,
+  scheme?: string,
+  image?: Uint8Array,
+  option?: number | string | boolean,
 }
 
-type VariantExtractor = (layer: BoxLayer, texturesData: TextureData, skipVariants?: boolean) => Promise<void>;
+type PluginMessageAction =
+  PluginMessageStateAction |
+  PluginMessageUIAction |
+  PluginMessageProjectAction |
+  PluginMessageBundleAction |
+  PluginMessageSectionAction |
+  PluginMessageGUIAction |
+  PluginMessagesGameObjectAction |
+  PluginMessagesAtlasAction |
+  PluginMessagesLayerAction
+
+type PluginMessageUIAction =
+  "refreshPlugin" |
+  "modeChanged" |
+  "collapseUI" |
+  "expandUI"
+
+type PluginMessageStateAction =
+  "selectionChanged"
+
+type PluginMessageProjectAction =
+  "updateProject" |
+  "purgeUnusedData"
+
+type PluginMessageGUIAction =
+  "logGUI" |
+  "exportGUI" |
+  "guiExported" |
+  "copyGUI" |
+  "guiCopied" |
+  "copyGUIScheme" |
+  "guiSchemeCopied" |
+  "updateGUI" |
+  "updateGUINode" |
+  "removeGUI" |
+  "removeGUIOverrides" |
+  "fixGUI" |
+  "fixGUIText" |
+  "matchGUINodeToGUIParent" |
+  "matchGUINodeToGUIChild" |
+  "resizeGUIToScreen" |
+  "forceGUIChildrenOnScreen" |
+  "validateGUI"
+
+type PluginMessagesGameObjectAction =
+  "exportGameCollections" |
+  "gameCollectionsExported" |
+  "copyGameCollection" |
+  "gameCollectionCopied" |
+  "updateGameObject" |
+  "removeGameObjects" |
+  "fixGameObjects" |
+  "validateGameObjects"
+
+type PluginMessagesAtlasAction =
+  "exportAtlases" |
+  "exportGUIAtlases" |
+  "exportGameCollectionAtlases" |
+  "atlasesExported" |
+  "exportSprites" |
+  "spritesExported" |
+  "createAtlas" |
+  "restoreAtlases" |
+  "addSprites" |
+  "removeAtlases" |
+  "fixAtlases" |
+  "sortAtlases" |
+  "fitAtlases" |
+  "validateAtlases"
+
+type PluginMessageSectionAction =
+  "updateSection" |
+  "removeSections"
+
+type PluginMessageBundleAction =
+  "exportBundle" |
+  "bundleExported"
+
+type PluginMessagesLayerAction =
+  "restoreSlice9" |
+  "requestImage" |
+  "imageExtracted"
+

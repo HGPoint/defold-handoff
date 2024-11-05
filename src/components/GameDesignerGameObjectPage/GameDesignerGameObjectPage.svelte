@@ -1,20 +1,19 @@
 <script lang="ts">
-  import config from "config/config.json";
-  import selectionState from "state/selection";
-  import { postMessageToPlugin } from "utilities/pluginUI";
-  import { isSpriteGameObjectType, isLabelGameObjectType} from "utilities/gameObject";
-  import { isFigmaComponentInstanceType, isFigmaComponentType, isFigmaFrameType } from "utilities/figma";
-  import { isZeroVector } from "utilities/math";
-  import Page from "components/Page";
-  import Properties from "components/Properties";
-  import Actions from "components/Actions";
   import ActionButton from "components/ActionButton";
+  import Actions from "components/Actions";
   import LayerPositionProperty from "components/LayerPositionProperty";
   import OptionsProperty from "components/OptionsProperty";
+  import Page from "components/Page";
+  import Properties from "components/Properties";
+  import SidesProperty from "components/SidesProperty";
   import TextProperty from "components/TextProperty";
   import ToggleProperty from "components/ToggleProperty";
   import TransformationProperty from "components/TransformationProperty";
-  import SidesProperty from "components/SidesProperty";
+  import config from "config/config.json";
+  import selectionState from "state/selection";
+  import { isGameObjectLabelType, isGameObjectSpriteType } from "utilities/gameCollection";
+  import { isZeroVector } from "utilities/math";
+  import { postMessageToPlugin } from "utilities/ui";
 
   let { gameObjects: [ gameObject ] } = $selectionState;
   let materials: Record<string, string>;
@@ -29,7 +28,7 @@
     return false;
   }
 
-  function updatePlugin(updatedProperties: PluginGameObjectData | null) {
+  function updatePlugin(updatedProperties: WithNull<PluginGameObjectData>) {
     if (shouldSendUpdate()) {
       postMessageToPlugin("updateGameObject", { gameObject });
     }
@@ -50,13 +49,13 @@
       <TextProperty label="Id" bind:value={gameObject.id} />
       <LayerPositionProperty label="Position" bind:value={gameObject.position} />
       <TransformationProperty label="Scale" bind:value={gameObject.scale} disabled={true} />
-      {#if isSpriteGameObjectType(gameObject.type)}
+      {#if isGameObjectSpriteType(gameObject.type)}
         <OptionsProperty label="Material" bind:value={gameObject.material} options={materials} disabled={true} />
       {/if}
-      {#if isSpriteGameObjectType(gameObject.type) || isLabelGameObjectType(gameObject.type)}
+      {#if isGameObjectSpriteType(gameObject.type) || isGameObjectLabelType(gameObject.type)}
         <OptionsProperty label="Blend Mode" bind:value={gameObject.blend_mode} options={config.blendModes} />
       {/if}
-      {#if isSpriteGameObjectType(gameObject.type)}
+      {#if isGameObjectSpriteType(gameObject.type)}
         <OptionsProperty label="Size Mode" bind:value={gameObject.size_mode} options={config.sizeModes} />
         <SidesProperty label="Slice 9" bind:value={gameObject.slice9} />
       {/if}
@@ -75,21 +74,19 @@
     </Properties>
     <Actions title="Tools" collapseKey="guiNodeToolsCollapsed">
       <ActionButton label="Infer Properties" action="fixGameObjects" />
-      {#if isLabelGameObjectType(gameObject.type)}
-        <ActionButton label="Fix Text" action="fixTextNode" />
+      {#if isGameObjectLabelType(gameObject.type)}
+        <ActionButton label="Fix Text" action="fixGUIText" />
       {/if}
-      {#if isSpriteGameObjectType(gameObject.type) && !isZeroVector(gameObject.slice9)}
-        <ActionButton label="Refresh Slice 9" action="restoreSlice9Node" />
+      {#if isGameObjectSpriteType(gameObject.type) && !isZeroVector(gameObject.slice9)}
+        <ActionButton label="Refresh Slice 9" action="restoreSlice9" />
       {/if}
-      {#if isFigmaComponentInstanceType(gameObject.figma_node_type)}
-        <ActionButton label="Pull Game Object Data from Main Component" action="pullFromMainComponent" />
-      {/if}
-      <ActionButton label="Reset Collection" action="resetGameObjects" />
+      <ActionButton label="Reset Collection" action="removeGameObjects" />
     </Actions>
     <Actions collapseKey="guiNodeActionsCollapsed">
-      <ActionButton label="Export Collection" action="exportGameObjects" />
+      <ActionButton label="Export Collection" action="exportGameCollections" />
+      <ActionButton label="Export Used Atlases" action="exportGameCollectionAtlases" />
       <ActionButton label="Export Bundle" action="exportBundle" />
-      <ActionButton label="Copy Collection" action="copyGameObjects" />
+      <ActionButton label="Copy Collection" action="copyGameCollection" />
     </Actions>
     {#if $selectionState.layers.length > 1}
       <Actions title="Atlas Actions" collapseKey="layersActionsCollapsed">

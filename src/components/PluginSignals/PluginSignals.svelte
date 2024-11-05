@@ -1,45 +1,45 @@
 <script lang="ts">
-  import uiState from "state/ui"
-  import selectionState from "state/selection"
   import imageState from "state/image";
-  import { isPluginMessage, isPluginMessagePayload, isSelectionData, isUpdatedSelection, isUIMode, processPluginMessage } from "utilities/pluginUI";
-
-  function processSelectionChange(data: PluginMessagePayload) {
-    const { selection } = data;
-    if (isSelectionData(selection) && isUpdatedSelection($selectionState, selection)) {
-      $selectionState = selection;
-      $imageState = null;
-    }
-  }
-
-  function processModeChange(data: PluginMessagePayload) {
-    const { mode } = data;
-    if (isUIMode(mode)) {
-      $uiState.mode = mode;
-    }
-  }
-
-  function processRequestedImage(data: PluginMessagePayload) {
-    const { image } = data;
-    if (image) {
-      $imageState = image;
-    }
-  }
+  import selectionState from "state/selection";
+  import uiState from "state/ui";
+  import { isPluginMessage, isPluginMessagePayload, isSelectionUIData, isSelectionUpdated, isUIMode, onPluginMessage } from "utilities/ui";
 
   function onMessage(event: MessageEvent) {
     if (isPluginMessage(event)) {
       const { pluginMessage: { type, data } } = event.data;
       if (isPluginMessagePayload(data)) {
         if (type === "selectionChanged") {
-          processSelectionChange(data)
+          onSelectionChanged(data)
         } else if (type === "modeChanged") {
-          processModeChange(data);
-        } else if (type === "requestedImage") {
-          processRequestedImage(data);
+          onModeChanged(data);
+        } else if (type === "imageExtracted") {
+          onImageExtracted(data);
         } else {
-          processPluginMessage(type, data)
+          onPluginMessage(type, data)
         }
       }
+    }
+  }
+
+  function onSelectionChanged(data: PluginMessagePayload) {
+    const { selection } = data;
+    if (isSelectionUIData(selection) && isSelectionUpdated(selection, $selectionState)) {
+      $selectionState = selection;
+      $imageState = null;
+    }
+  }
+
+  function onModeChanged(data: PluginMessagePayload) {
+    const { mode } = data;
+    if (isUIMode(mode)) {
+      $uiState.mode = mode;
+    }
+  }
+
+  function onImageExtracted(data: PluginMessagePayload) {
+    const { image } = data;
+    if (image) {
+      $imageState = image;
     }
   }
 </script>

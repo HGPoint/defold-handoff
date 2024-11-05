@@ -1,6 +1,4 @@
 <script lang="ts">
-  import selectionState from "state/selection";
-  import { isLayerSelected, areMultipleAtlasesSelected, areMultipleLayersSelected, isGUINodeSelected, isAtlasSelected, areMultipleSectionsSelected, isSectionSelected } from "utilities/selection";
   import DesignerAtlasPage from "components/DesignerAtlasPage";
   import DesignerAtlasesPage from "components/DesignerAtlasesPage";
   import DesignerGUINodePage from "components/DesignerGUINodePage";
@@ -8,6 +6,8 @@
   import DesignerLayersPage from "components/DesignerLayersPage";
   import DesignerSectionPage from "components/DesignerSectionPage";
   import DesignerSectionsPage from "components/DesignerSectionsPage";
+  import selectionState from "state/selection";
+  import { areMultipleAtlasesSelected, areMultipleLayersSelected, areMultipleSectionsSelected, isAtlasSelected, isGUINodeSelected, isLayerSelected, isSectionSelected } from "utilities/selection";
 </script>
 
 {#if $selectionState}

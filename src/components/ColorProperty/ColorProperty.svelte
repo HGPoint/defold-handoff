@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { generateRandomId } from "utilities/pluginUI";
   import { convertHexToRGBA, convertRGBAToHex } from "utilities/color";
+  import { generateRandomId } from "utilities/ui";
 
   export let label: string;
   export let value: Vector4;

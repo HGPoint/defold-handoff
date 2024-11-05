@@ -1,11 +1,11 @@
 /**
- * Utility module for handling the clipboard operations.
+ * Handles clipboard interactions.
  * @packageDocumentation
  */
 
 /**
- * Copies the specified text data on the clipboard.
- * @param data - The text data to be copied.
+ * Copies data on the clipboard as a string.
+ * @param data - The data to be copied on the clipboard.
  */
 export default function copyOnClipboard(data: string) {
   const textarea = document.createElement("textarea");

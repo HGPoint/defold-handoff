@@ -1,11 +1,11 @@
 <script lang="ts">
-  import selectionState from "state/selection";
-  import { isGUITextNodeType, isGUIBoxNodeType } from "utilities/gui";
-  import { isZeroVector } from "utilities/math";
-  import { postMessageToPlugin } from "utilities/pluginUI";
-  import Slice9Editor from "components/Slice9Editor";
-  import Actions from "components/Actions";
   import ActionButton from "components/ActionButton";
+  import Actions from "components/Actions";
+  import Slice9Editor from "components/Slice9Editor";
+  import selectionState from "state/selection";
+  import { isGUIBoxType, isGUITextType } from "utilities/gui";
+  import { isZeroVector } from "utilities/math";
+  import { postMessageToPlugin } from "utilities/ui";
 
   let { gui: [ guiNode ] } = $selectionState
   let lastSentUpdate = JSON.stringify(guiNode);
@@ -19,13 +19,13 @@
     return false;
   }
 
-  function requestImage(guiData: PluginGUINodeData | null) {
+  function requestImage(guiData: WithNull<PluginGUINodeData>) {
     if (guiNode) {
       postMessageToPlugin("requestImage")
     }
   }
 
-    function updatePlugin(updatedProperties: PluginGUINodeData | null) {
+    function updatePlugin(updatedProperties: WithNull<PluginGUINodeData>) {
     if (shouldSendUpdate()) {
       postMessageToPlugin("updateGUINode", { guiNode });
     }
@@ -42,10 +42,10 @@
 
 <Slice9Editor label={guiNode.id} bind:value={guiNode.slice9} />
 <Actions title="Tools" collapseKey="guiNodeToolsCollapsed">
-  {#if isGUITextNodeType(guiNode.type)}
-    <ActionButton label="Fix Text" action="fixTextNode" />
+  {#if isGUITextType(guiNode.type)}
+    <ActionButton label="Fix Text" action="fixGUIText" />
   {/if}
-  {#if isGUIBoxNodeType(guiNode.type) && !isZeroVector(guiNode.slice9)}
-    <ActionButton label="Refresh Slice 9" action="restoreSlice9Node" />
+  {#if isGUIBoxType(guiNode.type) && !isZeroVector(guiNode.slice9)}
+    <ActionButton label="Refresh Slice 9" action="restoreSlice9" />
   {/if}
 </Actions>

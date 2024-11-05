@@ -1,83 +1,22 @@
 /**
- * Utility module for handling archives. It utilizes JSZip library for creating zip archives.
+ * Handles file archiving using JSZip
+ * @packageDocumentation
  */
 
 import config from "config/config.json";
 import JSZip from "jszip";
+import { createBlob } from "utilities/blob";
 import { generateAtlasFileName, generateGUIPath, generateGameCollectionPath, generateSpriteFileName, generateTemplatePath } from "utilities/path";
 
 /**
- * Archives an individual atlas image into the provided images folder within the zip archive.
- * @param spriteData - The data of the sprite to be archived.
- * @param imagesFolder - The folder where the images for the particular atlas are stored within the zip archive.
- */
-function archiveAtlasImage({ name, directory, data }: SerializedSpriteData, imagesFolder: JSZip) {
-  const atlasImagesFolder = imagesFolder.folder(directory) || imagesFolder;
-  const spriteFileName = generateSpriteFileName(name);
-  const blob = new Blob([data], { type: "image/png" });
-  atlasImagesFolder.file(spriteFileName, blob);
-}
-
-/**
- * Archives an atlas along with its images into the provided atlases and images folders within the zip archive.
- * @param atlasData - The serialized atlas to be archived.
- * @param atlasesFolder - The folder where atlases are stored within the zip archive.
- * @param imagesFolder - The folder where images are stored within the zip archive.
- */
-function archiveAtlas({ data, name, images }: SerializedAtlasData, atlasesFolder: JSZip, imagesFolder: JSZip) {
-  const atlasFileName = generateAtlasFileName(name);
-  atlasesFolder.file(atlasFileName, data);
-  images.forEach((image) => archiveAtlasImage(image, imagesFolder));
-}
-
-/**
- * Archives atlases into the provided assets folder within the zip archive.
- * @param atlases - The array of serialized atlases to be archived.
- * @param assetsFolder - The folder where assets are stored within the zip archive.
- */
-function archiveAtlases(atlases: SerializedAtlasData[], assetsFolder: JSZip, paths: ProjectPathData) {
-  const imagesFolder = assetsFolder.folder(paths.imageAssetsPath) || assetsFolder;
-  const atlasesFolder = assetsFolder.folder(paths.atlasAssetsPath) || assetsFolder;
-  atlases.forEach((atlas) => { archiveAtlas(atlas, atlasesFolder, imagesFolder); })
-}
-
-function archiveGameObject({ name, data, filePath }: SerializedGameCollectionData, assetsFolder: JSZip) {
-  const gameCollectionFileName = generateGameCollectionPath(name, filePath);
-  assetsFolder.file(gameCollectionFileName, data);
-}
-
-function archiveGameObjects(gameObjects: SerializedGameCollectionData[], assetsFolder: JSZip) {
-  gameObjects.forEach((gameObject) => archiveGameObject(gameObject, assetsFolder));
-}
-
-/**
- * Archives a GUI node into the provided assets folder within the zip archive.
- * @param guiNodeData - The serialized GUI node to be archived.
- * @param assetsFolder - The folder where assets are stored within the zip archive.
- */
-function archiveGUINode({ name, data, template, templateName, templatePath, filePath }: SerializedGUIData, assetsFolder: JSZip) {
-  const guiFilePath = template && templateName && templatePath ? generateTemplatePath(templatePath, templateName) : generateGUIPath(name, filePath);
-  assetsFolder.file(guiFilePath, data);
-}
-
-/**
- * Archives GUI nodes into the provided assets folder within the zip archive.
- * @param guiNodes - The array of serialized GUI nodes to be archived.
- * @param assetsFolder - The folder where assets are stored within the zip archive.
- */
-function archiveGUINodes(guiNodes: SerializedGUIData[], assetsFolder: JSZip) {
-  guiNodes.forEach((guiNode) => archiveGUINode(guiNode, assetsFolder));
-}
-
-/**
- * Archives the bundled data, including GUI nodes and atlases, into a zip archive.
+ * Archives the bundled into a zip archive.
  * @param bundle - The bundle data to be archived.
- * @returns A Blob containing the zip archive.
+ * @returns The blob containing the zip archive.
  */
 export function archiveBundle({ gui, gameObjects, atlases }: BundleData, projectConfig: Partial<ProjectData>) {
   const zip = new JSZip();
   if (gui) {
-    archiveGUINodes(gui, zip);
+    archiveGUI(gui, zip);
   }
   if (gameObjects) {
     archiveGameObjects(gameObjects, zip);
@@ -94,30 +33,84 @@ export function archiveBundle({ gui, gameObjects, atlases }: BundleData, project
 }
 
 /**
- * Archives an individual sprite image into the provided folder within the zip archive.
- * @param spriteData - The data of the sprite to be archived.
- * @param folder - The folder where the sprite image is stored within the zip archive.
+ * Archives the sprite into the images folder.
+ * @param spriteData - The sprite to be archived.
+ * @param imagesFolder - The folder in archive.
  */
-function archiveSpriteImage({ name, data }: SerializedSpriteData, folder: JSZip) {
+function archiveAtlasImage({ name, directory, data }: SerializedSpriteData, imagesFolder: JSZip) {
+  const atlasImagesFolder = imagesFolder.folder(directory) || imagesFolder;
   const spriteFileName = generateSpriteFileName(name);
-  const blob = new Blob([data], { type: "image/png" });
-  folder.file(spriteFileName, blob);
+  const blob = createBlob(data);
+  atlasImagesFolder.file(spriteFileName, blob);
 }
 
 /**
- * Archives a sprite atlas into the provided atlas folder within the zip archive.
- * @param atlas - The atlas data containing the sprite image to be archived.
- * @param zip - The zip archive to store the sprite image in.
+ * Archives game objects into the assets folder.
+ * @param gameObjects - The game objects to be archived.
+ * @param assetsFolder - The folder in archive.
  */
-function archiveSpriteAtlas(atlas: SerializedAtlasData, zip: JSZip) {
-  const folder = zip.folder(atlas.name) || zip;
-  atlas.images.forEach((image) => { archiveSpriteImage(image, folder) });
+function archiveGameObjects(gameObjects: SerializedGameCollectionData[], assetsFolder: JSZip) {
+  gameObjects.forEach((gameObject) => archiveGameObject(gameObject, assetsFolder));
+}
+
+/**
+ * Archives a game object into assets folder.
+ * @param gameObjectData - The game object to be archived.
+ * @param assetsFolder - The folder in archive.
+ */
+function archiveGameObject({ name, data, filePath }: SerializedGameCollectionData, assetsFolder: JSZip) {
+  const gameCollectionFileName = generateGameCollectionPath(name, filePath);
+  assetsFolder.file(gameCollectionFileName, data);
+}
+
+/**
+ * Archives GUI into the assets folder.
+ * @param guiNodes - The GUI to be archived.
+ * @param assetsFolder - The folder in archive.
+ */
+function archiveGUI(guiNodes: SerializedGUIData[], assetsFolder: JSZip) {
+  guiNodes.forEach((guiNode) => archiveGUINode(guiNode, assetsFolder));
+}
+
+/**
+ * Archives a GUI node into the provided assets folder within the zip archive.
+ * @param guiNodeData - The serialized GUI node to be archived.
+ * @param assetsFolder - The folder in archive.
+ */
+function archiveGUINode({ name, data, template, templateName, templatePath, filePath }: SerializedGUIData, assetsFolder: JSZip) {
+  const isTemplate = template && templateName && templatePath;
+  const guiFilePath = isTemplate ? generateTemplatePath(templatePath, templateName) : generateGUIPath(name, filePath);
+  assetsFolder.file(guiFilePath, data);
+}
+
+/**
+ * Archives atlases into the assets folder.
+ * @param atlases - The atlases to be archived.
+ * @param assetsFolder - The folder in archive.
+ * @param paths - The project paths.
+ */
+function archiveAtlases(atlases: SerializedAtlasData[], assetsFolder: JSZip, paths: ProjectPathData) {
+  const imagesFolder = assetsFolder.folder(paths.imageAssetsPath) || assetsFolder;
+  const atlasesFolder = assetsFolder.folder(paths.atlasAssetsPath) || assetsFolder;
+  atlases.forEach((atlas) => { archiveAtlas(atlas, atlasesFolder, imagesFolder); })
+}
+
+/**
+ * Archives the atlas into the atlases folder.
+ * @param atlasData - The atlas to be archived.
+ * @param atlasesFolder - The folder in archive for atlases.
+ * @param imagesFolder - The folder in archive for images.
+ */
+function archiveAtlas({ data, name, images }: SerializedAtlasData, atlasesFolder: JSZip, imagesFolder: JSZip) {
+  const atlasFileName = generateAtlasFileName(name);
+  atlasesFolder.file(atlasFileName, data);
+  images.forEach((image) => archiveAtlasImage(image, imagesFolder));
 }
 
 /**
  * Archives sprites into a zip archive.
  * @param bundle - The bundle data containing sprites to be archived.
- * @returns A Blob containing the zip archive.
+ * @returns The blob containing the zip archive.
  */
 export function archiveSprites({ atlases }: BundleData) {
   const zip = new JSZip();
@@ -125,4 +118,25 @@ export function archiveSprites({ atlases }: BundleData) {
     atlases.forEach((atlas) => { archiveSpriteAtlas(atlas, zip) })
   }
   return zip.generateAsync({ type: "blob" })
+}
+
+/**
+ * Archives the sprite into the atlas folder.
+ * @param atlas - The atlas data containing the sprites to be archived.
+ * @param zip - The zip archive.
+ */
+function archiveSpriteAtlas(atlas: SerializedAtlasData, zip: JSZip) {
+  const folder = zip.folder(atlas.name) || zip;
+  atlas.images.forEach((image) => { archiveSpriteImage(image, folder) });
+}
+
+/**
+ * Archives the sprite into the atlas folder.
+ * @param spriteData - The sprite to be archived.
+ * @param folder - The folder in archive.
+ */
+function archiveSpriteImage({ name, data }: SerializedSpriteData, folder: JSZip) {
+  const spriteFileName = generateSpriteFileName(name);
+  const blob = createBlob(data);
+  folder.file(spriteFileName, blob);
 }
