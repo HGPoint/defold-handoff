@@ -5,13 +5,13 @@ type Vector4 = {
   w: number,
 }
 
-type AdjustReference = "ADJUST_REFERENCE_PARENT";
-
-type SizeMode = "SIZE_MODE_AUTO" | "SIZE_MODE_MANUAL";
-
 type GUINodeType = "TYPE_TEXT" | "TYPE_BOX" | "TYPE_TEMPLATE";
 
+type AdjustReference = "ADJUST_REFERENCE_PARENT";
+
 type GameObjectType = "TYPE_EMPTY" | "TYPE_SPRITE" | "TYPE_LABEL";
+
+type SizeMode = "SIZE_MODE_AUTO" | "SIZE_MODE_MANUAL";
 
 type XAnchor = "XANCHOR_NONE" | "XANCHOR_LEFT" | "XANCHOR_RIGHT";
 

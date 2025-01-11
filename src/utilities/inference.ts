@@ -12,7 +12,7 @@ import { isLayerInferred } from "utilities/data";
 import { injectEmptyComponentDefaults, injectGUINodeDefaults, injectLabelComponentDefaults, injectSpriteComponentDefaults } from "utilities/defaults";
 import { findMainFigmaComponent, getPluginData, hasChildren, hasFont, hasParent, hasSolidNonWhiteFills, hasSolidStrokes, hasSolidVisibleFills, isFigmaBox, isFigmaComponentInstance, isFigmaSlice, isFigmaText, isLayerAtlas, isLayerExportable, isLayerNode, isLayerSprite, isShadowEffect, resolveFillColor, resolveTextOutlineColor, resolveTextShadowColor, setPluginData } from "utilities/figma";
 import { tryFindFont } from "utilities/font";
-import { isZeroVector, vector4 } from "utilities/math";
+import { isZeroVector, readableNumber, readableVector, vector4 } from "utilities/math";
 import { calculateCenteredPosition, convertCenteredPositionToPivotedPosition } from "utilities/pivot";
 import { findSlice9PlaceholderLayer, isSlice9Layer, parseSlice9Data } from "utilities/slice9";
 import { calculateTextScale, calculateTextStrokeWeight, resolveText } from "utilities/text";
@@ -280,7 +280,7 @@ function resolvePosition(pluginData ?: WithNull<PluginGameObjectData>) {
  * @returns The inferred rotation for the GUI node or game object.
  */
 export function inferRotation(layer: ExportableLayer) {
-  return vector4(0, 0, layer.rotation, 1);
+  return vector4(0, 0, readableNumber(layer.rotation), 0);
 }
 
 /**
@@ -321,10 +321,14 @@ export function inferSize(layer: ExportableLayer) {
   if (isSlice9Layer(layer)) {
     const placeholder = findSlice9PlaceholderLayer(layer);
     if (placeholder) {
-      return vector4(placeholder.width, placeholder.height, 0, 1);
+      const size = vector4(placeholder.width, placeholder.height, 0, 0);
+      const readableSize = readableVector(size);
+      return readableSize;
     }
   }
-  return vector4(layer.width, layer.height, 0, 1);
+  const size = vector4(layer.width, layer.height, 0, 0);
+  const readableSize = readableVector(size);
+  return readableSize;
 }
 
 /**
@@ -337,7 +341,7 @@ export function inferTextBoxSize(layer: TextLayer, scale: Vector4) {
   const { width, height } = layer;
   const scaledWidth = Math.ceil(width / scale.x);
   const scaledHeight = Math.ceil(height / scale.y);
-  return vector4(scaledWidth, scaledHeight, 0, 1);
+  return vector4(scaledWidth, scaledHeight, 0, 0);
 }
 
 /**

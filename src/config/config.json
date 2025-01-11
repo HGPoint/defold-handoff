@@ -158,6 +158,7 @@
   "defaultFontStrokeRatio": 0.04,
   "defaultFontFamilies": [],
   "autoskip": "skip_",
+  "omitDefaultValues": true,
   "sizeModes": {
     "Auto": "SIZE_MODE_AUTO",
     "Manual": "SIZE_MODE_MANUAL" 

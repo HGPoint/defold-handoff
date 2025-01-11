@@ -684,6 +684,9 @@
     "autoskip": {
       "type": "string"
     },
+    "omitDefaultValues": {
+      "type": "boolean"
+    },
     "sizeModes": {
       "type": "object",
       "properties": {
@@ -858,6 +861,7 @@
     "defaultFontStrokeRatio",
     "defaultFontFamilies",
     "autoskip",
+    "omitDefaultValues",
     "sizeModes",
     "blendModes",
     "pivots",

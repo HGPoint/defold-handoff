@@ -75,7 +75,7 @@ export function resolveBaseColor() {
  * @returns The base outline color.
  */
 export function resolveBaseTextOutline() {
-  return TRANSPARENT_WHITE;
+  return TRANSPARENT_BLACK;
 }
 
 /**
@@ -83,7 +83,7 @@ export function resolveBaseTextOutline() {
  * @returns The base shadow color.
  */
 export function resolveBaseTextShadowColor() {
-  return TRANSPARENT_WHITE;
+  return TRANSPARENT_BLACK;
 }
 
 /**

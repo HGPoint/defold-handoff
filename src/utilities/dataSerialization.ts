@@ -3,6 +3,7 @@
  * @packageDocumentation
  */
 
+import { PROJECT_CONFIG } from "handoff/project";
 import config from "config/config.json";
 import { isVector4, readableNumber } from "utilities/math";
 
@@ -127,5 +128,28 @@ function serializeQuotedProperty<T>(property: keyof T, value: string): string {
  * @returns The serialized Defold's component property string.
  */
 function serializeVector4Property<T>(property: keyof T, value: Vector4): string {
-  return `${property.toString()} {\n  x: ${readableNumber(value.x)}\n  y: ${readableNumber(value.y)}\n  z: ${readableNumber(value.z)}\n  w: ${readableNumber(value.w)}\n}`;
+  const serializedValue = PROJECT_CONFIG.omitDefaultValues ? serializeOmittedVector4Value(value) : serializeVector4Value(value); 
+  return `${property.toString()} ${serializedValue}`;
+}
+
+function serializeVector4Value(value: Vector4): string {
+  return `{\n  x: ${readableNumber(value.x)}\n  y: ${readableNumber(value.y)}\n  z: ${readableNumber(value.z)}\n  w: ${readableNumber(value.w)}\n}`;
+}
+
+function serializeOmittedVector4Value(value: Vector4): string {
+  let serializedValue = "{\n";
+  if (value.x !== 0) {
+    serializedValue += `  x: ${readableNumber(value.x)}\n`;
+  }
+  if (value.y !== 0) {
+    serializedValue += `  y: ${readableNumber(value.y)}\n`;
+  }
+  if (value.z !== 0) {
+    serializedValue += `  z: ${readableNumber(value.z)}\n`;
+  }
+  if (value.w !== 0) {
+    serializedValue += `  w: ${readableNumber(value.w)}\n`;
+  }
+  serializedValue += "}";
+  return serializedValue;
 }

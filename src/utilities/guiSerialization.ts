@@ -3,6 +3,8 @@
  * @packageDocumentation
  */
 
+import { areVectorsEqual, isVector4 } from "utilities/math";
+import { PROJECT_CONFIG } from "handoff/project";
 import { propertySerializer } from "utilities/dataSerialization";
 import { indentLines } from "utilities/defold";
 import { isGUITemplateType } from "utilities/gui";
@@ -86,7 +88,7 @@ export function serializeGUISchemeData(guiData: GUIData): Promise<SerializedGUIS
  */
 export async function serializeGUIData(guiData: GUIData): Promise<SerializedGUIData> {
   const { name, asTemplate, filePath } = guiData;
-  const gui = Object.entries(guiData.gui).reduce(propertySerializer, "");
+  const gui = serializeGUIDefoldData(guiData.gui);
   const nodes = guiData.nodes.reduce(guiNodeSerializer, "");
   const textures = serializeGUITextureData(guiData.textures);
   const fonts = serializeGUIFontsData(guiData.fonts);
@@ -100,6 +102,38 @@ export async function serializeGUIData(guiData: GUIData): Promise<SerializedGUID
     ...templateData
   };
   return Promise.resolve(serializedData);
+}
+
+function shouldExcludeGUIProperty<TKey extends keyof GUIDefoldData>(property: [TKey, GUIDefoldData[TKey]]): boolean {
+  if (PROJECT_CONFIG.omitDefaultValues) {
+    return isGUIPropertyDefaultValue(property);
+  }
+  return false;
+}
+
+function isGUIPropertyDefaultValue<TKey extends keyof GUIDefoldData>([key, value]: [TKey, GUIDefoldData[TKey]]): boolean {
+  if (isVector4(value)) {
+    if (key === "background_color") {
+      return areVectorsEqual(value, { x: 0, y: 0, z: 0, w: 0 });
+    }
+  }
+  if (typeof value === "number") {
+    if (key === "max_nodes") {
+      return value === 512;
+    }
+  }
+  return false;
+}
+
+function serializeGUIDefoldData(guiData: GUIDefoldData): string {
+  const properties = Object.entries(guiData) as [keyof GUIDefoldData, GUIDefoldData[keyof GUIDefoldData]][];
+  const data = properties.reduce((serializedProperties: string, property) => {
+    if (shouldExcludeGUIProperty(property)) {
+      return serializedProperties;
+    }
+    return propertySerializer(serializedProperties, property);
+  }, "");
+  return data;
 }
 
 /**
@@ -121,17 +155,83 @@ function guiNodeSerializer(data: string, guiNodeData: GUINodeData): string {
       }
       return propertySerializer(serializedProperties, property);
     }, "");
-    return `${data}nodes\n{\n${indentLines(node)}\n}\n`;
+    return `${data}nodes {\n${indentLines(node)}\n}\n`;
   } else {
-    const node = Object.entries(guiNodeData).reduce((serializedProperties: string, property) => {
-      const [ key ] = property; 
-      if (EXCLUDED_PROPERTY_KEYS.includes(key)) {
+    const properties = Object.entries(guiNodeData) as [keyof GUINodeData, GUINodeData[keyof GUINodeData]][];
+    const node = properties.reduce((serializedProperties: string, property) => {
+      if (shouldExcludeGUINodeProperty(property)) {
         return serializedProperties;
       }
       return propertySerializer(serializedProperties, property);
     }, "");
-    return `${data}nodes\n{\n${indentLines(node)}\n}\n`;
+    return `${data}nodes {\n${indentLines(node)}\n}\n`;
   }
+}
+
+function shouldExcludeGUINodeProperty<TKey extends keyof GUINodeData>(property: [TKey, GUINodeData[TKey]]): boolean {
+  const [ key ] = property;
+  if (EXCLUDED_PROPERTY_KEYS.includes(key)) {
+    return true;
+  }
+  if (PROJECT_CONFIG.omitDefaultValues) {
+    return isGUINodePropertyDefaultValue(property);
+  }
+  return false;
+}
+
+function isGUINodePropertyDefaultValue<TKey extends keyof GUINodeData>([key, value]: [TKey, GUINodeData[TKey]]): boolean {
+  if (key === "size_mode") {
+    return value === "SIZE_MODE_MANUAL"; 
+  }
+  if (key === "pivot") {
+    return value === "PIVOT_CENTER";
+  }
+  if (key === "adjust_mode") {
+    return value === "ADJUST_MODE_FIT";
+  }
+  if (key === "clipping_mode") {
+    return value === "CLIPPING_MODE_NONE";
+  }
+  if (key === "blend_mode") {
+    return value === "BLEND_MODE_ALPHA";
+  }
+  if (key === "xanchor") {
+    return value === "XANCHOR_NONE";
+  }
+  if (key === "yanchor") {
+    return value === "YANCHOR_NONE";
+  }
+  if (isVector4(value)) {
+    if (key === "scale" || key === "color") {
+      return areVectorsEqual(value, { x: 1, y: 1, z: 1, w: 1 })
+    }
+    if (key === "position" || key === "rotation" || key === "size" || key === "slice9") {
+      return areVectorsEqual(value, { x: 0, y: 0, z: 0, w: 0 });
+    }
+    if (key === "outline" || key === "shadow") {
+      return areVectorsEqual(value, { x: 0, y: 0, z: 0, w: 0 });
+    }
+  }
+  if (typeof value === "string") {
+    return value === "";
+  }
+  if (typeof value === "number") {
+    if (key === "text_leading") {
+      return value === 1;
+    }
+    if (key === "text_tracking" || key === "custom_type") {
+      return value === 0;
+    }
+  }
+  if (typeof value === "boolean") {
+    if (key === "visible" || key === "enabled" || key === "clipping_visible") {
+      return value === true;
+    }
+    if (key === "inherit_alpha" || key === "clipping_inverted" || key === "line_break" || key === "template_node_child") {
+      return value === false;
+    }
+  }
+  return false;
 }
 
 /**
@@ -157,7 +257,7 @@ function serializeGUITextureData(textureData?: TextureData) {
 
 function textureDataSerializer(data: string, [name, texture]: [string, TextureAtlasData]): string {
   const serializedTexture = `name: "${name}"\ntexture: "${texture.path}"`;
-  return `${data}textures\n{\n${indentLines(serializedTexture)}\n}\n`;
+  return `${data}textures {\n${indentLines(serializedTexture)}\n}\n`;
 }
 
 /**
@@ -182,7 +282,7 @@ function serializeGUIFontsData(fontData?: FontData) {
  */
 function fontsDataSerializer(data: string, [name, fontPath]: [string, string]): string {
   const serializedFont = `name: "${name}"\nfont: "${fontPath}"`;
-  return `${data}fonts\n{\n${indentLines(serializedFont)}\n}\n`;
+  return `${data}fonts {\n${indentLines(serializedFont)}\n}\n`;
 }
 
 /**

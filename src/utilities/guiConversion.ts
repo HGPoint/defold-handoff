@@ -9,7 +9,7 @@ import { generateContextData } from "utilities/context";
 import { injectGUIDefaults, injectGUINodeDefaults } from "utilities/defaults";
 import { getPluginData } from "utilities/figma";
 import { inferBackgroundColor, inferClippingVisible, inferColor, inferFont, inferGUIBoxTexture, inferGUIBoxVisible, inferGUINodeType, inferGUITextSizeMode, inferGUITextVisible, inferLineBreak, inferRotation, inferScale, inferSize, inferSizeMode, inferSlice9, inferText, inferTextBoxSize, inferTextLeading, inferTextOutline, inferTextPivot, inferTextScale, inferTextShadow, inferTextTracking } from "utilities/inference";
-import { vector4 } from "utilities/math";
+import { readableVector, vector4 } from "utilities/math";
 import { generateScriptPath } from "utilities/path";
 import { calculateChildPosition, calculateRootPosition } from "utilities/pivot";
 
@@ -218,7 +218,7 @@ function convertGUITextNodeTransformations(layer: TextLayer, pivot: Pivot, paren
  * @returns The converted GUI node base transformations.
  */
 function convertGUINodeTransformations(layer: ExportableLayer, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4, parentShift: Vector4, atRoot: boolean, asTemplate: boolean, pluginData?: WithNull<PluginGUINodeData>) {
-  const figmaPosition = vector4(layer.x, layer.y, 0, 1);
+  const figmaPosition = vector4(layer.x, layer.y, 0, 0);
   const position = convertGUINodePosition(layer, pivot, parentPivot, size, parentSize, parentShift, atRoot, asTemplate, pluginData);
   const rotation = inferRotation(layer);
   return {
@@ -255,9 +255,13 @@ function convertGUIBoxNodePivot(pluginData?: WithNull<PluginGUINodeData>) {
  */
 function convertGUINodePosition(layer: ExportableLayer, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4, parentShift: Vector4, atRoot: boolean, asTemplate: boolean, pluginData?: WithNull<PluginGUINodeData>) {
   if (atRoot) {
-    return calculateRootPosition(layer, pivot, parentPivot, size, parentSize, parentShift, asTemplate, pluginData);
+    const position = calculateRootPosition(layer, pivot, parentPivot, size, parentSize, parentShift, asTemplate, pluginData);
+    const readablePosition = readableVector(position);
+    return readablePosition;
   }
-  return calculateChildPosition(layer, pivot, parentPivot, size, parentSize, parentShift, asTemplate, pluginData);
+  const position = calculateChildPosition(layer, pivot, parentPivot, size, parentSize, parentShift, asTemplate, pluginData);
+  const readablePosition = readableVector(position);
+  return readablePosition;
 }
 
 /**

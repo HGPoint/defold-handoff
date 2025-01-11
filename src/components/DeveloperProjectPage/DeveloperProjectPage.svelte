@@ -8,6 +8,7 @@
   import PropertyTip from "components/PropertyTip";
   import TextProperty from "components/TextProperty";
   import TextSetProperty from "components/TextSetProperty";
+  import ToggleProperty from "components/ToggleProperty";
   import selectionState from "state/selection";
   import { postMessageToPlugin } from "utilities/ui";
 
@@ -54,12 +55,13 @@
       <NumberProperty label="Outline Ratio" bind:value={project.fontStrokeRatio} />
       <TextSetProperty label="Font Families" action="Add Font" bind:value={project.fontFamilies} />
     </Properties>
-    <Properties title="Project Naming Conventions">
+    <Properties title="Project Options">
       <TextProperty label="Skip Layers" bind:value={project.autoskip}>
         <PropertyTip>
           Layers with names starting with this string will be skipped.
         </PropertyTip>
       </TextProperty>
+      <ToggleProperty label="Omit Default Values" bind:value={project.omitDefaultValues} />
     </Properties>
     <Actions title="Project Tools">
       <ActionButton label="Purge Unused Plugin Data" action="purgeUnusedData" />

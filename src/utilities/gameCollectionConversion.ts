@@ -257,7 +257,7 @@ function convertSpriteComponentTransformations(layer: ExportableLayer, parentSiz
  */
 function convertGameObjectTransformations(layer: ExportableLayer) {
   const rotation = inferRotation(layer);
-  const figmaPosition = vector4(layer.x, layer.y, 0, 1);
+  const figmaPosition = vector4(layer.x, layer.y, 0, 0);
   return {
     rotation,
     figma_position: figmaPosition,

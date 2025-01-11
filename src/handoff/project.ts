@@ -17,6 +17,7 @@ export const PROJECT_CONFIG: ProjectData = {
   fontStrokeRatio: config.defaultFontStrokeRatio,
   fontFamilies: [ ...config.defaultFontFamilies ],
   autoskip: config.autoskip,
+  omitDefaultValues: config.omitDefaultValues,
 }
 
 /**
@@ -50,6 +51,7 @@ function updateProjectProperties(update: Partial<ProjectData>) {
   updateFontStrokeRatio(update.fontStrokeRatio);
   updateFontFamilies(update.fontFamilies);
   updateAutoskip(update.autoskip);
+  updateomitDefaultValues(update.omitDefaultValues);
 }
 
 /**
@@ -124,6 +126,16 @@ function updateAutoskip(autoskip?: string) {
 }
 
 /**
+ * Updates the exclude default values property.
+ * @param omitDefaultValues - The new exclude default values property update to apply.
+ */
+function updateomitDefaultValues(omitDefaultValues?: boolean) {
+  if (omitDefaultValues !== undefined) {
+    PROJECT_CONFIG.omitDefaultValues = omitDefaultValues;
+  }
+}
+
+/**
  * Updates the project data from the project configuration.
  */
 function updateProjectData() {
@@ -135,6 +147,7 @@ function updateProjectData() {
     fontStrokeRatio: PROJECT_CONFIG.fontStrokeRatio,
     fontFamilies: [...PROJECT_CONFIG.fontFamilies],
     autoskip: PROJECT_CONFIG.autoskip,
+    omitDefaultValues: PROJECT_CONFIG.omitDefaultValues,
   }
   setPluginData(document, { defoldProject: projectData });
 }

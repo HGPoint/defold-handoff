@@ -5,6 +5,7 @@ type ProjectData = {
   fontStrokeRatio: number,
   fontFamilies: ProjectFontData[],
   autoskip: string,
+  omitDefaultValues: boolean,
 }
 
 type ProjectPathData = {

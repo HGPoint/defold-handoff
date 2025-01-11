@@ -54,7 +54,7 @@ export function calculateCenteredPosition(layer: ExportableLayer, size: Vector4,
   const { x, y } = calculateCenter(layer.x, layer.y, size.x, size.y, layer.rotation);
   const centeredX = x - (parentSize.x / 2);
   const centeredY = (parentSize.y / 2) - y;
-  return vector4(centeredX, centeredY, 0, 1);
+  return vector4(centeredX, centeredY, 0, 0);
 }
 
 /** 
@@ -143,13 +143,13 @@ export function calculateChildPosition(layer: ExportableLayer, pivot: Pivot, par
   if (data?.template && !asTemplate) {
     const shiftedCenterX = centeredPosition.x + parentShift.x;
     const shiftedCenterY = centeredPosition.y - parentShift.y;
-    const shiftedCenterPosition = vector4(shiftedCenterX, shiftedCenterY, 0, 1);
+    const shiftedCenterPosition = vector4(shiftedCenterX, shiftedCenterY, 0, 0);
     return shiftedCenterPosition;
   }
   const pivotedPosition = calculatePivotedPosition(centeredPosition, pivot, parentPivot, size, parentSize, layer.rotation);
   const shiftedX = pivotedPosition.x + parentShift.x;
   const shiftedY = pivotedPosition.y - parentShift.y;
-  const shiftedPosition = vector4(shiftedX, shiftedY, 0, 1);
+  const shiftedPosition = vector4(shiftedX, shiftedY, 0, 0);
   return shiftedPosition;
 }
 

@@ -119,6 +119,14 @@ export function readableNumber(number: number): number {
   return Math.round(number * 1000) / 1000;
 }
 
+export function readableVector(vector: Vector4): Vector4 {
+  const x = readableNumber(vector.x);
+  const y = readableNumber(vector.y);
+  const z = readableNumber(vector.z);
+  const w = readableNumber(vector.w);
+  return vector4(x, y, z, w);
+}
+
 /**
  * Calculates the coordinates of the center of a rectangle rotated around its top-left corner.
  * @param x - The x-coordinate of the top-left corner.
@@ -138,7 +146,7 @@ export function calculateCenter(x: number, y: number, width: number, height: num
   const lowerRightY = upperRightY + height * Math.cos(radians);
   const centerX = (x + lowerRightX + upperRightX + lowerLeftX) / 4;
   const centerY = (y + lowerRightY + upperRightY + lowerLeftY) / 4;
-  return vector4(centerX, centerY, 0, 1);
+  return vector4(centerX, centerY, 0, 0);
 }
 
 /**

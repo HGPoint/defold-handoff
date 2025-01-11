@@ -105,6 +105,7 @@ declare module "config/config.json" {
     defaultFontFamilies: ProjectFontData[],
     fontStrokeRatio: number,
     autoskip: string,
+    omitDefaultValues: boolean,
     sizeModes: Record<string, SizeMode>,
     blendModes: Record<string, BlendingMode>,
     pivots: Record<string, Pivot>,
