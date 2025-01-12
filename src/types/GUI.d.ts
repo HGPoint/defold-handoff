@@ -64,6 +64,7 @@ type GUINodeData = {
 
   skip: boolean,
   cloneable: boolean,
+  screen: boolean,
   fixed: boolean,
   path: string,
   template: boolean,
@@ -78,7 +79,11 @@ type GUINodeData = {
   exportable_layer_name: string,
   exportable_layer_id: string,
   figma_position: Vector4,
+  figma_node_type: string,
   children?: GUINodeData[],
+  script: string,
+  script_path: string,
+  script_name: string,
 }
 
 type GUINodeExportParameters = {

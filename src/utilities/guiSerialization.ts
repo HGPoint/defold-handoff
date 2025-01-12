@@ -15,7 +15,7 @@ import { extractScheme } from "utilities/scheme";
  * An array containing keys of properties to be excluded during serialization.
  * @constant
  */
-const EXCLUDED_PROPERTY_KEYS = [
+const EXCLUDED_PROPERTY_KEYS: (keyof GUINodeData)[] = [
   "exclude",
   "screen",
   "skip",
@@ -44,7 +44,7 @@ const EXCLUDED_PROPERTY_KEYS = [
  * An array containing keys of properties to be excluded during template serialization.
  * @constant
  */
-const EXCLUDED_TEMPLATE_PROPERTY_KEYS = [
+const EXCLUDED_TEMPLATE_PROPERTY_KEYS: (keyof GUINodeData)[] = [
   "visible",
   "text",
   "font",
@@ -93,7 +93,7 @@ export async function serializeGUIData(guiData: GUIData): Promise<SerializedGUID
   const textures = serializeGUITextureData(guiData.textures);
   const fonts = serializeGUIFontsData(guiData.fonts);
   const layers = serializeGUILayersData(guiData.layers);
-  const data = `${gui}${textures}${fonts}${nodes}${layers}`.trim();
+  const data = `${gui.replace("<data>\n", `${textures}${fonts}${nodes}${layers}`)}`.trim();
   const templateData = serializeTemplateData(guiData, asTemplate);
   const serializedData = {
     name,
@@ -104,14 +104,31 @@ export async function serializeGUIData(guiData: GUIData): Promise<SerializedGUID
   return Promise.resolve(serializedData);
 }
 
-function shouldExcludeGUIProperty<TKey extends keyof GUIDefoldData>(property: [TKey, GUIDefoldData[TKey]]): boolean {
+function serializeGUIDefoldData(guiData: GUIDefoldData): string {
+  const properties = Object.entries(guiData) as [keyof GUIDefoldData, GUIDefoldData[keyof GUIDefoldData]][];
+  const data = properties.reduce((serializedProperties: string, property) => {
+    if (shouldExcludeGUIProperty(property)) {
+      return serializedProperties;
+    }
+    const [ key ] = property;
+    if (key === "script") {
+      serializedProperties = propertySerializer(serializedProperties, property);
+      serializedProperties += `<data>\n`
+      return serializedProperties;
+    }
+    return propertySerializer(serializedProperties, property);
+  }, "");
+  return data;
+}
+
+function shouldExcludeGUIProperty<GUIDefoldData>(property: [keyof GUIDefoldData, GUIDefoldData[keyof GUIDefoldData]]): boolean {
   if (PROJECT_CONFIG.omitDefaultValues) {
     return isGUIPropertyDefaultValue(property);
   }
   return false;
 }
 
-function isGUIPropertyDefaultValue<TKey extends keyof GUIDefoldData>([key, value]: [TKey, GUIDefoldData[TKey]]): boolean {
+function isGUIPropertyDefaultValue<GUIDefoldData>([key, value]: [keyof GUIDefoldData, GUIDefoldData[keyof GUIDefoldData]]): boolean {
   if (isVector4(value)) {
     if (key === "background_color") {
       return areVectorsEqual(value, { x: 0, y: 0, z: 0, w: 0 });
@@ -125,17 +142,6 @@ function isGUIPropertyDefaultValue<TKey extends keyof GUIDefoldData>([key, value
   return false;
 }
 
-function serializeGUIDefoldData(guiData: GUIDefoldData): string {
-  const properties = Object.entries(guiData) as [keyof GUIDefoldData, GUIDefoldData[keyof GUIDefoldData]][];
-  const data = properties.reduce((serializedProperties: string, property) => {
-    if (shouldExcludeGUIProperty(property)) {
-      return serializedProperties;
-    }
-    return propertySerializer(serializedProperties, property);
-  }, "");
-  return data;
-}
-
 /**
  * Reducer function that serializes GUI node data.
  * @param data - The cumulative serialized GUI node data.
@@ -144,7 +150,8 @@ function serializeGUIDefoldData(guiData: GUIDefoldData): string {
  */
 function guiNodeSerializer(data: string, guiNodeData: GUINodeData): string {
   if (isGUITemplateType(guiNodeData.type)) {
-    const node = Object.entries(guiNodeData).reduce((serializedProperties: string, property) => {
+    const properties = Object.entries(guiNodeData) as [keyof GUINodeData, GUINodeData[keyof GUINodeData]][];
+    const node = properties.reduce((serializedProperties: string, property) => {
       const [ key ] = property; 
       if (key === "template") {
         const templatePath = generateTemplatePath(guiNodeData.template_path, guiNodeData.template_name);
@@ -168,7 +175,7 @@ function guiNodeSerializer(data: string, guiNodeData: GUINodeData): string {
   }
 }
 
-function shouldExcludeGUINodeProperty<TKey extends keyof GUINodeData>(property: [TKey, GUINodeData[TKey]]): boolean {
+function shouldExcludeGUINodeProperty(property: [keyof GUINodeData, GUINodeData[keyof GUINodeData]]): boolean {
   const [ key ] = property;
   if (EXCLUDED_PROPERTY_KEYS.includes(key)) {
     return true;
@@ -179,7 +186,7 @@ function shouldExcludeGUINodeProperty<TKey extends keyof GUINodeData>(property: 
   return false;
 }
 
-function isGUINodePropertyDefaultValue<TKey extends keyof GUINodeData>([key, value]: [TKey, GUINodeData[TKey]]): boolean {
+function isGUINodePropertyDefaultValue([key, value]: [keyof GUINodeData, GUINodeData[keyof GUINodeData]]): boolean {
   if (key === "size_mode") {
     return value === "SIZE_MODE_MANUAL"; 
   }
