@@ -298,12 +298,15 @@ function convertGUITextNodeSizeMode(pluginData?: WithNull<PluginGUINodeData>) {
  */
 async function convertGUIBoxNodeVisuals(layer: BoxLayer, pluginData?: WithNull<PluginGUINodeData>) {
   const color = inferColor(layer);
+  const colorHue = vector4(color.x, color.y, color.z, 0);
+  const colorAlpha = color.w;
   const texture = await inferGUIBoxTexture(layer);
   const visible = convertGUIBoxNodeVisible(layer, texture, pluginData);
   const clippingVisible = inferClippingVisible(layer);
   return {
     visible,
-    color,
+    color: colorHue,
+    alpha: colorAlpha,
     texture,
     clipping_visible: clippingVisible,
   };
@@ -317,15 +320,24 @@ async function convertGUIBoxNodeVisuals(layer: BoxLayer, pluginData?: WithNull<P
  */
 function convertGUITextNodeVisuals(layer: TextLayer, pluginData?: WithNull<PluginGUINodeData>) {
   const color = inferColor(layer);
+  const colorHue = vector4(color.x, color.y, color.z, 0);
+  const colorAlpha = color.w;  
   const visible = convertGUITextNodeVisible(layer, pluginData);
   const font = convertGUITextNodeFont(layer, pluginData);
   const outline = inferTextOutline(layer);
+  const outlineHue = vector4(outline.x, outline.y, outline.z, 0);
+  const outlineAlpha = outline.w;
   const shadow = inferTextShadow(layer);
+  const shadowHue = vector4(shadow.x, shadow.y, shadow.z, 0);
+  const shadowAlpha = shadow.w;
   return {
     visible,
-    color,
-    outline,
-    shadow,
+    color: colorHue,
+    alpha: colorAlpha,
+    outline: outlineHue,
+    outline_alpha: outlineAlpha,
+    shadow: shadowHue,
+    shadow_alpha: shadowAlpha,
     font
   };
 }
@@ -432,13 +444,14 @@ function convertGUINodeSpecialProperties(layer: ExportableLayer, id: string, plu
     template: !!pluginData?.template,
     template_path: pluginData?.template && pluginData?.template_path ? pluginData.template_path : config.guiNodeDefaultSpecialValues.template_path,
     template_name: pluginData?.template && pluginData?.template_name ? pluginData.template_name : id,
-    script: !!pluginData?.script,
+    script: !!pluginData?.script || false,
     script_path: pluginData?.script && pluginData?.script_path ? pluginData.script_path : config.guiNodeDefaultSpecialValues.script_path,
     script_name: pluginData?.script && pluginData?.script_name ? pluginData.script_name : id,
     wrapper: !!pluginData?.wrapper,
     wrapper_padding: pluginData?.wrapper_padding || vector4(0),
     exclude: !!pluginData?.exclude,
     inferred: !!pluginData?.inferred,
+    figma_node_type: layer.type,
     exportable_layer: layer,
     exportable_layer_id: layer.id,
     exportable_layer_name: layer.name,

@@ -3,11 +3,46 @@
  * @packageDocumentation
  */
 
+import { PROJECT_CONFIG } from "handoff/project";
 import { propertySerializer } from "utilities/dataSerialization";
 import { indentLines, processLines, wrapLinesInQuotes } from "utilities/defold";
 import { isGameObjectLabelType, isGameObjectSpriteType } from "utilities/gameCollection";
-import { isVector4, readableNumber } from "utilities/math";
+import { areVectorsEqual, isVector4, readableNumber } from "utilities/math";
 import { generateAtlasPath } from "utilities/path";
+
+const GAME_OBJECT_PROPERTY_ORDER: (keyof GameObjectData)[] = [
+  "id",
+  "children",
+  "position",
+  "rotation",
+  "scale",
+];
+
+const GAME_COMPONENT_PROPERTY_ORDER: (keyof GameObjectData)[] = [
+  "id",
+  "type",
+  "position",
+  "rotation",
+  "scale",
+];
+
+const GAME_COMPONENT_DATA_PROPERTY_ORDER: (keyof GameObjectData)[] = [
+  "default_animation",
+  "material",
+  "blend_mode",
+  "slice9",
+  "size",
+  "size_mode",
+  "textures",
+  "color",
+  "outline",
+  "shadow",
+  "leading",
+  "tracking",
+  "pivot",
+  "line_break",
+  "text",
+];
 
 const DATA_PROPERTIES = [
   "size",
@@ -15,8 +50,8 @@ const DATA_PROPERTIES = [
   "color",
   "outline",
   "shadow",
-  "text_leading",
-  "text_tracking",
+  "leading",
+  "tracking",
   "image",
   "default_animation",
   "size_mode",
@@ -80,7 +115,7 @@ function gameCollectionSerializer(serializedData: string, gameObjectData: GameOb
  * @returns The processed serialized game object data.
  */
 function processGameObject(serializedBaseProperties: string, serializedEmbeddedComponents: string): string {
-  const serializedEmbeddedInstanceProperties = `${serializedBaseProperties}data:\n${wrapLinesInQuotes(serializedEmbeddedComponents)}`;
+  const serializedEmbeddedInstanceProperties = `${serializedBaseProperties}data: ${wrapLinesInQuotes(serializedEmbeddedComponents)}`;
   const serializedEmbeddedInstance = `embedded_instances {\n${indentLines(serializedEmbeddedInstanceProperties)}\n}\n`;
   return serializedEmbeddedInstance;
 }
@@ -164,34 +199,52 @@ function embeddedPropertiesFilter(embeddedProperties: { base: Partial<Record<key
  * @returns The serialized game object base properties.
  */
 function serializeBaseProperties(baseProperties: Partial<Record<keyof GameObjectData, GameObjectData[keyof GameObjectData]>>) {
-  const basedPropertyEntries = Object.entries(baseProperties) as [keyof GameObjectData, GameObjectData[keyof GameObjectData]][];
-  return basedPropertyEntries.reduce(gameObjectPropertySerializer, "");
+  const completeKeys = Object.keys(baseProperties) as (keyof GameObjectData)[];
+  completeKeys.sort(orderGameObjectProperties);
+  return completeKeys.reduce((serializedProperties: string, key: keyof GameObjectData) => {
+    const value = baseProperties[key];
+    const property = [key, value] as [keyof GameObjectData, GameObjectData[keyof GameObjectData]];
+    if (shouldOmitGameObjectProperty(property)) {
+      return serializedProperties;
+    }
+    if (isPropertyScale(key, value)) {
+      const serializedScale = serializeScale3Property(value);
+      return `${serializedProperties}${serializedScale}`;
+    }
+    if (isPropertyPosition(key, value)) {
+      const serializedPosition = serializePositionProperty(value);
+      return `${serializedProperties}${serializedPosition}`;
+    }
+    if (isPropertyChildren(key, value)) {
+      const serializedChildren = serializeChildrenProperty(value);
+      return `${serializedProperties}${serializedChildren}`;
+    }
+    return propertySerializer(serializedProperties, property);
+  }, "");
 }
 
-/**
- * Reducer function that serializes game object base properties.
- * @param serializedProperties - The cumulative serialized game object base properties.
- * @param property - The property to be serialized.
- * @param value - The value of the property to be serialized.
- * @returns The updated cumulative serialized game object base properties. 
- */
-function gameObjectPropertySerializer(serializedProperties: string, [property, value]: [keyof GameObjectData, GameObjectData[keyof GameObjectData]]): string {
-  if (isPropertyKeyType(property)) {
-    return serializedProperties;
+function shouldOmitGameObjectProperty(property: [keyof GameObjectData, GameObjectData[keyof GameObjectData]]) {
+  const [ key ] = property; 
+  if (isPropertyKeyType(key)) {
+    return true;
   }
-  if (isPropertyScale(property, value)) {
-    const serializedScale = serializeScale3Property(value);
-    return `${serializedProperties}${serializedScale}`;
+  if (PROJECT_CONFIG.omitDefaultValues) {
+    return isGameObjectPropertyDefaultValue(property);
   }
-  if (isPropertyPosition(property, value)) {
-    const serializedPosition = serializePositionProperty(value);
-    return `${serializedProperties}${serializedPosition}`;
+  return false;
+}
+
+function isGameObjectPropertyDefaultValue(property: [keyof GameObjectData, GameObjectData[keyof GameObjectData]]) {
+  const [ key, value ] = property;
+  if (isPropertyScale(key, value)) {
+    return value.x === 1 && value.y === 1 && value.z === 1;
   }
-  if (isPropertyChildren(property, value)) {
-    const serializedChildren = serializeChildrenProperty(value);
-    return `${serializedProperties}${serializedChildren}`;
+  if (isPropertyPosition(key, value)) {
+    return value.x === 0 && value.y === 0 && value.z === 0;
   }
-  return propertySerializer(serializedProperties, [property, value]);
+  if (isPropertyRotation(key, value)) {
+    return areVectorsEqual(value, { x: 0, y: 0, z: 0, w: 0 });
+  }
 }
 
 /**
@@ -199,54 +252,96 @@ function gameObjectPropertySerializer(serializedProperties: string, [property, v
  * @param componentProperties - The game object component properties to be serialized.
  * @returns The serialized game object component properties.
  */
-function serializeComponentProperties(componentProperties: Partial<Record<keyof GameObjectData, GameObjectData[keyof GameObjectData]>>) {
-  const componentPropertiesEntries = Object.entries(componentProperties) as [keyof GameObjectData, GameObjectData[keyof GameObjectData]][];
-  return componentPropertiesEntries.reduce(gameComponentPropertySerializer, "");
+function serializeComponentProperties(componentProperties: Partial<Record<keyof GameObjectData, GameObjectData[keyof GameObjectData]>>, sorter: (key1: keyof GameObjectData, key2: keyof GameObjectData) => number) {
+  const completeKeys = Object.keys(componentProperties) as (keyof GameObjectData)[];
+  completeKeys.sort(sorter);
+  return completeKeys.reduce((serializedProperties: string, key: keyof GameObjectData) => {
+    const value = componentProperties[key];
+    const property = [key, value] as [keyof GameObjectData, GameObjectData[keyof GameObjectData]];
+    if (isPropertyType(key, value)) {
+      if (isGameObjectSpriteType(value)) {
+        const serializedSpriteType = serializeSpriteTypeProperty();
+        return `${serializedProperties}${serializedSpriteType}`;
+      } else if (isGameObjectLabelType(value)) {
+        const serializedLabelType = serializeLabelTypeProperty();
+        return `${serializedProperties}${serializedLabelType}\n`;
+      }
+      return serializedProperties;
+    } else {
+      if (shouldOmitComponentProperty(property)) {
+        return serializedProperties;
+      }
+      if (isPropertyScale(key, value)) {
+        const serializedScale = serializeScaleProperty(value);
+        return `${serializedProperties}${serializedScale}`;
+      }
+      if (isPropertyPosition(key, value)) {
+        const serializedPosition = serializePositionProperty(value);
+        return `${serializedProperties}${serializedPosition}`;
+      }
+      if (isPropertyImage(key, value)) {
+        const serializedImage = serializeImageProperty(value);
+        return `${serializedProperties}${serializedImage}`;
+      }
+      if (isPropertyMaterial(key, value)) {
+        const serializedMaterial = serializeMaterialProperty();
+        return `${serializedProperties}${serializedMaterial}`;
+      }
+      if (isPropertyTextLeading(key, value)) {
+        const serializedMaterial = serializeTextLeadingProperty(value);
+        return `${serializedProperties}${serializedMaterial}`;
+      }
+      if (isPropertyTextTracking(key, value)) {
+        const serializedMaterial = serializeTextTrackingProperty(value);
+        return `${serializedProperties}${serializedMaterial}`;
+      }
+      return propertySerializer(serializedProperties, [key, value]);
+    }
+  }, "");
 }
 
-/**
- * Reducer function that serializes game object component properties.
- * @param serializedProperties - The cumulative serialized game object component properties.
- * @param property - The property to be serialized.
- * @param value - The value of the property to be serialized.
- * @returns The updated cumulative serialized game object component properties.
- */
-function gameComponentPropertySerializer(serializedProperties: string, [property, value]: [keyof GameObjectData, GameObjectData[keyof GameObjectData]]): string {
-  if (isPropertyType(property, value)) {
-    if (isGameObjectSpriteType(value)) {
-      const serializedSpriteType = serializeSpriteTypeProperty();
-      return `${serializedProperties}${serializedSpriteType}`;
-    } else if (isGameObjectLabelType(value)) {
-      const serializedLabelType = serializeLabelTypeProperty();
-      return `${serializedProperties}${serializedLabelType}\n`;
-    }
-    return serializedProperties;
+function shouldOmitComponentProperty(property: [keyof GameObjectData, GameObjectData[keyof GameObjectData]]) {
+  if (PROJECT_CONFIG.omitDefaultValues) {
+    return isComponentPropertyDefaultValue(property);
   }
-  if (isPropertyScale(property, value)) {
-    const serializedScale = serializeScaleProperty(value);
-    return `${serializedProperties}${serializedScale}`;
+  return false;
+}
+
+function isComponentPropertyDefaultValue(property: [keyof GameObjectData, GameObjectData[keyof GameObjectData]]) {
+  const [ key, value ] = property;
+  if (isPropertyScale(key, value)) {
+    return value.x === 1 && value.y === 1 && value.z === 1;
   }
-  if (isPropertyPosition(property, value)) {
-    const serializedPosition = serializePositionProperty(value);
-    return `${serializedProperties}${serializedPosition}`;
+  if (isPropertyPosition(key, value)) {
+    return value.x === 0 && value.y === 0 && value.z === 0;
   }
-  if (isPropertyImage(property, value)) {
-    const serializedImage = serializeImageProperty(value);
-    return `${serializedProperties}${serializedImage}`;
+  if (isPropertyRotation(key, value)) {
+    return areVectorsEqual(value, { x: 0, y: 0, z: 0, w: 0 });
   }
-  if (isPropertyMaterial(property, value)) {
-    const serializedMaterial = serializeMaterialProperty();
-    return `${serializedProperties}${serializedMaterial}`;
+  if (isPropertySize(key, value)) {
+    return value.x === 0 && value.y === 0;
   }
-  if (isPropertyTextLeading(property, value)) {
-    const serializedMaterial = serializeTextLeadingProperty(value);
-    return `${serializedProperties}${serializedMaterial}`;
+  if (isPropertySizeMode(key, value)) {
+    return value === "SIZE_MODE_MANUAL";
   }
-  if (isPropertyTextTracking(property, value)) {
-    const serializedMaterial = serializeTextTrackingProperty(value);
-    return `${serializedProperties}${serializedMaterial}`;
+  if (isPropertySlice9(key, value)) {
+    return areVectorsEqual(value, { x: 0, y: 0, z: 0, w: 0 });
   }
-  return propertySerializer(serializedProperties, [property, value]);
+  if (isPropertyImage(key, value)) {
+    return value === "";
+  }
+  if (isPropertyBlendMode(key, value)) {
+    return value === "BLEND_MODE_ALPHA";
+  }
+  if (isPropertyTextLeading(key, value)) {
+    return value === 1;
+  }
+  if (isPropertyTextTracking(key, value)) {
+    return value === 0;
+  }
+  if (isPropertyPivot(key, value)) {
+    return value === "PIVOT_CENTER";
+  }
 }
 
 /**
@@ -257,8 +352,8 @@ function gameComponentPropertySerializer(serializedProperties: string, [property
 function serializeEmbeddedProperties(embeddedProperties: { base: Partial<Record<keyof GameObjectData, GameObjectData[keyof GameObjectData]>>, data: Partial<Record<keyof GameObjectData, GameObjectData[keyof GameObjectData]>> }[]) {
   if (embeddedProperties && embeddedProperties.length) {
     const serializedEmbeddedPropertySets = embeddedProperties.map((embeddedComponentProperties) => {
-      const serializedBaseEmbeddedProperties = serializeComponentProperties(embeddedComponentProperties.base);
-      let serializedDataEmbeddedProperties = serializeComponentProperties(embeddedComponentProperties.data);
+      const serializedBaseEmbeddedProperties = serializeComponentProperties(embeddedComponentProperties.base, orderComponentProperties);
+      let serializedDataEmbeddedProperties = serializeComponentProperties(embeddedComponentProperties.data, orderComponentDataProperties);
       if (embeddedComponentProperties.base.type && isPropertyType("type", embeddedComponentProperties.base.type) && isGameObjectLabelType(embeddedComponentProperties.base.type)) {
         serializedDataEmbeddedProperties += `\nfont: "/builtins/fonts/default.font"\nmaterial: "/builtins/fonts/label-df.material"`;
       }
@@ -322,6 +417,10 @@ function isPropertyPosition(property: keyof GameObjectData, value: GameObjectDat
   return property === "position" && isVector4(value);
 }
 
+function isPropertyRotation(property: keyof GameObjectData, value: GameObjectData[keyof GameObjectData]): value is Vector4 {
+  return property === "rotation" && isVector4(value);
+}
+
 /**
  * Determines whether the property is image.
  * @param property - The property to be checked.
@@ -349,7 +448,7 @@ function isPropertyMaterial(property: keyof GameObjectData, value: GameObjectDat
  * @returns True if the property is text leading, false otherwise.
  */
 function isPropertyTextLeading(property: keyof GameObjectData, value: GameObjectData[keyof GameObjectData]): value is number {
-  return property === "text_leading" && typeof value === "number";
+  return property === "leading" && typeof value === "number";
 }
 
 /**
@@ -359,7 +458,27 @@ function isPropertyTextLeading(property: keyof GameObjectData, value: GameObject
  * @returns True if the property is text tracking, false otherwise.
  */
 function isPropertyTextTracking(property: keyof GameObjectData, value: GameObjectData[keyof GameObjectData]): value is number {
-  return property === "text_tracking" && typeof value === "number";
+  return property === "tracking" && typeof value === "number";
+}
+
+function isPropertySize(property: keyof GameObjectData, value: GameObjectData[keyof GameObjectData]): value is Vector4 {
+  return property === "size" && isVector4(value);
+}
+
+function isPropertySizeMode(property: keyof GameObjectData, value: GameObjectData[keyof GameObjectData]): value is SizeMode {
+  return property === "size_mode" && (value === "SIZE_MODE_AUTO" || value === "SIZE_MODE_MANUAL");
+}
+
+function isPropertySlice9(property: keyof GameObjectData, value: GameObjectData[keyof GameObjectData]): value is Vector4 {
+  return property === "slice9" && isVector4(value);
+}
+
+function isPropertyBlendMode(property: keyof GameObjectData, value: GameObjectData[keyof GameObjectData]): value is BlendingMode {
+  return property === "blend_mode" && (value === "BLEND_MODE_ALPHA" || value === "BLEND_MODE_ADD" || value === "BLEND_MODE_MULTIPLY" || value === "BLEND_MODE_SCREEN" || value === "BLEND_MODE_DISABLED");
+}
+
+function isPropertyPivot(property: keyof GameObjectData, value: GameObjectData[keyof GameObjectData]): value is Pivot {
+  return property === "pivot" && (value === "PIVOT_CENTER" || value === "PIVOT_N" || value === "PIVOT_NE" || value === "PIVOT_E" || value === "PIVOT_SE" || value === "PIVOT_S" || value === "PIVOT_SW" || value === "PIVOT_W" || value === "PIVOT_NW");
 }
 
 /**
@@ -477,3 +596,30 @@ function serializeTextTrackingProperty(value: number): string {
 function serializeChildrenProperty(value: string[]): string {
   return value.map((child) => `children: "${child}"\n`).join("");
 }
+
+function orderGameObjectProperties(key1: keyof GameObjectData, key2: keyof GameObjectData) {
+  return orderProperties(key1, key2, GAME_OBJECT_PROPERTY_ORDER);
+}
+
+function orderComponentProperties(key1: keyof GameObjectData, key2: keyof GameObjectData) {
+  return orderProperties(key1, key2, GAME_COMPONENT_PROPERTY_ORDER);
+}
+
+function orderComponentDataProperties(key1: keyof GameObjectData, key2: keyof GameObjectData) {
+  return orderProperties(key1, key2, GAME_COMPONENT_DATA_PROPERTY_ORDER);
+}
+
+function orderProperties(key1: keyof GameObjectData, key2: keyof GameObjectData, order: (keyof GameObjectData)[]) {
+  const index1 = order.indexOf(key1);
+  const index2 = order.indexOf(key2);
+  if (index1 === -1 && index2 === -1) {
+    return 0;
+  }
+  if (index1 === -1) {
+    return 1;
+  }
+  if (index2 == -1) {
+    return -1;
+  }
+  return index1 - index2;
+} 

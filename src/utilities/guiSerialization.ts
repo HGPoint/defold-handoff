@@ -3,13 +3,48 @@
  * @packageDocumentation
  */
 
-import { areVectorsEqual, isVector4 } from "utilities/math";
 import { PROJECT_CONFIG } from "handoff/project";
 import { propertySerializer } from "utilities/dataSerialization";
 import { indentLines } from "utilities/defold";
 import { isGUITemplateType } from "utilities/gui";
+import { areVectorsEqual, isVector4 } from "utilities/math";
 import { generateTemplatePath } from "utilities/path";
 import { extractScheme } from "utilities/scheme";
+
+const GUI_NODE_PROPERTY_ORDER: (keyof GUINodeData)[] = [
+  "position",
+  "rotation",
+  "scale",
+  "size",
+  "color",
+  "type",
+  "blend_mode",
+  "text",
+  "font",
+  "texture",
+  "id",
+  "parent",
+  "xanchor",
+  "yanchor",
+  "pivot",
+  "outline",
+  "shadow",
+  "adjust_mode",
+  "line_break",
+  "layer",
+  "inherit_alpha",
+  "outline_alpha",
+  "shadow_alpha",
+  "text_leading",
+  "text_tracking",
+  "slice9",
+  "clipping_mode",
+  "clipping_visible",
+  "clipping_inverted",
+  "alpha",
+  "enabled",
+  "visible",
+]
 
 /**
  * An array containing keys of properties to be excluded during serialization.
@@ -107,7 +142,7 @@ export async function serializeGUIData(guiData: GUIData): Promise<SerializedGUID
 function serializeGUIDefoldData(guiData: GUIDefoldData): string {
   const properties = Object.entries(guiData) as [keyof GUIDefoldData, GUIDefoldData[keyof GUIDefoldData]][];
   const data = properties.reduce((serializedProperties: string, property) => {
-    if (shouldExcludeGUIProperty(property)) {
+    if (shouldOmitGUIProperty(property)) {
       return serializedProperties;
     }
     const [ key ] = property;
@@ -121,7 +156,7 @@ function serializeGUIDefoldData(guiData: GUIDefoldData): string {
   return data;
 }
 
-function shouldExcludeGUIProperty<GUIDefoldData>(property: [keyof GUIDefoldData, GUIDefoldData[keyof GUIDefoldData]]): boolean {
+function shouldOmitGUIProperty<GUIDefoldData>(property: [keyof GUIDefoldData, GUIDefoldData[keyof GUIDefoldData]]): boolean {
   if (PROJECT_CONFIG.omitDefaultValues) {
     return isGUIPropertyDefaultValue(property);
   }
@@ -164,9 +199,11 @@ function guiNodeSerializer(data: string, guiNodeData: GUINodeData): string {
     }, "");
     return `${data}nodes {\n${indentLines(node)}\n}\n`;
   } else {
-    const properties = Object.entries(guiNodeData) as [keyof GUINodeData, GUINodeData[keyof GUINodeData]][];
-    const node = properties.reduce((serializedProperties: string, property) => {
-      if (shouldExcludeGUINodeProperty(property)) {
+    const completeKeys = Object.keys(guiNodeData) as (keyof GUINodeData)[];
+    completeKeys.sort(orderGUINodeProperties);
+    const node = completeKeys.reduce((serializedProperties: string, key) => {
+      const property: [keyof GUINodeData, GUINodeData[keyof GUINodeData]] = [key, guiNodeData[key]];
+      if (shouldOmitGUINodeProperty(property)) {
         return serializedProperties;
       }
       return propertySerializer(serializedProperties, property);
@@ -175,7 +212,7 @@ function guiNodeSerializer(data: string, guiNodeData: GUINodeData): string {
   }
 }
 
-function shouldExcludeGUINodeProperty(property: [keyof GUINodeData, GUINodeData[keyof GUINodeData]]): boolean {
+function shouldOmitGUINodeProperty(property: [keyof GUINodeData, GUINodeData[keyof GUINodeData]]): boolean {
   const [ key ] = property;
   if (EXCLUDED_PROPERTY_KEYS.includes(key)) {
     return true;
@@ -223,7 +260,7 @@ function isGUINodePropertyDefaultValue([key, value]: [keyof GUINodeData, GUINode
     return value === "";
   }
   if (typeof value === "number") {
-    if (key === "text_leading") {
+    if (key === "text_leading" || key === "outline_alpha" || key === "shadow_alpha" || key === "alpha") {
       return value === 1;
     }
     if (key === "text_tracking" || key === "custom_type") {
@@ -331,4 +368,19 @@ function serializeTemplateData(guiData: GUIData, asTemplate: boolean) {
     }
   }
   return {};
+}
+
+function orderGUINodeProperties(key1: keyof GUINodeData, key2: keyof GUINodeData) {
+  const index1 = GUI_NODE_PROPERTY_ORDER.indexOf(key1);
+  const index2 = GUI_NODE_PROPERTY_ORDER.indexOf(key2);
+  if (index1 === -1 && index2 === -1) {
+    return 0;
+  }
+  if (index1 === -1) {
+    return 1;
+  }
+  if (index2 == -1) {
+    return -1;
+  }
+  return index1 - index2;
 }

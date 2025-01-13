@@ -3,8 +3,8 @@
  * @packageDocumentation
  */
 
-import { PROJECT_CONFIG } from "handoff/project";
 import config from "config/config.json";
+import { PROJECT_CONFIG } from "handoff/project";
 import { isVector4, readableNumber } from "utilities/math";
 
 /**
@@ -27,6 +27,9 @@ export function serializeProperties<T extends object>(data: T): string {
 export function propertySerializer<T>(serializedProperties: string, [property, value]: [keyof T, T[keyof T]]): string {
   if (hasPropertyValue(value)) {
     const serializedProperty = serializeProperty(property, value);
+    if (!serializedProperty) {
+      return serializedProperties;
+    }
     return `${serializedProperties}${serializedProperty}\n`;
   }
   return serializedProperties;
@@ -129,6 +132,9 @@ function serializeQuotedProperty<T>(property: keyof T, value: string): string {
  */
 function serializeVector4Property<T>(property: keyof T, value: Vector4): string {
   const serializedValue = PROJECT_CONFIG.omitDefaultValues ? serializeOmittedVector4Value(value) : serializeVector4Value(value); 
+  if (!serializedValue) {
+    return "";
+  }
   return `${property.toString()} ${serializedValue}`;
 }
 
@@ -137,6 +143,9 @@ function serializeVector4Value(value: Vector4): string {
 }
 
 function serializeOmittedVector4Value(value: Vector4): string {
+  if (value.x === 0 && value.y === 0 && value.z === 0 && value.w === 0) {
+    return "";
+  }
   let serializedValue = "{\n";
   if (value.x !== 0) {
     serializedValue += `  x: ${readableNumber(value.x)}\n`;

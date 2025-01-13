@@ -375,7 +375,7 @@ async function tryFindOriginalGUINodeData(selection: SelectionData): Promise<Wit
  * @returns The array of unique atlases.
  */
 export function reduceAtlasesFromSelectionData(selection: SelectionData): ComponentSetNode[] {
-  const impliedSections = selection.atlases.reduce(impliedSectionAtlasesReducer, { sections: [], atlases: [] });
+  const impliedSections = selection.atlases.reduce(impliedSectionAtlasesReducer, { sections: [], atlases: [ ...selection.atlases ] });
   const totalSections = removeDoubles([ ...selection.sections, ...impliedSections.sections ]);
   const restAtlases = removeDoubles([ ...impliedSections.atlases ]);
   const atlases = totalSections.reduce(sectionAtlasesReducer, [...restAtlases ]);

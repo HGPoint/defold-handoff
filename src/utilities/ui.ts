@@ -5,7 +5,7 @@
  * @packageDocumentation
  */
 
-import { copyGUI, copyGUIScheme, copyGameObjects, exportAtlases, exportBundle, exportGUI, exportGameObjects, exportSprites } from "utilities/resources";
+import { copyGUI, copyGUIScheme, copyGameObjects, exportAtlases, exportBundle, exportGUI, exportGameCollection, exportSprites } from "utilities/resources";
 
 /**
  * Resolves the plugin version.
@@ -226,7 +226,7 @@ function onGUISchemeCopied(data: PluginMessagePayload) {
 }
 
 function onGameCollectionsExported(data: PluginMessagePayload) {
-  exportGameObjects(data);
+  exportGameCollection(data);
 }
 
 function onGameCollectionCopied(data: PluginMessagePayload) {

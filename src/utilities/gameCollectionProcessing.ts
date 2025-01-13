@@ -43,8 +43,8 @@ const LABEL_COMPONENT_PROPERTIES = [
   "color",
   "outline",
   "shadow",
-  "text_leading",
-  "text_tracking",
+  "leading",
+  "tracking",
   "pivot",
   "blend_mode",
 ];
