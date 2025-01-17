@@ -272,7 +272,7 @@ function convertGUINodePosition(layer: ExportableLayer, pivot: Pivot, parentPivo
  * @returns The converted size mode.
  */
 async function convertGUIBoxNodeSizeMode(layer: BoxLayer, texture?: string, pluginData?: WithNull<PluginGUINodeData>): Promise<SizeMode> {
-  if (pluginData?.size_mode && Object.values(config.sizeModes).includes(pluginData.size_mode)) {
+  if (!texture && pluginData?.size_mode && Object.values(config.sizeModes).includes(pluginData.size_mode)) {
     return pluginData.size_mode;
   }
   return await inferSizeMode(layer, texture);

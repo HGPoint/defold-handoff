@@ -220,10 +220,13 @@ async function inferSpriteSizeMode(layer: InstanceNode): Promise<SizeMode> {
     const { parent } = mainComponent;
     if (parent && isLayerAtlas(parent)) {
       const { width: mainWidth, height: mainHeight } = mainComponent;
-      const { width, height } = layer;
-      const isSameSize = mainWidth == width && mainHeight == height;
-      const sizeMode = isSameSize ? "SIZE_MODE_AUTO" : "SIZE_MODE_MANUAL";
-      return sizeMode;
+      const sizedLayer = isSlice9Layer(layer) ? findSlice9PlaceholderLayer(layer) : layer;
+      if (sizedLayer) {
+        const { width, height } = sizedLayer;      
+        const isSameSize = mainWidth == width && mainHeight == height;
+        const sizeMode = isSameSize ? "SIZE_MODE_AUTO" : "SIZE_MODE_MANUAL";
+        return sizeMode;
+      }
     }
   }
   return "SIZE_MODE_AUTO";
