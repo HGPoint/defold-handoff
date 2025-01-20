@@ -414,7 +414,7 @@ function onAtlasesExported(atlases: SerializedAtlasData[]) {
 
 function onExportSprites(scale: number = 1) {
   const atlases = reduceAtlasesFromSelectionData(SELECTION);
-  exportAtlases(atlases, scale)
+  exportAtlases(atlases, [], scale)
     .then(onSpritesExported)
     .catch(processError);
 }

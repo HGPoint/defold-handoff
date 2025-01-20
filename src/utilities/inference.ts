@@ -121,7 +121,7 @@ export async function inferGUIBoxData(layer: BoxLayer, pluginData?: WithNull<Plu
   const id = resolveId(layer, pluginData);
   const type = resolveType("TYPE_BOX", pluginData);
   const texture = await inferGUIBoxTexture(layer);
-  const sizeMode = await inferSizeMode(layer, texture);
+  const sizeMode = await inferSizeMode(layer);
   const visible = inferGUIBoxVisible(layer, texture);
   const guiLayer = resolveGUILayer(context, pluginData);
   const data = {
@@ -198,13 +198,10 @@ export function inferGUITextVisible(): boolean {
  * @param texture - The the box GUI node or game object texture.
  * @returns The inferred size mode for the GUI box node.
  */
-export async function inferSizeMode(layer: ExportableLayer, texture?: string): Promise<SizeMode> {
-  if (texture) {
-    if (isFigmaComponentInstance(layer)) {
-      const sizeMode = await inferSpriteSizeMode(layer);
-      return sizeMode;
-    }
-    return "SIZE_MODE_AUTO";
+export async function inferSizeMode(layer: ExportableLayer): Promise<SizeMode> {
+  if (await isLayerSprite(layer) && isFigmaComponentInstance(layer)) {
+    const sizeMode = await inferSpriteSizeMode(layer);
+    return sizeMode;
   }
   return "SIZE_MODE_MANUAL";
 }

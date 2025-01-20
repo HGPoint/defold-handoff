@@ -37,7 +37,7 @@ export async function copyGameCollection(layer: ExportableLayer): Promise<Serial
  * @param update - The update data to apply.
  * @returns True if the update was successful, false otherwise.
  */
-export async function updateGameObject(layer: ExportableLayer, update: PluginGameObjectData) {
+export async function updateGameObject(layer: DataLayer, update: PluginGameObjectData) {
   const result = await runUpdatePipeline(GAME_OBJECT_UPDATE_PIPELINE, layer, update);
   return result;
 }

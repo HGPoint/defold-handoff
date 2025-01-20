@@ -46,7 +46,7 @@ export async function convertBoxGUINodeData(layer: BoxLayer, options: GUINodeDat
   const guiLayer = convertGUINodeLayer(context, data);
   const pivot = convertGUIBoxNodePivot(data);
   const visuals = await convertGUIBoxNodeVisuals(layer, data);
-  const sizeMode = await convertGUIBoxNodeSizeMode(layer, visuals.texture, data);
+  const sizeMode = await convertGUIBoxNodeSizeMode(layer, data);
   const transformations = convertGUIBoxNodeTransformations(layer, pivot, parentPivot, parentSize, parentShift, atRoot, asTemplate, data);
   const parent = convertGUINodeParent(parentId, data);
   const specialProperties = convertGUINodeSpecialProperties(layer, id, data);
@@ -271,11 +271,11 @@ function convertGUINodePosition(layer: ExportableLayer, pivot: Pivot, parentPivo
  * @param pluginData - The GUI node plugin data.
  * @returns The converted size mode.
  */
-async function convertGUIBoxNodeSizeMode(layer: BoxLayer, texture?: string, pluginData?: WithNull<PluginGUINodeData>): Promise<SizeMode> {
-  if (!texture && pluginData?.size_mode && Object.values(config.sizeModes).includes(pluginData.size_mode)) {
+async function convertGUIBoxNodeSizeMode(layer: BoxLayer, pluginData?: WithNull<PluginGUINodeData>): Promise<SizeMode> {
+  if (pluginData?.size_mode && Object.values(config.sizeModes).includes(pluginData.size_mode)) {
     return pluginData.size_mode;
   }
-  return await inferSizeMode(layer, texture);
+  return await inferSizeMode(layer);
 }
 
 /**

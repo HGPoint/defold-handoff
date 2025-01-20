@@ -319,7 +319,7 @@ async function convertSpriteComponentSizeMode(layer: ExportableLayer, texture?: 
   if (data?.size_mode && Object.values(config.sizeModes).includes(data.size_mode)) {
     return data.size_mode;
   }
-  return await inferSizeMode(layer, texture);
+  return await inferSizeMode(layer);
 }
 
 /**

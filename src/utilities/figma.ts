@@ -441,6 +441,15 @@ function hasPropertyChanged(change: PropertyChange, property: NodeChangeProperty
 }
 
 /**
+ * Determines whether width or height properties have changed.
+ * @param change - The property change to check.
+ * @returns True if width or height properties have changed, otherwise false.
+ */
+export function hasSizePropertyChanged(change: PropertyChange) {
+  return hasPropertyChanged(change, "width") || hasPropertyChanged(change, "height");
+}
+
+/**
  * Determines whether the document change is a property change.
  * @param change - The document change to check.
  * @returns True if the document change is a property change, otherwise false.

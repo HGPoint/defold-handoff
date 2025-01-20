@@ -3,9 +3,9 @@
  * @packageDocumentation
  */
 
-import { getPluginData, hasNamePropertyChanged, hasVariantPropertyChanged, isDocumentDeleteChange, isDocumentPropertyChange, isFigmaComponentInstance, isFigmaRemoved, setPluginData } from "utilities/figma";
+import { getPluginData, hasNamePropertyChanged, hasSizePropertyChanged, hasVariantPropertyChanged, isDocumentDeleteChange, isDocumentPropertyChange, isFigmaComponentInstance, isFigmaRemoved, setPluginData } from "utilities/figma";
 import { removeGUINodeOverridesPluginData, resolveGUINodeOverridesDataKey } from "utilities/gui";
-import { isSlice9Layer, isSlice9PlaceholderLayer, tryRefreshSlice9, tryUpdateSlice9LayerName } from "utilities/slice9";
+import { isSlice9Layer, isSlice9PlaceholderLayer, tryRefreshSlice9, tryRefreshSlice9SizeMode, tryUpdateSlice9LayerName, tryUpdateSlice9PlaceholderLayerName } from "utilities/slice9";
 
 /**
  * Processes changes to the Figma document.
@@ -58,6 +58,9 @@ function processPropertyChange(change: DocumentChange) {
       if (hasNamePropertyChanged(change)) {
         onNamePropertyChange(node);
       }
+      if (hasSizePropertyChanged(change)) {
+        onSizePropertyChange(node);
+      }
       if (hasVariantPropertyChanged(change)) {
         onVariantPropertyChange(node);
       }
@@ -72,6 +75,8 @@ function processPropertyChange(change: DocumentChange) {
 function onNamePropertyChange(node: SceneNode) {
   if (isSlice9PlaceholderLayer(node)) {
     tryUpdateSlice9LayerName(node);
+  } else if (isSlice9Layer(node)) {
+    tryUpdateSlice9PlaceholderLayerName(node);
   }
 }
 
@@ -82,6 +87,14 @@ function onNamePropertyChange(node: SceneNode) {
 function onVariantPropertyChange(node: SceneNode) {
   if (isSlice9Layer(node) && isFigmaComponentInstance(node)) {
     tryRefreshSlice9(node);
+  }
+}
+
+function onSizePropertyChange(node: SceneNode) {
+  if (isSlice9Layer(node)) {
+    tryRefreshSlice9SizeMode(node);
+  } else if (isSlice9PlaceholderLayer(node)) {
+    tryRefreshSlice9SizeMode(node);
   }
 }
 

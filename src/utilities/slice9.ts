@@ -4,10 +4,13 @@
  */
 
 import { resolvePluginDataKey } from "utilities/data";
-import { getPluginData, hasChildren, isFigmaBox, isFigmaComponentInstance, isLayerExportable, isLayerSprite, removePluginData, setPluginData } from "utilities/figma";
+import { getPluginData, hasChildren, isFigmaBox, isFigmaComponentInstance, isLayerExportable, isLayerGameObject, isLayerGUINode, isLayerSprite, removePluginData, setPluginData } from "utilities/figma";
 import { getGameObjectPluginData } from "utilities/gameCollection";
 import { getGUINodePluginData } from "utilities/gui";
+import { inferSizeMode } from "utilities/inference";
 import { areVectorsEqual, isZeroVector, vector4 } from "utilities/math";
+import { updateGUINode } from "handoff/gui";
+import { updateGameObject } from "handoff/gameCollection";
 
 /**
  * Determines whether a Figma layer is a slice9 layer.
@@ -783,4 +786,32 @@ function parseSlice9LayerName(placeholderLayer: FrameNode) {
   const { name } = placeholderLayer;
   const newName = name.replace("-slice9Placeholder", "");
   return newName;
+}
+
+export function tryUpdateSlice9PlaceholderLayerName(layer: InstanceNode) {
+  const placeholder = findSlice9PlaceholderLayer(layer);
+  if (placeholder) {
+    updateSlice9PlaceholderLayerName(placeholder, layer);
+  }
+}
+
+function updateSlice9PlaceholderLayerName(placeholder: FrameNode, layer: InstanceNode) {
+  const name = layer.name;
+  placeholder.name = `${name}-slice9Placeholder`;
+}
+
+export async function tryRefreshSlice9SizeMode(layer: SceneNode) {
+  const originalLayer = isSlice9PlaceholderLayer(layer) ? findSlice9Layer(layer) : layer;
+  if (originalLayer && isFigmaBox(originalLayer)) {
+    const sizeMode = await inferSizeMode(originalLayer);
+    if (isLayerGUINode(originalLayer)) {
+      const data = getGUINodePluginData(originalLayer);
+      const update = { ...data, size_mode: sizeMode };
+      updateGUINode(originalLayer, update);
+    } else if (isLayerGameObject(originalLayer)) {
+      const data = await getGameObjectPluginData(originalLayer);
+      const update = { ...data, size_mode: sizeMode };
+      updateGameObject(originalLayer, update);
+    }
+  }
 }

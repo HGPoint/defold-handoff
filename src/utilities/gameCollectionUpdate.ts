@@ -13,7 +13,7 @@ import { getGameObjectPluginData } from "utilities/gameCollection"
  * @param layer - The layer to ensure is a game object layer.
  * @returns The game object layer, or null if the layer is not a game object layer.
  */
-export function ensureGameObjectLayer(layer: ExportableLayer) {
+export function ensureGameObjectLayer(layer: DataLayer) {
   const originalLayer = isSlice9PlaceholderLayer(layer) ? findSlice9Layer(layer) : layer;
   if (originalLayer && isLayerData(originalLayer)) {
     return originalLayer;
