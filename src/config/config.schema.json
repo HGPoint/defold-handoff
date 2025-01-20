@@ -29,6 +29,9 @@
         "guiNodesActionsCollapsed": {
           "type": "boolean"
         },
+        "atlasPropertiesCollapsed": {
+          "type": "boolean"
+        },
         "atlasToolsCollapsed": {
           "type": "boolean"
         },
@@ -81,6 +84,7 @@
         "guiNodeActionsCollapsed",
         "guiNodesToolsCollapsed",
         "guiNodesActionsCollapsed",
+        "atlasPropertiesCollapsed",
         "atlasToolsCollapsed",
         "atlasActionsCollapsed",
         "atlasesToolsCollapsed",
@@ -615,6 +619,21 @@
         "max_page_height"
       ]
     },
+    "atlasDefaultSpecialValues": {
+      "type": "object",
+      "properties": {
+        "extension": {
+          "type": "string"
+        },
+        "ignore": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "extension",
+        "ignore"
+      ]
+    },
     "atlasImageDefaultValues": {
       "type": "object",
       "properties": {
@@ -634,6 +653,12 @@
         },
         "jumbo": {
           "type": "string"
+        },
+        "extension": {
+          "type": "string"
+        },
+        "ignore": {
+          "type": "boolean"
         },
         "layers": {
           "type": "array",
@@ -666,6 +691,8 @@
       "required": [
         "bundled",
         "jumbo",
+        "extension",
+        "ignore",
         "layers",
         "materials",
         "ignorePrefixes"

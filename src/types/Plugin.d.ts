@@ -26,6 +26,8 @@ type PluginSectionData = {
   id: string,
   bundled: boolean,
   jumbo: string,
+  extension: string,
+  ignore: boolean,
   layers: ProjectLayerData[],
   materials: ProjectMaterialData[],
   ignorePrefixes: boolean,
@@ -39,6 +41,8 @@ type PluginContextData = {
 
 type PluginAtlasData = {
   id: string,
+  extension: string,
+  ignore: boolean,
 }
 
 type PluginGUINodeData = {
@@ -125,7 +129,7 @@ type PluginGUINodeDataOverrideKey = `defoldGUINodeOverride-${string}`
 
 type PluginDataKey = keyof PluginData;
 
-type uiMessage = {
+type UIMessage = {
   pluginMessage: PluginMessage,
 }
 
@@ -142,6 +146,7 @@ type PluginMessagePayload = {
   gui?: PluginGUINodeData[],
   guiNode?: PluginGUINodeData,
   gameObject?: PluginGameObjectData,
+  atlas?: PluginAtlasData,
   section?: PluginSectionData,
   scheme?: string,
   image?: Uint8Array,
@@ -212,6 +217,7 @@ type PluginMessagesAtlasAction =
   "createAtlas" |
   "restoreAtlases" |
   "addSprites" |
+  "updateAtlas" |
   "removeAtlases" |
   "fixAtlases" |
   "sortAtlases" |
@@ -224,6 +230,7 @@ type PluginMessageSectionAction =
 
 type PluginMessageBundleAction =
   "exportBundle" |
+  "exportBareBundle" |
   "bundleExported"
 
 type PluginMessagesLayerAction =

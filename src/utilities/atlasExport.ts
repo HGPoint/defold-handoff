@@ -12,12 +12,12 @@ import { convertAtlasData, convertSpriteData } from "utilities/atlasConversion";
  * @param scale - The scale to export images at.
  * @returns The atlas data.
  */
-export async function exportAtlasData({ layer, parameters: { scale } }: AtlasExportPipelineData): Promise<AtlasData> {
+export async function exportAtlasData({ layer, parameters: { scale, usedSprites } }: AtlasExportPipelineData): Promise<AtlasData> {
   const { name: directory } = layer;
   const name = resolveAtlasName(layer);
   const images = isAtlasStatic(layer) ? layer.children : layer.images;
   const atlas = convertAtlasData();
-  const spriteData = await exportSpriteData(images, directory, scale);
+  const spriteData = await exportSpriteData(images, directory, scale, usedSprites);
   return {
     name,
     atlas,
@@ -32,8 +32,8 @@ export async function exportAtlasData({ layer, parameters: { scale } }: AtlasExp
  * @param scale - The scale to export images at.
  * @returns The sprite data.
  */
-async function exportSpriteData(images: readonly (SceneNode | SliceNode)[], directory: string, scale: number = 1): Promise<SpriteData[]> {
-  const spriteExportPromises = images.map((sprite) => exportSprite(sprite, directory, scale))
+async function exportSpriteData(images: readonly (SceneNode | SliceNode)[], directory: string, scale: number = 1, usedSprites: string[] = []): Promise<SpriteData[]> {
+  const spriteExportPromises = images.map((sprite) => exportSprite(sprite, directory, scale, usedSprites))
   const spriteData = await Promise.all(spriteExportPromises);
   return spriteData;
 }
@@ -45,9 +45,10 @@ async function exportSpriteData(images: readonly (SceneNode | SliceNode)[], dire
  * @param scale - The scale to export image at.
  * @returns The sprite data.
  */
-async function exportSprite(layer: SceneNode, directory: string, scale: number = 1): Promise<SpriteData> {
+async function exportSprite(layer: SceneNode, directory: string, scale: number = 1, usedSprites: string[] = []): Promise<SpriteData> {
   const sprite = convertSpriteData();
-  const data = await layer.exportAsync({ format: "PNG", constraint: { type: "SCALE", value: scale } });
+  const shouldExport = usedSprites.length === 0 || usedSprites.includes(layer.id);
+  const data: WithNull<Uint8Array<ArrayBufferLike>> = shouldExport ? await layer.exportAsync({ format: "PNG", constraint: { type: "SCALE", value: scale } }) : null;
   const name = layer.name.replace("Sprite=", "");
   return {
     name,
@@ -62,8 +63,8 @@ async function exportSprite(layer: SceneNode, directory: string, scale: number =
  * @param layers - The atlases to pack.
  * @param scale - The scale to export images at.
  */
-export function packAtlases(layers: AtlasLayer[], scale = 1) {
-  return layers.map((layer) => packAtlas(layer, scale));
+export function packAtlases(layers: AtlasLayer[], scale = 1, usedSprites: string[] = []) {
+  return layers.map((layer) => packAtlas(layer, scale, usedSprites));
 
 }
 
@@ -72,7 +73,7 @@ export function packAtlases(layers: AtlasLayer[], scale = 1) {
  * @param layer - The atlas to pack.
  * @param scale - The scale to export images at.
  */
-export function packAtlas(layer: AtlasLayer, scale = 1) {
-  const parameters = { scale };
+export function packAtlas(layer: AtlasLayer, scale = 1, usedSprites: string[] = []): AtlasExportPipelineData {
+  const parameters = { scale, usedSprites };
   return { layer, parameters };
 }

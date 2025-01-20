@@ -11,6 +11,7 @@ type AtlasData = {
 
 type AtlasExportParameters = {
   scale: number,
+  usedSprites: string[],
 }
 
 type AtlasDefoldData = {
@@ -25,7 +26,7 @@ type SpriteData = {
   name: string,
   directory: string,
   sprite: SpriteDefoldData,
-  data: Uint8Array,
+  data: WithNull<Uint8Array>,
 }
 
 type SpriteDefoldData = {
@@ -41,7 +42,7 @@ type SerializedAtlasData = {
 type SerializedSpriteData = {
   name: string,
   directory: string,
-  data: Uint8Array,
+  data: WithNull<Uint8Array>,
 }
 
 type DynamicAtlas = {

@@ -10,7 +10,7 @@
  * @param updates - The updates to apply to each layer.
  * @returns The results of the update pipelines.
  */
-export async function runUpdatePipelines<TData>(pipeline: UpdatePipeline<TData>, layers: ExportableLayer[], updates: TData[]) {
+export async function runUpdatePipelines<TData>(pipeline: UpdatePipeline<TData>, layers: DataLayer[], updates: TData[]) {
   const pipelinePromises = updates.map((update, index) => runUpdatePipeline(pipeline, layers[index], update));
   return Promise.all(pipelinePromises);
 }
@@ -22,7 +22,7 @@ export async function runUpdatePipelines<TData>(pipeline: UpdatePipeline<TData>,
  * @param update - The update to apply.
  * @returns The result of the update pipeline.
  */
-export async function runUpdatePipeline<TData>(pipeline: UpdatePipeline<TData>, originalLayer: ExportableLayer, update: TData) {
+export async function runUpdatePipeline<TData>(pipeline: UpdatePipeline<TData>, originalLayer: DataLayer, update: TData) {
   const layer = pipeline.ensureLayer(originalLayer);
   if (layer) {
     const originalData = await pipeline.extractOriginalData(layer);

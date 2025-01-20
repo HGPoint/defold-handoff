@@ -4,8 +4,8 @@
  */
 
 import config from "config/config.json";
-import { addSprites, createAtlas, exportAtlases, exportGameCollectionAtlases, exportGUIAtlases, fitAtlases, fixAtlases, removeAtlases, sortAtlases, tryExtractSprite, tryRestoreAtlases } from "handoff/atlas";
-import { exportBundle } from "handoff/bundle";
+import { addSprites, createAtlas, exportAtlases, exportGameCollectionAtlases, exportGUIAtlases, fitAtlases, fixAtlases, removeAtlases, sortAtlases, tryExtractSprite, tryRestoreAtlases, updateAtlas } from "handoff/atlas";
+import { exportBareBundle, exportBundle } from "handoff/bundle";
 import { copyGameCollection, exportGameCollections, fixGameObjects, removeGameObjects, updateGameObject } from "handoff/gameCollection";
 import { copyGUI, copyGUIScheme, exportGUI, fixGUI, logGUI, removeGUI, resetGUIOverrides, resizeGUIToScreen, tryFixGUIText, tryForceGUIChildrenOnScreen, tryMatchGUINodeToGUIChild, tryMatchGUINodeToGUIParent, updateGUI, updateGUINode } from "handoff/gui";
 import { initializeProject, PROJECT_CONFIG, purgeUnusedData, updateProject } from "handoff/project";
@@ -14,7 +14,7 @@ import delay from "utilities/delay";
 import { processDocumentChanges } from "utilities/document";
 import { processError } from "utilities/error";
 import { selectFigmaLayer } from "utilities/figma";
-import { convertSelectionDataToSelectionUIData, pickFirstAtlasFromSelectionData, pickFirstGameObjectFromSelectionData, pickFirstGUINodeFromSelectionData, pickGUIFromSelectionData, pickGameObjectsFromSelectionData, pickLayersFromSelectionData, reduceAtlasesFromSelectionData, reduceSelectionDataFromSelection } from "utilities/selection";
+import { convertSelectionDataToSelectionUIData, pickFirstAtlasFromSelectionData, pickFirstGameObjectFromSelectionData, pickFirstGUINodeFromSelectionData, pickGameObjectsFromSelectionData, pickGUIFromSelectionData, pickLayersFromSelectionData, reduceAtlasesFromSelectionData, reduceSelectionDataFromSelection } from "utilities/selection";
 import { tryRestoreSlice9Placeholder } from "utilities/slice9";
 
 let SELECTION: SelectionData = { gui: [], atlases: [], layers: [], sections: [], gameObjects: [] };
@@ -168,6 +168,8 @@ function processUIMessage(message: PluginMessage) {
     onRestoreAtlases();
   } else if (type === "addSprites") {
     onAddSprites()
+  } else if (type === "updateAtlas" && data?.atlas) {
+    onUpdateAtlas(data.atlas);
   } else if (type === "removeAtlases") {
     onRemoveAtlases();
   } else if (type === "fixAtlases") {
@@ -182,6 +184,8 @@ function processUIMessage(message: PluginMessage) {
     onRemoveSections();
   } else if (type === "exportBundle") {
     onExportBundle();
+  } else if (type === "exportBareBundle") {
+    onExportBareBundle();
   } else if (type === "restoreSlice9") {
     onRestoreSlice9();
   } else if (type === "requestImage") {
@@ -444,6 +448,11 @@ function onAddSprites() {
   figma.notify("Sprites added to atlas");
 }
 
+function onUpdateAtlas(data: PluginAtlasData) {
+  const atlas = pickFirstAtlasFromSelectionData(SELECTION);
+  updateAtlas(atlas, data);
+}
+
 function onRemoveAtlases() {
   const atlases = reduceAtlasesFromSelectionData(SELECTION);
   removeAtlases(atlases);
@@ -485,6 +494,14 @@ function onExportBundle() {
   const { gui, gameObjects } = SELECTION;
   const bundle = { gui, gameObjects };
   exportBundle(bundle)
+    .then(onBundleExported)
+    .catch(processError);
+}
+
+function onExportBareBundle() {
+  const { gui, gameObjects } = SELECTION;
+  const bundle = { gui, gameObjects };
+  exportBareBundle(bundle)
     .then(onBundleExported)
     .catch(processError);
 }

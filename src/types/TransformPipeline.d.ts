@@ -25,7 +25,7 @@ type SerializedDataBase = {
 type SerializedData<TSerializedData> = SerializedDataBase | TSerializedData
 
 type PipelineResources = {
-  textures?: TextureData,
+  textures?: TextureResourceData,
   fonts?: FontData,
   layers?: LayerData,
 }

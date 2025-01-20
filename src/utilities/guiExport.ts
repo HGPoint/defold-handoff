@@ -389,7 +389,7 @@ export function packGUI(layers: ExportableLayer[]) {
  * @returns The list of root nodes.
  */
 function processRootGUI(layers: ExportableLayer[]): GUIExportPipelineData[] {
-  return layers.map(processRootGUINode);
+  return layers.map((layer) => processRootGUINode(layer));
 }
 
 /**

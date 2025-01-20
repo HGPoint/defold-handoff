@@ -283,7 +283,7 @@ function isGUINodePropertyDefaultValue([key, value]: [keyof GUINodeData, GUINode
  * @param textureData - The texture data to be serialized.
  * @returns The serialized texture data.
  */
-function serializeGUITextureData(textureData?: TextureData) {
+function serializeGUITextureData(textureData?: TextureResourceData) {
   if (textureData) {
     const data = Object.entries(textureData).reduce(textureDataSerializer, "")
     return data;

@@ -45,7 +45,7 @@ export function isValueOverridden<T extends PluginGUINodeData[keyof PluginGUINod
  * @param event - The message event to check.
  * @returns True if the message event contains a message from the plugin, otherwise false.
  */
-export function isPluginMessage(event: MessageEvent): event is MessageEvent<uiMessage> {
+export function isPluginMessage(event: MessageEvent): event is MessageEvent<UIMessage> {
   return !!event?.data?.pluginMessage;
 }
 

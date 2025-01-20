@@ -7,7 +7,7 @@ import { findMainFigmaComponent, getPluginData, hasChildren, isFigmaBox, isFigma
 import { generateAtlasPath } from "utilities/path";
 import { runVariantPipeline } from "utilities/variantPipeline";
 
-const TEXTURE_VARIANT_PIPELINE: VariantPipeline<TextureVariantPipelineData, TextureData> = {
+const TEXTURE_VARIANT_PIPELINE: VariantPipeline<TextureVariantPipelineData, TextureResourceData> = {
   process: extractTextureData,
 }
 
@@ -18,7 +18,7 @@ const TEXTURE_VARIANT_PIPELINE: VariantPipeline<TextureVariantPipelineData, Text
  * @param textureData - The texture data to append to.
  * @returns The generated texture data.
  */
-export async function extractTextureData(data: TextureVariantPipelineData, textureData: TextureData = {}): Promise<TextureData> {
+export async function extractTextureData(data: TextureVariantPipelineData, textureData: TextureResourceData = {}): Promise<TextureResourceData> {
   const { layer, skipVariants } = data;
   if (isLayerExportable(layer)) {
     if (isFigmaComponentInstance(layer)) {
@@ -59,7 +59,7 @@ function shouldAppendDynamicTextureData(textureAtlasData: TextureAtlasData, id: 
  * @param atlasName - The name of the atlas.
  * @returns The generated texture data.
  */
-function processDynamicTextureData(layer: SliceNode, atlasName: string): TextureData {
+function processDynamicTextureData(layer: SliceNode, atlasName: string): TextureResourceData {
   const path = generateAtlasPath(atlasName);
   return {
     [atlasName]: {
@@ -77,7 +77,7 @@ function processDynamicTextureData(layer: SliceNode, atlasName: string): Texture
  * @param layer - The Figma layer to process texture data for.
  * @returns The generated texture data.
  */
-async function processStaticTextureData(layer: InstanceNode): Promise<TextureData> {
+async function processStaticTextureData(layer: InstanceNode): Promise<TextureResourceData> {
   const mainComponent = await findMainFigmaComponent(layer);
   if (mainComponent) {
     const { parent } = mainComponent;
@@ -93,26 +93,44 @@ async function processStaticTextureData(layer: InstanceNode): Promise<TextureDat
  * @param atlas - The atlas to update texture data for.
  * @returns The updated texture data.
  */
-function updateStaticTextureData(atlas: SceneNode): TextureData {
+function updateStaticTextureData(atlas: ComponentSetNode): TextureResourceData {
   const { parent } = atlas;
-  let textureData: TextureData = {};
+  let textureData: TextureResourceData = {};
+  const atlasData = getPluginData(atlas, "defoldAtlas"); 
   if (parent && isLayerContextSection(parent)) {
     const sectionData = getPluginData(parent, "defoldSection");
     if (sectionData?.bundled) {
-      textureData = { ...textureData, ...generateStaticTextureData(atlas.name, atlas) };
+      const extension = resolveExtension(atlasData, sectionData);
+      const ignore = resolveIgnore(atlasData, sectionData);
+      textureData = { ...textureData, ...generateStaticTextureData(atlas.name, atlas.id, ignore, extension) };
       for (const child of parent.children) {
         if (isFigmaSceneNode(child) && isLayerAtlas(child)) {
-          textureData = { ...textureData, ...generateStaticTextureData(child.name, child) };
+          const childData = getPluginData(child, "defoldAtlas");
+          const childExtension = resolveExtension(childData, sectionData);
+          const childIgnore = resolveIgnore(childData, sectionData);
+          textureData = { ...textureData, ...generateStaticTextureData(child.name, child.id, childIgnore, childExtension) };
         }
       }
     } else if (sectionData?.jumbo) {
       const name = sectionData.jumbo;
-      textureData = { ...textureData, ...generateStaticTextureData(name, parent) };
+      const extension = resolveExtension(null, sectionData);
+      const ignore = resolveIgnore(null, sectionData);
+      textureData = { ...textureData, ...generateStaticTextureData(name, parent.id, ignore, extension) };
     }
   } else {
-    textureData = { ...textureData, ...generateStaticTextureData(atlas.name, atlas) };
+    const extension = resolveExtension(atlasData, null);
+    const ignore = resolveIgnore(atlasData, null);
+    textureData = { ...textureData, ...generateStaticTextureData(atlas.name, atlas.id, ignore, extension) };
   }
   return textureData;
+}
+
+function resolveExtension(atlas: WithNull<PluginAtlasData>, section: WithNull<PluginSectionData>): string | undefined {
+  return section?.extension || atlas?.extension || undefined;
+}
+
+function resolveIgnore(atlas: WithNull<PluginAtlasData>, section: WithNull<PluginSectionData>): boolean {
+  return section?.ignore || atlas?.ignore || false;
 }
 
 /**
@@ -121,13 +139,13 @@ function updateStaticTextureData(atlas: SceneNode): TextureData {
  * @param layer - The atlas to generate texture data for.
  * @returns The generated texture data.
  */
-function generateStaticTextureData(atlasName: string, layer: SceneNode): TextureData {
-  const path = generateAtlasPath(atlasName);
-  const { id } = layer;
+function generateStaticTextureData(atlasName: string, id: string, ignore: boolean, extension?: string): TextureResourceData {
+  const path = generateAtlasPath(atlasName, extension);
   return {
     [atlasName]: {
       path,
-      id
+      id,
+      ignore,
     }
   };
 }

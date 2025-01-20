@@ -3,7 +3,7 @@
  * @packageDocumentation
  */
 
-import { appendSprites, ATLAS_EXPORT_PIPELINE, ATLAS_SERIALIZATION_PIPELINE, canExtractSprite, createAtlasLayer, createSpriteLayers, distributeSprites, extractSprite, fitAtlas, fixAtlas, removeAtlas, tryRestoreAtlasLayer } from "utilities/atlas";
+import { appendSprites, ATLAS_EXPORT_PIPELINE, ATLAS_SERIALIZATION_PIPELINE, ATLAS_UPDATE_PIPELINE, canExtractSprite, createAtlasLayer, createSpriteLayers, distributeSprites, extractSprite, fitAtlas, fixAtlas, removeAtlas, tryRestoreAtlasLayer } from "utilities/atlas";
 import { packAtlases } from "utilities/atlasExport";
 import { combineAtlases, spreadAtlasGroups } from "utilities/atlasProcessing";
 import { isFigmaComponentInstance } from "utilities/figma";
@@ -11,6 +11,8 @@ import { GAME_COLLECTION_ATLASES_EXTRACT_PIPELINE } from "utilities/gameCollecti
 import { GUI_ATLASES_EXTRACT_PIPELINE } from "utilities/gui";
 import { packGUI } from "utilities/guiExport";
 import { runTransformPipelines } from "utilities/transformPipeline";
+import { runUpdatePipeline } from "utilities/updatePipeline";
+import { extractUsedSpriteData } from "utilities/sprite";
 
 /**
  * Exports serialized atlases containing sprites as Uint8Arrays from an array of atlas layers.
@@ -18,8 +20,8 @@ import { runTransformPipelines } from "utilities/transformPipeline";
  * @param scale - The scale factor to apply to the atlas sprites. Defaults to 1.
  * @returns An array of serialized atlas data.
  */
-export async function exportAtlases(layers: AtlasLayer[], scale: number = 1): Promise<SerializedAtlasData[]> {
-  const input = packAtlases(layers, scale);
+export async function exportAtlases(layers: AtlasLayer[], usedSprites: string[] = [], scale: number = 1): Promise<SerializedAtlasData[]> {
+  const input = packAtlases(layers, scale, usedSprites);
   const exportAtlasData = await runTransformPipelines(ATLAS_EXPORT_PIPELINE, input);
   const combinedAtlasData = combineAtlases(exportAtlasData);
   const serializedAtlasData = await runTransformPipelines(ATLAS_SERIALIZATION_PIPELINE, combinedAtlasData);
@@ -31,11 +33,12 @@ export async function exportAtlases(layers: AtlasLayer[], scale: number = 1): Pr
  * @param layers - The GUI nodes to use for extracting atlases.
  * @returns An array of serialized atlas data.
  */
-export async function exportGUIAtlases(layers: Exclude<ExportableLayer, SliceLayer>[]): Promise<SerializedAtlasData[]> {
+export async function exportGUIAtlases(layers: Exclude<ExportableLayer, SliceLayer>[], onlyUsedSprites: boolean = false): Promise<SerializedAtlasData[]> {
   const guiData = packGUI(layers);
   const guiAtlasLayers = await runTransformPipelines(GUI_ATLASES_EXTRACT_PIPELINE, guiData);
   const atlasLayers = spreadAtlasGroups(guiAtlasLayers);
-  const serializedAtlasData = await exportAtlases(atlasLayers);
+  const usedSprites = onlyUsedSprites ? await extractUsedSpriteData(layers) : [];
+  const serializedAtlasData = await exportAtlases(atlasLayers, usedSprites);
   return serializedAtlasData;
 }
 
@@ -78,6 +81,11 @@ export function tryRestoreAtlases(layers: SceneNode[]) {
 export function addSprites(atlas: ComponentSetNode, layers: SceneNode[]) {
   const sprites = createSpriteLayers(layers);
   appendSprites(atlas, sprites);
+}
+
+export async function updateAtlas(layer: ComponentSetNode, update: PluginAtlasData) {
+  const result = await runUpdatePipeline(ATLAS_UPDATE_PIPELINE, layer, update); 
+  return result;
 }
 
 /**

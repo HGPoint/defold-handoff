@@ -46,6 +46,8 @@
     <Properties title="Atlas Section Properties" collapseKey="sectionAtlasPropertiesCollapsed">
       <ToggleProperty label="Bundled Atlases" bind:value={section.bundled} />
       <TextProperty label="Combine As" bind:value={section.jumbo} />
+      <TextProperty label="Extension" bind:value={section.extension} />
+      <ToggleProperty label="Ignore in Bundles" bind:value={section.ignore} />
     </Properties>
     <Actions title="Tools" collapseKey="sectionToolsCollapsed">
       <ActionButton label="Fix Atlases" action="fixAtlases" />

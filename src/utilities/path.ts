@@ -21,9 +21,9 @@ export function generateImageAssetsPath(atlas: string): string {
  * @param atlas - The name of the atlas.
  * @returns The path to the atlas.
  */
-export function generateAtlasPath(atlas: string): string {
+export function generateAtlasPath(atlas: string, extension: string = "atlas"): string {
   const { assetsPath, atlasAssetsPath } = PROJECT_CONFIG.paths;
-  const fileName = generateAtlasFileName(atlas);
+  const fileName = generateAtlasFileName(atlas, extension);
   const path = resolveFilePathFromSegments(assetsPath, atlasAssetsPath, fileName);
   return path;
 }
@@ -176,8 +176,8 @@ export function generateGameCollectionsFileName(gameCollections: SerializedGameC
  * @param atlas - The name of the atlas.
  * @returns The atlas file name.
  */
-export function generateAtlasFileName(atlas: string): string {
-  const fileName = resolveFileName(atlas, "atlas");
+export function generateAtlasFileName(atlas: string, extension: string = "atlas"): string {
+  const fileName = resolveFileName(atlas, extension);
   return fileName;
 }
 

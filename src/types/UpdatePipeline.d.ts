@@ -7,7 +7,7 @@ type UpdatePipeline<TData> = {
   afterUpdate?: UpdatePipelineAfterUpdate<TData>
 }
 
-type UpdatePipelineEnsureLayer = (layer: ExportableLayer) => WithNull<DataLayer>;
+type UpdatePipelineEnsureLayer = (layer: DataLayer) => WithNull<DataLayer>;
 
 type UpdatePipelineExtractOriginalData<TData> = (layer: DataLayer) => Promise<WithNull<TData>>;
 

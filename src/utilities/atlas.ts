@@ -6,6 +6,7 @@
 import config from "config/config.json";
 import { exportAtlasData } from "utilities/atlasExport";
 import { serializeAtlasData } from "utilities/atlasSerialization";
+import { completeAtlasData, ensureAtlasLayer, extractAtlasOriginalData, updateAtlasData } from "utilities/atlasUpdate";
 import { findSectionWithContextData } from "utilities/context";
 import { findMainFigmaComponent, getPluginData, isFigmaComponent, isFigmaComponentSet, isFigmaRemoved, isFigmaSceneNode, isFigmaSlice, isLayerAtlas, isLayerContextSection, removePluginData, setPluginData } from "utilities/figma";
 
@@ -15,6 +16,13 @@ export const ATLAS_EXPORT_PIPELINE: TransformPipeline<AtlasExportPipelineData, A
 
 export const ATLAS_SERIALIZATION_PIPELINE: TransformPipeline<AtlasData, SerializedAtlasData> = {
   transform: serializeAtlasData,
+};
+
+export const ATLAS_UPDATE_PIPELINE: UpdatePipeline<PluginAtlasData> = {
+  ensureLayer: ensureAtlasLayer,
+  extractOriginalData: extractAtlasOriginalData,
+  beforeUpdate: completeAtlasData,
+  update: updateAtlasData,
 };
 
 /**
@@ -33,6 +41,16 @@ export function isAtlasStatic(layer: AtlasLayer): layer is ComponentSetNode {
  */
 export function isAtlasDynamic(layer: AtlasLayer): layer is DynamicAtlas {
   return "name" in layer && "images" in layer && Array.isArray(layer.images);
+}
+
+export function getAtlasPluginData(layer: ComponentSetNode): PluginAtlasData {
+  const pluginData = getPluginData(layer, "defoldAtlas");
+  const id = pluginData?.id || layer.id;
+  return {
+    ...config.atlasDefaultSpecialValues,
+    ...pluginData,
+    id,
+  }
 }
 
 /**
@@ -100,7 +118,7 @@ export async function findAtlases(textureAtlasesData: (string | TextureDynamicAt
  * @param textures - The texture data.
  * @returns The reduced atlas ids.
  */
-export function reduceAtlasIdsFromResources(textures: TextureData) {
+export function reduceAtlasIdsFromResources(textures: TextureResourceData) {
   return Object.values(textures).reduce(atlasIdReducer, [] as (string | TextureDynamicAtlasSpritesData)[]);
 }
 
@@ -110,7 +128,7 @@ export function reduceAtlasIdsFromResources(textures: TextureData) {
  * @returns The updated cumulative atlas ids.
  */
 function atlasIdReducer(textures: (string | TextureDynamicAtlasSpritesData)[], texture: TextureAtlasData) {
-  if ("id" in texture) {
+  if ("id" in texture && !texture.ignore) {
     textures.push(texture.id);
   }
   if ("sprites" in texture) {
@@ -137,7 +155,10 @@ export function createAtlasLayer(sprites: ComponentNode[]) {
  * @param layer - The atlas to create and bind the plugin data to.
  */
 function createAtlasData(layer: ComponentSetNode) {
-  const data = { id: layer.id };
+  const data = {
+    ...config.atlasDefaultSpecialValues,
+    id: layer.id
+  };
   const atlasData = { defoldAtlas: data };
   setPluginData(layer, atlasData);
 }

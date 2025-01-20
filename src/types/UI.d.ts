@@ -20,6 +20,7 @@ type UIData = {
   guiNodesToolsCollapsed?: boolean,
   guiNodesActionsCollapsed?: boolean,
 
+  atlasPropertiesCollapsed?: boolean,
   atlasToolsCollapsed?: boolean,
   atlasActionsCollapsed?: boolean,
 

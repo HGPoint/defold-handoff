@@ -71,6 +71,7 @@
   <Actions collapseKey="guiNodesActionsCollapsed">
     <ActionButton label="Export GUI" action="exportGUI" />
     <ActionButton label="Export Bundle" action="exportBundle" />
+    <ActionButton label="Export Bundle With Used Sprites Only" action="exportBareBundle" />
   </Actions>
   {#if $selectionState.layers.length > 1}
     <Actions title="Atlas Actions" collapseKey="layersActionsCollapsed">

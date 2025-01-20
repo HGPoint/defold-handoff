@@ -38,10 +38,12 @@ export function archiveBundle({ gui, gameObjects, atlases }: BundleData, project
  * @param imagesFolder - The folder in archive.
  */
 function archiveAtlasImage({ name, directory, data }: SerializedSpriteData, imagesFolder: JSZip) {
-  const atlasImagesFolder = imagesFolder.folder(directory) || imagesFolder;
-  const spriteFileName = generateSpriteFileName(name);
-  const blob = createBlob(data);
-  atlasImagesFolder.file(spriteFileName, blob);
+  if (data) {
+    const atlasImagesFolder = imagesFolder.folder(directory) || imagesFolder;
+    const spriteFileName = generateSpriteFileName(name);
+    const blob = createBlob(data);
+    atlasImagesFolder.file(spriteFileName, blob);
+  }
 }
 
 /**
@@ -136,7 +138,9 @@ function archiveSpriteAtlas(atlas: SerializedAtlasData, zip: JSZip) {
  * @param folder - The folder in archive.
  */
 function archiveSpriteImage({ name, data }: SerializedSpriteData, folder: JSZip) {
-  const spriteFileName = generateSpriteFileName(name);
-  const blob = createBlob(data);
-  folder.file(spriteFileName, blob);
+  if (data) {
+    const spriteFileName = generateSpriteFileName(name);
+    const blob = createBlob(data);
+    folder.file(spriteFileName, blob);
+  }
 }

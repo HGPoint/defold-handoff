@@ -2,7 +2,7 @@ type GameCollectionData = {
   name: string,
   collection: GameCollectionDefoldData,
   gameObjects: GameObjectData[],
-  textures?: TextureData,
+  textures?: TextureResourceData,
   filePath: string,
 }
 

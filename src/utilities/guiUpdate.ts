@@ -13,7 +13,7 @@ import { findSlice9Layer, isSlice9PlaceholderLayer, tryRefreshSlice9Placeholder 
  * @param layer - The layer to ensure is a GUI node layer.
  * @returns The GUI node layer, or null if the layer is not a GUI node layer.
  */
-export function ensureGUILayer(layer: ExportableLayer) {
+export function ensureGUILayer(layer: DataLayer) {
   const originalLayer = isSlice9PlaceholderLayer(layer) ? findSlice9Layer(layer) : layer;
   if (originalLayer && isLayerData(originalLayer)) {
     return originalLayer;

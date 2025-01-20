@@ -132,6 +132,7 @@
       <ActionButton label="Export GUI" action="exportGUI" />
       <ActionButton label="Export Used Atlases" action="exportGUIAtlases" />
       <ActionButton label="Export Bundle" action="exportBundle" />
+      <ActionButton label="Export Bundle With Used Sprites Only" action="exportBareBundle" />
       <ActionButton label="Copy GUI" action="copyGUI" />
       <ActionButton label="Copy GUI Scheme" action="copyGUIScheme" />
     </Actions>

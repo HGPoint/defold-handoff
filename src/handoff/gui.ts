@@ -73,7 +73,7 @@ export async function copyGUIScheme(layer: ExportableLayer): Promise<SerializedG
  * @param updates - The data updates to apply to each GUI node.
  * @returns An array of results for each GUI node update.
  */
-export async function updateGUI(layers: ExportableLayer[], updates: PluginGUINodeData[]) {
+export async function updateGUI(layers: DataLayer[], updates: PluginGUINodeData[]) {
   const result = await runUpdatePipelines(GUI_UPDATE_PIPELINE, layers, updates); 
   return result;
 }
@@ -84,7 +84,7 @@ export async function updateGUI(layers: ExportableLayer[], updates: PluginGUINod
  * @param update - The update data to apply.
  * @returns True if the update was successful, false otherwise.
  */
-export async function updateGUINode(layer: ExportableLayer, update: PluginGUINodeData) {
+export async function updateGUINode(layer: DataLayer, update: PluginGUINodeData) {
   const result = await runUpdatePipeline(GUI_UPDATE_PIPELINE, layer, update);
   return result;
 }

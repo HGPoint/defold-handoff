@@ -25,3 +25,17 @@ export async function exportBundle(layers: { gui: Exclude<ExportableLayer, Slice
   };
   return bundle;
 }
+
+export async function exportBareBundle(layers: { gui: Exclude<ExportableLayer, SliceLayer>[], gameObjects: Exclude<ExportableLayer, SliceLayer>[] }): Promise<BundleData> {
+  const { gui, gameObjects } = layers;
+  const serializedGUIData = await exportGUI(gui);
+  const serializedGUIAtlasData = await exportGUIAtlases(gui, true);
+  const serializedGameCollectionsData = await exportGameCollections(gameObjects);
+  const serializedGameCollectionsAtlasData = await exportGameCollectionAtlases(gameObjects);
+  const bundle: BundleData = {
+    gui: serializedGUIData,
+    gameObjects: serializedGameCollectionsData,
+    atlases: [...serializedGUIAtlasData, ...serializedGameCollectionsAtlasData],
+  };
+  return bundle;
+}

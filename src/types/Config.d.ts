@@ -4,11 +4,11 @@ declare module "config/config.json" {
     uiSize: {
       expanded: {
         width: number,
-        height: number
+        height: number,
       },
       collapsed: {
         width: number,
-        height: number
+        height: number,
       }
     }
     screenSize: Vector4,
@@ -18,7 +18,7 @@ declare module "config/config.json" {
       script: string,
       material: string,
       adjust_reference: AdjustReference,
-      max_nodes: number
+      max_nodes: number,
     }
     guiNodeDefaultValues: {
       scale: Vector4,
@@ -38,7 +38,7 @@ declare module "config/config.json" {
       clipping_inverted: boolean,
       blend_mode: BlendingMode,
       custom_type: 0,
-      template_node_child: boolean
+      template_node_child: boolean,
     }
     guiNodeDefaultSpecialValues: {
       exclude: boolean
@@ -88,7 +88,11 @@ declare module "config/config.json" {
       extrude_borders: number,
       inner_padding: number,
       max_page_width: number,
-      max_page_height: number
+      max_page_height: number,
+    }
+    atlasDefaultSpecialValues: {
+      extension: string,
+      ignore: boolean,
     }
     atlasImageDefaultValues: {
       sprite_trim_mode: SpriteTrimMode
@@ -96,9 +100,11 @@ declare module "config/config.json" {
     sectionDefaultValues: {
       bundled: boolean,
       jumbo: string,
+      extension: string,
+      ignore: boolean,
       layers: ProjectLayerData[],
-      materials: ProjectMaterialData[]
-      ignorePrefixes: boolean
+      materials: ProjectMaterialData[],
+      ignorePrefixes: boolean,
     }
     defaultFontSize: number,
     defaultFontStrokeRatio: number,
@@ -112,7 +118,7 @@ declare module "config/config.json" {
     xAnchors: Record<string, XAnchor>,
     yAnchors: Record<string, YAnchor>,
     adjustModes: Record<string, AdjustMode>,
-    clippingModes: Record<string, ClippingMode>
+    clippingModes: Record<string, ClippingMode>,
   };
 
   export default value;

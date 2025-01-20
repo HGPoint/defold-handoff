@@ -12,7 +12,7 @@ type GUIData = {
   name: string,
   gui: GUIDefoldData,
   nodes: GUINodeData[],
-  textures?: TextureData,
+  textures?: TextureResourceData,
   fonts?: FontData,
   layers?: LayerData,
   filePath: string,
