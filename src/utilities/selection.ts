@@ -11,7 +11,7 @@ import { findMainFigmaComponent, getPluginData, isFigmaComponentInstance, isFigm
 import { resolvesGUINodeType } from "utilities/gui";
 import { inferGameObjectType, resolveGameObjectPosition, resolveLabelComponentPosition } from "utilities/inference";
 import { findSlice9Layer, isSlice9PlaceholderLayer, isSlice9ServiceLayer } from "utilities/slice9";
-import { isCurrentUIModeDeveloper, isCurrentUIModeGameDesigner } from "utilities/ui";
+import { isCurrentUIModeDesigner, isCurrentUIModeDeveloper, isCurrentUIModeGameDesigner } from "utilities/ui";
 
 /**
  * Checks if a Figma layer is selectable.
@@ -137,7 +137,7 @@ function selectionDataReducer(selection: SelectionData, layer: SceneNode): Selec
     } else if (isLayerNode(layer)) {
       const originalLayer = isSlice9PlaceholderLayer(layer) ? findSlice9Layer(layer) : layer;
       if (originalLayer) {
-        if (isCurrentUIModeDeveloper()) {
+        if (isCurrentUIModeDeveloper() || isCurrentUIModeDesigner()) {
           selection.gui.push(originalLayer);
         } else if (isCurrentUIModeGameDesigner()) {
           selection.gameObjects.push(originalLayer);

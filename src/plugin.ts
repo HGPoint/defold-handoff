@@ -53,6 +53,7 @@ function subscribeToMessages() {
  */
 function onSelectionChange() {
   updateSelection();
+  tryResetLastExtractedImage();
 }
 
 /**
@@ -563,6 +564,16 @@ async function tryExtractImage(layer: SceneNode) {
     const image = await tryExtractSprite(layer);
     return image;
   }
+}
+
+function tryResetLastExtractedImage() {
+  if (LAST_EXTRACTED_IMAGE && !SELECTION.gui.length) {
+    resetLastExtractedImage();
+  }
+}
+
+function resetLastExtractedImage() {
+  LAST_EXTRACTED_IMAGE = null;
 }
 
 /**
