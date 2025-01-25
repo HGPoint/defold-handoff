@@ -28,6 +28,7 @@ export async function preprocessGUIData(data: GUIExportPipelineData): Promise<GU
 export async function postprocessGUIData(gui: GUIData): Promise<GUIData> {
   const { nodes } = gui;
   const collapsedNodes = collapseGUINodes(nodes);
+  sanitizeGUINodeIDs(collapsedNodes);
   const flatNodes = flattenGUINodes(collapsedNodes);
   gui.nodes = flatNodes;
   return gui;
@@ -114,6 +115,35 @@ function collapseWithParent(parent: GUINodeData, child: GUINodeData, childIndex:
       parent.children.splice(childIndex, childIndex + index, collapsedChild);
     }
   }
+}
+
+function sanitizeGUINodeIDs(nodes: GUINodeData[]) {
+  nodes.forEach((node) => { sanitizeGUINode(node) });
+}
+
+function sanitizeGUINode(node: GUINodeData, newParentID: string = "", usedIDs: string[] = []) {
+  const { id } = node;
+  let newNodeID: string;
+  if (newParentID) {
+    node.parent = newParentID;
+  }
+  if (usedIDs.includes(id)) {
+    let nodeIndex = 1;
+    newNodeID = resolveGUINodeID(id, nodeIndex);
+    while (usedIDs.includes(newNodeID)) {
+      nodeIndex += 1;
+      newNodeID = resolveGUINodeID(id, nodeIndex);
+    }
+    node.id = newNodeID;
+  }
+  usedIDs.push(node.id);
+  if (node.children) {
+    node.children.forEach((child) => sanitizeGUINode(child, newNodeID, usedIDs));
+  }
+}
+
+function resolveGUINodeID(originalID: string, index: number): string {
+  return `${originalID}_${index}`;
 }
 
 /**

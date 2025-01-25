@@ -4,10 +4,10 @@
  */
 
 import { PROJECT_CONFIG } from "handoff/project";
-import { propertySerializer } from "utilities/dataSerialization";
+import { propertySerializer, serializeVector4Property } from "utilities/dataSerialization";
 import { indentLines } from "utilities/defold";
 import { isGUITemplateType } from "utilities/gui";
-import { areVectorsEqual, isVector4 } from "utilities/math";
+import { areVectorsEqual, isVector4, vector4 } from "utilities/math";
 import { generateTemplatePath } from "utilities/path";
 import { extractScheme } from "utilities/scheme";
 
@@ -187,12 +187,24 @@ function guiNodeSerializer(data: string, guiNodeData: GUINodeData): string {
   if (isGUITemplateType(guiNodeData.type)) {
     const properties = Object.entries(guiNodeData) as [keyof GUINodeData, GUINodeData[keyof GUINodeData]][];
     const node = properties.reduce((serializedProperties: string, property) => {
-      const [ key ] = property; 
-      if (key === "template") {
-        const templatePath = generateTemplatePath(guiNodeData.template_path, guiNodeData.template_name);
-        const template = `template:"${templatePath}"`
-        return `${serializedProperties}${template}\n`;
-      } else if (EXCLUDED_TEMPLATE_PROPERTY_KEYS.includes(key)) {
+      const [ key, value ] = property; 
+      if (isPropertyColor(key, value)) {
+        const serializedColor  = serializeColorProperty(value);
+        return `${serializedProperties}${serializedColor}`;
+      }
+      if (isPropertyOutline(key, value)) {
+        const serializedColor = serializeOutlineProperty(value);
+        return `${serializedProperties}${serializedColor}`;
+      }
+      if (isPropertyShadow(key, value)) {
+        const serializedColor = serializeShadowProperty(value);
+        return `${serializedProperties}${serializedColor}`;
+      }
+      if (isPropertyTemplate(key, value, guiNodeData)) {
+        const serializedTemplate = serializeTemplateProperty(guiNodeData);
+        return `${serializedProperties}${serializedTemplate}`;
+      }
+      if (EXCLUDED_TEMPLATE_PROPERTY_KEYS.includes(key)) {
         return serializedProperties;
       }
       return propertySerializer(serializedProperties, property);
@@ -202,9 +214,22 @@ function guiNodeSerializer(data: string, guiNodeData: GUINodeData): string {
     const completeKeys = Object.keys(guiNodeData) as (keyof GUINodeData)[];
     completeKeys.sort(orderGUINodeProperties);
     const node = completeKeys.reduce((serializedProperties: string, key) => {
-      const property: [keyof GUINodeData, GUINodeData[keyof GUINodeData]] = [key, guiNodeData[key]];
+      const value = guiNodeData[key];
+      const property: [ keyof GUINodeData, GUINodeData[keyof GUINodeData] ] = [key, value];
       if (shouldOmitGUINodeProperty(property)) {
         return serializedProperties;
+      }
+      if (isPropertyColor(key, value)) {
+        const serializedColor = serializeColorProperty(value);
+        return `${serializedProperties}${serializedColor}`;
+      }
+      if (isPropertyOutline(key, value)) {
+        const serializedColor = serializeOutlineProperty(value);
+        return `${serializedProperties}${serializedColor}`;
+      }
+      if (isPropertyShadow(key, value)) {
+        const serializedColor = serializeShadowProperty(value);
+        return `${serializedProperties}${serializedColor}`;
       }
       return propertySerializer(serializedProperties, property);
     }, "");
@@ -383,4 +408,41 @@ function orderGUINodeProperties(key1: keyof GUINodeData, key2: keyof GUINodeData
     return -1;
   }
   return index1 - index2;
+}
+
+function isPropertyColor(key: keyof GUINodeData, value: GUINodeData[keyof GUINodeData]): value is Vector4 {
+  return key === "color" && isVector4(value);
+}
+
+function isPropertyOutline(key: keyof GUINodeData, value: GUINodeData[keyof GUINodeData]): value is Vector4 {
+  return key === "outline" && isVector4(value);
+}
+
+function isPropertyShadow(key: keyof GUINodeData, value: GUINodeData[keyof GUINodeData]): value is Vector4 {
+  return key === "shadow" && isVector4(value);
+}
+
+function isPropertyTemplate(key: keyof GUINodeData, value: GUINodeData[keyof GUINodeData], guiNodeData: GUINodeData): value is boolean {
+  return key === "template" && typeof value === "boolean" && value && !!guiNodeData.template_path && !!guiNodeData.template_name;
+}
+
+function serializeTemplateProperty(guiNodeData: GUINodeData) {
+  const templatePath = generateTemplatePath(guiNodeData.template_path, guiNodeData.template_name);
+  const template = `template: "${templatePath}\n"`
+  return template;
+}
+
+function serializeColorProperty(color: Vector4): string {
+  const serializedColor = serializeVector4Property("color", color, vector4(1, 1, 1, 0));
+  return serializedColor;
+}
+
+function serializeOutlineProperty(color: Vector4): string {
+  const serializedColor = serializeVector4Property("color", color, vector4(0));
+  return serializedColor;
+}
+
+function serializeShadowProperty(color: Vector4): string {
+  const serializedColor = serializeVector4Property("color", color, vector4(0));
+  return serializedColor;
 }
