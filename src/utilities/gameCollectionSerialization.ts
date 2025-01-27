@@ -219,7 +219,7 @@ function serializeBaseProperties(baseProperties: Partial<Record<keyof GameObject
       const serializedChildren = serializeChildrenProperty(value);
       return `${serializedProperties}${serializedChildren}`;
     }
-    return propertySerializer(serializedProperties, property);
+    return propertySerializer<GameObjectData>(serializedProperties, property);
   }, "");
 }
 
@@ -295,7 +295,7 @@ function serializeComponentProperties(componentProperties: Partial<Record<keyof 
         const serializedMaterial = serializeTextTrackingProperty(value);
         return `${serializedProperties}${serializedMaterial}`;
       }
-      return propertySerializer(serializedProperties, [key, value]);
+      return propertySerializer<GameObjectData>(serializedProperties, [key, value]);
     }
   }, "");
 }

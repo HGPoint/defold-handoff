@@ -207,7 +207,7 @@ function guiNodeSerializer(data: string, guiNodeData: GUINodeData): string {
       if (EXCLUDED_TEMPLATE_PROPERTY_KEYS.includes(key)) {
         return serializedProperties;
       }
-      return propertySerializer(serializedProperties, property);
+      return propertySerializer<GUINodeData>(serializedProperties, property);
     }, "");
     return `${data}nodes {\n${indentLines(node)}\n}\n`;
   } else {
@@ -231,7 +231,7 @@ function guiNodeSerializer(data: string, guiNodeData: GUINodeData): string {
         const serializedColor = serializeShadowProperty(value);
         return `${serializedProperties}${serializedColor}`;
       }
-      return propertySerializer(serializedProperties, property);
+      return propertySerializer<GUINodeData>(serializedProperties, property);
     }, "");
     return `${data}nodes {\n${indentLines(node)}\n}\n`;
   }
@@ -428,21 +428,21 @@ function isPropertyTemplate(key: keyof GUINodeData, value: GUINodeData[keyof GUI
 
 function serializeTemplateProperty(guiNodeData: GUINodeData) {
   const templatePath = generateTemplatePath(guiNodeData.template_path, guiNodeData.template_name);
-  const template = `template: "${templatePath}\n"`
+  const template = `template: "${templatePath}"\n`
   return template;
 }
 
 function serializeColorProperty(color: Vector4): string {
-  const serializedColor = serializeVector4Property("color", color, vector4(1, 1, 1, 0));
+  const serializedColor = serializeVector4Property<GUINodeData>("color", color, vector4(1, 1, 1, 0));
   return serializedColor;
 }
 
 function serializeOutlineProperty(color: Vector4): string {
-  const serializedColor = serializeVector4Property("color", color, vector4(0));
+  const serializedColor = serializeVector4Property<GUINodeData>("outline", color, vector4(0));
   return serializedColor;
 }
 
 function serializeShadowProperty(color: Vector4): string {
-  const serializedColor = serializeVector4Property("color", color, vector4(0));
+  const serializedColor = serializeVector4Property<GUINodeData>("shadow", color, vector4(0));
   return serializedColor;
 }
