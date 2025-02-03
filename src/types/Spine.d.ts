@@ -48,7 +48,7 @@ type SpineAttachmentData = {
   uvs?: number[],
   triangles?: number[],
   vertices?: number[],
-  hull?: number[],
+  hull?: number,
 }
 
 type SpineAttachmentType = 'region' | 'boundingbox' | 'mesh' | 'linkedmesh' | 'path' | 'point' | 'clipping'

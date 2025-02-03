@@ -363,7 +363,7 @@ export async function exportGUISpineData(guiData: GUIData): Promise<SpineData> {
   const filePath = resolveSpineFilePath();
   const skeleton = resolveSpineSkeletonData(guiData);
   const bones = generateSpineBoneData(nodes);
-  const skins = generateSpineSkinData(nodes);
+  const skins = generateSpineSkinData(nodes, bones);
   const slots = generateSpineSlotData(nodes);
   const data: SpineData = { name, skeleton, bones, slots, skins, filePath };
   return data;
