@@ -3,4 +3,5 @@ type BundleData = {
   gameObjects?: SerializedGameCollectionData[],
   atlases?: SerializedAtlasData[],
   sprites?: SerializedSpriteData[],
+  spines?: SerializedSpineData[],
 }

@@ -1,4 +1,5 @@
-import { findMainFigmaComponent, hasChildren, isFigmaBox, isFigmaComponentInstance, isLayerExportable, isLayerSprite } from "utilities/figma";
+import { findMainFigmaComponent, hasChildren, isFigmaBox, isFigmaComponentInstance, isLayerExportable, isLayerSprite, isVisible } from "utilities/figma";
+import { isSlice9Layer } from "utilities/slice9";
 import { runVariantPipeline } from "utilities/variantPipeline";
 
 const USED_SPRITE_VARIANT_PIPELINE: VariantPipeline<SpriteVariantPipelineData, SpriteResourceData> = {
@@ -17,7 +18,7 @@ export async function extractUsedSpriteData(layers: Exclude<ExportableLayer, Sli
 export async function extractSpriteData(data: SpriteVariantPipelineData, spriteData: SpriteResourceData = []) {
   const { layer, skipVariants } = data;
   if (isLayerExportable(layer)) {
-    if (await isLayerSprite(layer) && isFigmaComponentInstance(layer)) {
+    if ((isVisible(layer) || isSlice9Layer(layer)) && await isLayerSprite(layer) && isFigmaComponentInstance(layer)) {
       const originalSprite = await findMainFigmaComponent(layer);
       if (originalSprite) {
         spriteData.push(originalSprite.id);

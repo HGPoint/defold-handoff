@@ -114,6 +114,10 @@ type PluginGameObjectData = {
   figma_node_type: NodeType,
 }
 
+type PluginSpineData = {
+  id: string,
+}
+
 type PluginData = {
   defoldProject?: WithNull<ProjectData>,
   defoldSection?: WithNull<PluginSectionData>,
@@ -162,6 +166,7 @@ type PluginMessageAction =
   PluginMessageGUIAction |
   PluginMessagesGameObjectAction |
   PluginMessagesAtlasAction |
+  PluginMessageSpineAction |
   PluginMessagesLayerAction
 
 type PluginMessageUIAction =
@@ -223,6 +228,10 @@ type PluginMessagesAtlasAction =
   "sortAtlases" |
   "fitAtlases" |
   "validateAtlases"
+
+type PluginMessageSpineAction =
+  "exportGUISpine" |
+  "spinesExported"
 
 type PluginMessageSectionAction =
   "updateSection" |

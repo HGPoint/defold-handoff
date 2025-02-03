@@ -6,7 +6,7 @@
 import config from "config/config.json";
 import JSZip from "jszip";
 import { createBlob } from "utilities/blob";
-import { generateAtlasFileName, generateGUIPath, generateGameCollectionPath, generateSpriteFileName, generateTemplatePath } from "utilities/path";
+import { generateAtlasFileName, generateGUIPath, generateGameCollectionPath, generateSpineFileName, generateSpriteFileName, generateTemplatePath } from "utilities/path";
 
 /**
  * Archives the bundled into a zip archive.
@@ -143,4 +143,31 @@ function archiveSpriteImage({ name, data }: SerializedSpriteData, folder: JSZip)
     const blob = createBlob(data);
     folder.file(spriteFileName, blob);
   }
+}
+
+export function archiveSpineBundle({ spines, atlases }: BundleData) {
+  const zip = new JSZip();
+  if (spines) {
+    archiveSpines(spines, zip);
+  }
+  if (atlases && atlases.length > 0) {
+    const folder = zip.folder("images") || zip;
+    if (atlases && atlases.length > 0) {
+      atlases.forEach((atlas) => { archiveSpineImages(atlas, folder) });
+    }
+  }
+  return zip.generateAsync({ type: "blob" })
+}
+
+function archiveSpineImages(atlas: SerializedAtlasData, folder: JSZip) {
+  atlas.images.forEach((image) => { archiveSpriteImage(image, folder) });
+}
+
+function archiveSpines(spines: SerializedSpineData[], assetsFolder: JSZip) {
+  spines.forEach((spine) => archiveSpine(spine, assetsFolder));
+}
+
+function archiveSpine(spine: SerializedSpineData, assetsFolder: JSZip) {
+  const spineFileName = generateSpineFileName(spine.name);
+  assetsFolder.file(spineFileName, spine.data);
 }

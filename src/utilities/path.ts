@@ -214,6 +214,18 @@ export function generateSpritesFileName(atlases: SerializedAtlasData[]) {
   return fileName;
 }
 
+export function generateSpineFileName(spineName: string): string {
+  const fileName = resolveFileName(spineName, "json");
+  return fileName;
+}
+
+export function generateSpinesFileName(spines: SerializedSpineData[]) {
+  const fileNamePrefix = resolveFileNamePrefix(spines);
+  const fileNameSuffix = resolveFileNameSuffix(spines, "spine");
+  const fileName = resolveArchiveFileName(fileNamePrefix, fileNameSuffix);
+  return fileName;
+}
+
 /**
  * Generates the file name for the font.
  * @param fontName - The name of the font.

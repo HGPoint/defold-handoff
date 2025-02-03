@@ -15,6 +15,7 @@ import { inferGUIBox, inferGUIText } from "utilities/inference";
 import { extractLayerData } from "utilities/layer";
 import { addVectors, isZeroVector, vector4 } from "utilities/math";
 import { isSlice9Layer, isSlice9ServiceLayer } from "utilities/slice9";
+import { generateSpineBoneData, generateSpineSkinData, generateSpineSlotData, resolveSpineFilePath, resolveSpineSkeletonData } from "utilities/spine";
 import { extractTextureData } from "utilities/texture";
 import { extractExportVariants, resolveInitialVariantValues } from "utilities/variantPipeline";
 
@@ -85,7 +86,7 @@ async function generateGUINodeData(options: GUINodeDataExportOptions) {
  * @param layer - The Figma layer to check.
  * @returns True if the layer can be processed as a GUI box node, otherwise false.
  */
-export function canProcessGUIBoxNode(layer: ExportableLayer): layer is BoxLayer {
+function canProcessGUIBoxNode(layer: ExportableLayer): layer is BoxLayer {
   return (isVisible(layer) || isSlice9Layer(layer)) && isFigmaBox(layer) && !isSlice9ServiceLayer(layer);
 }
 
@@ -144,7 +145,7 @@ async function generateGUIBoxNodeData(data: GUIVariantPipelineData) {
  * @param layer - The Figma layer to check.
  * @returns True if the layer can be processed as a GUI text node, otherwise false.
  */
-export function canProcessGUITextNode(layer: ExportableLayer): layer is TextNode {
+function canProcessGUITextNode(layer: ExportableLayer): layer is TextNode {
   return isVisible(layer) && isFigmaText(layer);
 }
 
@@ -354,6 +355,18 @@ export async function extractGUIAtlasData(data: GUIExportPipelineData, resources
     return atlasLayers;
   }
   return [];
+}
+
+export async function exportGUISpineData(guiData: GUIData): Promise<SpineData> {
+  const { nodes } = guiData;
+  const name = guiData.name;
+  const filePath = resolveSpineFilePath();
+  const skeleton = resolveSpineSkeletonData(guiData);
+  const bones = generateSpineBoneData(nodes);
+  const skins = generateSpineSkinData(nodes);
+  const slots = generateSpineSlotData(nodes);
+  const data: SpineData = { name, skeleton, bones, slots, skins, filePath };
+  return data;
 }
 
 /**

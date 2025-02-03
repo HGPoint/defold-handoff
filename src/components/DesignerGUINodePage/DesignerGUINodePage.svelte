@@ -48,4 +48,7 @@
   {#if isGUIBoxType(guiNode.type) && !isZeroVector(guiNode.slice9)}
     <ActionButton label="Refresh Slice 9" action="restoreSlice9" />
   {/if}
+  {#if isGUIBoxType(guiNode.type)}
+    <ActionButton label="Export GUI as Spine" action="exportGUISpine" />
+  {/if}
 </Actions>

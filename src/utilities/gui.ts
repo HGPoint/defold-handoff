@@ -5,10 +5,10 @@
 
 import config from "config/config.json";
 import { getPluginData, isFigmaComponent, isFigmaComponentInstance, isFigmaRemoved, isFigmaSceneNode, isFigmaSlice, isLayerData, isLayerExportable, isLayerSprite, isLayerSpriteHolder, removePluginData } from "utilities/figma";
-import { extractGUIAtlasData, exportGUIData, exportGUIResources } from "utilities/guiExport";
+import { exportGUIData, exportGUIResources, extractGUIAtlasData, exportGUISpineData } from "utilities/guiExport";
 import { postprocessGUIData, preprocessGUIData } from "utilities/guiProcessing";
 import { serializeGUIData, serializeGUISchemeData } from "utilities/guiSerialization";
-import { completeGUIData, updateGUIData, updateGUILayer, ensureGUILayer, extractGUIOriginalData } from "utilities/guiUpdate";
+import { completeGUIData, ensureGUILayer, extractGUIOriginalData, updateGUIData, updateGUILayer } from "utilities/guiUpdate";
 import { inferGUINodeType } from "utilities/inference";
 import { isSlice9PlaceholderLayer } from "utilities/slice9";
 
@@ -30,6 +30,10 @@ export const GUI_SCHEME_SERIALIZATION_PIPELINE: TransformPipeline<GUIData, Seria
 export const GUI_ATLASES_EXTRACT_PIPELINE: TransformPipeline<GUIExportPipelineData, AtlasLayer[]> = {
   extractResources: exportGUIResources,
   transform: extractGUIAtlasData,
+}
+
+export const GUI_SPINES_EXPORT_PIPELINE: TransformPipeline<GUIData, SpineData> = {
+  transform: exportGUISpineData,
 }
 
 export const GUI_UPDATE_PIPELINE: UpdatePipeline<PluginGUINodeData> = {

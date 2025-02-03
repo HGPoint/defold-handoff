@@ -3,11 +3,11 @@
  * @packageDocumentation
  */
 
-import { archiveBundle, archiveSprites } from "utilities/archive";
+import { archiveBundle, archiveSprites, archiveSpineBundle } from "utilities/archive";
 import { createBlob } from "utilities/blob";
 import copyOnClipboard from "utilities/clipboard";
 import download from "utilities/download";
-import { generateAtlasesFileName, generateBundleFileName, generateGameCollectionFileName, generateGameCollectionsFileName, generateGUIFileName, generateGUINodesFileName, generateSpritesFileName, sanitizeGUIFileName } from "utilities/path";
+import { generateAtlasesFileName, generateBundleFileName, generateGameCollectionFileName, generateGameCollectionsFileName, generateGUIFileName, generateGUINodesFileName, generateSpinesFileName, generateSpritesFileName, sanitizeGUIFileName } from "utilities/path";
 
 /**
  * Determines whether the bundle data contains valid data for export.
@@ -20,7 +20,8 @@ export function isBundleData(bundle?: BundleData): bundle is BundleData {
       "gui" in bundle ||
       "gameObjects" in bundle ||
       "atlases" in bundle ||
-      "sprites" in bundle
+      "sprites" in bundle ||
+      "spines" in bundle
     );
 }
 
@@ -50,6 +51,10 @@ function isSerializedGameCollectionData(gameObjects?: SerializedGameCollectionDa
  */
 function isSerializedAtlasData(atlases?: SerializedAtlasData[]): atlases is SerializedAtlasData[] {
   return !!atlases && Array.isArray(atlases) && !!atlases.length;
+}
+
+function isSerializedSpineData(spines?: SerializedSpineData[]): spines is SerializedSpineData[] {
+  return !!spines && Array.isArray(spines) && !!spines.length;
 }
 
 /**
@@ -94,6 +99,17 @@ export async function exportSprites({ bundle }: PluginMessagePayload) {
     if (isSerializedAtlasData(atlases)) {
       const fileName = generateSpritesFileName(atlases);
       const blob = await archiveSprites(bundle);
+      download(blob, fileName);
+    }
+  }
+}
+
+export async function exportSpines({ bundle }: PluginMessagePayload) {
+  if (isBundleData(bundle)) {
+    const { spines } = bundle;
+    if (isSerializedSpineData(spines)) {
+      const fileName = generateSpinesFileName(spines);
+      const blob = await archiveSpineBundle(bundle);
       download(blob, fileName);
     }
   }

@@ -10,6 +10,7 @@ import { copyGameCollection, exportGameCollections, fixGameObjects, removeGameOb
 import { copyGUI, copyGUIScheme, exportGUI, fixGUI, logGUI, removeGUI, resetGUIOverrides, resizeGUIToScreen, tryFixGUIText, tryForceGUIChildrenOnScreen, tryMatchGUINodeToGUIChild, tryMatchGUINodeToGUIParent, updateGUI, updateGUINode } from "handoff/gui";
 import { initializeProject, PROJECT_CONFIG, purgeUnusedData, updateProject } from "handoff/project";
 import { removeSections, updateSection } from "handoff/section";
+import { exportGUISpines } from "handoff/spine";
 import delay from "utilities/delay";
 import { processDocumentChanges } from "utilities/document";
 import { processError } from "utilities/error";
@@ -121,6 +122,8 @@ function processUIMessage(message: PluginMessage) {
     onLogGUI();
   } else if (type === "exportGUI") {
     onExportGUI();
+  } else if (type === "exportGUISpine") {
+    onExportGUISpines();
   } else if (type === "copyGUI") {
     onCopyGUI();
   } else if (type === "copyGUIScheme") {
@@ -225,9 +228,8 @@ function onGUIExported(gui: SerializedGUIData[]) {
   const data = { bundle, project: PROJECT_CONFIG };
   tryPostMessageToUI("guiExported", data);
   updateSelection();
-  figma.notify("GUI nodes exported");
+  figma.notify("GUI exported");
 }
-
 
 function onCopyGUI() {
   const layer = pickFirstGUINodeFromSelectionData(SELECTION);
@@ -477,6 +479,19 @@ function onFitAtlases() {
   const atlases = reduceAtlasesFromSelectionData(SELECTION);
   fitAtlases(atlases);
   figma.notify("Atlases fitted");
+}
+
+function onExportGUISpines() {
+  const gui = pickGUIFromSelectionData(SELECTION);
+  exportGUISpines(gui)
+    .then(onGUISpinesExported)
+    .catch(processError);
+}
+
+function onGUISpinesExported(bundle: BundleData) {
+  const data = { bundle, project: PROJECT_CONFIG };
+  tryPostMessageToUI("spinesExported", data);
+  figma.notify("GUI exported as Spine");
 }
 
 function onUpdateSection(data: PluginSectionData) {
