@@ -320,7 +320,7 @@ function shouldSkipEmpty(layer: BoxLayer, guiNodeData: GUINodeData, { collapseEm
  * @returns True if the children of the layer can be processed as GUI nodes, otherwise false.
  */
 async function canProcessGUIBoxNodeChildren(layer: BoxLayer, guiNodeData: GUINodeData, options: GUINodeDataExportOptions) {
-  return hasChildren(layer) && (!guiNodeData.template || (options.atRoot && options.asTemplate)) && !await isLayerSprite(layer)
+  return hasChildren(layer) && (!guiNodeData.template || (options.atRoot && options.asTemplate)) && !(await isLayerSprite(layer))
 }
 
 /**

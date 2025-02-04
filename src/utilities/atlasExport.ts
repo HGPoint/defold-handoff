@@ -16,7 +16,7 @@ export async function exportAtlasData({ layer, parameters: { scale, usedSprites 
   const { name: directory } = layer;
   const atlas = convertAtlasData();
   const name = resolveAtlasName(layer);
-  const staticAtlas = isAtlasStatic(layer)
+  const staticAtlas = isAtlasStatic(layer);
   const images = staticAtlas ? layer.children : layer.images;
   usedSprites = staticAtlas ? usedSprites : [];
   const spriteData = await exportSpriteData(images, directory, scale, usedSprites);
@@ -35,8 +35,11 @@ export async function exportAtlasData({ layer, parameters: { scale, usedSprites 
  * @returns The sprite data.
  */
 async function exportSpriteData(images: readonly (SceneNode | SliceNode)[], directory: string, scale: number = 1, usedSprites: string[] = []): Promise<SpriteData[]> {
-  const spriteExportPromises = images.map((sprite) => exportSprite(sprite, directory, scale, usedSprites))
-  const spriteData = await Promise.all(spriteExportPromises);
+  const spriteData = [];
+  for (const sprite of images) {
+    const exportedSprite = await exportSprite(sprite, directory, scale, usedSprites);
+    spriteData.push(exportedSprite);
+  } 
   return spriteData;
 }
 
@@ -50,8 +53,8 @@ async function exportSpriteData(images: readonly (SceneNode | SliceNode)[], dire
 async function exportSprite(layer: SceneNode, directory: string, scale: number = 1, usedSprites: string[] = []): Promise<SpriteData> {
   const sprite = convertSpriteData();
   const shouldExport = usedSprites.length === 0 || usedSprites.includes(layer.id);
-  const data: WithNull<Uint8Array<ArrayBufferLike>> = shouldExport ? await layer.exportAsync({ format: "PNG", constraint: { type: "SCALE", value: scale } }) : null;
   const name = layer.name.replace("Sprite=", "");
+  const data: WithNull<Uint8Array<ArrayBufferLike>> = shouldExport ? await layer.exportAsync({ format: "PNG", constraint: { type: "SCALE", value: scale } }) : null;
   return {
     name,
     directory,
