@@ -48,6 +48,7 @@ type SpineAttachmentData = {
   uvs?: number[],
   triangles?: number[],
   vertices?: number[],
+  edges?: number[],
   hull?: number,
 }
 

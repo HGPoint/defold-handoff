@@ -67,6 +67,7 @@ const EXCLUDED_PROPERTY_KEYS: (keyof GUINodeData)[] = [
   "wrapper",
   "wrapper_padding",
   "inferred",
+  "texture_size",
   "exportable_layer",
   "exportable_layer_id",
   "exportable_layer_name",

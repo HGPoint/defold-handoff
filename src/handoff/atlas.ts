@@ -33,8 +33,8 @@ export async function exportAtlases(layers: AtlasLayer[], usedSprites: string[] 
  * @param layers - The GUI nodes to use for extracting atlases.
  * @returns An array of serialized atlas data.
  */
-export async function exportGUIAtlases(layers: Exclude<ExportableLayer, SliceLayer>[], onlyUsedSprites: boolean = false): Promise<SerializedAtlasData[]> {
-  const guiData = packGUI(layers);
+export async function exportGUIAtlases(layers: Exclude<ExportableLayer, SliceLayer>[], onlyUsedSprites: boolean = false, textAsSprites: boolean = false): Promise<SerializedAtlasData[]> {
+  const guiData = packGUI(layers, textAsSprites);
   const guiAtlasLayers = await runTransformPipelines(GUI_ATLASES_EXTRACT_PIPELINE, guiData);
   const atlasLayers = spreadAtlasGroups(guiAtlasLayers);
   const usedSprites = onlyUsedSprites ? await extractUsedSpriteData(layers) : [];

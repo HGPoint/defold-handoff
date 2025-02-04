@@ -5,10 +5,11 @@
 
 import config from "config/config.json";
 import { PROJECT_CONFIG } from "handoff/project";
+import { resolveBaseColor } from "utilities/color";
 import { generateContextData } from "utilities/context";
 import { injectGUIDefaults, injectGUINodeDefaults } from "utilities/defaults";
 import { getPluginData } from "utilities/figma";
-import { inferBackgroundColor, inferClippingVisible, inferColor, inferFont, inferGUIBoxTexture, inferGUIBoxVisible, inferGUINodeType, inferGUITextSizeMode, inferGUITextVisible, inferLineBreak, inferRotation, inferScale, inferSize, inferSizeMode, inferSlice9, inferText, inferTextBoxSize, inferTextLeading, inferTextOutline, inferTextPivot, inferTextScale, inferTextShadow, inferTextTracking } from "utilities/inference";
+import { inferBackgroundColor, inferClippingVisible, inferColor, inferFont, inferGUIBoxTexture, inferGUIBoxVisible, inferGUINodeType, inferGUITextSizeMode, inferGUITextVisible, inferLineBreak, inferRotation, inferScale, inferSize, inferSizeMode, inferSlice9, inferText, inferTextBoxSize, inferTextLeading, inferTextOutline, inferTextPivot, inferTextScale, inferTextShadow, inferTextTracking, resolveGUITextSpriteNodeImpliedSprite } from "utilities/inference";
 import { readableVector, vector4 } from "utilities/math";
 import { generateScriptPath } from "utilities/path";
 import { calculateChildPosition, calculateRootPosition } from "utilities/pivot";
@@ -102,6 +103,37 @@ export function convertTextGUINodeData(layer: TextLayer, options: GUINodeDataExp
     ...textParameters,
     pivot,
     size_mode: sizeMode,
+  }
+}
+
+export async function convertTextSpriteGUINodeData(layer: TextLayer, options: GUINodeDataExportOptions): Promise<GUINodeData> {
+  const { namePrefix, variantPrefix, forcedName, parentId, parentPivot, parentSize, parentShift, atRoot, asTemplate } = options;
+  const context = generateContextData(layer);
+  const defaults = injectGUINodeDefaults();
+  const data = getPluginData(layer, "defoldGUINode");
+  const id = convertGUINodeId(layer, context.ignorePrefixes, forcedName, namePrefix, variantPrefix)
+  const slice9 = vector4(0);
+  const type = "TYPE_BOX";
+  const guiLayer = convertGUINodeLayer(context, data);
+  const pivot = convertGUIBoxNodePivot(data);
+  const visuals = await convertGUITextSpriteNodeVisuals(layer);
+  const sizeMode = "SIZE_MODE_MANUAL";
+  const transformations = convertGUITextSpriteNodeTransformations(layer, pivot, parentPivot, parentSize, parentShift, atRoot, asTemplate, data);
+  const parent = convertGUINodeParent(parentId, data);
+  const specialProperties = convertGUINodeSpecialProperties(layer, id, data);
+  return {
+    ...defaults,
+    ...data,
+    id,
+    type,
+    layer: guiLayer,
+    ...specialProperties,
+    ...parent,
+    ...transformations,
+    ...visuals,
+    slice9,
+    pivot,
+    size_mode: sizeMode,
   };
 }
 
@@ -157,6 +189,9 @@ function convertGUINodeType(layer: ExportableLayer, options: GUINodeDataExportOp
   if (pluginData?.template && (!atRoot || !options.asTemplate)) {
     return "TYPE_TEMPLATE";
   }
+  if (options.textAsSprites) {
+    return "TYPE_BOX";
+  }
   return inferGUINodeType(layer);
 }
 
@@ -198,6 +233,17 @@ function convertGUITextNodeTransformations(layer: TextLayer, pivot: Pivot, paren
   const textBoxSize = inferSize(layer);
   const size = inferTextBoxSize(layer, scale);
   const guiNodeTransformations = convertGUINodeTransformations(layer, pivot, parentPivot, textBoxSize, parentSize, parentShift, atRoot, asTemplate, pluginData);
+  return {
+    ...guiNodeTransformations,
+    size,
+    scale,
+  };
+}
+
+function convertGUITextSpriteNodeTransformations(layer: TextLayer, pivot: Pivot, parentPivot: Pivot, parentSize: Vector4, parentShift: Vector4, atRoot: boolean, asTemplate: boolean, pluginData?: WithNull<PluginGUINodeData>) {
+  const size = inferSize(layer);
+  const scale = inferScale();
+  const guiNodeTransformations = convertGUINodeTransformations(layer, pivot, parentPivot, size, parentSize, parentShift, atRoot, asTemplate, pluginData);
   return {
     ...guiNodeTransformations,
     size,
@@ -300,7 +346,7 @@ async function convertGUIBoxNodeVisuals(layer: BoxLayer, pluginData?: WithNull<P
   const color = inferColor(layer);
   const colorHue = vector4(color.x, color.y, color.z, 0);
   const colorAlpha = color.w;
-  const texture = await inferGUIBoxTexture(layer);
+  const { texture, size: textureSize } = await inferGUIBoxTexture(layer);
   const visible = convertGUIBoxNodeVisible(layer, texture, pluginData);
   const clippingVisible = inferClippingVisible(layer);
   return {
@@ -308,6 +354,7 @@ async function convertGUIBoxNodeVisuals(layer: BoxLayer, pluginData?: WithNull<P
     color: colorHue,
     alpha: colorAlpha,
     texture,
+    texture_size: textureSize,
     clipping_visible: clippingVisible,
   };
 }
@@ -321,7 +368,7 @@ async function convertGUIBoxNodeVisuals(layer: BoxLayer, pluginData?: WithNull<P
 function convertGUITextNodeVisuals(layer: TextLayer, pluginData?: WithNull<PluginGUINodeData>) {
   const color = inferColor(layer);
   const colorHue = vector4(color.x, color.y, color.z, 0);
-  const colorAlpha = color.w;  
+  const colorAlpha = color.w;
   const visible = convertGUITextNodeVisible(layer, pluginData);
   const font = convertGUITextNodeFont(layer, pluginData);
   const outline = inferTextOutline(layer);
@@ -339,6 +386,23 @@ function convertGUITextNodeVisuals(layer: TextLayer, pluginData?: WithNull<Plugi
     shadow: shadowHue,
     shadow_alpha: shadowAlpha,
     font
+  };
+}
+
+function convertGUITextSpriteNodeVisuals(layer: TextLayer) {
+  const color = resolveBaseColor();
+  const colorHue = vector4(color.x, color.y, color.z, 0);
+  const colorAlpha = color.w;
+  const { texture, size: textureSize } = resolveGUITextSpriteNodeImpliedSprite(layer);
+  const visible = true;
+  const clippingVisible = false;
+  return {
+    visible,
+    color: colorHue,
+    alpha: colorAlpha,
+    texture,
+    texture_size: textureSize,
+    clipping_visible: clippingVisible,
   };
 }
 

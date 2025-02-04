@@ -56,25 +56,25 @@ function resolveSpinePathFromTexture(texture: string) {
   return texture.split("/").pop() || texture;
 }
 
-export function generateSpineSkinData(nodes: GUINodeData[], bones: SpineBoneData[]) {
-  const attachments = nodes.reduce((cumulativeAttachements, node) => reduceSpineAttachmentData(cumulativeAttachements, node, bones), {});
+export function generateSpineSkinData(nodes: GUINodeData[]) {
+  const attachments = nodes.reduce(reduceSpineAttachmentData, {});
   const skins = [{ name: "default", attachments }];
   return skins;
 }
 
-function reduceSpineAttachmentData(attachments: Record<string, Record<string, SpineAttachmentData>>, node: GUINodeData, bones: SpineBoneData[]) {
+function reduceSpineAttachmentData(attachments: Record<string, Record<string, SpineAttachmentData>>, node: GUINodeData) {
   if (shouldGenerateAttachment(node)) {
     const { id: name } = node;
     if (shouldGenerateImageAttachment(node)) {
       attachments[name] = generateImageAttachment(node);
     } else {
-      attachments[name] = generateMeshAttachment(node, bones);
+      attachments[name] = generateMeshAttachment(node);
     }
   }
   return attachments;
 }
 
-function shouldGenerateAttachment(node: GUINodeData): node is GUINodeData & { texture: string } {
+function shouldGenerateAttachment(node: GUINodeData): node is GUINodeData & { texture: string, texture_size: Vector4 } {
   return !!node.texture;
 }
 
@@ -93,103 +93,234 @@ function generateImageAttachment(node: GUINodeData & { texture: string }) {
   return { [path]: attachment };
 }
 
-function generateMeshAttachment(node: GUINodeData & { texture: string }, bones: SpineBoneData[]) {
-  const { texture } = node;
+function generateMeshAttachment(node: GUINodeData & { texture: string, texture_size: Vector4 }) {
+  const { texture, texture_size: { x: width, y: height } } = node;
   const path = resolveSpinePathFromTexture(texture);
   const type: SpineAttachmentType = "mesh";
-  const vertices = resolveSpineMeshVertices(node, bones);
-  const uvs = resolveSpineMeshUVs();
-  const triangles = resolveSpineMeshTriangles(node);
-  const hull = resolveSpineMeshHull(node);
-  const attachment = {
+  const { vertices, uvs, triangles, edges } = calculateSpineMeshProperties(node);
+  const hull = calculateSpineMeshHull(node);
+  const attachment: SpineAttachmentData = {
     path,
     type,
     vertices,
     uvs,
     triangles,
-    hull
+    hull,
+    edges,
+    width,
+    height
   };
   return { [path]: attachment };
 }
 
-function resolveSpineMeshVertices(node: GUINodeData, bones: SpineBoneData[]) {
-  const { size: { x: width, y: height }, slice9 } = node;
+function calculateSpineMeshProperties(node: GUINodeData & { texture_size: Vector4 }) {
+  const { size: { x: width, y: height }, texture_size: { x: textureWidth, y: textureHeight }, slice9 } = node;
   const halfWidth = width / 2;
   const halfHeight = height / 2;
-  const boneIndex = bones.findIndex(bone => bone.name === node.id);
   const baseVertices = [
-    [1, boneIndex, -halfWidth, -halfHeight, 1 ],
-    [1, boneIndex, halfWidth, -halfHeight, 1 ],
-    [1, boneIndex, halfWidth, halfHeight, 1 ],
-    [1, boneIndex, -halfWidth, halfHeight,  ],
+    [-halfWidth, -halfHeight],
+    [halfWidth, -halfHeight],
+    [halfWidth, halfHeight],
+    [-halfWidth, halfHeight],
+  ]
+  const baseUVs = [
+    [0, 1],
+    [1, 1],
+    [1, 0],
+    [0, 0],
   ]
   const vertices = []
+  const uvs = []
   for (let index = 0; index < 4; index += 1) {
+    vertices.push(baseVertices[index])
+    uvs.push(baseUVs[index])
     if (index == 0) {
-      vertices.push(baseVertices[index])
       if (slice9.x > 0) {
-        const vertex = [1, boneIndex, -halfWidth + slice9.x, -halfHeight, 1];
+        const vertex = [-halfWidth + slice9.x, -halfHeight];
         vertices.push(vertex)
+        const uv = [slice9.x / textureWidth, 1];
+        uvs.push(uv)
       }
       if (slice9.z > 0) {
-        const vertex = [1, boneIndex, halfWidth - slice9.z, -halfHeight, 1];
+        const vertex = [halfWidth - slice9.z, -halfHeight];
         vertices.push(vertex)
+        const uv = [(textureWidth - slice9.z) / textureWidth, 1];
+        uvs.push(uv)
       }
     }
     if (index == 1) {
-      vertices.push(baseVertices[index])
       if (slice9.y > 0) {
-        const vertex = [1, boneIndex, halfWidth, halfHeight + slice9.y, 1];
+        const vertex = [halfWidth, -halfHeight + slice9.y];
         vertices.push(vertex)
+        const uv = [1, (textureHeight - slice9.y) / textureHeight];
+        uvs.push(uv)
       }
       if (slice9.w > 0) {
-        const vertex = [1, boneIndex, halfWidth, halfHeight - slice9.w, 1];
+        const vertex = [halfWidth, halfHeight - slice9.w];
         vertices.push(vertex)
+        const uv = [1, slice9.w / textureHeight];
+        uvs.push(uv)
       }
     }
     if (index == 2) {
-      vertices.push(baseVertices[index])
-      if (slice9.x > 0) {
-        const vertex = [1, boneIndex, halfWidth - slice9.x, halfHeight, 1];
-        vertices.push(vertex)
-      }
       if (slice9.z > 0) {
-        const vertex = [1, boneIndex, -halfWidth + slice9.z, halfHeight, 1];
+        const vertex = [halfWidth - slice9.z, halfHeight];
         vertices.push(vertex)
+        const uv = [(textureWidth - slice9.z) / textureWidth, 0];
+        uvs.push(uv)
+      }
+      if (slice9.x > 0) {
+        const vertex = [-halfWidth + slice9.x, halfHeight];
+        vertices.push(vertex)
+        const uv = [slice9.x / textureWidth, 0];
+        uvs.push(uv)
       }
     }
     if (index == 3) {
-      vertices.push(baseVertices[index])
-      if (slice9.y > 0) {
-        const vertex = [1, boneIndex, -halfWidth, halfHeight - slice9.y, 1];
-        vertices.push(vertex)
-      }
       if (slice9.w > 0) {
-        const vertex = [1, boneIndex, -halfWidth, -halfHeight + slice9.w, 1];
+        const vertex = [-halfWidth, halfHeight - slice9.w];
         vertices.push(vertex)
+        const uv = [0, slice9.w / textureHeight];
+        uvs.push(uv)
+      }
+      if (slice9.y > 0) {
+        const vertex = [-halfWidth, -halfHeight + slice9.y];
+        vertices.push(vertex)
+        const uv = [0, (textureHeight - slice9.y) / textureHeight];
+        uvs.push(uv)
       }
     }
   }
-  return vertices.flat();
+  if (slice9.x > 0) {
+    if (slice9.y > 0) {
+      const vertex = [-halfWidth + slice9.x, -halfHeight + slice9.y];
+      vertices.push(vertex);
+      const uv = [slice9.x / textureWidth, (textureHeight - slice9.y) / textureHeight];
+      uvs.push(uv)
+    }
+    if (slice9.w > 0) {
+      const vertex = [-halfWidth + slice9.x, halfHeight - slice9.w];
+      vertices.push(vertex);
+      const uv = [slice9.x / textureWidth, slice9.w / textureHeight];
+      uvs.push(uv)
+    }
+  }
+  if (slice9.z > 0) {
+    if (slice9.y > 0) {
+      const vertex = [halfWidth - slice9.z, -halfHeight + slice9.y];
+      vertices.push(vertex);
+      const uv = [(textureWidth - slice9.z) / textureWidth, (textureHeight - slice9.y) / textureHeight];
+      uvs.push(uv)
+    }
+    if (slice9.w > 0) {
+      const vertex = [halfWidth - slice9.z, halfHeight - slice9.w];
+      vertices.push(vertex);
+      const uv = [(textureWidth - slice9.z) / textureWidth, slice9.w / textureHeight];
+      uvs.push(uv)
+    }
+  }
+  const polygons = findPolygons(width, height, slice9);
+  const trianglePoints = generateTrianglePoints(polygons);
+  const triangles = convertTrianglePointsToIndices(trianglePoints, vertices);
+  const edgePoints = generateEdgePoints(polygons);
+  const edges = convertEdgePointsToIndices(edgePoints, vertices);
+  return {
+    vertices: vertices.flat(),
+    uvs: uvs.flat(),
+    triangles: triangles.flat(),
+    edges: edges.flat()
+  }
 }
 
-function resolveSpineMeshUVs() {
-  return [1, 1, 0, 1, 0, 0, 1, 0]
+function findPolygons(width: number, height: number, slice9: Vector4) {
+  const x1 = -width / 2;
+  const y1 = -height / 2;
+  const x2 = width / 2;
+  const y2 = height / 2;
+  const left = x1 + slice9.x;
+  const top = y1 + slice9.y;
+  const right = x2 - slice9.z;
+  const bottom = y2 - slice9.w;
+  const slices = [
+    [x1, y1, left, top],
+    [left, y1, right, top], 
+    [right, y1, x2, top], 
+    [x1, top, left, bottom], 
+    [left, top, right, bottom],
+    [right, top, x2, bottom], 
+    [x1, bottom, left, y2], 
+    [left, bottom, right, y2], 
+    [right, bottom, x2, y2], 
+  ];
+  return slices.reduce((cumulative, slice) => {
+    if (slice[0] === slice[2] || slice[1] === slice[3]) {
+      return cumulative;
+    }
+    return [...cumulative, slice];
+  }, [] as number[][])
 }
 
-function resolveSpineMeshTriangles(node) {
-  const { slice9 } = node;
-  const polygons = countSlice9Rectangles(slice9);
+function generateTrianglePoints(polygons: number[][]) {
+  const triangles = polygons.reduce<number[][]>((cumulative, polygon) => {
+    const point1 = [polygon[0], polygon[1]];
+    const point2 = [polygon[2], polygon[1]];
+    const point3 = [polygon[2], polygon[3]];
+    const point4 = [polygon[0], polygon[3]];
+    const triangle1 = [...point1, ...point2, ...point3];
+    const triangle2 = [...point3, ...point4, ...point1];
+    return [...cumulative, triangle1, triangle2];
+  }, [])
+  return triangles;
 }
 
-function countSlice9Rectangles(slice9: Vector4): number {
-  const { x: left, y: top, z: right, w: bottom } = slice9;
-  const columns = 1 + (left > 0 ? 1 : 0) + (right > 0 ? 1 : 0);
-  const rows = 1 + (top > 0 ? 1 : 0) + (bottom > 0 ? 1 : 0);
-  return columns * rows;
+function convertTrianglePointsToIndices(trianglePoints: number[][], vertices: number[][]) {
+  return trianglePoints.map((triangle) => {
+    const triangleIndices = [];
+    for (let index = 0; index < triangle.length; index += 2) {
+      const vertex = triangle.slice(index, index + 2);
+      const vertexIndex = vertices.findIndex((vertexData) => vertexData[0] === vertex[0] && vertexData[1] === vertex[1]);
+      triangleIndices.push(vertexIndex);
+    }
+    return triangleIndices;
+  });
 }
 
-function resolveSpineMeshHull(node: GUINodeData) {
+function generateEdgePoints(polygons: number[][]) {
+  const edgePoints = polygons.reduce<number[][]>((cumulative, polygon) => {
+    const polygonEdge1 = [polygon[0], polygon[1], polygon[2], polygon[1]];
+    const polygonEdge2 = [polygon[2], polygon[1], polygon[2], polygon[3]];
+    const polygonEdge3 = [polygon[2], polygon[3], polygon[0], polygon[3]];
+    const polygonEdge4 = [polygon[0], polygon[3], polygon[0], polygon[1]];
+    if (cumulative.every(edge => edge[0] !== polygonEdge1[0] || edge[1] !== polygonEdge1[1] || edge[2] !== polygonEdge1[2] || edge[3] !== polygonEdge1[3])) {
+      cumulative.push(polygonEdge1);
+    }
+    if (cumulative.every(edge => edge[0] !== polygonEdge2[0] || edge[1] !== polygonEdge2[1] || edge[2] !== polygonEdge2[2] || edge[3] !== polygonEdge2[3])) {
+      cumulative.push(polygonEdge2);
+    }
+    if (cumulative.every(edge => edge[0] !== polygonEdge3[0] || edge[1] !== polygonEdge3[1] || edge[2] !== polygonEdge3[2] || edge[3] !== polygonEdge3[3])) {
+      cumulative.push(polygonEdge3);
+    }
+    if (cumulative.every(edge => edge[0] !== polygonEdge4[0] || edge[1] !== polygonEdge4[1] || edge[2] !== polygonEdge4[2] || edge[3] !== polygonEdge4[3])) {
+      cumulative.push(polygonEdge4);
+    }
+    return cumulative;
+  }, [])
+  return edgePoints;
+}
+
+function convertEdgePointsToIndices(edgePoints: number[][], vertices: number[][]) {
+  return edgePoints.map((edge) => {
+    const edgeIndices = [];
+    for (let index = 0; index < edge.length; index += 2) {
+      const vertex = edge.slice(index, index + 2);
+      const vertexIndex = vertices.findIndex((vertexData) => vertexData[0] === vertex[0] && vertexData[1] === vertex[1]);
+      edgeIndices.push(vertexIndex * 2);
+    }
+    return edgeIndices;
+  });
+}
+
+function calculateSpineMeshHull(node: GUINodeData) {
   const { slice9 } = node;
   const additionalVertices = Object.values(slice9).reduce((cumulative, value) => cumulative + (value > 0 ? 2 : 0), 0);
   return 4 + additionalVertices

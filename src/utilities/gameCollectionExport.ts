@@ -307,6 +307,7 @@ export async function extractGameCollectionAtlasData(data: ExportableLayer, reso
  * @returns The exported bundled game collection resources.
  */
 export async function exportGameCollectionResources(layer: ExportableLayer): Promise<PipelineResources> {
-  const textures = await extractTextureData({ layer, skipVariants: false });
+  const parameters = { layer, skipVariants: false, textAsSprites: false }
+  const textures = await extractTextureData(parameters);
   return { textures };
 }

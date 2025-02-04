@@ -10,9 +10,9 @@
  */
 export function processError(error: Error) {
   const text = decipherError(error);
-  figma.notify(text);
   console.error(error);
   console.warn(text);
+  figma.notify(text);
 }
 
 /**

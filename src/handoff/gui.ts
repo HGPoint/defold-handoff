@@ -36,8 +36,8 @@ function logGUINode(layer: ExportableLayer) {
  * @param layers - The GUI nodes to export.
  * @returns An array of serialized GUI data.
  */
-export async function exportGUI(layers: ExportableLayer[]): Promise<SerializedGUIData[]> {
-  const data = packGUI(layers);
+export async function exportGUI(layers: ExportableLayer[], textAsSprites: boolean = false, collapseEmpty: boolean = false): Promise<SerializedGUIData[]> {
+  const data = packGUI(layers, textAsSprites, collapseEmpty);
   const exportGUIData = await runTransformPipelines(GUI_EXPORT_PIPELINE, data);
   const serializedGUIData = await runTransformPipelines(GUI_SERIALIZATION_PIPELINE, exportGUIData);
   return serializedGUIData;
@@ -48,8 +48,8 @@ export async function exportGUI(layers: ExportableLayer[]): Promise<SerializedGU
  * @param layer - The GUI node to export.
  * @returns Serialized GUI data.
  */
-export async function copyGUI(layer: ExportableLayer): Promise<SerializedGUIData> {
-  const data = packGUINode(layer);
+export async function copyGUI(layer: ExportableLayer, textAsSprites: boolean = false, collapseEmpty: boolean = false): Promise<SerializedGUIData> {
+  const data = packGUINode(layer, textAsSprites, collapseEmpty);
   const exportGUIData = await runTransformPipeline(GUI_EXPORT_PIPELINE, data);
   const serializedGUIData = await runTransformPipeline(GUI_SERIALIZATION_PIPELINE, exportGUIData);
   return serializedGUIData;

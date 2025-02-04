@@ -8,7 +8,7 @@ import { exportAtlasData } from "utilities/atlasExport";
 import { serializeAtlasData } from "utilities/atlasSerialization";
 import { completeAtlasData, ensureAtlasLayer, extractAtlasOriginalData, updateAtlasData } from "utilities/atlasUpdate";
 import { findSectionWithContextData } from "utilities/context";
-import { findMainFigmaComponent, getPluginData, isFigmaComponent, isFigmaComponentSet, isFigmaRemoved, isFigmaSceneNode, isFigmaSlice, isLayerAtlas, isLayerContextSection, removePluginData, setPluginData } from "utilities/figma";
+import { findMainFigmaComponent, getPluginData, isFigmaComponent, isFigmaComponentSet, isFigmaRemoved, isFigmaSceneNode, isFigmaSlice, isFigmaText, isLayerAtlas, isLayerContextSection, removePluginData, setPluginData } from "utilities/figma";
 
 export const ATLAS_EXPORT_PIPELINE: TransformPipeline<AtlasExportPipelineData, AtlasData> = {
   transform: exportAtlasData,
@@ -99,11 +99,11 @@ export async function findAtlases(textureAtlasesData: (string | TextureDynamicAt
     } else {
       const slices = {
         name: textureAtlasData.atlasName,
-        images: [] as SliceNode[],
+        images: [] as (SliceNode | TextNode)[],
       };
       for (const id of textureAtlasData.ids) {
         const layer = await figma.getNodeByIdAsync(id);
-        if (layer && isFigmaSlice(layer)) {
+        if (layer && (isFigmaSlice(layer) || isFigmaText(layer))) {
           slices.images.push(layer);
         }
         atlases.push(slices);

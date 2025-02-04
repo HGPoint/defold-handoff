@@ -47,5 +47,5 @@ type SerializedSpriteData = {
 
 type DynamicAtlas = {
   name: string,
-  images: SliceNode[]
+  images: (SliceNode | TextNode)[]
 }

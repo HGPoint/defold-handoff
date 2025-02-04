@@ -78,6 +78,7 @@ type GUINodeData = {
   export_variants: string,
   exclude: boolean,
   inferred: boolean,
+  texture_size?: Vector4,
   exportable_layer: ExportableLayer,
   exportable_layer_name: string,
   exportable_layer_id: string,
@@ -90,12 +91,16 @@ type GUINodeData = {
 }
 
 type GUINodeExportParameters = {
-  asTemplate: boolean,
+  asTemplate?: boolean,
+  textAsSprites?: boolean,
+  collapseEmpty?: boolean,
 }
 
 type GUINodeDataExportOptions = {
   layer: ExportableLayer,
   asTemplate: boolean,
+  textAsSprites: boolean,
+  collapseEmpty: boolean,
   atRoot: boolean,
   namePrefix: string,
   variantPrefix?: string,

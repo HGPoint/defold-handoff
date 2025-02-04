@@ -14,9 +14,11 @@ import { convertAtlasData, convertSpriteData } from "utilities/atlasConversion";
  */
 export async function exportAtlasData({ layer, parameters: { scale, usedSprites } }: AtlasExportPipelineData): Promise<AtlasData> {
   const { name: directory } = layer;
-  const name = resolveAtlasName(layer);
-  const images = isAtlasStatic(layer) ? layer.children : layer.images;
   const atlas = convertAtlasData();
+  const name = resolveAtlasName(layer);
+  const staticAtlas = isAtlasStatic(layer)
+  const images = staticAtlas ? layer.children : layer.images;
+  usedSprites = staticAtlas ? usedSprites : [];
   const spriteData = await exportSpriteData(images, directory, scale, usedSprites);
   return {
     name,

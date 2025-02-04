@@ -92,6 +92,7 @@ function canCollapseWithParent(parent: GUINodeData, child: GUINodeData): boolean
 function collapseWithParent(parent: GUINodeData, child: GUINodeData, childIndex: number) {
   parent.visible = child.visible;
   parent.texture = child.texture;
+  parent.texture_size = child.texture_size && copyVector(child.texture_size);
   parent.color = child.color;
   parent.size_mode = child.size_mode;
   parent.slice9 = copyVector(child.slice9);

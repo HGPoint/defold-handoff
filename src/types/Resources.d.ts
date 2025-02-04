@@ -28,6 +28,7 @@ type TextureDynamicAtlasSpritesData = {
 type TextureVariantPipelineData = {
   layer: SceneNode,
   skipVariants: boolean,
+  textAsSprites: boolean,
 }
 
 type FontData = Record<string, string>;

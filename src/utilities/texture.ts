@@ -3,7 +3,7 @@
  * @packageDocumentation
  */
 
-import { findMainFigmaComponent, getPluginData, hasChildren, isFigmaBox, isFigmaComponentInstance, isFigmaSceneNode, isFigmaSlice, isLayerAtlas, isLayerContextSection, isLayerExportable } from "utilities/figma";
+import { findMainFigmaComponent, getPluginData, hasChildren, isFigmaBox, isFigmaText, isFigmaComponentInstance, isFigmaSceneNode, isFigmaSlice, isLayerAtlas, isLayerContextSection, isLayerExportable } from "utilities/figma";
 import { generateAtlasPath } from "utilities/path";
 import { runVariantPipeline } from "utilities/variantPipeline";
 
@@ -19,7 +19,7 @@ const TEXTURE_VARIANT_PIPELINE: VariantPipeline<TextureVariantPipelineData, Text
  * @returns The generated texture data.
  */
 export async function extractTextureData(data: TextureVariantPipelineData, textureData: TextureResourceData = {}): Promise<TextureResourceData> {
-  const { layer, skipVariants } = data;
+  const { layer, skipVariants, textAsSprites } = data;
   if (isLayerExportable(layer)) {
     if (isFigmaComponentInstance(layer)) {
       const staticData = await processStaticTextureData(layer);
@@ -32,16 +32,26 @@ export async function extractTextureData(data: TextureVariantPipelineData, textu
       } else {
         textureData = { ...textureData, ...dynamicData };
       }
+    } else if (textAsSprites && isFigmaText(layer)) {
+      const atlasName = "text_layers";
+      const dynamicData = processDynamicTextureData(layer, atlasName);
+      if (shouldAppendDynamicTextureData(textureData[atlasName], layer.id)) {
+        textureData[atlasName].sprites.ids.push(layer.id);
+      } else {
+        textureData = { ...textureData, ...dynamicData };
+      }
     }
     if (isFigmaBox(layer)) {
       if (hasChildren(layer)) {
         for (const child of layer.children) {
-          const childData = await extractTextureData({ layer: child, skipVariants: false }, textureData);
+          const parameters = { layer: child, skipVariants, textAsSprites };
+          const childData = await extractTextureData(parameters, textureData);
           textureData = { ...textureData, ...childData };
         }
       }
       if (!skipVariants && isFigmaComponentInstance(layer)) {
-        const variantData = await runVariantPipeline(TEXTURE_VARIANT_PIPELINE, { layer, skipVariants: true }, textureData);
+        const parameters = { layer, skipVariants: true, textAsSprites };
+        const variantData = await runVariantPipeline(TEXTURE_VARIANT_PIPELINE, parameters, textureData);
         textureData = { ...textureData, ...variantData };
       }
     }
@@ -59,7 +69,7 @@ function shouldAppendDynamicTextureData(textureAtlasData: TextureAtlasData, id: 
  * @param atlasName - The name of the atlas.
  * @returns The generated texture data.
  */
-function processDynamicTextureData(layer: SliceNode, atlasName: string): TextureResourceData {
+function processDynamicTextureData(layer: SliceNode | TextNode, atlasName: string): TextureResourceData {
   const path = generateAtlasPath(atlasName);
   return {
     [atlasName]: {

@@ -120,7 +120,7 @@ export async function inferGUIBoxData(layer: BoxLayer, pluginData?: WithNull<Plu
   const context = generateContextData(layer);
   const id = resolveId(layer, pluginData);
   const type = resolveType("TYPE_BOX", pluginData);
-  const texture = await inferGUIBoxTexture(layer);
+  const { texture } = await inferGUIBoxTexture(layer);
   const sizeMode = await inferSizeMode(layer);
   const visible = inferGUIBoxVisible(layer, texture);
   const guiLayer = resolveGUILayer(context, pluginData);
@@ -400,7 +400,7 @@ export async function inferGUIBoxTexture(layer: ExportableLayer) {
     if (mainComponent) {
       const { parent } = mainComponent;
       if (parent && isLayerAtlas(parent)) {
-        return resolveGUIBoxTexture(parent, layer);
+        return resolveGUIBoxTexture(parent, layer, mainComponent);
       }
     }
   }
@@ -413,10 +413,15 @@ export async function inferGUIBoxTexture(layer: ExportableLayer) {
  * @param layer - The sprite layer to resolve texture from.
  * @returns The resolved texture property.
  */
-function resolveGUIBoxTexture(atlas: ComponentSetNode, layer: InstanceNode) {
+function resolveGUIBoxTexture(atlas: ComponentSetNode, layer: InstanceNode, spriteLayer: ComponentNode) {
   const atlasName = resolveAtlasName(atlas);
   const sprite = layer.variantProperties?.Sprite;
-  return sprite ? `${atlasName}/${sprite}` : "";
+  const textures = sprite ? `${atlasName}/${sprite}` : "";
+  const size = vector4(spriteLayer.width, spriteLayer.height, 0, 0);
+  return {
+    texture: textures,
+    size,
+  }
 }
 
 /**
@@ -424,7 +429,19 @@ function resolveGUIBoxTexture(atlas: ComponentSetNode, layer: InstanceNode) {
  * @returns The resolved empty texture property, which is always an empty string.
  */
 function resolveEmptyGUIBoxTexture() {
-  return "";
+  return {
+    texture: "",
+    size: vector4(0),
+  };
+}
+
+export function resolveGUITextSpriteNodeImpliedSprite(layer: TextNode) {
+  const texture = `text_layers/${layer.name}`;
+  const size = vector4(layer.width, layer.height, 0, 0);
+  return {
+    texture,
+    size,
+  };
 }
 
 /**
