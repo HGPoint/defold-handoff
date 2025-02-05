@@ -66,7 +66,7 @@ export async function extractFontData(data: FontVariantPipelineData, fontData: F
     }
     if (isFigmaBox(layer)) {
       if (hasChildren(layer)) {
-        const childrenData = await processChildrenFontData(layer);
+        const childrenData = await processChildrenFontData(layer, skipVariants);
         fontData = { ...fontData, ...childrenData };
       }
       if (!skipVariants && isFigmaComponentInstance(layer)) {
@@ -83,10 +83,10 @@ export async function extractFontData(data: FontVariantPipelineData, fontData: F
  * @param layer - The Figma layer to process children font data for.
  * @returns The generated font data.
  */
-async function processChildrenFontData(layer: BoxLayer) {
+async function processChildrenFontData(layer: BoxLayer, skipVariants: boolean) {
   let fontData: FontData = {};
   for (const child of layer.children) {
-    const data = { layer: child, skipVariants: false };
+    const data = { layer: child, skipVariants };
     const childData = await extractFontData(data);
     fontData = { ...fontData, ...childData };
   }

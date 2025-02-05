@@ -25,13 +25,14 @@ import { extractExportVariants, resolveInitialVariantValues } from "utilities/va
  * @param layer - The Figma layer to export GUI data from.
  * @returns The GUI data.
  */
-export async function exportGUIData({ layer, parameters: { asTemplate, textAsSprites, collapseEmpty } }: GUIExportPipelineData, resources?: PipelineResources): Promise<GUIData> {
+export async function exportGUIData({ layer, parameters: { asTemplate, textAsSprites, collapseEmpty, collapseTemplates } }: GUIExportPipelineData, resources?: PipelineResources): Promise<GUIData> {
   const { name } = layer;
   asTemplate = asTemplate || false;
   textAsSprites = textAsSprites || false
   collapseEmpty = collapseEmpty || false;
+  collapseTemplates = collapseTemplates || false;
   const rootData = resolveGUINodePluginData(layer);
-  const exportOptions = resolveGUIExportOptions(layer, asTemplate, textAsSprites, collapseEmpty);
+  const exportOptions = resolveGUIExportOptions(layer, asTemplate, textAsSprites, collapseEmpty, collapseTemplates);
   const gui = convertGUIData(rootData);
   const filePath = resolveGUIFilePath(rootData);
   const nodes = await generateGUINodeData(exportOptions);
@@ -56,13 +57,14 @@ export async function exportGUIData({ layer, parameters: { asTemplate, textAsSpr
  * @param layer - The Figma layer to resolve GUI node export options from
  * @returns The resolved GUI node export options.
  */
-function resolveGUIExportOptions(layer: ExportableLayer, asTemplate: boolean, textAsSprites: boolean, collapseEmpty: boolean): GUINodeDataExportOptions {
+function resolveGUIExportOptions(layer: ExportableLayer, asTemplate: boolean, textAsSprites: boolean, collapseEmpty: boolean, collapseTemplates: boolean): GUINodeDataExportOptions {
   return {
     layer,
     atRoot: true,
     asTemplate,
     textAsSprites,
     collapseEmpty,
+    collapseTemplates,
     namePrefix: "",
     parentId: "",
     parentPivot: config.guiNodeDefaultValues.pivot,
@@ -108,7 +110,7 @@ async function generateGUIBoxNodeData(data: GUIVariantPipelineData) {
   await tryInferGUINode(layer);
   const guiNodesData: GUINodeData[] = [];
   const guiNodeData = await convertBoxGUINodeData(layer, options);
-  if (!guiNodeData.exclude) {
+  if (!guiNodeData.exclude || options.collapseTemplates) {
     const alreadyCloned = await isClonedLayer(layer, guiNodeData, options);
     if (!alreadyCloned) {
       if (guiNodeData.cloneable && isFigmaComponentInstance(layer)) {
@@ -267,13 +269,14 @@ async function generateParentOptions(layer: ExportableLayer, shouldSkip: boolean
   const namePrefix = resolveGUINodeNamePrefix(shouldSkip, parentOptions);
   const forcedName = await resolveGUINodeForcedName(layer, parentOptions, parentGUINodeData);
   const parentParameters = resolveGUINodeLayerOptions(shouldSkip, parentOptions, parentGUINodeData);
-  const { asTemplate, textAsSprites, collapseEmpty, variantPrefix, clones } = parentOptions;
+  const { asTemplate, textAsSprites, collapseEmpty, collapseTemplates, variantPrefix, clones } = parentOptions;
   return {
     layer,
     atRoot,
     asTemplate,
     textAsSprites,
     collapseEmpty,
+    collapseTemplates,
     namePrefix,
     variantPrefix,
     forcedName,
@@ -320,7 +323,7 @@ function shouldSkipEmpty(layer: BoxLayer, guiNodeData: GUINodeData, { collapseEm
  * @returns True if the children of the layer can be processed as GUI nodes, otherwise false.
  */
 async function canProcessGUIBoxNodeChildren(layer: BoxLayer, guiNodeData: GUINodeData, options: GUINodeDataExportOptions) {
-  return hasChildren(layer) && (!guiNodeData.template || (options.atRoot && options.asTemplate)) && !(await isLayerSprite(layer))
+  return hasChildren(layer) && (options.collapseTemplates || !guiNodeData.template || (options.atRoot && options.asTemplate)) && !(await isLayerSprite(layer))
 }
 
 /**
@@ -346,7 +349,7 @@ async function processGUIBoxNodeChildren(layer: BoxLayer, guiNodeData: GUINodeDa
 
 
 function canProcessGUIBoxNodeVariants(layer: BoxLayer, guiNodeData: GUINodeData, options: GUINodeDataExportOptions): layer is InstanceNode {
-  return !options.variantPrefix && !!guiNodeData.export_variants && isFigmaComponentInstance(layer);
+  return !options.collapseTemplates && !options.variantPrefix && !!guiNodeData.export_variants && isFigmaComponentInstance(layer);
 }
 
 async function processGUIBoxNodeVariants(layer: InstanceNode, guiNodeData: GUINodeData, options: GUINodeDataExportOptions, shouldSkip: boolean) {
@@ -404,10 +407,11 @@ export async function exportGUISpineData(guiData: GUIData): Promise<SpineData> {
  * @param layer - The Figma layer to export bundled GUI resources from.
  * @returns The exported bundled GUI resources.
  */
-export async function exportGUIResources({ layer, parameters: { textAsSprites } }: GUIExportPipelineData): Promise<PipelineResources> {
+export async function exportGUIResources({ layer, parameters: { textAsSprites, collapseTemplates } }: GUIExportPipelineData): Promise<PipelineResources> {
   textAsSprites = textAsSprites || false;
-  const textures = await extractTextureData({ layer, skipVariants: false, textAsSprites });
-  const fonts = await extractFontData({ layer, skipVariants: false });
+  const skipVariants = collapseTemplates || false;
+  const textures = await extractTextureData({ layer, skipVariants, textAsSprites });
+  const fonts = await extractFontData({ layer, skipVariants });
   const layers = extractLayerData(layer);
   return {
     textures,
@@ -423,7 +427,7 @@ export async function exportGUIResources({ layer, parameters: { textAsSprites } 
  */
 export function packGUI(layers: ExportableLayer[], textAsSprites: boolean = false, collapseEmpty: boolean = false, collapseTemplates: boolean = false) {
   const rootGUI = processRootGUI(layers, textAsSprites, collapseEmpty, collapseTemplates);
-  if (collapseTemplates) {
+  if (!collapseTemplates) {
     const childGUITemplates = processChildGUITemplates(layers, textAsSprites, collapseEmpty);
     return [ ...rootGUI, ...childGUITemplates ];
   }

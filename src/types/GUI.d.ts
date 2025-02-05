@@ -102,6 +102,7 @@ type GUINodeDataExportOptions = {
   asTemplate: boolean,
   textAsSprites: boolean,
   collapseEmpty: boolean,
+  collapseTemplates: boolean
   atRoot: boolean,
   namePrefix: string,
   variantPrefix?: string,

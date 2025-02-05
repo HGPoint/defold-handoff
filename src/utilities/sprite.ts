@@ -6,10 +6,10 @@ const USED_SPRITE_VARIANT_PIPELINE: VariantPipeline<SpriteVariantPipelineData, S
   process: extractSpriteData,
 }
 
-export async function extractUsedSpriteData(layers: Exclude<ExportableLayer, SliceLayer>[]) {
+export async function extractUsedSpriteData(layers: Exclude<ExportableLayer, SliceLayer>[], skipVariants: boolean) {
   const result = [];
   for (const layer of layers) {
-    const spriteData = await extractSpriteData({ layer, skipVariants: false }); 
+    const spriteData = await extractSpriteData({ layer, skipVariants }); 
     result.push(...spriteData);
   }
   return result;
@@ -26,7 +26,7 @@ export async function extractSpriteData(data: SpriteVariantPipelineData, spriteD
     } else if (isFigmaBox(layer)) {
       if (hasChildren(layer)) {
         for (const child of layer.children) {
-          await extractSpriteData({ layer: child, skipVariants: false }, spriteData);
+          await extractSpriteData({ layer: child, skipVariants }, spriteData);
         }
       }
       if (!skipVariants && isFigmaComponentInstance(layer)) {
