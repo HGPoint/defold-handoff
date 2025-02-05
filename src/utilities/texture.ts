@@ -3,7 +3,7 @@
  * @packageDocumentation
  */
 
-import { findMainFigmaComponent, getPluginData, hasChildren, isFigmaBox, isFigmaText, isFigmaComponentInstance, isFigmaSceneNode, isFigmaSlice, isLayerAtlas, isLayerContextSection, isLayerExportable } from "utilities/figma";
+import { findMainFigmaComponent, getPluginData, hasChildren, isFigmaBox, isFigmaText, isFigmaComponentInstance, isFigmaSceneNode, isFigmaSlice, isLayerAtlas, isLayerContextSection, isLayerExportable, isVisible } from "utilities/figma";
 import { generateAtlasPath } from "utilities/path";
 import { runVariantPipeline } from "utilities/variantPipeline";
 
@@ -24,20 +24,20 @@ export async function extractTextureData(data: TextureVariantPipelineData, textu
     if (isFigmaComponentInstance(layer)) {
       const staticData = await processStaticTextureData(layer);
       textureData = { ...textureData, ...staticData };
-    } else if (isFigmaSlice(layer)) {
+    } else if (isFigmaSlice(layer) && shouldProcessSlice(layer)) {
       const { name: atlasName } = layer.parent ? layer.parent : layer;
-      const dynamicData = processDynamicTextureData(layer, atlasName);
       if (shouldAppendDynamicTextureData(textureData[atlasName], layer.id)) {
         textureData[atlasName].sprites.ids.push(layer.id);
       } else {
+        const dynamicData = processDynamicTextureData(layer, atlasName);
         textureData = { ...textureData, ...dynamicData };
       }
-    } else if (textAsSprites && isFigmaText(layer)) {
+    } else if (isFigmaText(layer) && shouldProcessText(layer, textAsSprites)) {
       const atlasName = "text_layers";
-      const dynamicData = processDynamicTextureData(layer, atlasName);
       if (shouldAppendDynamicTextureData(textureData[atlasName], layer.id)) {
         textureData[atlasName].sprites.ids.push(layer.id);
       } else {
+        const dynamicData = processDynamicTextureData(layer, atlasName);
         textureData = { ...textureData, ...dynamicData };
       }
     }
@@ -57,6 +57,14 @@ export async function extractTextureData(data: TextureVariantPipelineData, textu
     }
   }
   return textureData;
+}
+
+function shouldProcessSlice(layer: SliceNode) {
+  return isVisible(layer);
+}
+
+function shouldProcessText(layer: TextNode, textAsSprites: boolean) {
+  return textAsSprites && isVisible(layer)
 }
 
 function shouldAppendDynamicTextureData(textureAtlasData: TextureAtlasData, id: string): textureAtlasData is TextureDynamicAtlasData {

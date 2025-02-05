@@ -6,6 +6,7 @@
 import config from "config/config.json";
 import { PROJECT_CONFIG } from "handoff/project";
 import { resolveAtlasName } from "utilities/atlas";
+import { convertSpriteName } from "utilities/atlasConversion";
 import { resolveBaseBackgroundColor, resolveBaseColor, resolveBaseTextOutline, resolveBaseTextShadowColor } from "utilities/color";
 import { generateContextData } from "utilities/context";
 import { isLayerInferred } from "utilities/data";
@@ -436,7 +437,8 @@ function resolveEmptyGUIBoxTexture() {
 }
 
 export function resolveGUITextSpriteNodeImpliedSprite(layer: TextNode) {
-  const texture = `text_layers/${layer.name}`;
+  const name = convertSpriteName(layer);
+  const texture = `text_layers/${name}`;
   const size = vector4(layer.width, layer.height, 0, 0);
   return {
     texture,

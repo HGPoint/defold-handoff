@@ -94,6 +94,7 @@ type GUINodeExportParameters = {
   asTemplate?: boolean,
   textAsSprites?: boolean,
   collapseEmpty?: boolean,
+  collapseTemplates?: boolean
 }
 
 type GUINodeDataExportOptions = {

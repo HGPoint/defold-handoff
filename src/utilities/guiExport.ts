@@ -14,7 +14,7 @@ import { convertBoxGUINodeData, convertGUIData, convertTextGUINodeData, convertT
 import { inferGUIBox, inferGUIText } from "utilities/inference";
 import { extractLayerData } from "utilities/layer";
 import { addVectors, isZeroVector, vector4 } from "utilities/math";
-import { isSlice9Layer, isSlice9ServiceLayer } from "utilities/slice9";
+import { isUsedSlice9Layer, isSlice9ServiceLayer } from "utilities/slice9";
 import { generateSpineBoneData, generateSpineSkinData, generateSpineSlotData, resolveSpineFilePath, resolveSpineSkeletonData } from "utilities/spine";
 import { extractTextureData } from "utilities/texture";
 import { extractExportVariants, resolveInitialVariantValues } from "utilities/variantPipeline";
@@ -95,7 +95,7 @@ async function generateGUINodeData(options: GUINodeDataExportOptions) {
  * @returns True if the layer can be processed as a GUI box node, otherwise false.
  */
 function canProcessGUIBoxNode(layer: ExportableLayer): layer is BoxLayer {
-  return (isVisible(layer) || isSlice9Layer(layer)) && isFigmaBox(layer) && !isSlice9ServiceLayer(layer);
+  return (isVisible(layer) || isUsedSlice9Layer(layer)) && isFigmaBox(layer) && !isSlice9ServiceLayer(layer);
 }
 
 /**
@@ -421,10 +421,13 @@ export async function exportGUIResources({ layer, parameters: { textAsSprites } 
  * @param layers - The GUI layers to pack.
  * @returns The packed GUI.
  */
-export function packGUI(layers: ExportableLayer[], textAsSprites: boolean = false, collapseEmpty: boolean = false) {
-  const rootGUI = processRootGUI(layers, textAsSprites, collapseEmpty);
-  const childGUITemplates = processChildGUITemplates(layers, textAsSprites, collapseEmpty);
-  return [ ...rootGUI, ...childGUITemplates ];
+export function packGUI(layers: ExportableLayer[], textAsSprites: boolean = false, collapseEmpty: boolean = false, collapseTemplates: boolean = false) {
+  const rootGUI = processRootGUI(layers, textAsSprites, collapseEmpty, collapseTemplates);
+  if (collapseTemplates) {
+    const childGUITemplates = processChildGUITemplates(layers, textAsSprites, collapseEmpty);
+    return [ ...rootGUI, ...childGUITemplates ];
+  }
+  return rootGUI;
 }
 
 /**
@@ -432,8 +435,8 @@ export function packGUI(layers: ExportableLayer[], textAsSprites: boolean = fals
  * @param nodes - The list of GUI nodes to check.
  * @returns The list of root nodes.
  */
-function processRootGUI(layers: ExportableLayer[], textAsSprites: boolean, collapseEmpty: boolean): GUIExportPipelineData[] {
-  return layers.map((layer) => processRootGUINode(layer, textAsSprites, collapseEmpty));
+function processRootGUI(layers: ExportableLayer[], textAsSprites: boolean, collapseEmpty: boolean, collapseTemplates: boolean): GUIExportPipelineData[] {
+  return layers.map((layer) => processRootGUINode(layer, textAsSprites, collapseEmpty, collapseTemplates));
 }
 
 /**
@@ -467,8 +470,8 @@ export function processChildGUITemplates(layers: readonly SceneNode[], textAsSpr
  * @param layer - The GUI layer to pack.
  * @returns The packed GUI node.
  */
-export function packGUINode(layer: ExportableLayer, textAsSprites: boolean = false, collapseEmpty: boolean = false) {
-  const rootGUI = processRootGUINode(layer, textAsSprites, collapseEmpty);
+export function packGUINode(layer: ExportableLayer, textAsSprites: boolean = false, collapseEmpty: boolean = false, collapseTemplates: boolean = false) {
+  const rootGUI = processRootGUINode(layer, textAsSprites, collapseEmpty, collapseTemplates);
   return rootGUI;
 }
 
@@ -477,8 +480,8 @@ export function packGUINode(layer: ExportableLayer, textAsSprites: boolean = fal
  * @param layer - The Figma layer to process.
  * @returns The processed GUI node.
  */
-function processRootGUINode(layer: ExportableLayer, textAsSprites: boolean, collapseEmpty: boolean): GUIExportPipelineData {
-  const asTemplate = !isFigmaSlice(layer) && isGUITemplate(layer);
-  const parameters = { textAsSprites, collapseEmpty, asTemplate };
+function processRootGUINode(layer: ExportableLayer, textAsSprites: boolean, collapseEmpty: boolean, collapseTemplates: boolean): GUIExportPipelineData {
+  const asTemplate = !collapseTemplates && !isFigmaSlice(layer) && isGUITemplate(layer);
+  const parameters = { textAsSprites, collapseEmpty, asTemplate, collapseTemplates };
   return { layer, parameters };
 }

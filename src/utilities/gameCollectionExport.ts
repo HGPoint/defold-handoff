@@ -10,7 +10,7 @@ import { resolveDepthAxisParameters, resolveGameCollectionFilePath, resolveGameC
 import { convertEmptyComponentData, convertGameCollectionData, convertLabelComponentData, convertSpriteComponentData } from "utilities/gameCollectionConversion";
 import { inferGameCollectionParentTransformations } from "utilities/inference";
 import { addVectors, copyVector, isZeroVector, vector4 } from "utilities/math";
-import { isSlice9Layer, isSlice9ServiceLayer } from "utilities/slice9";
+import { isUsedSlice9Layer, isSlice9ServiceLayer } from "utilities/slice9";
 import { extractTextureData } from "utilities/texture";
 
 /**
@@ -81,7 +81,7 @@ async function generateGameObjectData(options: GameObjectDataExportOptions) {
  * @returns True if the layer can be processed as a sprite game object, otherwise false.
  */
 async function canProcessSpriteComponent(layer: ExportableLayer) {
-  return (isVisible(layer) && isFigmaSlice(layer)) || ((isVisible(layer) || isSlice9Layer(layer)) && !isSlice9ServiceLayer(layer) && await isLayerSprite(layer))
+  return (isVisible(layer) && isFigmaSlice(layer)) || ((isVisible(layer) || isUsedSlice9Layer(layer)) && !isSlice9ServiceLayer(layer) && await isLayerSprite(layer))
 }
 
 /**

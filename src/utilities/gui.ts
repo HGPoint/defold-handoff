@@ -5,7 +5,7 @@
 
 import config from "config/config.json";
 import { getPluginData, isFigmaComponent, isFigmaComponentInstance, isFigmaRemoved, isFigmaSceneNode, isFigmaSlice, isLayerData, isLayerExportable, isLayerSprite, isLayerSpriteHolder, removePluginData } from "utilities/figma";
-import { exportGUIData, exportGUIResources, extractGUIAtlasData, exportGUISpineData } from "utilities/guiExport";
+import { exportGUIData, exportGUIResources, exportGUISpineData, extractGUIAtlasData } from "utilities/guiExport";
 import { postprocessGUIData, preprocessGUIData } from "utilities/guiProcessing";
 import { serializeGUIData, serializeGUISchemeData } from "utilities/guiSerialization";
 import { completeGUIData, ensureGUILayer, extractGUIOriginalData, updateGUIData, updateGUILayer } from "utilities/guiUpdate";

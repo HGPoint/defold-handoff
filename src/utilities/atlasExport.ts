@@ -4,7 +4,8 @@
  */
 
 import { isAtlasStatic, resolveAtlasName } from "utilities/atlas";
-import { convertAtlasData, convertSpriteData } from "utilities/atlasConversion";
+import { convertAtlasData, convertSpriteData, convertSpriteName } from "utilities/atlasConversion";
+import { isFigmaText } from "utilities/figma";
 
 /**
  * Exports atlas data.
@@ -37,10 +38,16 @@ export async function exportAtlasData({ layer, parameters: { scale, usedSprites 
 async function exportSpriteData(images: readonly (SceneNode | SliceNode)[], directory: string, scale: number = 1, usedSprites: string[] = []): Promise<SpriteData[]> {
   const spriteData = [];
   for (const sprite of images) {
-    const exportedSprite = await exportSprite(sprite, directory, scale, usedSprites);
-    spriteData.push(exportedSprite);
+    if (shouldExportSprite(sprite, usedSprites)) {
+      const exportedSprite = await exportSprite(sprite, directory, scale);
+      spriteData.push(exportedSprite);
+    }
   } 
   return spriteData;
+}
+
+function shouldExportSprite(layer: SceneNode, usedSprites: string[]) {
+  return !usedSprites.length || usedSprites.includes(layer.id)
 }
 
 /**
@@ -50,17 +57,24 @@ async function exportSpriteData(images: readonly (SceneNode | SliceNode)[], dire
  * @param scale - The scale to export image at.
  * @returns The sprite data.
  */
-async function exportSprite(layer: SceneNode, directory: string, scale: number = 1, usedSprites: string[] = []): Promise<SpriteData> {
+async function exportSprite(layer: SceneNode, directory: string, scale: number = 1): Promise<SpriteData> {
   const sprite = convertSpriteData();
-  const shouldExport = usedSprites.length === 0 || usedSprites.includes(layer.id);
-  const name = layer.name.replace("Sprite=", "");
-  const data: WithNull<Uint8Array<ArrayBufferLike>> = shouldExport ? await layer.exportAsync({ format: "PNG", constraint: { type: "SCALE", value: scale } }) : null;
+  const name = convertSpriteName(layer)
+  const parameters = resolveExportParameters(layer, scale);
+  const data = await layer.exportAsync(parameters)
   return {
     name,
     directory,
     sprite,
     data,
   };
+}
+
+function resolveExportParameters(layer: SceneNode, scale: number): ExportSettings {
+  const format = "PNG";
+  const constraint: ExportSettingsConstraints = { type: "SCALE", value: scale };
+  const useAbsoluteBounds = isFigmaText(layer);
+  return { format, useAbsoluteBounds, constraint };
 }
 
 /**

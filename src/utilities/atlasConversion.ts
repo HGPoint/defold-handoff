@@ -3,6 +3,7 @@
  * @packageDocumentation
  */
 
+import { isFigmaText } from "utilities/figma";
 import { injectAtlasDefaults, injectSpriteDefaults } from "utilities/defaults";
 
 /**
@@ -25,4 +26,24 @@ export function convertSpriteData(): SpriteDefoldData {
   return {
     ...defaults,
   };
+}
+
+export function convertSpriteName(layer: SceneNode): string {
+  if (isFigmaText(layer)) {
+    return convertTextSpriteName(layer);
+  }
+  return convertRegularSpriteName(layer);
+}
+
+function convertTextSpriteName(layer: TextNode) {
+  const suffix = layer.characters
+    .replace(/[<>:"/\\|?*\s]/g, '')
+    .substring(0, 25)
+    .trim()
+    .replace(/\s+/g, "-");
+  return `${layer.name}_${suffix}`;
+}
+
+function convertRegularSpriteName(layer: SceneNode) {
+  return layer.name.replace("Sprite=", "");
 }

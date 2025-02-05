@@ -3,14 +3,14 @@
  * @module ScalePlaceholderUtils
  */
 
+import { updateGameObject } from "handoff/gameCollection";
+import { updateGUINode } from "handoff/gui";
 import { resolvePluginDataKey } from "utilities/data";
-import { getPluginData, hasChildren, isFigmaBox, isFigmaComponentInstance, isLayerExportable, isLayerGameObject, isLayerGUINode, isLayerSprite, removePluginData, setPluginData } from "utilities/figma";
+import { getPluginData, hasChildren, isFigmaBox, isFigmaComponentInstance, isLayerExportable, isLayerGameObject, isLayerGUINode, isLayerSprite, isVisible, removePluginData, setPluginData } from "utilities/figma";
 import { getGameObjectPluginData } from "utilities/gameCollection";
 import { getGUINodePluginData } from "utilities/gui";
 import { inferSizeMode } from "utilities/inference";
 import { areVectorsEqual, isZeroVector, vector4 } from "utilities/math";
-import { updateGUINode } from "handoff/gui";
-import { updateGameObject } from "handoff/gameCollection";
 
 /**
  * Determines whether a Figma layer is a slice9 layer.
@@ -19,6 +19,16 @@ import { updateGameObject } from "handoff/gameCollection";
  */
 export function isSlice9Layer(layer: SceneNode): layer is InstanceNode {
   return isFigmaComponentInstance(layer) && !!getPluginData(layer, "defoldSlice9");
+}
+
+export function isUsedSlice9Layer(layer: SceneNode): layer is InstanceNode {
+  if (isSlice9Layer(layer)) {
+    const placeholder = findSlice9PlaceholderLayer(layer)
+    if (placeholder) {
+      return isVisible(placeholder) && !layer.visible
+    }
+  }
+  return false
 }
 
 /**

@@ -97,17 +97,17 @@ export async function findAtlases(textureAtlasesData: (string | TextureDynamicAt
         }
       }
     } else {
-      const slices = {
+      const dynamicAtlas = {
         name: textureAtlasData.atlasName,
         images: [] as (SliceNode | TextNode)[],
       };
       for (const id of textureAtlasData.ids) {
         const layer = await figma.getNodeByIdAsync(id);
         if (layer && (isFigmaSlice(layer) || isFigmaText(layer))) {
-          slices.images.push(layer);
+          dynamicAtlas.images.push(layer);
         }
-        atlases.push(slices);
       }
+      atlases.push(dynamicAtlas);
     }
   }
   return atlases;

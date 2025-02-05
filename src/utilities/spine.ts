@@ -1,4 +1,4 @@
-import { isZeroVector } from "utilities/math";
+import { isZeroVector, vector4 } from "utilities/math";
 import { serializeSpineData } from "utilities/spineSerialization";
 
 export const SPINE_SERIALIZATION_PIPELINE: TransformPipeline<SpineData, SerializedSpineData> = {
@@ -26,11 +26,30 @@ function convertSpineBoneData(node: GUINodeData) {
   const { parent } = node;
   const { x, y } = node.position;
   const rotation = node.rotation.z;
-  const data: SpineBoneData = { name, x, y, rotation };
+  const { x: scaleX, y: scaleY } = convertSpineBoneScale(node);
+  const data: SpineBoneData = {
+    name,
+    x,
+    y,
+    rotation,
+    scaleX,
+    scaleY,
+  };
   if (parent) {
     data.parent = parent;
   }
   return data;
+}
+
+function convertSpineBoneScale(node: GUINodeData) {
+  if (node.texture_size && !isZeroVector(node.texture_size) && (!node.slice9 || isZeroVector(node.slice9))) {
+    const { x: width, y: height } = node.size;
+    const { x: textureWidth, y: textureHeight } = node.texture_size;
+    const x = width / textureWidth;
+    const y = height/ textureHeight;
+    return vector4(x, y, 0, 0);
+  }
+  return vector4(1);
 }
 
 export function generateSpineSlotData(nodes: GUINodeData[]) {

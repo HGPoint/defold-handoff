@@ -271,7 +271,15 @@ export async function isLayerSpriteHolder(layer: BaseNode): Promise<boolean> {
 }
 
 export function isVisible(layer: SceneNode): boolean {
-  return layer.visible;
+  let currentLayer: WithNull<BaseNode> = layer;
+  do {
+    if (!currentLayer.visible) {
+      return false;
+    }
+    currentLayer = currentLayer.parent || null
+  }
+  while (currentLayer && isFigmaSceneNode(currentLayer))
+  return true;
 }
 
 /**
