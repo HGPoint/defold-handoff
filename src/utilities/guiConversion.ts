@@ -106,7 +106,7 @@ export function convertTextGUINodeData(layer: TextLayer, options: GUINodeDataExp
   }
 }
 
-export async function convertTextSpriteGUINodeData(layer: TextLayer, options: GUINodeDataExportOptions): Promise<GUINodeData> {
+export function convertTextSpriteGUINodeData(layer: TextLayer, options: GUINodeDataExportOptions): GUINodeData {
   const { namePrefix, variantPrefix, forcedName, parentId, parentPivot, parentSize, parentShift, atRoot, asTemplate } = options;
   const context = generateContextData(layer);
   const defaults = injectGUINodeDefaults();
@@ -116,7 +116,7 @@ export async function convertTextSpriteGUINodeData(layer: TextLayer, options: GU
   const type = "TYPE_BOX";
   const guiLayer = convertGUINodeLayer(context, data);
   const pivot = convertGUIBoxNodePivot(data);
-  const visuals = await convertGUITextSpriteNodeVisuals(layer);
+  const visuals = convertGUITextSpriteNodeVisuals(layer);
   const sizeMode = "SIZE_MODE_MANUAL";
   const transformations = convertGUITextSpriteNodeTransformations(layer, pivot, parentPivot, parentSize, parentShift, atRoot, asTemplate, data);
   const parent = convertGUINodeParent(parentId, data);

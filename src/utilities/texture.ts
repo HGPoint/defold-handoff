@@ -22,7 +22,7 @@ export async function extractTextureData(data: TextureVariantPipelineData, textu
   const { layer, skipVariants, textAsSprites } = data;
   if (isLayerExportable(layer)) {
     if (isFigmaComponentInstance(layer)) {
-      const staticData = await processStaticTextureData(layer);
+      const staticData = await processStaticTextureData(layer, textAsSprites);
       textureData = { ...textureData, ...staticData };
     } else if (isFigmaSlice(layer) && shouldProcessSlice(layer)) {
       const { name: atlasName } = layer.parent ? layer.parent : layer;
@@ -95,12 +95,12 @@ function processDynamicTextureData(layer: SliceNode | TextNode, atlasName: strin
  * @param layer - The Figma layer to process texture data for.
  * @returns The generated texture data.
  */
-async function processStaticTextureData(layer: InstanceNode): Promise<TextureResourceData> {
+async function processStaticTextureData(layer: InstanceNode, textAsSprites: boolean = false): Promise<TextureResourceData> {
   const mainComponent = await findMainFigmaComponent(layer);
   if (mainComponent) {
     const { parent } = mainComponent;
     if (parent && isLayerAtlas(parent)) {
-      return updateStaticTextureData(parent);
+      return updateStaticTextureData(parent, textAsSprites);
     }
   }
   return {};
@@ -111,7 +111,7 @@ async function processStaticTextureData(layer: InstanceNode): Promise<TextureRes
  * @param atlas - The atlas to update texture data for.
  * @returns The updated texture data.
  */
-function updateStaticTextureData(atlas: ComponentSetNode): TextureResourceData {
+function updateStaticTextureData(atlas: ComponentSetNode, textAsSprites: boolean): TextureResourceData {
   const { parent } = atlas;
   let textureData: TextureResourceData = {};
   const atlasData = getPluginData(atlas, "defoldAtlas"); 
@@ -119,25 +119,25 @@ function updateStaticTextureData(atlas: ComponentSetNode): TextureResourceData {
     const sectionData = getPluginData(parent, "defoldSection");
     if (sectionData?.bundled) {
       const extension = resolveExtension(atlasData, sectionData);
-      const ignore = resolveIgnore(atlasData, sectionData);
+      const ignore = resolveIgnore(atlasData, sectionData, textAsSprites);
       textureData = { ...textureData, ...generateStaticTextureData(atlas.name, atlas.id, ignore, extension) };
       for (const child of parent.children) {
         if (isFigmaSceneNode(child) && isLayerAtlas(child)) {
           const childData = getPluginData(child, "defoldAtlas");
           const childExtension = resolveExtension(childData, sectionData);
-          const childIgnore = resolveIgnore(childData, sectionData);
+          const childIgnore = resolveIgnore(childData, sectionData, textAsSprites);
           textureData = { ...textureData, ...generateStaticTextureData(child.name, child.id, childIgnore, childExtension) };
         }
       }
     } else if (sectionData?.jumbo) {
       const name = sectionData.jumbo;
       const extension = resolveExtension(null, sectionData);
-      const ignore = resolveIgnore(null, sectionData);
+      const ignore = resolveIgnore(null, sectionData, textAsSprites);
       textureData = { ...textureData, ...generateStaticTextureData(name, parent.id, ignore, extension) };
     }
   } else {
     const extension = resolveExtension(atlasData, null);
-    const ignore = resolveIgnore(atlasData, null);
+    const ignore = resolveIgnore(atlasData, null, textAsSprites);
     textureData = { ...textureData, ...generateStaticTextureData(atlas.name, atlas.id, ignore, extension) };
   }
   return textureData;
@@ -147,8 +147,8 @@ function resolveExtension(atlas: WithNull<PluginAtlasData>, section: WithNull<Pl
   return section?.extension || atlas?.extension || undefined;
 }
 
-function resolveIgnore(atlas: WithNull<PluginAtlasData>, section: WithNull<PluginSectionData>): boolean {
-  return section?.ignore || atlas?.ignore || false;
+function resolveIgnore(atlas: WithNull<PluginAtlasData>, section: WithNull<PluginSectionData>, textAsSprites: boolean): boolean {
+  return !textAsSprites && (section?.ignore || atlas?.ignore || false);
 }
 
 /**

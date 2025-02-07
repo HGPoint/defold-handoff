@@ -5,6 +5,7 @@
 
 import config from "config/config.json";
 import { findAtlases, reduceAtlasIdsFromResources } from "utilities/atlas";
+import { convertSpriteName } from "utilities/atlasConversion";
 import { canProcessChildLayer, isLayerSkippable } from "utilities/data";
 import delay from "utilities/delay";
 import { areEqualComponentPropertySets, equalExposedComponentProperties, findMainFigmaComponent, getPluginData, hasChildren, isFigmaBox, isFigmaComponentInstance, isFigmaSlice, isFigmaText, isLayerData, isLayerSprite, isVisible } from "utilities/figma";
@@ -14,7 +15,7 @@ import { convertBoxGUINodeData, convertGUIData, convertTextGUINodeData, convertT
 import { inferGUIBox, inferGUIText } from "utilities/inference";
 import { extractLayerData } from "utilities/layer";
 import { addVectors, isZeroVector, vector4 } from "utilities/math";
-import { isUsedSlice9Layer, isSlice9ServiceLayer } from "utilities/slice9";
+import { isSlice9ServiceLayer, isUsedSlice9Layer } from "utilities/slice9";
 import { generateSpineBoneData, generateSpineSkinData, generateSpineSlotData, resolveSpineFilePath, resolveSpineSkeletonData } from "utilities/spine";
 import { extractTextureData } from "utilities/texture";
 import { extractExportVariants, resolveInitialVariantValues } from "utilities/variantPipeline";
@@ -393,13 +394,29 @@ export async function extractGUIAtlasData(data: GUIExportPipelineData, resources
 export async function exportGUISpineData(guiData: GUIData): Promise<SpineData> {
   const { nodes } = guiData;
   const name = guiData.name;
+  const textSprites = await generateTextSprites(nodes);
   const filePath = resolveSpineFilePath();
   const skeleton = resolveSpineSkeletonData(guiData);
-  const bones = generateSpineBoneData(nodes);
-  const skins = generateSpineSkinData(nodes);
+  const bones = generateSpineBoneData(nodes, textSprites);
+  const skins = generateSpineSkinData(nodes, textSprites);
   const slots = generateSpineSlotData(nodes);
   const data: SpineData = { name, skeleton, bones, slots, skins, filePath };
   return data;
+}
+
+async function generateTextSprites(nodes: GUINodeData[]) {
+  const textSprites: Record<string, Vector4> = {};
+  for (const node of nodes) {
+    const { exportable_layer: layer } = node 
+    if (isFigmaText(layer)) {
+      const id = convertSpriteName(layer);
+      const bytes = await layer.exportAsync({ format: "PNG" });
+      const image = figma.createImage(bytes);
+      const { width, height } = await image.getSizeAsync();
+      textSprites[id] = vector4(width, height, 0, 0);
+    }
+  }
+  return textSprites;
 }
 
 /**

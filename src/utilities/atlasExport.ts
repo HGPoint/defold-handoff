@@ -4,8 +4,7 @@
  */
 
 import { isAtlasStatic, resolveAtlasName } from "utilities/atlas";
-import { convertAtlasData, convertSpriteData, convertSpriteName } from "utilities/atlasConversion";
-import { isFigmaText } from "utilities/figma";
+import { convertAtlasData, convertSpriteData, convertSpriteName, convertAbsoluteBounds } from "utilities/atlasConversion";
 
 /**
  * Exports atlas data.
@@ -60,7 +59,7 @@ function shouldExportSprite(layer: SceneNode, usedSprites: string[]) {
 async function exportSprite(layer: SceneNode, directory: string, scale: number = 1): Promise<SpriteData> {
   const sprite = convertSpriteData();
   const name = convertSpriteName(layer)
-  const parameters = resolveExportParameters(layer, scale);
+  const parameters = await resolveExportParameters(layer, scale);
   const data = await layer.exportAsync(parameters)
   return {
     name,
@@ -70,10 +69,10 @@ async function exportSprite(layer: SceneNode, directory: string, scale: number =
   };
 }
 
-function resolveExportParameters(layer: SceneNode, scale: number): ExportSettings {
+async function resolveExportParameters(layer: SceneNode, scale: number): Promise<ExportSettings> {
   const format = "PNG";
   const constraint: ExportSettingsConstraints = { type: "SCALE", value: scale };
-  const useAbsoluteBounds = isFigmaText(layer);
+  const useAbsoluteBounds = await convertAbsoluteBounds(layer);
   return { format, useAbsoluteBounds, constraint };
 }
 
