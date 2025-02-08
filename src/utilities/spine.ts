@@ -1,4 +1,4 @@
-import { convertSpriteName } from "utilities/atlasConversion";
+import { isFigmaText } from "utilities/figma";
 import { isZeroVector, vector4 } from "utilities/math";
 import { serializeSpineData } from "utilities/spineSerialization";
 
@@ -17,17 +17,15 @@ export function resolveSpineSkeletonData(guiData: GUIData) {
 }
 
 
-export function generateSpineBoneData(nodes: GUINodeData[], textSprites: Record<string, Vector4>) {
-  const bones = nodes.map((node) => convertSpineBoneData(node, textSprites));
+export function generateSpineBoneData(nodes: GUINodeData[]) {
+  const bones = nodes.map(convertSpineBoneData);
   return bones;
 }
 
-function convertSpineBoneData(node: GUINodeData, textSprites: Record<string, Vector4>) {
+function convertSpineBoneData(node: GUINodeData) {
   const name = node.id;
-  const { exportable_layer: layer } = node;
-  const id = convertSpriteName(layer)
   const { parent } = node;
-  const { x, y } = convertSpineBonePosition(node, textSprites[id]);
+  const { x, y } = convertSpineBonePosition(node);
   const rotation = node.rotation.z;
   const { x: scaleX, y: scaleY } = convertSpineBoneScale(node);
   const data: SpineBoneData = {
@@ -44,27 +42,49 @@ function convertSpineBoneData(node: GUINodeData, textSprites: Record<string, Vec
   return data;
 }
 
-function convertSpineBonePosition(node: GUINodeData, textSprite?: Vector4) {
-  const { x, y } = node.position;
-  if (textSprite) {
-    const { x: width, y: height } = node.size;
-    const { x: textWidth, y: textHeight } = textSprite;
-    if (textWidth > width || textHeight > height) {
-      const shiftedX = x - (width - textWidth) / 2;
-      const shiftedY = y + (height - textHeight) / 2;
-      return vector4(shiftedX, shiftedY, 0, 0);
-    }
+function convertSpineBonePosition(node: GUINodeData) {
+  const { position, size, exportable_layer: layer, texture_size: textureSize } = node;
+  const { x, y } = position;
+  if (textureSize && !isZeroVector(textureSize) && isFigmaText(layer)) {
+    const shiftedPosition = calculateSpineTextBonePosition(layer, position, size, textureSize);
+    return shiftedPosition;
   }
   return vector4(x, y, 0, 0);
 }
 
+function calculateSpineTextBonePosition(layer: TextNode, position: Vector4, size: Vector4, textureSize: Vector4) {
+  const { x: width, y: height } = size;
+  const { x: textureWidth, y: textureHeight } = textureSize;
+  const { textAlignHorizontal, textAlignVertical } = layer; 
+  let shiftX = 0;
+  let shiftY = 0;
+  if (textAlignVertical === "TOP") {
+    shiftY += (height - textureHeight) / -2; 
+  } else if (textAlignVertical === "BOTTOM") {
+    shiftY += (height - textureHeight) / 2;
+  }
+  if (textAlignHorizontal === "RIGHT") {
+    shiftX += (width - textureWidth) / 2;
+  } else if (textAlignHorizontal === "LEFT") {
+    shiftX += (width - textureWidth) / -2;
+  }
+  const x = position.x + shiftX;
+  const y = position.y + shiftY;
+  return vector4(x, y, 0, 0);
+}
+
 function convertSpineBoneScale(node: GUINodeData) {
-  if (node.texture_size && !isZeroVector(node.texture_size) && (!node.slice9 || isZeroVector(node.slice9))) {
-    const { x: width, y: height } = node.size;
-    const { x: textureWidth, y: textureHeight } = node.texture_size;
-    const x = width / textureWidth;
-    const y = height/ textureHeight;
-    return vector4(x, y, 0, 0);
+  const { size, texture_size: textureSize, exportable_layer: layer, slice9 } = node;
+  if (textureSize && !isZeroVector(textureSize)) {
+    if (isFigmaText(layer)) {
+      return vector4(1);
+    } else if (!slice9 || isZeroVector(slice9)) {
+      const { x: width, y: height } = size;
+      const { x: textureWidth, y: textureHeight } = textureSize;
+      const x = width / textureWidth;
+      const y = height/ textureHeight;
+      return vector4(x, y, 0, 0);
+    }
   }
   return vector4(1);
 }
@@ -92,20 +112,17 @@ function resolveSpinePathFromTexture(texture: string) {
   return texture.split("/").pop() || texture;
 }
 
-export function generateSpineSkinData(nodes: GUINodeData[], textSprites: Record<string, Vector4>) {
-  const attachments = nodes.reduce((cumulativeAttachments, node) => reduceSpineAttachmentData(cumulativeAttachments, node, textSprites), {});
+export function generateSpineSkinData(nodes: GUINodeData[]) {
+  const attachments = nodes.reduce(reduceSpineAttachmentData, {});
   const skins = [{ name: "default", attachments }];
   return skins;
 }
 
-function reduceSpineAttachmentData(attachments: Record<string, Record<string, SpineAttachmentData>>, node: GUINodeData, textSprites: Record<string, Vector4>) {
+function reduceSpineAttachmentData(attachments: Record<string, Record<string, SpineAttachmentData>>, node: GUINodeData) {
   if (shouldGenerateAttachment(node)) {
     const { id: name } = node;
     if (shouldGenerateImageAttachment(node)) {
-      const { exportable_layer: layer } = node;
-      const id = convertSpriteName(layer)
-      const textSprite = textSprites[id];
-      attachments[name] = generateImageAttachment(node, textSprite);
+      attachments[name] = generateImageAttachment(node);
     } else {
       attachments[name] = generateMeshAttachment(node);
     }
@@ -121,16 +138,13 @@ function shouldGenerateImageAttachment(node: GUINodeData) {
   return !node.slice9 || isZeroVector(node.slice9);
 }
 
-function generateImageAttachment(node: GUINodeData & { texture: string }, textSprite?: Vector4) {
-  const { texture, size: { x: width, y: height } } = node;
-  const useTextSprite = textSprite && (textSprite.x > width || textSprite.y > height);
-  const resolvedWidth = useTextSprite ? textSprite.x : width;
-  const resolvedHeight = useTextSprite ? textSprite.y : height;
+function generateImageAttachment(node: GUINodeData & { texture: string, texture_size: Vector4 }) {
+  const { texture, texture_size: { x: width, y: height } } = node;
   const path = resolveSpinePathFromTexture(texture);
   const attachment = {
     path,
-    width: resolvedWidth,
-    height: resolvedHeight
+    width,
+    height
   };
   return { [path]: attachment };
 }

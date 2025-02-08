@@ -106,7 +106,7 @@ export function convertTextGUINodeData(layer: TextLayer, options: GUINodeDataExp
   }
 }
 
-export function convertTextSpriteGUINodeData(layer: TextLayer, options: GUINodeDataExportOptions): GUINodeData {
+export async function convertTextSpriteGUINodeData(layer: TextLayer, options: GUINodeDataExportOptions): Promise<GUINodeData> {
   const { namePrefix, variantPrefix, forcedName, parentId, parentPivot, parentSize, parentShift, atRoot, asTemplate } = options;
   const context = generateContextData(layer);
   const defaults = injectGUINodeDefaults();
@@ -116,7 +116,7 @@ export function convertTextSpriteGUINodeData(layer: TextLayer, options: GUINodeD
   const type = "TYPE_BOX";
   const guiLayer = convertGUINodeLayer(context, data);
   const pivot = convertGUIBoxNodePivot(data);
-  const visuals = convertGUITextSpriteNodeVisuals(layer);
+  const visuals = await convertGUITextSpriteNodeVisuals(layer);
   const sizeMode = "SIZE_MODE_MANUAL";
   const transformations = convertGUITextSpriteNodeTransformations(layer, pivot, parentPivot, parentSize, parentShift, atRoot, asTemplate, data);
   const parent = convertGUINodeParent(parentId, data);
@@ -389,11 +389,11 @@ function convertGUITextNodeVisuals(layer: TextLayer, pluginData?: WithNull<Plugi
   };
 }
 
-function convertGUITextSpriteNodeVisuals(layer: TextLayer) {
+async function convertGUITextSpriteNodeVisuals(layer: TextLayer) {
   const color = resolveBaseColor();
   const colorHue = vector4(color.x, color.y, color.z, 0);
   const colorAlpha = color.w;
-  const { texture, size: textureSize } = resolveGUITextSpriteNodeImpliedSprite(layer);
+  const { texture, size: textureSize } = await resolveGUITextSpriteNodeImpliedSprite(layer);
   const visible = true;
   const clippingVisible = false;
   return {

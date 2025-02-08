@@ -47,14 +47,3 @@ function convertTextSpriteName(layer: TextNode) {
 function convertRegularSpriteName(layer: SceneNode) {
   return layer.name.replace("Sprite=", "");
 }
-
-export async function convertAbsoluteBounds(layer: SceneNode) {
-  if (isFigmaText(layer)) {
-    const { width, height } = layer;
-    const bytes = await layer.exportAsync({ format: "PNG" });
-    const image = figma.createImage(bytes);
-    const { width: textWidth, height: textHeight } = await image.getSizeAsync();
-    return textWidth <= width && textHeight <= height;
-  }
-  return true;
-}

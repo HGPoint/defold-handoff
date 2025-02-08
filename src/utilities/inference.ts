@@ -436,10 +436,13 @@ function resolveEmptyGUIBoxTexture() {
   };
 }
 
-export function resolveGUITextSpriteNodeImpliedSprite(layer: TextNode) {
+export async function resolveGUITextSpriteNodeImpliedSprite(layer: TextNode) {
   const name = convertSpriteName(layer);
   const texture = `text_layers/${name}`;
-  const size = vector4(layer.width, layer.height, 0, 0);
+  const bytes = await layer.exportAsync({ format: "PNG" });
+  const image = figma.createImage(bytes);
+  const { width, height } = await image.getSizeAsync();
+  const size = vector4(width, height, 0, 0);
   return {
     texture,
     size,

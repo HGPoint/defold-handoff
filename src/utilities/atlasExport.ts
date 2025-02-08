@@ -4,7 +4,7 @@
  */
 
 import { isAtlasStatic, resolveAtlasName } from "utilities/atlas";
-import { convertAtlasData, convertSpriteData, convertSpriteName, convertAbsoluteBounds } from "utilities/atlasConversion";
+import { convertAtlasData, convertSpriteData, convertSpriteName } from "utilities/atlasConversion";
 
 /**
  * Exports atlas data.
@@ -72,8 +72,7 @@ async function exportSprite(layer: SceneNode, directory: string, scale: number =
 async function resolveExportParameters(layer: SceneNode, scale: number): Promise<ExportSettings> {
   const format = "PNG";
   const constraint: ExportSettingsConstraints = { type: "SCALE", value: scale };
-  const useAbsoluteBounds = await convertAbsoluteBounds(layer);
-  return { format, useAbsoluteBounds, constraint };
+  return { format, constraint };
 }
 
 /**
