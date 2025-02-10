@@ -3,7 +3,7 @@
   import Actions from "components/Actions";
   import Slice9Editor from "components/Slice9Editor";
   import selectionState from "state/selection";
-  import { isGUIBoxType, isGUITextType } from "utilities/gui";
+  import { isGUIBoxType, isGUITemplateType, isGUITextType } from "utilities/gui";
   import { isZeroVector } from "utilities/math";
   import { postMessageToPlugin } from "utilities/ui";
 
@@ -45,7 +45,7 @@
   {#if isGUITextType(guiNode.type)}
     <ActionButton label="Fix Text" action="fixGUIText" />
   {/if}
-  {#if isGUIBoxType(guiNode.type) && !isZeroVector(guiNode.slice9)}
+  {#if (isGUIBoxType(guiNode.type) || isGUITemplateType(guiNode.type)) && !isZeroVector(guiNode.slice9)}
     <ActionButton label="Refresh Slice 9" action="restoreSlice9" />
   {/if}
   <ActionButton label="Export GUI as Spine" action="exportGUISpine" />

@@ -8,6 +8,7 @@ import { PROJECT_CONFIG } from "handoff/project";
 import { resolveBaseColor } from "utilities/color";
 import { generateContextData } from "utilities/context";
 import { injectGUIDefaults, injectGUINodeDefaults } from "utilities/defaults";
+import delay from "utilities/delay";
 import { getPluginData } from "utilities/figma";
 import { inferBackgroundColor, inferClippingVisible, inferColor, inferFont, inferGUIBoxTexture, inferGUIBoxVisible, inferGUINodeType, inferGUITextSizeMode, inferGUITextVisible, inferLineBreak, inferRotation, inferScale, inferSize, inferSizeMode, inferSlice9, inferText, inferTextBoxSize, inferTextLeading, inferTextOutline, inferTextPivot, inferTextScale, inferTextShadow, inferTextTracking, resolveGUITextSpriteNodeImpliedSprite } from "utilities/inference";
 import { readableVector, vector4 } from "utilities/math";
@@ -118,7 +119,7 @@ export async function convertTextSpriteGUINodeData(layer: TextLayer, options: GU
   const pivot = convertGUIBoxNodePivot(data);
   const visuals = await convertGUITextSpriteNodeVisuals(layer);
   const sizeMode = "SIZE_MODE_MANUAL";
-  const transformations = convertGUITextSpriteNodeTransformations(layer, pivot, parentPivot, parentSize, parentShift, atRoot, asTemplate, data);
+  const transformations = await convertGUITextSpriteNodeTransformations(layer, pivot, parentPivot, parentSize, parentShift, atRoot, asTemplate, data);
   const parent = convertGUINodeParent(parentId, data);
   const specialProperties = convertGUINodeSpecialProperties(layer, id, data);
   return {
@@ -240,17 +241,6 @@ function convertGUITextNodeTransformations(layer: TextLayer, pivot: Pivot, paren
   };
 }
 
-function convertGUITextSpriteNodeTransformations(layer: TextLayer, pivot: Pivot, parentPivot: Pivot, parentSize: Vector4, parentShift: Vector4, atRoot: boolean, asTemplate: boolean, pluginData?: WithNull<PluginGUINodeData>) {
-  const size = inferSize(layer);
-  const scale = inferScale();
-  const guiNodeTransformations = convertGUINodeTransformations(layer, pivot, parentPivot, size, parentSize, parentShift, atRoot, asTemplate, pluginData);
-  return {
-    ...guiNodeTransformations,
-    size,
-    scale,
-  };
-}
-
 /**
  * Converts the GUI node base transformations to a Defold-like data.
  * @param layer - The Figma layer to convert base transformations for.
@@ -269,6 +259,21 @@ function convertGUINodeTransformations(layer: ExportableLayer, pivot: Pivot, par
   const rotation = inferRotation(layer);
   return {
     position,
+    rotation,
+    figma_position: figmaPosition,
+  };
+}
+
+async function convertGUITextSpriteNodeTransformations(layer: TextLayer, pivot: Pivot, parentPivot: Pivot, parentSize: Vector4, parentShift: Vector4, atRoot: boolean, asTemplate: boolean, pluginData?: WithNull<PluginGUINodeData>) {
+  const size = inferSize(layer);
+  const scale = inferScale();
+  const figmaPosition = vector4(layer.x, layer.y, 0, 0);
+  const position = await convertGUITextSpriteNodePosition(layer, pivot, parentPivot, size, parentSize, parentShift, atRoot, asTemplate, pluginData);
+  const rotation = inferRotation(layer);
+  return {
+    position,
+    size,
+    scale,
     rotation,
     figma_position: figmaPosition,
   };
@@ -308,6 +313,19 @@ function convertGUINodePosition(layer: ExportableLayer, pivot: Pivot, parentPivo
   const position = calculateChildPosition(layer, pivot, parentPivot, size, parentSize, parentShift, asTemplate, pluginData);
   const readablePosition = readableVector(position);
   return readablePosition;
+}
+
+async function convertGUITextSpriteNodePosition(layer: TextLayer, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4, parentShift: Vector4, atRoot: boolean, asTemplate: boolean, pluginData?: WithNull<PluginGUINodeData>) {
+  const { leadingTrim } = layer;
+  if (leadingTrim !== "CAP_HEIGHT") {
+    layer.leadingTrim = "CAP_HEIGHT";
+    delay(100);
+  }
+  const position = convertGUINodePosition(layer, pivot, parentPivot, size, parentSize, parentShift, atRoot, asTemplate, pluginData);
+  if (leadingTrim !== "CAP_HEIGHT") {
+    layer.leadingTrim = leadingTrim;
+  }
+  return position;
 }
 
 /**
