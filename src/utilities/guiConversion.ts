@@ -8,7 +8,6 @@ import { PROJECT_CONFIG } from "handoff/project";
 import { resolveBaseColor } from "utilities/color";
 import { generateContextData } from "utilities/context";
 import { injectGUIDefaults, injectGUINodeDefaults } from "utilities/defaults";
-import delay from "utilities/delay";
 import { getPluginData } from "utilities/figma";
 import { inferBackgroundColor, inferClippingVisible, inferColor, inferFont, inferGUIBoxTexture, inferGUIBoxVisible, inferGUINodeType, inferGUITextSizeMode, inferGUITextVisible, inferLineBreak, inferRotation, inferScale, inferSize, inferSizeMode, inferSlice9, inferText, inferTextBoxSize, inferTextLeading, inferTextOutline, inferTextPivot, inferTextScale, inferTextShadow, inferTextTracking, resolveGUITextSpriteNodeImpliedSprite } from "utilities/inference";
 import { readableVector, vector4 } from "utilities/math";
@@ -68,6 +67,31 @@ export async function convertBoxGUINodeData(layer: BoxLayer, options: GUINodeDat
   };
 }
 
+export function convertImpliedBoxGUINodeData(layer: RectangleNode, options: GUINodeDataExportOptions): GUINodeData {
+  const { namePrefix, variantPrefix, forcedName, parentId, parentPivot, parentSize, parentShift, atRoot, asTemplate } = options;
+  const context = generateContextData(layer);
+  const defaults = injectGUINodeDefaults();
+  const id = convertGUINodeId(layer, context.ignorePrefixes, forcedName, namePrefix, variantPrefix)
+  const type = "TYPE_BOX";
+  const visuals = convertGUIImpliedBoxNodeVisuals(layer);
+  const sizeMode = "SIZE_MODE_MANUAL";
+  const transformations = convertGUIImpliedBoxNodeTransformations(layer, "PIVOT_CENTER", parentPivot, parentSize, parentShift, atRoot, asTemplate);
+  const parent = parentId;
+  return {
+    ...defaults,
+    id,
+    type,
+    parent,
+    ...transformations,
+    ...visuals,
+    size_mode: sizeMode,
+    figma_node_type: layer.type,
+    exportable_layer: layer,
+    exportable_layer_id: layer.id,
+    exportable_layer_name: layer.name,
+  };
+}
+
 /**
  * Converts the text GUI node to a Defold-like structure.
  * @param layer - The Figma layer to convert.
@@ -116,7 +140,7 @@ export async function convertTextSpriteGUINodeData(layer: TextLayer, options: GU
   const slice9 = vector4(0);
   const type = "TYPE_BOX";
   const guiLayer = convertGUINodeLayer(context, data);
-  const pivot = convertGUIBoxNodePivot(data);
+  const pivot = inferTextPivot(layer);
   const visuals = await convertGUITextSpriteNodeVisuals(layer);
   const sizeMode = "SIZE_MODE_MANUAL";
   const transformations = await convertGUITextSpriteNodeTransformations(layer, pivot, parentPivot, parentSize, parentShift, atRoot, asTemplate, data);
@@ -170,7 +194,7 @@ function resolveGUIScript(pluginData?: WithNull<PluginGUINodeData>) {
  * @param namePrefix - The name prefix.
  * @returns The converted GUI node ID.
  */
-function convertGUINodeId(layer: ExportableLayer, ignorePrefixes: boolean, forcedName?: string, namePrefix?: string, variantPrefix?: string) {
+function convertGUINodeId(layer: SceneNode, ignorePrefixes: boolean, forcedName?: string, namePrefix?: string, variantPrefix?: string) {
   const name = forcedName || layer.name;
   if (!ignorePrefixes) {
     return `${namePrefix || ""}${name}${variantPrefix ? `_${variantPrefix.toLowerCase()}` : ""}`;
@@ -215,6 +239,21 @@ function convertGUIBoxNodeTransformations(layer: BoxLayer, pivot: Pivot, parentP
     ...guiNodeTransformations,
     size,
     scale,
+  };
+}
+
+function convertGUIImpliedBoxNodeTransformations(layer: RectangleNode, pivot: Pivot, parentPivot: Pivot, parentSize: Vector4, parentShift: Vector4, atRoot: boolean, asTemplate: boolean, pluginData?: WithNull<PluginGUINodeData>) {
+  const size = inferSize(layer);
+  const scale = inferScale();
+  const position = convertGUINodePosition(layer, pivot, parentPivot, size, parentSize, parentShift, atRoot, asTemplate, pluginData);
+  const figmaPosition = vector4(layer.x, layer.y, 0, 0);
+  const rotation = inferRotation(layer);
+  return {
+    size,
+    scale,
+    position,
+    rotation,
+    figma_position: figmaPosition,
   };
 }
 
@@ -268,7 +307,7 @@ async function convertGUITextSpriteNodeTransformations(layer: TextLayer, pivot: 
   const size = inferSize(layer);
   const scale = inferScale();
   const figmaPosition = vector4(layer.x, layer.y, 0, 0);
-  const position = await convertGUITextSpriteNodePosition(layer, pivot, parentPivot, size, parentSize, parentShift, atRoot, asTemplate, pluginData);
+  const position = convertGUINodePosition(layer, pivot, parentPivot, size, parentSize, parentShift, atRoot, asTemplate, pluginData);
   const rotation = inferRotation(layer);
   return {
     position,
@@ -304,7 +343,7 @@ function convertGUIBoxNodePivot(pluginData?: WithNull<PluginGUINodeData>) {
  * @param pluginData - The GUI node plugin data.
  * @returns The converted GUI node position.
  */
-function convertGUINodePosition(layer: ExportableLayer, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4, parentShift: Vector4, atRoot: boolean, asTemplate: boolean, pluginData?: WithNull<PluginGUINodeData>) {
+function convertGUINodePosition(layer: SceneNode, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4, parentShift: Vector4, atRoot: boolean, asTemplate: boolean, pluginData?: WithNull<PluginGUINodeData>) {
   if (atRoot) {
     const position = calculateRootPosition(layer, pivot, parentPivot, size, parentSize, parentShift, asTemplate, pluginData);
     const readablePosition = readableVector(position);
@@ -313,19 +352,6 @@ function convertGUINodePosition(layer: ExportableLayer, pivot: Pivot, parentPivo
   const position = calculateChildPosition(layer, pivot, parentPivot, size, parentSize, parentShift, asTemplate, pluginData);
   const readablePosition = readableVector(position);
   return readablePosition;
-}
-
-async function convertGUITextSpriteNodePosition(layer: TextLayer, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4, parentShift: Vector4, atRoot: boolean, asTemplate: boolean, pluginData?: WithNull<PluginGUINodeData>) {
-  const { leadingTrim } = layer;
-  if (leadingTrim !== "CAP_HEIGHT") {
-    layer.leadingTrim = "CAP_HEIGHT";
-    delay(100);
-  }
-  const position = convertGUINodePosition(layer, pivot, parentPivot, size, parentSize, parentShift, atRoot, asTemplate, pluginData);
-  if (leadingTrim !== "CAP_HEIGHT") {
-    layer.leadingTrim = leadingTrim;
-  }
-  return position;
 }
 
 /**
@@ -373,6 +399,20 @@ async function convertGUIBoxNodeVisuals(layer: BoxLayer, pluginData?: WithNull<P
     alpha: colorAlpha,
     texture,
     texture_size: textureSize,
+    clipping_visible: clippingVisible,
+  };
+}
+
+function convertGUIImpliedBoxNodeVisuals(layer: RectangleNode) {
+  const color = inferColor(layer);
+  const colorHue = vector4(color.x, color.y, color.z, 0);
+  const colorAlpha = color.w;
+  const visible = true;
+  const clippingVisible = true;
+  return {
+    visible,
+    color: colorHue,
+    alpha: colorAlpha,
     clipping_visible: clippingVisible,
   };
 }

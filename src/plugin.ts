@@ -15,7 +15,7 @@ import delay from "utilities/delay";
 import { processDocumentChanges } from "utilities/document";
 import { processError } from "utilities/error";
 import { selectFigmaLayer } from "utilities/figma";
-import { convertSelectionDataToSelectionUIData, pickFirstAtlasFromSelectionData, pickFirstGameObjectFromSelectionData, pickFirstGUINodeFromSelectionData, pickGameObjectsFromSelectionData, pickGUIFromSelectionData, pickLayersFromSelectionData, reduceAtlasesFromSelectionData, reduceSelectionDataFromSelection } from "utilities/selection";
+import { convertSelectionDataToSelectionUIData, pickAtlasesFromSelectionData, pickFirstAtlasFromSelectionData, pickFirstGameObjectFromSelectionData, pickFirstGUINodeFromSelectionData, pickGameObjectsFromSelectionData, pickGUIFromSelectionData, pickLayersFromSelectionData, reduceAtlasesFromSelectionData, reduceSelectionDataFromSelection } from "utilities/selection";
 import { tryRestoreSlice9Placeholder } from "utilities/slice9";
 
 let SELECTION: SelectionData = { gui: [], atlases: [], layers: [], sections: [], gameObjects: [] };
@@ -457,26 +457,26 @@ function onUpdateAtlas(data: PluginAtlasData) {
 }
 
 function onRemoveAtlases() {
-  const atlases = reduceAtlasesFromSelectionData(SELECTION);
+  const atlases = pickAtlasesFromSelectionData(SELECTION);
   removeAtlases(atlases);
   updateSelection();
   figma.notify("Atlases destroyed");
 }
 
 function onFixAtlases() {
-  const atlases = reduceAtlasesFromSelectionData(SELECTION);
+  const atlases = pickAtlasesFromSelectionData(SELECTION);
   fixAtlases(atlases);
   figma.notify("Atlases fixed");
 }
 
 function onSortAtlases() {
-  const atlases = reduceAtlasesFromSelectionData(SELECTION);
+  const atlases = pickAtlasesFromSelectionData(SELECTION);
   sortAtlases(atlases);
   figma.notify("Atlases sorted");
 }
 
 function onFitAtlases() {
-  const atlases = reduceAtlasesFromSelectionData(SELECTION);
+  const atlases = pickAtlasesFromSelectionData(SELECTION);
   fitAtlases(atlases);
   figma.notify("Atlases fitted");
 }

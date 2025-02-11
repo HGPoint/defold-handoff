@@ -18,13 +18,13 @@
     uiState.set(state);
   }
 
-  function resetScroll($selectionState: SelectionUIData) {
+  function tryResetScroll($selectionState: SelectionUIData) {
     window.scrollTo({ top: 0, behavior: "instant" });
   }
 
   initializeUIState();
 
-  $: resetScroll($selectionState);
+  $: tryResetScroll($selectionState);
 </script>
 
 {#if $uiState.mode}

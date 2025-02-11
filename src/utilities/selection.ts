@@ -7,7 +7,7 @@ import config from "config/config.json";
 import { PROJECT_CONFIG } from "handoff/project";
 import { copyArray, removeDoubles } from "utilities/array";
 import { findSectionWithContextData, generateContextData } from "utilities/context";
-import { findMainFigmaComponent, getPluginData, isFigmaComponentInstance, isFigmaFrame, isFigmaGroup, isFigmaSection, isFigmaSlice, isFigmaText, isLayerAtlas, isLayerGUINode, isLayerGameObject, isLayerNode } from "utilities/figma";
+import { findMainFigmaComponent, getPluginData, isFigmaComponentInstance, isFigmaFrame, isFigmaGroup, isFigmaSection, isFigmaSlice, isFigmaText, isLayerAtlas, isLayerGUINode, isLayerGameObject, isLayerNode, isLayerSprite } from "utilities/figma";
 import { resolvesGUINodeType } from "utilities/gui";
 import { inferGameObjectType, resolveGameObjectPosition, resolveLabelComponentPosition } from "utilities/inference";
 import { findSlice9Layer, isSlice9PlaceholderLayer, isSlice9ServiceLayer } from "utilities/slice9";
@@ -357,12 +357,14 @@ export function checkForMatchingGUINodes(selection: SelectionData): boolean {
  */
 async function tryFindOriginalGUINodeData(selection: SelectionData): Promise<WithNull<PluginGUINodeData>> {
   if (selection.gui.length === 1 && isFigmaComponentInstance(selection.gui[0])) {
-    const [ node ] = selection.gui; 
-    const mainComponent = await findMainFigmaComponent(node);
-    if (mainComponent) {
-      const pluginData = getPluginData(mainComponent, "defoldGUINode");
-      if (pluginData) {
-        return pluginData;
+    const [ node ] = selection.gui;
+    if (!(await isLayerSprite(node))) {
+      const mainComponent = await findMainFigmaComponent(node);
+      if (mainComponent) {
+        const pluginData = getPluginData(mainComponent, "defoldGUINode");
+        if (pluginData) {
+          return pluginData;
+        }
       }
     }
   }
@@ -454,6 +456,16 @@ export function pickGameObjectsFromSelectionData(selection: SelectionData) {
 export function pickFirstGameObjectFromSelectionData(selection: SelectionData) {
   const { gameObjects: [ layer ] } = selection;
   return layer;
+}
+
+/**
+ * Picks all the atlases from the selection data.
+ * @param selection - The selection data.
+ * @returns The array of atlases.
+ */
+export function pickAtlasesFromSelectionData(selection: SelectionData) {
+  const { atlases } = selection;
+  return atlases;
 }
 
 /**

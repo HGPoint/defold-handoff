@@ -6,7 +6,7 @@
 import { updateGameObject } from "handoff/gameCollection";
 import { updateGUINode } from "handoff/gui";
 import { resolvePluginDataKey } from "utilities/data";
-import { getPluginData, hasChildren, isFigmaBox, isFigmaComponentInstance, isLayerExportable, isLayerGameObject, isLayerGUINode, isLayerSprite, isVisible, removePluginData, setPluginData } from "utilities/figma";
+import { findMainFigmaComponent, findClosestFigmaComponentInstance, findFigmaLayerReflection, getPluginData, hasChildren, isFigmaBox, isFigmaComponentInstance, isLayerExportable, isLayerGameObject, isLayerGUINode, isLayerSprite, isVisible, removePluginData, setPluginData, isFigmaFrame } from "utilities/figma";
 import { getGameObjectPluginData } from "utilities/gameCollection";
 import { getGUINodePluginData } from "utilities/gui";
 import { inferSizeMode } from "utilities/inference";
@@ -140,13 +140,42 @@ export function findSlice9Layer(placeholder: FrameNode): WithNull<InstanceNode> 
  * @param layer - The layer to find the placeholder for.
  * @returns The placeholder layer if found.
  */
-export function findSlice9PlaceholderLayer(layer: ExportableLayer): WithNull<FrameNode> {
+export function findSlice9PlaceholderLayer(layer: SceneNode): WithNull<FrameNode> {
   const { parent: placeholder } = layer;
   if (placeholder && isSlice9PlaceholderLayer(placeholder)) {
     return placeholder;
   }
   return null;
 }
+
+/**
+ * Locates the original slice9 layer.
+ * @param placeholder - The slice9 layer or placeholder to find the original slice9 layer for.
+ * @returns The original slice9 layer if found.
+ */
+export async function findOriginalSlice9Layer(layer: SceneNode): Promise<WithNull<InstanceNode>> {
+  const placeholderLayer = isSlice9PlaceholderLayer(layer) ? layer : findSlice9PlaceholderLayer(layer);
+  if (placeholderLayer) {
+    const placeholderComponent = findClosestFigmaComponentInstance(placeholderLayer);
+    if (placeholderComponent) {
+      const mainComponent = await findMainFigmaComponent(placeholderComponent);
+      if (mainComponent) {
+        const reflection = findFigmaLayerReflection(mainComponent, placeholderLayer);
+        if (reflection && isFigmaFrame(reflection)) {
+          const originalReflectedSlice9Layer = findSlice9Layer(reflection);
+          if (originalReflectedSlice9Layer) {
+            return originalReflectedSlice9Layer;
+          }
+        }
+      }
+    }
+  }
+  const originalSlice9Layer = isSlice9PlaceholderLayer(layer) ? findSlice9Layer(layer) : layer;
+  if (originalSlice9Layer && isSlice9Layer(originalSlice9Layer)) {
+    return originalSlice9Layer;
+  }
+  return null;
+} 
 
 /**
  * Creates a slice9 placeholder for a layer with specified slice9 values.
@@ -668,8 +697,8 @@ function tryRemoveSlice9ServiceFrame(layer: SceneNode) {
  * @param layer - The layer to try restoring slice 9 data for.
  */
 export async function tryRestoreSlice9Placeholder(layer: SceneNode, pluginDataKey: "defoldGUINode" | "defoldGameObject") {
-  const originalLayer = isSlice9PlaceholderLayer(layer) ? findSlice9Layer(layer) : layer;
-  if (originalLayer && isSlice9Layer(originalLayer)) {
+  const originalLayer = await findOriginalSlice9Layer(layer);
+  if (originalLayer) {
     const slice9 = parseSlice9Data(originalLayer);
     if (slice9) {
       restoreSlice9LayerData(originalLayer, slice9, pluginDataKey);

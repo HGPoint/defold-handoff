@@ -79,7 +79,7 @@ type GUINodeData = {
   exclude: boolean,
   inferred: boolean,
   texture_size?: Vector4,
-  exportable_layer: ExportableLayer,
+  exportable_layer: ExportableLayer | RectangleNode,
   exportable_layer_name: string,
   exportable_layer_id: string,
   figma_position: Vector4,
@@ -98,7 +98,7 @@ type GUINodeExportParameters = {
 }
 
 type GUINodeDataExportOptions = {
-  layer: ExportableLayer,
+  layer: SceneNode,
   asTemplate: boolean,
   textAsSprites: boolean,
   collapseEmpty: boolean,

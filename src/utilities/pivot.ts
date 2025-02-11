@@ -50,8 +50,9 @@ export function isPivotWest(pivot: Pivot) {
  * @param parentSize - The size of the parent.
  * @returns The centered position of the layer.
  */
-export function calculateCenteredPosition(layer: ExportableLayer, size: Vector4, parentSize: Vector4) {
-  const { x, y } = calculateCenter(layer.x, layer.y, size.x, size.y, layer.rotation);
+export function calculateCenteredPosition(layer: SceneNode, size: Vector4, parentSize: Vector4) {
+  const rotation = "rotation" in layer ? layer.rotation : 0;
+  const { x, y } = calculateCenter(layer.x, layer.y, size.x, size.y, rotation);
   const centeredX = x - (parentSize.x / 2);
   const centeredY = (parentSize.y / 2) - y;
   return vector4(centeredX, centeredY, 0, 0);
@@ -85,12 +86,13 @@ export function calculatePivotedPosition(centeredPosition: Vector4, pivot: Pivot
  * @param data - GUI node data of the layer.
  * @returns The root position of the layer.
  */
-export function calculateRootPosition(layer: ExportableLayer, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4, parentShift: Vector4, asTemplate: boolean, data?: WithNull<PluginGUINodeData>) {
+export function calculateRootPosition(layer: SceneNode, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4, parentShift: Vector4, asTemplate: boolean, data?: WithNull<PluginGUINodeData>) {
   const centeredPosition = calculateCenteredRootPosition(layer, size, parentSize, parentShift, asTemplate, data);
   if (data?.template && !asTemplate) {
     return centeredPosition;
   }
-  const pivotedPosition = calculatePivotedPosition(centeredPosition, pivot, parentPivot, size, parentSize, layer.rotation);
+  const rotation = "rotation" in layer ? layer.rotation : 0;
+  const pivotedPosition = calculatePivotedPosition(centeredPosition, pivot, parentPivot, size, parentSize, rotation);
   return pivotedPosition;
 }
 
@@ -106,7 +108,7 @@ export function calculateRootPosition(layer: ExportableLayer, pivot: Pivot, pare
  * @param data - GUI node data of the layer.
  * @returns The centered root position of the layer.
  */
-export function calculateCenteredRootPosition(layer: ExportableLayer, size: Vector4, parentSize: Vector4, parentShift: Vector4, asTemplate: boolean, data?: WithNull<PluginGUINodeData>) {
+export function calculateCenteredRootPosition(layer: SceneNode, size: Vector4, parentSize: Vector4, parentShift: Vector4, asTemplate: boolean, data?: WithNull<PluginGUINodeData>) {
   if (data?.screen && !asTemplate) {
     const halfScreenWidth = PROJECT_CONFIG.screenSize.x / 2;
     const halfScreenHeight = PROJECT_CONFIG.screenSize.y / 2;
@@ -138,7 +140,7 @@ export function calculateCenteredRootPosition(layer: ExportableLayer, size: Vect
  * @param data - GUI node data of the child layer.
  * @returns The position of the child layer.
  */
-export function calculateChildPosition(layer: ExportableLayer, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4, parentShift: Vector4, asTemplate?: boolean, data?: WithNull<PluginGUINodeData>) {
+export function calculateChildPosition(layer: SceneNode, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4, parentShift: Vector4, asTemplate?: boolean, data?: WithNull<PluginGUINodeData>) {
   const centeredPosition = calculateCenteredPosition(layer, size, parentSize);
   if (data?.template && !asTemplate) {
     const shiftedCenterX = centeredPosition.x + parentShift.x;
@@ -146,7 +148,8 @@ export function calculateChildPosition(layer: ExportableLayer, pivot: Pivot, par
     const shiftedCenterPosition = vector4(shiftedCenterX, shiftedCenterY, 0, 0);
     return shiftedCenterPosition;
   }
-  const pivotedPosition = calculatePivotedPosition(centeredPosition, pivot, parentPivot, size, parentSize, layer.rotation);
+  const rotation = "rotation" in layer ? layer.rotation : 0;
+  const pivotedPosition = calculatePivotedPosition(centeredPosition, pivot, parentPivot, size, parentSize, rotation);
   const shiftedX = pivotedPosition.x + parentShift.x;
   const shiftedY = pivotedPosition.y - parentShift.y;
   const shiftedPosition = vector4(shiftedX, shiftedY, 0, 0);

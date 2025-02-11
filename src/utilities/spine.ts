@@ -1,5 +1,6 @@
 import { isFigmaText } from "utilities/figma";
 import { isZeroVector, vector4 } from "utilities/math";
+import { isPivotEast, isPivotNorth, isPivotSouth, isPivotWest } from "utilities/pivot";
 import { serializeSpineData } from "utilities/spineSerialization";
 
 export const SPINE_SERIALIZATION_PIPELINE: TransformPipeline<SpineData, SerializedSpineData> = {
@@ -23,10 +24,9 @@ export function generateSpineBoneData(nodes: GUINodeData[]) {
 }
 
 function convertSpineBoneData(node: GUINodeData) {
-  const name = node.id;
-  const { parent } = node;
-  const { x, y } = convertSpineBonePosition(node);
-  const rotation = node.rotation.z;
+  const { id: name, position, parent } = node
+  const { x, y } = position;
+  const { z: rotation } = node.rotation;
   const { x: scaleX, y: scaleY } = convertSpineBoneScale(node);
   const data: SpineBoneData = {
     name,
@@ -40,37 +40,6 @@ function convertSpineBoneData(node: GUINodeData) {
     data.parent = parent;
   }
   return data;
-}
-
-function convertSpineBonePosition(node: GUINodeData) {
-  const { position, size, exportable_layer: layer, texture_size: textureSize } = node;
-  const { x, y } = position;
-  if (textureSize && !isZeroVector(textureSize) && isFigmaText(layer)) {
-    const shiftedPosition = calculateSpineTextBonePosition(layer, position, size, textureSize);
-    return shiftedPosition;
-  }
-  return vector4(x, y, 0, 0);
-}
-
-function calculateSpineTextBonePosition(layer: TextNode, position: Vector4, size: Vector4, textureSize: Vector4) {
-  const { x: width, y: height } = size;
-  const { x: textureWidth, y: textureHeight } = textureSize;
-  const { textAlignHorizontal, textAlignVertical } = layer; 
-  let shiftX = 0;
-  let shiftY = 0;
-  if (textAlignVertical === "TOP") {
-    shiftY += (height - textureHeight) / -2; 
-  } else if (textAlignVertical === "BOTTOM") {
-    shiftY += (height - textureHeight) / 2;
-  }
-  if (textAlignHorizontal === "RIGHT") {
-    shiftX += (width - textureWidth) / 2;
-  } else if (textAlignHorizontal === "LEFT") {
-    shiftX += (width - textureWidth) / -2;
-  }
-  const x = position.x + shiftX;
-  const y = position.y + shiftY;
-  return vector4(x, y, 0, 0);
 }
 
 function convertSpineBoneScale(node: GUINodeData) {
@@ -140,13 +109,33 @@ function shouldGenerateImageAttachment(node: GUINodeData) {
 
 function generateImageAttachment(node: GUINodeData & { texture: string, texture_size: Vector4 }) {
   const { texture, texture_size: { x: width, y: height } } = node;
+  const { x, y, } = calculateImageAttachmentPosition(node);
   const path = resolveSpinePathFromTexture(texture);
   const attachment = {
     path,
     width,
-    height
+    height,
+    x,
+    y
   };
   return { [path]: attachment };
+}
+
+function calculateImageAttachmentPosition(node: GUINodeData & { texture: string, texture_size: Vector4 }) {
+  const { pivot, texture_size: { x: width, y: height } } = node;
+  let shiftX = 0;
+  let shiftY = 0;
+  if (isPivotNorth(pivot)) {
+    shiftY = height / 2;
+  } else if (isPivotSouth(pivot)) {
+    shiftY = height / -2;
+  }
+  if (isPivotEast(pivot)) {
+    shiftX = width / -2;
+  } else if (isPivotWest(pivot)) {
+    shiftX = width / 2;
+  }
+  return vector4(shiftX, shiftY, 0, 0);
 }
 
 function generateMeshAttachment(node: GUINodeData & { texture: string, texture_size: Vector4 }) {

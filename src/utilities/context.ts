@@ -11,7 +11,7 @@ import { getPluginData, isFigmaPage, isLayerContextSection } from "utilities/fig
  * @param layer - The layer for which to generate the context data.
  * @returns The context data.
  */
-export function generateContextData(layer: ExportableLayer): PluginContextData {
+export function generateContextData(layer: SceneNode): PluginContextData {
   const section = findSectionWithContextData(layer);
   if (section) {
     return generateContextDataFromSection(section);

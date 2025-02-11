@@ -4,7 +4,7 @@
  */
 
 import { PROJECT_CONFIG } from "handoff/project";
-import { getPluginData, isFigmaComponentInstance, isLayerData, isLayerExportable, isLayerGUINode, isLayerGameObject, isLayerSprite, isLayerSpriteHolder } from "utilities/figma";
+import { getPluginData, isFigmaComponentInstance, isFigmaRectangle, isLayerData, isLayerExportable, isLayerGUINode, isLayerGameObject, isLayerSprite, isLayerSpriteHolder } from "utilities/figma";
 import { isSlice9PlaceholderLayer, isSlice9ServiceLayer } from "utilities/slice9";
 
 /**
@@ -42,7 +42,7 @@ export async function isLayerSkippable(layer: ExportableLayer, data: GUINodeData
  * @returns True if the layer can be processed, otherwise false.
  */
 export function canProcessChildLayer(layer: SceneNode): layer is ExportableLayer {
-  return isLayerExportable(layer) && !isSlice9ServiceLayer(layer);
+  return (isLayerExportable(layer) || isFigmaRectangle(layer)) && !isSlice9ServiceLayer(layer);
 }
 
 /**

@@ -11,7 +11,7 @@ import { resolveBaseBackgroundColor, resolveBaseColor, resolveBaseTextOutline, r
 import { generateContextData } from "utilities/context";
 import { isLayerInferred } from "utilities/data";
 import { injectEmptyComponentDefaults, injectGUINodeDefaults, injectLabelComponentDefaults, injectSpriteComponentDefaults } from "utilities/defaults";
-import { findMainFigmaComponent, getPluginData, hasChildren, hasFont, hasParent, hasSolidNonWhiteFills, hasSolidStrokes, hasSolidVisibleFills, isFigmaBox, isFigmaComponentInstance, isFigmaSlice, isFigmaText, isLayerAtlas, isLayerExportable, isLayerNode, isLayerSprite, isShadowEffect, resolveFillColor, resolveTextOutlineColor, resolveTextShadowColor, setPluginData } from "utilities/figma";
+import { findMainFigmaComponent, getPluginData, hasChildren, hasFont, hasParent, hasSolidNonWhiteFills, hasSolidStrokes, hasSolidVisibleFills, isFigmaBox, isFigmaComponentInstance, isFigmaRectangle, isFigmaSlice, isFigmaText, isLayerAtlas, isLayerExportable, isLayerNode, isLayerSprite, isShadowEffect, resolveFillColor, resolveTextOutlineColor, resolveTextShadowColor, setPluginData } from "utilities/figma";
 import { tryFindFont } from "utilities/font";
 import { isZeroVector, readableNumber, readableVector, vector4 } from "utilities/math";
 import { calculateCenteredPosition, convertCenteredPositionToPivotedPosition } from "utilities/pivot";
@@ -280,8 +280,11 @@ function resolvePosition(pluginData ?: WithNull<PluginGameObjectData>) {
  * @param layer - The Figma layer to infer rotation from.
  * @returns The inferred rotation for the GUI node or game object.
  */
-export function inferRotation(layer: ExportableLayer) {
-  return vector4(0, 0, readableNumber(layer.rotation), 0);
+export function inferRotation(layer: SceneNode) {
+  if (isLayerExportable(layer) || isFigmaRectangle(layer)) {
+    return vector4(0, 0, readableNumber(layer.rotation), 0);
+  }
+  return vector4(0);
 }
 
 /**
@@ -318,7 +321,7 @@ function resolveMixedTextScale() {
  * @param layer - The Figma layer to infer size from.
  * @returns The inferred size of the GUI node or game object.
  */
-export function inferSize(layer: ExportableLayer) {
+export function inferSize(layer: SceneNode) {
   if (isSlice9Layer(layer)) {
     const placeholder = findSlice9PlaceholderLayer(layer);
     if (placeholder) {
@@ -454,7 +457,7 @@ export async function resolveGUITextSpriteNodeImpliedSprite(layer: TextNode) {
  * @param layer - The Figma layer to infer color from.
  * @returns The inferred color for the GUI node or game object.
  */
-export function inferColor(layer: ExportableLayer) {
+export function inferColor(layer: SceneNode) {
   if (isLayerNode(layer)) {
     const { fills } = layer;
     if (hasSolidVisibleFills(fills)) {

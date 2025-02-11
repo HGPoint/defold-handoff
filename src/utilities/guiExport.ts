@@ -7,10 +7,10 @@ import config from "config/config.json";
 import { findAtlases, reduceAtlasIdsFromResources } from "utilities/atlas";
 import { canProcessChildLayer, isLayerSkippable } from "utilities/data";
 import delay from "utilities/delay";
-import { areEqualComponentPropertySets, equalExposedComponentProperties, findMainFigmaComponent, getPluginData, hasChildren, isFigmaBox, isFigmaComponentInstance, isFigmaSlice, isFigmaText, isLayerData, isLayerSprite, isVisible } from "utilities/figma";
+import { areEqualComponentPropertySets, equalExposedComponentProperties, findMainFigmaComponent, getPluginData, hasChildren, isFigmaBox, isFigmaComponentInstance, isFigmaRectangle, isFigmaSlice, isFigmaText, isLayerData, isLayerSprite, isVisible } from "utilities/figma";
 import { extractFontData } from "utilities/font";
 import { isGUITemplate, resolveGUIFilePath, resolveGUINodeForcedName, resolveGUINodeNamePrefix, resolveGUINodePluginData } from "utilities/gui";
-import { convertBoxGUINodeData, convertGUIData, convertTextGUINodeData, convertTextSpriteGUINodeData } from "utilities/guiConversion";
+import { convertBoxGUINodeData, convertGUIData, convertImpliedBoxGUINodeData, convertTextGUINodeData, convertTextSpriteGUINodeData } from "utilities/guiConversion";
 import { inferGUIBox, inferGUIText } from "utilities/inference";
 import { extractLayerData } from "utilities/layer";
 import { addVectors, isZeroVector, vector4 } from "utilities/math";
@@ -82,6 +82,8 @@ async function generateGUINodeData(options: GUINodeDataExportOptions) {
   const { layer, textAsSprites } = options;
   if (canProcessGUIBoxNode(layer)) {
     return await generateGUIBoxNodeData({ layer, options });
+  } else if (canProcessGUIImpliedBoxNode(layer)) {
+    return await generateGUIImpliedBoxNodeData(layer, options);
   } else if (canProcessGUITextNode(layer)) {
     if (textAsSprites) {
       return await generateGUITextSpriteNodeData(layer, options);
@@ -96,7 +98,7 @@ async function generateGUINodeData(options: GUINodeDataExportOptions) {
  * @param layer - The Figma layer to check.
  * @returns True if the layer can be processed as a GUI box node, otherwise false.
  */
-function canProcessGUIBoxNode(layer: ExportableLayer): layer is BoxLayer {
+function canProcessGUIBoxNode(layer: SceneNode): layer is BoxLayer {
   return (isVisible(layer) || isUsedSlice9Layer(layer)) && isFigmaBox(layer) && !isSlice9ServiceLayer(layer);
 }
 
@@ -150,12 +152,25 @@ async function generateGUIBoxNodeData(data: GUIVariantPipelineData) {
   return guiNodesData;
 }
 
+function canProcessGUIImpliedBoxNode(layer: SceneNode) {
+  return isFigmaRectangle(layer);
+}
+
+function generateGUIImpliedBoxNodeData(layer: RectangleNode, options: GUINodeDataExportOptions) {
+  const guiNodesData: GUINodeData[] = [];
+  if (isVisible(layer)) {
+    const guiNodeData = convertImpliedBoxGUINodeData(layer, options);
+    guiNodesData.push(guiNodeData);
+  }
+  return guiNodesData;
+}
+
 /**
  * Determines whether the Figma layer can be processed as a GUI text node.
  * @param layer - The Figma layer to check.
  * @returns True if the layer can be processed as a GUI text node, otherwise false.
  */
-function canProcessGUITextNode(layer: ExportableLayer): layer is TextNode {
+function canProcessGUITextNode(layer: SceneNode): layer is TextNode {
   return isVisible(layer) && isFigmaText(layer);
 }
 

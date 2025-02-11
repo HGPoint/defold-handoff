@@ -115,6 +115,15 @@ export function isFigmaText(layer: BaseNode): layer is TextNode {
 }
 
 /**
+ * Determines whether the Figma layer is a rectangle.
+ * @param layer - The Figma layer to check.
+ * @returns True if the Figma layer is a rectangle, otherwise false.
+ */
+export function isFigmaRectangle(layer: BaseNode): layer is RectangleNode {
+  return layer.type === "RECTANGLE";
+}
+
+/**
  * Determines whether the Figma layer is a slice.
  * @param layer - The Figma layer to check.
  * @returns True if the Figma layer is a slice, otherwise false.
@@ -196,7 +205,7 @@ export function isLayerContext(layer: BaseNode): layer is ContextLayer {
  * @returns True if the Figma layer is a node layer, otherwise false.
  */
 export function isLayerNode(layer: BaseNode): layer is BoxLayer | TextNode {
-  return isFigmaBox(layer) || isFigmaText(layer);
+  return isFigmaBox(layer) || isFigmaText(layer) || isFigmaRectangle(layer);
 }
 
 /**
@@ -667,6 +676,46 @@ export function fitLayerToParentLayer(parent: BoxLayer, layer: BoxLayer) {
  */
 export async function findMainFigmaComponent(layer: InstanceNode) {
   return await layer.getMainComponentAsync();
+}
+
+/**
+ * Finds the closest Figma component instance in the parent hierarchy.
+ * @param layer - The Figma layer to find the closest component instance for.
+ * @returns The closest Figma component instance.
+ */
+export function findClosestFigmaComponentInstance(layer: SceneNode): WithNull<InstanceNode> {
+  let currentLayer: WithNull<BaseNode> = layer;
+  do {
+    if (isFigmaComponentInstance(currentLayer)) {
+      return currentLayer;
+    }
+    currentLayer = currentLayer.parent || null;
+  }
+  while (currentLayer && isFigmaSceneNode(currentLayer))
+  return null;
+}
+
+/**
+ * Finds the reflection of the Figma layer in the Figma component from the Figma instance node.
+ * @param component - The Figma component to find the reflection in.
+ * @param layer - The Figma layer to find the reflection for.
+ * @returns The reflection of the Figma layer in the Figma component.
+ */
+export function findFigmaLayerReflection(component: ComponentNode, layer: SceneNode): WithNull<SceneNode> {
+  const { id } = layer;
+  const { children } = component;
+  if (!children || !children.length) {
+    return null;
+  }
+  const reflection = children.find((child) => figmaLayerReflectionChecker(child, id));
+  if (reflection) {
+    return reflection;
+  }
+  return null;
+}
+
+function figmaLayerReflectionChecker(layer: SceneNode, id: string) {
+  return id.includes(`;${layer.id}`)
 }
 
 /**

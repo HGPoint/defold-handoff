@@ -48,8 +48,8 @@ export async function exportGUI(layers: ExportableLayer[], textAsSprites: boolea
  * @param layer - The GUI node to export.
  * @returns Serialized GUI data.
  */
-export async function copyGUI(layer: ExportableLayer, textAsSprites: boolean = false, collapseEmpty: boolean = false, collapseTemplates: boolean): Promise<SerializedGUIData> {
-  const data = packGUINode(layer, textAsSprites, collapseEmpty, collapseTemplates);
+export async function copyGUI(layer: ExportableLayer): Promise<SerializedGUIData> {
+  const data = packGUINode(layer, false, false, false);
   const exportGUIData = await runTransformPipeline(GUI_EXPORT_PIPELINE, data);
   const serializedGUIData = await runTransformPipeline(GUI_SERIALIZATION_PIPELINE, exportGUIData);
   return serializedGUIData;
