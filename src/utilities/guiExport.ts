@@ -15,7 +15,7 @@ import { inferGUIBox, inferGUIText } from "utilities/inference";
 import { extractLayerData } from "utilities/layer";
 import { addVectors, isZeroVector, vector4 } from "utilities/math";
 import { isSlice9ServiceLayer, isUsedSlice9Layer } from "utilities/slice9";
-import { generateSpineBoneData, generateSpineSkinData, generateSpineSlotData, resolveSpineFilePath, resolveSpineSkeletonData } from "utilities/spine";
+import { extractSpineData, generateSpineBoneData, generateSpineSkinData, generateSpineSlotData, resolveSpineFilePath, resolveSpineSkeletonData } from "utilities/spine";
 import { extractTextureData } from "utilities/texture";
 import { extractExportVariants, resolveInitialVariantValues } from "utilities/variantPipeline";
 
@@ -427,11 +427,13 @@ export async function exportGUIResources({ layer, parameters: { textAsSprites, c
   const skipVariants = collapseTemplates || false;
   const textures = await extractTextureData({ layer, skipVariants, textAsSprites });
   const fonts = await extractFontData({ layer, skipVariants });
+  const spines = await extractSpineData({ layer, skipVariants });
   const layers = extractLayerData(layer);
   return {
     textures,
     fonts,
-    layers
+    layers,
+    spines
   };
 }
 

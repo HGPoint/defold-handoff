@@ -7,6 +7,10 @@ export const SPINE_SERIALIZATION_PIPELINE: TransformPipeline<SpineData, Serializ
   transform: serializeSpineData,
 };
 
+export function extractSpineData(data: SpineVariantPipelineData, fontData?: SpineResourceData): Promise<SpineResourceData> {
+
+}
+
 export function resolveSpineFilePath() {
   return "";
 }

@@ -82,6 +82,12 @@ type PluginGUINodeData = {
   wrapper: boolean,
   wrapper_padding: Vector4,
   figma_node_type: NodeType,
+  replace_template: boolean,
+  replace_template_name: string,
+  replace_template_path: string,
+  replace_spine: boolean,
+  replace_spine_name: string,
+  replace_spine_path: string,
 }
 
 type PluginGUINodesData = {

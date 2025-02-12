@@ -1,3 +1,5 @@
+type SpineResourceData = Record<string, string>;
+
 type SpineData = {
   name: string,
   skeleton: SpineSkeletonData,

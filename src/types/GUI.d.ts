@@ -88,6 +88,12 @@ type GUINodeData = {
   script: boolean,
   script_path: string,
   script_name: string,
+  replace_template: boolean,
+  replace_template_name: string,
+  replace_template_path: string,
+  replace_spine: boolean,
+  replace_spine_name: string,
+  replace_spine_path: string,
 }
 
 type GUINodeExportParameters = {

@@ -410,13 +410,51 @@
           "type": "boolean"
         },
         "wrapper_padding": {
-          "type": "null"
+          "type": "object",
+          "properties": {
+            "x": {
+              "type": "integer"
+            },
+            "y": {
+              "type": "integer"
+            },
+            "z": {
+              "type": "integer"
+            },
+            "w": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "x",
+            "y",
+            "z",
+            "w"
+          ]
         },
         "exclude": {
           "type": "boolean"
         },
         "inferred": {
           "type": "boolean"
+        },
+        "replace_template": {
+          "type": "boolean"
+        },
+        "replace_template_name": {
+          "type": "string"
+        },
+        "replace_template_path": {
+          "type": "string"
+        },
+        "replace_spine": {
+          "type": "boolean"
+        },
+        "replace_spine_name": {
+          "type": "string"
+        },
+        "replace_spine_path": {
+          "type": "string"
         }
       },
       "required": [

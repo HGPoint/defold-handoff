@@ -87,23 +87,33 @@
       </TextProperty>
       <ToggleProperty label="Skip" bind:value={guiNode.skip} originalValue={originalValues?.skip} disabled={guiNode.exclude} />
       <ToggleProperty label="Don't Collapse" bind:value={guiNode.fixed} originalValue={originalValues?.fixed} disabled={guiNode.exclude} />
-      <ToggleProperty label="Extract" bind:value={guiNode.cloneable} originalValue={originalValues?.cloneable} disabled={guiNode.exclude} />
-      <ToggleProperty label="Template" bind:value={guiNode.template} originalValue={originalValues?.template} disabled={guiNode.exclude} />
-      {#if guiNode.template && !guiNode.exclude}
+      <ToggleProperty label="Extract" bind:value={guiNode.cloneable} originalValue={originalValues?.cloneable} disabled={guiNode.exclude || guiNode.replace_template || guiNode.replace_spine} />
+      <ToggleProperty label="Template" bind:value={guiNode.template} originalValue={originalValues?.template} disabled={guiNode.exclude || guiNode.replace_template || guiNode.replace_spine} />
+      {#if guiNode.template && !guiNode.exclude && !guiNode.replace_template && !guiNode.replace_spine}
         <TextProperty label="Template Name" bind:value={guiNode.template_name} originalValue={originalValues?.template_name} />
         <TextProperty label="Template Path" bind:value={guiNode.template_path} originalValue={originalValues?.template_path} />
       {/if}
-      <ToggleProperty label="Script" bind:value={guiNode.script} originalValue={originalValues?.script} disabled={guiNode.exclude} />
-      {#if guiNode.script && !guiNode.exclude}
+      <ToggleProperty label="Script" bind:value={guiNode.script} originalValue={originalValues?.script} disabled={guiNode.exclude || guiNode.replace_template || guiNode.replace_spine} />
+      {#if guiNode.script && !guiNode.exclude && !guiNode.replace_template && !guiNode.replace_spine}
         <TextProperty label="Script Name" bind:value={guiNode.script_name} originalValue={originalValues?.script_name} />
         <TextProperty label="Script Path" bind:value={guiNode.script_path} originalValue={originalValues?.script_path} />
       {/if}
       {#if !guiNode.template && !guiNode.exclude}
         <TextProperty label="Path" bind:value={guiNode.path} originalValue={originalValues?.path} />
       {/if}
-      <ToggleProperty label="Wrapper" bind:value={guiNode.wrapper} originalValue={originalValues?.wrapper} disabled={true || guiNode.exclude} />
+      <ToggleProperty label="Wrapper" bind:value={guiNode.wrapper} originalValue={originalValues?.wrapper} disabled={guiNode.exclude} />
       {#if guiNode.wrapper && !guiNode.exclude}
-        <SidesProperty label="Wrapper Padding" bind:value={guiNode.wrapper_padding} originalValue={originalValues?.wrapper_padding} disabled={true || guiNode.exclude} />
+        <SidesProperty label="Wrapper Padding" bind:value={guiNode.wrapper_padding} originalValue={originalValues?.wrapper_padding} disabled={guiNode.exclude} />
+      {/if}
+      <ToggleProperty label="Replace with Template" bind:value={guiNode.replace_template} originalValue={originalValues?.replace_template} disabled={guiNode.exclude || guiNode.replace_spine} />
+      {#if guiNode.replace_template && !guiNode.exclude && !guiNode.replace_spine}
+        <TextProperty label="Template Name" bind:value={guiNode.replace_template_name} originalValue={originalValues?.replace_template_name} />  
+        <TextProperty label="Template Path" bind:value={guiNode.replace_template_path} originalValue={originalValues?.replace_template_path} />
+      {/if}
+      <ToggleProperty label="Replace with Spine" bind:value={guiNode.replace_spine} originalValue={originalValues?.replace_spine} disabled={guiNode.exclude || guiNode.replace_template} />
+      {#if guiNode.replace_spine && !guiNode.exclude && !guiNode.replace_template}
+        <TextProperty label="Spine Name" bind:value={guiNode.replace_spine_name} originalValue={originalValues?.replace_spine_name} />  
+        <TextProperty label="Spine Path" bind:value={guiNode.replace_spine_path} originalValue={originalValues?.replace_spine_path} />
       {/if}
     </Properties>
     <Actions title="Tools" collapseKey="guiNodeToolsCollapsed">

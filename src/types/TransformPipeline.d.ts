@@ -28,6 +28,7 @@ type PipelineResources = {
   textures?: TextureResourceData,
   fonts?: FontData,
   layers?: LayerData,
+  spines?: SpineResourceData,
 }
 
 type VariantExtractor<TData> = (layer: ExportableLayer, skipVariants?: boolean) => Promise<TData>;

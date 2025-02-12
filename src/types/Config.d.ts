@@ -57,6 +57,12 @@ declare module "config/config.json" {
       script_name: string,
       wrapper: boolean,
       wrapper_padding: Vector4,
+      replace_template: boolean,
+      replace_template_name: string,
+      replace_template_path: string,
+      replace_spine: boolean,
+      replace_spine_name: string,
+      replace_spine_path: string,
     }
     gameCollectionDefaultValues: {
       name: string,

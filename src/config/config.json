@@ -106,7 +106,13 @@
     "script_path": "",
     "script_name": "",
     "wrapper": false,
-    "wrapper_padding": null
+    "wrapper_padding": { "x": 0, "y": 0, "z": 0, "w": 0 },
+    "replace_template": false,
+    "replace_template_name": "",
+    "replace_template_path": "",
+    "replace_spine": false,
+    "replace_spine_name": "",
+    "replace_spine_path": ""
   },
   "gameCollectionDefaultValues": {
     "name": "game",
