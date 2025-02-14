@@ -7,6 +7,7 @@ import { inferGUINode } from "utilities/inference";
 import { areVectorsEqual, copyVector, vector4 } from "utilities/math";
 import { calculateChildPosition } from "utilities/pivot";
 import { tryRestoreSlice9LayerData } from "utilities/slice9";
+import { resolveDefaultRootSpineBone } from "utilities/spine";
 
 /**
  * Prepares the GUI node layer before export.
@@ -161,4 +162,83 @@ function flattenGUINodes(nodes: GUINodeData[]): GUINodeData[] {
     }
   }
   return processedNodes;
+}
+
+export async function postProcessGUISpineAttachmentsData(spine: SpineData): Promise<SpineData> {
+  const { bones, slots, skins } = spine;
+  const rootBone = filterRootSpineBone(bones);
+  const rootedBoneCoordinates = collapseBoneCoordinates(bones);
+  reattachAttachmentsToRoot(skins, slots, rootBone, rootedBoneCoordinates);
+  return { ...spine, bones: rootBone };
+}
+
+function filterRootSpineBone(bones: SpineBoneData[]) {
+  const rootBone = bones.find((bone) => !bone.parent);
+  if (!rootBone) {
+    const bone = resolveDefaultRootSpineBone();
+    return [bone]
+  }
+  return [rootBone];
+}
+
+function collapseBoneCoordinates(originalBones: SpineBoneData[]) {
+  const boneDepths = originalBones.reduce((depth, bone) => {
+    const { name } = bone;
+    let { parent } = bone;
+    let boneDepth = 0;
+    while (parent) {
+      boneDepth += 1;
+      parent = originalBones.find((bone) => bone.name === parent)?.parent;
+    }
+    depth[name] = boneDepth;
+    return depth;
+  }, {} as Record<string, number>)
+  const sortedBones = originalBones.slice().sort((bone1, bone2) => {
+    const depthBone1 = boneDepths[bone1.name];
+    const depthBone2 = boneDepths[bone2.name];
+    return depthBone1 - depthBone2; 
+  })
+  const originalBoneCoordinates = originalBones.reduce((coordinates, bone) => {
+    const { name, x, y } = bone;
+    const boneX = x ?? 0;
+    const boneY = y ?? 0;
+    coordinates[name] = vector4(boneX, boneY, 0, 0);
+    return coordinates;
+  }, {} as Record<string, Vector4>);
+  const collapsedBoneCoordinates = sortedBones.reduce((coordinates, bone) => {
+    const { name } = bone;
+    let { parent } = bone;
+    const boneCoordinates = originalBoneCoordinates[name];
+    while (parent) {
+      const parentCoordinates = originalBoneCoordinates[parent];
+      boneCoordinates.x += parentCoordinates.x;
+      boneCoordinates.y += parentCoordinates.y;
+      parent = originalBones.find((bone) => bone.name === parent)?.parent;
+    }
+    coordinates[name] = boneCoordinates;
+    return coordinates;
+  }, {} as Record<string, Vector4>);
+  return collapsedBoneCoordinates;
+}
+
+function reattachAttachmentsToRoot(skins: SpineSkinData[], slots: SpineSlotData[], collapsedBones: SpineBoneData[], rootedBoneCoordinates: Record<string, Vector4>) {
+  const [ rootBone ] = collapsedBones;
+  const [ { attachments } ] = skins;
+  return slots.forEach((slot) => {
+    const { bone, name, attachment: attachmentName } = slot;
+    const boneCoordinates = rootedBoneCoordinates[bone];
+    const attachment = attachments[name][attachmentName]
+    slot.bone = rootBone.name;
+    if (attachment.type === "mesh") {
+      if (attachment.vertices) {
+        for (let index = 0; index < attachment.vertices.length; index += 2) {
+          attachment.vertices[index] += boneCoordinates.x;
+          attachment.vertices[index + 1] += boneCoordinates.y;
+        }
+      }
+    } else {
+      attachment.x = attachment.x ? attachment.x + boneCoordinates.x : boneCoordinates.x;
+      attachment.y = attachment.y ? attachment.y + boneCoordinates.y : boneCoordinates.y;
+    }
+  });
 }

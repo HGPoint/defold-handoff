@@ -31,7 +31,9 @@ type SpineBoneData = {
 type SpineSlotData = {
   name: string,
   bone: string,
-  attachment: string
+  attachment: string,
+  x?: number,
+  y?: number,
 }
 
 type SpineSkinData = {
@@ -45,6 +47,8 @@ type SpineAttachmentData = {
   x?: number,
   y?: number,
   rotation?: number,
+  scaleX?: number,
+  scaleY?: number,
   width?: number,
   height?: number,
   uvs?: number[],

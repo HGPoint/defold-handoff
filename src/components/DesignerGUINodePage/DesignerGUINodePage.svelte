@@ -49,4 +49,6 @@
     <ActionButton label="Refresh Slice 9" action="restoreSlice9" />
   {/if}
   <ActionButton label="Export GUI as Spine" action="exportGUISpine" />
+  <ActionButton label="Export GUI as Spine Attachments" action="exportGUISpineAttachments" />
+  <ActionButton label="Export GUI as PSD" action="exportGUIPSD" />
 </Actions>

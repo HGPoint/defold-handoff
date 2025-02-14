@@ -173,6 +173,7 @@ type PluginMessageAction =
   PluginMessagesGameObjectAction |
   PluginMessagesAtlasAction |
   PluginMessageSpineAction |
+  PluginMessagePSDAction |
   PluginMessagesLayerAction
 
 type PluginMessageUIAction =
@@ -237,7 +238,12 @@ type PluginMessagesAtlasAction =
 
 type PluginMessageSpineAction =
   "exportGUISpine" |
+  "exportGUISpineAttachments" |
   "spinesExported"
+
+type PluginMessagePSDAction =
+  "exportGUIPSD" |
+  "psdExported"
 
 type PluginMessageSectionAction =
   "updateSection" |

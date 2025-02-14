@@ -10,7 +10,7 @@ import { copyGameCollection, exportGameCollections, fixGameObjects, removeGameOb
 import { copyGUI, copyGUIScheme, exportGUI, fixGUI, logGUI, removeGUI, resetGUIOverrides, resizeGUIToScreen, tryFixGUIText, tryForceGUIChildrenOnScreen, tryMatchGUINodeToGUIChild, tryMatchGUINodeToGUIParent, updateGUI, updateGUINode } from "handoff/gui";
 import { initializeProject, PROJECT_CONFIG, purgeUnusedData, updateProject } from "handoff/project";
 import { removeSections, updateSection } from "handoff/section";
-import { exportGUISpines } from "handoff/spine";
+import { exportGUISpineAttachments, exportGUISpines } from "handoff/spine";
 import delay from "utilities/delay";
 import { processDocumentChanges } from "utilities/document";
 import { processError } from "utilities/error";
@@ -124,6 +124,8 @@ function processUIMessage(message: PluginMessage) {
     onExportGUI();
   } else if (type === "exportGUISpine") {
     onExportGUISpines();
+  } else if (type === "exportGUISpineAttachments") {
+    onExportGUISpineAttachments();
   } else if (type === "copyGUI") {
     onCopyGUI();
   } else if (type === "copyGUIScheme") {
@@ -190,6 +192,8 @@ function processUIMessage(message: PluginMessage) {
     onExportBundle();
   } else if (type === "exportBareBundle") {
     onExportBareBundle();
+  } else if (type === "exportGUIPSD") {
+    onExportGUIPSD();
   } else if (type === "restoreSlice9") {
     onRestoreSlice9();
   } else if (type === "requestImage") {
@@ -488,6 +492,13 @@ function onExportGUISpines() {
     .catch(processError);
 }
 
+function onExportGUISpineAttachments() {
+  const gui = pickGUIFromSelectionData(SELECTION);
+  exportGUISpineAttachments(gui)
+    .then(onGUISpinesExported)
+    .catch(processError);
+}
+
 function onGUISpinesExported(bundle: BundleData) {
   const data = { bundle, project: PROJECT_CONFIG };
   tryPostMessageToUI("spinesExported", data);
@@ -529,6 +540,9 @@ function onBundleExported(bundle: BundleData) {
   figma.notify("Bundle exported");
 }
 
+function onExportGUIPSD() {
+
+}
 
 async function onRequestImage() {
   const layer = pickFirstGUINodeFromSelectionData(SELECTION);

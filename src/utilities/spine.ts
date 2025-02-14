@@ -21,7 +21,6 @@ export function resolveSpineSkeletonData(guiData: GUIData) {
   return { name, spine };
 }
 
-
 export function generateSpineBoneData(nodes: GUINodeData[]) {
   const bones = nodes.map(convertSpineBoneData);
   return bones;
@@ -31,14 +30,11 @@ function convertSpineBoneData(node: GUINodeData) {
   const { id: name, position, parent } = node
   const { x, y } = position;
   const { z: rotation } = node.rotation;
-  const { x: scaleX, y: scaleY } = convertSpineBoneScale(node);
   const data: SpineBoneData = {
     name,
     x,
     y,
     rotation,
-    scaleX,
-    scaleY,
   };
   if (parent) {
     data.parent = parent;
@@ -46,20 +42,13 @@ function convertSpineBoneData(node: GUINodeData) {
   return data;
 }
 
-function convertSpineBoneScale(node: GUINodeData) {
-  const { size, texture_size: textureSize, exportable_layer: layer, slice9 } = node;
-  if (textureSize && !isZeroVector(textureSize)) {
-    if (isFigmaText(layer)) {
-      return vector4(1);
-    } else if (!slice9 || isZeroVector(slice9)) {
-      const { x: width, y: height } = size;
-      const { x: textureWidth, y: textureHeight } = textureSize;
-      const x = width / textureWidth;
-      const y = height/ textureHeight;
-      return vector4(x, y, 0, 0);
-    }
+export function resolveDefaultRootSpineBone() {
+  return {
+    name: "root",
+    x: 0,
+    y: 0,
+    rotation: 0
   }
-  return vector4(1);
 }
 
 export function generateSpineSlotData(nodes: GUINodeData[]) {
@@ -115,12 +104,15 @@ function generateImageAttachment(node: GUINodeData & { texture: string, texture_
   const { texture, texture_size: { x: width, y: height } } = node;
   const { x, y, } = calculateImageAttachmentPosition(node);
   const path = resolveSpinePathFromTexture(texture);
-  const attachment = {
+  const { x: scaleX, y: scaleY } = convertImageAttachmentScale(node);
+  const attachment: SpineAttachmentData = {
     path,
     width,
     height,
     x,
-    y
+    y,
+    scaleX,
+    scaleY
   };
   return { [path]: attachment };
 }
@@ -140,6 +132,22 @@ function calculateImageAttachmentPosition(node: GUINodeData & { texture: string,
     shiftX = width / 2;
   }
   return vector4(shiftX, shiftY, 0, 0);
+}
+
+function convertImageAttachmentScale(node: GUINodeData) {
+  const { size, texture_size: textureSize, exportable_layer: layer, slice9 } = node;
+  if (textureSize && !isZeroVector(textureSize)) {
+    if (isFigmaText(layer)) {
+      return vector4(1);
+    } else if (!slice9 || isZeroVector(slice9)) {
+      const { x: width, y: height } = size;
+      const { x: textureWidth, y: textureHeight } = textureSize;
+      const x = width / textureWidth;
+      const y = height / textureHeight;
+      return vector4(x, y, 0, 0);
+    }
+  }
+  return vector4(1);
 }
 
 function generateMeshAttachment(node: GUINodeData & { texture: string, texture_size: Vector4 }) {
