@@ -14,6 +14,7 @@ import { convertBoxGUINodeData, convertGUIData, convertImpliedBoxGUINodeData, co
 import { inferGUIBox, inferGUIText } from "utilities/inference";
 import { extractLayerData } from "utilities/layer";
 import { addVectors, isZeroVector, vector4 } from "utilities/math";
+import { generatePSDLayerData, resolvePSDFilePath } from "utilities/psd";
 import { isSlice9ServiceLayer, isUsedSlice9Layer } from "utilities/slice9";
 import { extractSpineData, generateSpineBoneData, generateSpineSkinData, generateSpineSlotData, resolveSpineFilePath, resolveSpineSkeletonData } from "utilities/spine";
 import { extractTextureData } from "utilities/texture";
@@ -406,14 +407,21 @@ export async function extractGUIAtlasData(data: GUIExportPipelineData, resources
 }
 
 export async function exportGUISpineData(guiData: GUIData): Promise<SpineData> {
-  const { nodes } = guiData;
-  const name = guiData.name;
+  const { name, nodes } = guiData;
   const filePath = resolveSpineFilePath();
   const skeleton = resolveSpineSkeletonData(guiData);
   const bones = generateSpineBoneData(nodes);
   const skins = generateSpineSkinData(nodes);
   const slots = generateSpineSlotData(nodes);
   const data: SpineData = { name, skeleton, bones, slots, skins, filePath };
+  return data;
+}
+
+export async function exportGUIPSDData(guiData: GUIData): Promise<PSDData> {
+  const { name, nodes } = guiData;
+  const filePath = resolvePSDFilePath();
+  const layers = generatePSDLayerData(nodes);
+  const data: PSDData = { name, layers, filePath }
   return data;
 }
 

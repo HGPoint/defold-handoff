@@ -4,4 +4,5 @@ type BundleData = {
   atlases?: SerializedAtlasData[],
   sprites?: SerializedSpriteData[],
   spines?: SerializedSpineData[],
+  psd?: SerializedPSDData[]
 }

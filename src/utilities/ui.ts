@@ -5,7 +5,7 @@
  * @packageDocumentation
  */
 
-import { copyGUI, copyGUIScheme, copyGameObjects, exportAtlases, exportBundle, exportGUI, exportGameCollection, exportSpines, exportSprites } from "utilities/resources";
+import { copyGUI, copyGUIScheme, copyGameObjects, exportAtlases, exportBundle, exportGUI, exportGameCollection, exportPSD, exportSpines, exportSprites } from "utilities/resources";
 
 /**
  * Resolves the plugin version.
@@ -209,6 +209,8 @@ export function onPluginMessage(type: PluginMessageAction, data?: PluginMessageP
       onSpritesExported(data);
     } else if (type === "spinesExported") {
       onSpinesExported(data);
+    } else if (type === "psdExported") {
+      onPSDExported(data);
     } else if (type === "bundleExported") {
       onBundleExported(data);
     }
@@ -239,12 +241,16 @@ function onAtlasesExported(data: PluginMessagePayload) {
   exportAtlases(data);
 }
 
+function onSpritesExported(data: PluginMessagePayload) {
+  exportSprites(data);
+}
+
 function onSpinesExported(data: PluginMessagePayload) {
   exportSpines(data);
 }
 
-function onSpritesExported(data: PluginMessagePayload) {
-  exportSprites(data);
+function onPSDExported(data: PluginMessagePayload) {
+  exportPSD(data);
 }
 
 function onBundleExported(data: PluginMessagePayload) {

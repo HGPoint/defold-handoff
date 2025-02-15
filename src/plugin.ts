@@ -11,6 +11,7 @@ import { copyGUI, copyGUIScheme, exportGUI, fixGUI, logGUI, removeGUI, resetGUIO
 import { initializeProject, PROJECT_CONFIG, purgeUnusedData, updateProject } from "handoff/project";
 import { removeSections, updateSection } from "handoff/section";
 import { exportGUISpineAttachments, exportGUISpines } from "handoff/spine";
+import { exportGUIPSD } from "handoff/psd";
 import delay from "utilities/delay";
 import { processDocumentChanges } from "utilities/document";
 import { processError } from "utilities/error";
@@ -541,7 +542,16 @@ function onBundleExported(bundle: BundleData) {
 }
 
 function onExportGUIPSD() {
+  const gui = pickGUIFromSelectionData(SELECTION);
+  exportGUIPSD(gui)
+    .then(onGUIPSDExported)
+    .catch(processError);
+}
 
+function onGUIPSDExported(bundle: BundleData) {
+  const data = { bundle, project: PROJECT_CONFIG };
+  tryPostMessageToUI("psdExported", data);
+  figma.notify("GUI exported as PSD");
 }
 
 async function onRequestImage() {

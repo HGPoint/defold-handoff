@@ -207,13 +207,12 @@ function collapseBoneCoordinates(originalBones: SpineBoneData[]) {
   }, {} as Record<string, Vector4>);
   const collapsedBoneCoordinates = sortedBones.reduce((coordinates, bone) => {
     const { name } = bone;
-    let { parent } = bone;
+    const { parent } = bone;
     const boneCoordinates = originalBoneCoordinates[name];
-    while (parent) {
+    if (parent) {
       const parentCoordinates = originalBoneCoordinates[parent];
       boneCoordinates.x += parentCoordinates.x;
       boneCoordinates.y += parentCoordinates.y;
-      parent = originalBones.find((bone) => bone.name === parent)?.parent;
     }
     coordinates[name] = boneCoordinates;
     return coordinates;

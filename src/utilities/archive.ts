@@ -164,10 +164,20 @@ function archiveSpineImages(atlas: SerializedAtlasData, folder: JSZip) {
 }
 
 function archiveSpines(spines: SerializedSpineData[], assetsFolder: JSZip) {
-  spines.forEach((spine) => archiveSpine(spine, assetsFolder));
+  spines.forEach((spine) => { archiveSpine(spine, assetsFolder); });
 }
 
 function archiveSpine(spine: SerializedSpineData, assetsFolder: JSZip) {
   const spineFileName = generateSpineFileName(spine.name);
   assetsFolder.file(spineFileName, spine.data);
+}
+
+export async function archivePSD(files: { fileName: string, buffer: ArrayBuffer }[]) {
+  const zip = new JSZip();
+  files.forEach((file) => { archivePSDFile(file, zip) });
+  return zip.generateAsync({ type: "blob" });
+}
+
+function archivePSDFile({ fileName, buffer }: { fileName: string, buffer: ArrayBuffer }, zip: JSZip) {
+  zip.file(fileName, buffer)
 }

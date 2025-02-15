@@ -226,6 +226,18 @@ export function generateSpinesFileName(spines: SerializedSpineData[]) {
   return fileName;
 }
 
+export function generatePSDFileName(psdName: string): string {
+  const fileName = resolveFileName(psdName, "psd");
+  return fileName;
+}
+
+export function generatePSDFilesFileName(psd: SerializedPSDData[]) {
+  const fileNamePrefix = resolveFileNamePrefix(psd);
+  const fileNameSuffix = resolveFileNameSuffix(psd, "psd", "psd");
+  const fileName = resolveArchiveFileName(fileNamePrefix, fileNameSuffix);
+  return fileName;
+}
+
 /**
  * Generates the file name for the font.
  * @param fontName - The name of the font.

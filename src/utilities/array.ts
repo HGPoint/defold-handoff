@@ -8,7 +8,7 @@
  * @param array - The array to copy.
  * @returns A deep copy of the array.
  */
-export function copyArray<T>(array: T[]): T[] {
+export function copyArray<TArray>(array: TArray[]): TArray[] {
   return JSON.parse(JSON.stringify(array));
 }
 
@@ -17,7 +17,11 @@ export function copyArray<T>(array: T[]): T[] {
  * @param array - The array from which to remove duplicates.
  * @returns The array with duplicates removed.
  */
-export function removeDoubles<T>(array: T[]): T[] {
+export function removeDoubles<TArray>(array: TArray[]): TArray[] {
   const uniqueValues = new Set(array);
   return [ ...uniqueValues ];
+}
+
+export function checkMeaningfulArray<TArray>(array?: TArray[]): array is TArray[] {
+  return !!array && Array.isArray(array) && !!array.length;
 }

@@ -3,11 +3,14 @@
  * @packageDocumentation
  */
 
-import { archiveBundle, archiveSprites, archiveSpineBundle } from "utilities/archive";
+import type { Layer, Psd } from "ag-psd";
+import { writePsd } from "ag-psd";
+import { archiveBundle, archivePSD, archiveSpineBundle, archiveSprites } from "utilities/archive";
+import { checkMeaningfulArray } from "utilities/array";
 import { createBlob } from "utilities/blob";
 import copyOnClipboard from "utilities/clipboard";
 import download from "utilities/download";
-import { generateAtlasesFileName, generateBundleFileName, generateGameCollectionFileName, generateGameCollectionsFileName, generateGUIFileName, generateGUINodesFileName, generateSpinesFileName, generateSpritesFileName, sanitizeGUIFileName } from "utilities/path";
+import { generateAtlasesFileName, generateBundleFileName, generateGameCollectionFileName, generateGameCollectionsFileName, generateGUIFileName, generateGUINodesFileName, generatePSDFileName, generatePSDFilesFileName, generateSpinesFileName, generateSpritesFileName, sanitizeGUIFileName } from "utilities/path";
 
 /**
  * Determines whether the bundle data contains valid data for export.
@@ -21,10 +24,10 @@ export function isBundleData(bundle?: BundleData): bundle is BundleData {
       "gameObjects" in bundle ||
       "atlases" in bundle ||
       "sprites" in bundle ||
-      "spines" in bundle
+      "spines" in bundle ||
+      "psd" in bundle
     );
 }
-
 
 /**
  * Determines whether the serialized GUI data is valid for export.
@@ -32,7 +35,7 @@ export function isBundleData(bundle?: BundleData): bundle is BundleData {
  * @returns True if the serialized GUI data is valid for export, otherwise false.
  */
 function isSerializedGUIData(gui?: SerializedGUIData[]): gui is SerializedGUIData[] {
-  return !!gui && Array.isArray(gui) && !!gui.length;
+  return checkMeaningfulArray(gui);
 }
 
 /**
@@ -41,7 +44,7 @@ function isSerializedGUIData(gui?: SerializedGUIData[]): gui is SerializedGUIDat
  * @returns True if the serialized game collection data is valid for export, otherwise false.
  */
 function isSerializedGameCollectionData(gameObjects?: SerializedGameCollectionData[]): gameObjects is SerializedGameCollectionData[] {
-  return !!gameObjects && Array.isArray(gameObjects) && !!gameObjects.length;
+  return checkMeaningfulArray(gameObjects);
 }
 
 /**
@@ -50,11 +53,15 @@ function isSerializedGameCollectionData(gameObjects?: SerializedGameCollectionDa
  * @returns True if the serialized atlas data is valid for export, otherwise false.
  */
 function isSerializedAtlasData(atlases?: SerializedAtlasData[]): atlases is SerializedAtlasData[] {
-  return !!atlases && Array.isArray(atlases) && !!atlases.length;
+  return checkMeaningfulArray(atlases);
 }
 
 function isSerializedSpineData(spines?: SerializedSpineData[]): spines is SerializedSpineData[] {
-  return !!spines && Array.isArray(spines) && !!spines.length;
+  return checkMeaningfulArray(spines);
+}
+
+function isSerializedPSDData(psd?: SerializedPSDData[]): psd is SerializedPSDData[] {
+  return checkMeaningfulArray(psd);
 }
 
 /**
@@ -115,6 +122,36 @@ export async function exportSpines({ bundle }: PluginMessagePayload) {
   }
 }
 
+export async function exportPSD({ bundle }: PluginMessagePayload) {
+  if (isBundleData(bundle)) {
+    const { psd } = bundle;
+    if (isSerializedPSDData(psd)) {
+      if (psd && psd.length) {
+        if (psd.length > 1) {
+          exportPSDFiles(psd);
+        } else {
+          exportPSDFile(psd);
+        }
+      }
+    }
+  }
+}
+
+export async function exportPSDFiles(data: SerializedPSDData[]) {
+  const fileName = generatePSDFilesFileName(data);
+  const psdFiles = await createPSDFiles(data);
+  const blob = await archivePSD(psdFiles);
+  download(blob, fileName);
+}
+
+export async function exportPSDFile(data: SerializedPSDData[]) {
+  const [ psd ] = data;
+  const psdFile = await createPSDFile(psd);
+  const { fileName, buffer } = psdFile;
+  const blob = createBlob(buffer);
+  download(blob, fileName);
+}
+
 /**
  * Exports GUI components contained in the plugin message payload as a single gui file or a single zip file and triggers a download.
  * @param data - The plugin message payload.
@@ -157,7 +194,7 @@ export function exportGUINode({ bundle }: PluginMessagePayload) {
   if (isBundleData(bundle)) {
     const { gui } = bundle;
     if (isSerializedGUIData(gui)) {
-      const [guiNode] = gui;
+      const [ guiNode ] = gui;
       const { name: guiNodeName } = guiNode;
       const sanitizedGUIName = sanitizeGUIFileName(guiNodeName);
       const fileName = generateGUIFileName(sanitizedGUIName);
@@ -256,3 +293,66 @@ export function copyGameObjects({ bundle }: PluginMessagePayload) {
     }
   }
 }
+
+function createPSDFiles(files: SerializedPSDData[]) {
+  const psdFiles = files.map(createPSDFile);
+  return Promise.all(psdFiles);
+}
+
+async function createPSDFile({ layers, name }: SerializedPSDData) {
+  const sanitizedGUIName = sanitizeGUIFileName(name);
+  const fileName = generatePSDFileName(sanitizedGUIName);
+  const children = await createPSDLayers(layers)
+  const psdFile: Psd = {
+    children,
+    width: 1024,
+    height: 1024
+  }
+  const buffer = writePsd(psdFile);
+  return { fileName, buffer }
+}
+
+async function createPSDLayers(layers: SerializedPSDLayerData[]) {
+  const psdLayers = [];
+  for (const layer of layers) {
+    const psdLayer = await createPSDLayer(layer);
+    if (psdLayer) {
+      psdLayers.push(psdLayer);
+    }
+  }
+  return psdLayers;
+}
+
+async function createPSDLayer(layer: SerializedPSDLayerData) {
+  const { data } = layer;
+  if (data) {
+    const { name, top, left } = layer;
+    const imageData = await convertUint8ArrayToImageData(data)
+    if (imageData) {
+      const psdLayer: Layer = {
+        name,
+        top,
+        left,
+        imageData
+      }
+      return psdLayer
+    }
+  }
+  return null;
+}
+
+async function convertUint8ArrayToImageData(data: Uint8Array) {
+  const blob = new Blob([data], { type: "image/png" });
+  const imgBitmap = await createImageBitmap(blob);
+  const canvas = document.createElement("canvas");
+  const context = canvas.getContext("2d");
+  if (context) {
+    canvas.width = imgBitmap.width;
+    canvas.height = imgBitmap.height;
+    context.drawImage(imgBitmap, 0, 0);
+    return context.getImageData(0, 0, canvas.width, canvas.height);
+  }
+  return null;
+}
+
+
