@@ -43,6 +43,14 @@ export function isPivotWest(pivot: Pivot) {
   return pivot === "PIVOT_NW" || pivot === "PIVOT_W" || pivot === "PIVOT_SW";
 }
 
+export function isPivotHorizontalCenter(pivot: Pivot) {
+  return !isPivotEast(pivot) && !isPivotWest(pivot);
+}
+
+export function isPivotVerticalCenter(pivot: Pivot) {
+  return !isPivotNorth(pivot) && !isPivotSouth(pivot);
+}
+
 /**
  * Calculates the centered position of the layer relative to its parent.
  * @param layer - The layer to calculate the centered position for.

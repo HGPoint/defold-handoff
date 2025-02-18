@@ -7,8 +7,6 @@ type PSDData = {
 type PSDLayerData = {
   name: string,
   layer: SceneNode,
-  width: number,
-  height: number,
   left: number,
   top: number,
 }
@@ -22,8 +20,6 @@ type SerializedPSDData = {
 type SerializedPSDLayerData = {
   name: string,
   data: WithNull<Uint8Array>,
-  width: number,
-  height: number,
   left: number,
   top: number,
 }

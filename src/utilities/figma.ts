@@ -310,6 +310,14 @@ export function hasChildren(layer: BoxLayer): boolean {
   return !!layer.children?.length;
 }
 
+export function hasAbsoluteRenderBounds(layer: ExportableLayer): layer is ExportableLayer & { absoluteRenderBounds: Rect } {
+  return !!layer.absoluteRenderBounds;
+}
+
+export function hasAbsoluteBoundingBox(layer: ExportableLayer): layer is ExportableLayer & { absoluteBoundingBox: Rect } {
+  return !!layer.absoluteBoundingBox;
+}
+
 /**
  * Determines whether there are solid fills among the fills of a Figma layer.
  * @param fills - The fills to check.
@@ -382,6 +390,18 @@ export function resolveTextOutlineColor(strokes: readonly Paint[]) {
 export function resolveTextShadowColor(effect: DropShadowEffect) {
   const { color: { r, g, b, a } } = effect;
   return vector4(r, g, b, a);
+}
+
+export function resolveFontSize(layer: TextNode) {
+  const { fontSize } = layer;
+  if (typeof fontSize === "number") {
+    return fontSize;
+  }
+  const firstCharacterFontSize = layer.getRangeFontSize(0, 1);
+  if (typeof firstCharacterFontSize === "number") {
+    return firstCharacterFontSize;
+  }
+  return 12;
 }
 
 /**

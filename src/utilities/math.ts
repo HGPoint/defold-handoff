@@ -41,7 +41,7 @@ export function isVector4(value: unknown): value is Vector4 {
  * @param vector - The vector to check.
  * @returns True if the vector is a zero vector, otherwise false.
  */
-export function isZeroVector(vector?: Vector4) {
+export function isZeroVector(vector?: Vector4): boolean {
   if (!vector) {
     return false;
   }
@@ -53,7 +53,7 @@ export function isZeroVector(vector?: Vector4) {
  * @param vector - The vector to check.
  * @returns True if the vector is a one-scale vector, otherwise false.
  */
-export function isOneScaleVector(vector?: Vector4) {
+export function isOneScaleVector(vector?: Vector4): boolean {
   if (!vector) {
     return false;
   }
@@ -66,7 +66,7 @@ export function isOneScaleVector(vector?: Vector4) {
  * @param b - The second vector.
  * @returns True if the vectors are equal, otherwise false.
  */
-export function areVectorsEqual(a: Vector4, b: Vector4) {
+export function areVectorsEqual(a: Vector4, b: Vector4): boolean {
   return a.x === b.x && a.y === b.y && a.z === b.z && a.w === b.w;
 }
 
@@ -90,6 +90,14 @@ export function subVectors(a: Vector4, b: Vector4): Vector4 {
   return vector4(a.x - b.x, a.y - b.y, a.z, a.w);
 }
 
+export function multiplyVectorByValue(vector: Vector4, value: number): Vector4 {
+  const x = vector.x * value;
+  const y = vector.y * value;
+  const z = vector.z * value;
+  const w = vector.w * value;
+  return vector4(x, y, z, w);
+}
+
 /**
  * Creates a copy of the vector.
  * @param vector - The vector to copy.
@@ -106,7 +114,7 @@ export function copyVector(vector: Vector4): Vector4 {
  * @param max - The maximum allowable value.
  * @returns The clamped value.
  */
-export function clamp(value: number, min: number, max: number) {
+export function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
 
@@ -136,7 +144,7 @@ export function readableVector(vector: Vector4): Vector4 {
  * @param rotation - The rotation angle in degrees.
  * @returns The center coordinates of the rotated  rectangle.
  */
-export function calculateCenter(x: number, y: number, width: number, height: number, rotation: number) {
+export function calculateCenter(x: number, y: number, width: number, height: number, rotation: number): Vector4 {
   const radians = rotation * Math.PI / 180;
   const upperRightX = x + width * Math.cos(radians);
   const upperRightY = y - width * Math.sin(radians);
@@ -155,13 +163,13 @@ export function calculateCenter(x: number, y: number, width: number, height: num
  * @param b - The length of the second leg.
  * @returns The length of the hypotenuse.
  */
-export function calculateHypotenuse(a: number, b: number) {
+export function calculateHypotenuse(a: number, b: number): number {
   return Math.sqrt(a * a + b * b);
 }
 
-export function shiftAlongAxis(shift: Vector4, rotation: number) {
+export function shiftAlongAxis(shift: Vector4, rotation: number): Vector4 {
   const rotationRadians = rotation * Math.PI / 180;
   const x = shift.x * Math.cos(rotationRadians) - shift.y * Math.sin(rotationRadians);
   const y = shift.x * Math.sin(rotationRadians) + shift.y * Math.cos(rotationRadians);
-  return vector4(x, y);
+  return vector4(x, y, 0, 0);
 }

@@ -100,6 +100,9 @@ function collapseWithParent(parent: GUINodeData, child: GUINodeData, childIndex:
   parent.material = child.material;
   parent.adjust_mode = child.adjust_mode;
   parent.blend_mode = child.blend_mode;
+  parent.exportable_layer = child.exportable_layer
+  parent.exportable_layer_id = child.exportable_layer_id
+  parent.exportable_layer_name = child.exportable_layer_name
   if (child.children) {
     if (!parent.children) {
       parent.children = [];
@@ -168,7 +171,7 @@ export async function postProcessGUISpineAttachmentsData(spine: SpineData): Prom
   const { bones, slots, skins } = spine;
   const rootBone = filterRootSpineBone(bones);
   const rootedBoneCoordinates = collapseBoneCoordinates(bones);
-  reattachAttachmentsToRoot(skins, slots, rootBone, rootedBoneCoordinates);
+  moveAttachmentsToRoot(skins, slots, rootBone, rootedBoneCoordinates);
   return { ...spine, bones: rootBone };
 }
 
@@ -220,7 +223,7 @@ function collapseBoneCoordinates(originalBones: SpineBoneData[]) {
   return collapsedBoneCoordinates;
 }
 
-function reattachAttachmentsToRoot(skins: SpineSkinData[], slots: SpineSlotData[], collapsedBones: SpineBoneData[], rootedBoneCoordinates: Record<string, Vector4>) {
+function moveAttachmentsToRoot(skins: SpineSkinData[], slots: SpineSlotData[], collapsedBones: SpineBoneData[], rootedBoneCoordinates: Record<string, Vector4>) {
   const [ rootBone ] = collapsedBones;
   const [ { attachments } ] = skins;
   return slots.forEach((slot) => {
@@ -240,4 +243,14 @@ function reattachAttachmentsToRoot(skins: SpineSkinData[], slots: SpineSlotData[
       attachment.y = attachment.y ? attachment.y + boneCoordinates.y : boneCoordinates.y;
     }
   });
+}
+
+export async function postProcessGUIPSDData(psdData: PSDData): Promise<PSDData> {
+  const { layers } = psdData;
+  const flatLayers = flattenCenterPSDLayers(layers);
+  return { ...psdData, layers: flatLayers }
+}
+
+function flattenCenterPSDLayers(layers: PSDLayerData[]): PSDLayerData[] {
+  return layers;
 }
