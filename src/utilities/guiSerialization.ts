@@ -73,7 +73,13 @@ const EXCLUDED_PROPERTY_KEYS: (keyof GUINodeData)[] = [
   "exportable_layer_name",
   "figma_position",
   "figma_node_type",
-  "children"
+  "children",
+  "replace_template",
+  "replace_template_name",
+  "replace_template_path",
+  "replace_spine",
+  "replace_spine_name",
+  "replace_spine_path",
 ];
 
 /**
