@@ -9,13 +9,14 @@ import { exportBareBundle, exportBundle } from "handoff/bundle";
 import { copyGameCollection, exportGameCollections, fixGameObjects, removeGameObjects, updateGameObject } from "handoff/gameCollection";
 import { copyGUI, copyGUIScheme, exportGUI, fixGUI, logGUI, removeGUI, resetGUIOverrides, resizeGUIToScreen, tryFixGUIText, tryForceGUIChildrenOnScreen, tryMatchGUINodeToGUIChild, tryMatchGUINodeToGUIParent, updateGUI, updateGUINode } from "handoff/gui";
 import { initializeProject, PROJECT_CONFIG, purgeUnusedData, updateProject } from "handoff/project";
+import { exportGUIPSD } from "handoff/psd";
 import { removeSections, updateSection } from "handoff/section";
 import { exportGUISpineAttachments, exportGUISpines } from "handoff/spine";
-import { exportGUIPSD } from "handoff/psd";
 import delay from "utilities/delay";
 import { processDocumentChanges } from "utilities/document";
 import { processError } from "utilities/error";
 import { selectFigmaLayer } from "utilities/figma";
+import { DEFAULT_PACK_OPTIONS } from "utilities/guiExport";
 import { convertSelectionDataToSelectionUIData, pickAtlasesFromSelectionData, pickFirstAtlasFromSelectionData, pickFirstGameObjectFromSelectionData, pickFirstGUINodeFromSelectionData, pickGameObjectsFromSelectionData, pickGUIFromSelectionData, pickLayersFromSelectionData, reduceAtlasesFromSelectionData, reduceSelectionDataFromSelection } from "utilities/selection";
 import { tryRestoreSlice9Placeholder } from "utilities/slice9";
 
@@ -401,7 +402,7 @@ function onExportAtlases() {
   
 function onExportGUIAtlases() {
   const gui = pickGUIFromSelectionData(SELECTION);
-  exportGUIAtlases(gui)
+  exportGUIAtlases(gui, false, DEFAULT_PACK_OPTIONS)
     .then(onAtlasesExported)
     .catch(processError);
 }
@@ -422,7 +423,7 @@ function onAtlasesExported(atlases: SerializedAtlasData[]) {
 
 function onExportSprites(scale: number = 1) {
   const atlases = reduceAtlasesFromSelectionData(SELECTION);
-  exportAtlases(atlases, [], scale)
+  exportAtlases(atlases, scale)
     .then(onSpritesExported)
     .catch(processError);
 }
@@ -548,7 +549,8 @@ function onExportGUIPSD() {
     .catch(processError);
 }
 
-function onGUIPSDExported(bundle: BundleData) {
+function onGUIPSDExported(psd: SerializedPSDData[]) {
+  const bundle = { psd };
   const data = { bundle, project: PROJECT_CONFIG };
   tryPostMessageToUI("psdExported", data);
   figma.notify("GUI exported as PSD");

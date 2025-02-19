@@ -5,10 +5,15 @@ import { SPINE_SERIALIZATION_PIPELINE } from "utilities/spine";
 import { runTransformPipelines } from "utilities/transformPipeline";
 
 export async function exportGUISpines(layers: Exclude<ExportableLayer, SliceLayer>[]): Promise<BundleData> {
-  const data = packGUI(layers, true, true, true);
+  const options: GUIPackOptions = {
+    textAsSprites: true,
+    collapseEmpty: true,
+    collapseTemplates: true,
+  }
+  const data = packGUI(layers, options);
   const exportGUIData = await runTransformPipelines(GUI_EXPORT_PIPELINE, data);
   const exportSpineData = await runTransformPipelines(GUI_SPINES_EXPORT_PIPELINE, exportGUIData);
-  const serializedGUIAtlasData = await exportGUIAtlases(layers, true, true, true);
+  const serializedGUIAtlasData = await exportGUIAtlases(layers, true, options);
   const serializedSpineData = await runTransformPipelines(SPINE_SERIALIZATION_PIPELINE, exportSpineData);
   const bundle: BundleData = {
     spines: serializedSpineData,
@@ -18,10 +23,15 @@ export async function exportGUISpines(layers: Exclude<ExportableLayer, SliceLaye
 }
 
 export async function exportGUISpineAttachments(layers: Exclude<ExportableLayer, SliceLayer>[]): Promise<BundleData> {
-  const data = packGUI(layers, true, true, true);
+  const options: GUIPackOptions = {
+    textAsSprites: true,
+    collapseEmpty: true,
+    collapseTemplates: true,
+  }
+  const data = packGUI(layers, options);
   const exportGUIData = await runTransformPipelines(GUI_EXPORT_PIPELINE, data);
   const exportSpineData = await runTransformPipelines(GUI_SPINE_ATTACHMENTS_EXPORT_PIPELINE, exportGUIData);
-  const serializedGUIAtlasData = await exportGUIAtlases(layers, true, true, true);
+  const serializedGUIAtlasData = await exportGUIAtlases(layers, true, options);
   const serializedSpineData = await runTransformPipelines(SPINE_SERIALIZATION_PIPELINE, exportSpineData);
   const bundle: BundleData = {
     spines: serializedSpineData,

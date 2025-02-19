@@ -1,5 +1,6 @@
 type PSDData = {
   name: string,
+  size: Vector4,
   layers: PSDLayerData[],
   filePath: string,
 }
@@ -13,6 +14,7 @@ type PSDLayerData = {
 
 type SerializedPSDData = {
   name: string,
+  size: Vector4,
   layers: SerializedPSDLayerData[],
   filePath: string,
 }

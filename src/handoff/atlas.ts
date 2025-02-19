@@ -10,9 +10,9 @@ import { isFigmaComponentInstance } from "utilities/figma";
 import { GAME_COLLECTION_ATLASES_EXTRACT_PIPELINE } from "utilities/gameCollection";
 import { GUI_ATLASES_EXTRACT_PIPELINE } from "utilities/gui";
 import { packGUI } from "utilities/guiExport";
+import { extractUsedSpriteData } from "utilities/sprite";
 import { runTransformPipelines } from "utilities/transformPipeline";
 import { runUpdatePipeline } from "utilities/updatePipeline";
-import { extractUsedSpriteData } from "utilities/sprite";
 
 /**
  * Exports serialized atlases containing sprites as Uint8Arrays from an array of atlas layers.
@@ -20,9 +20,9 @@ import { extractUsedSpriteData } from "utilities/sprite";
  * @param scale - The scale factor to apply to the atlas sprites. Defaults to 1.
  * @returns An array of serialized atlas data.
  */
-export async function exportAtlases(layers: AtlasLayer[], usedSprites: string[] = [], scale: number = 1): Promise<SerializedAtlasData[]> {
-  const input = packAtlases(layers, scale, usedSprites);
-  const exportAtlasData = await runTransformPipelines(ATLAS_EXPORT_PIPELINE, input);
+export async function exportAtlases(layers: AtlasLayer[], scale: number = 1, usedSprites: string[] = []): Promise<SerializedAtlasData[]> {
+  const data = packAtlases(layers, scale, usedSprites);
+  const exportAtlasData = await runTransformPipelines(ATLAS_EXPORT_PIPELINE, data);
   const combinedAtlasData = combineAtlases(exportAtlasData);
   const serializedAtlasData = await runTransformPipelines(ATLAS_SERIALIZATION_PIPELINE, combinedAtlasData);
   return serializedAtlasData;
@@ -33,12 +33,13 @@ export async function exportAtlases(layers: AtlasLayer[], usedSprites: string[] 
  * @param layers - The GUI nodes to use for extracting atlases.
  * @returns An array of serialized atlas data.
  */
-export async function exportGUIAtlases(layers: Exclude<ExportableLayer, SliceLayer>[], onlyUsedSprites: boolean = false, textAsSprites: boolean = false, collapseTemplates: boolean = false): Promise<SerializedAtlasData[]> {
-  const guiData = packGUI(layers, textAsSprites, false, collapseTemplates);
+export async function exportGUIAtlases(layers: Exclude<ExportableLayer, SliceLayer>[], onlyUsedSprites: boolean, options: GUIPackOptions): Promise<SerializedAtlasData[]> {
+  const { collapseTemplates } = options;
+  const guiData = packGUI(layers, options);
   const guiAtlasLayers = await runTransformPipelines(GUI_ATLASES_EXTRACT_PIPELINE, guiData);
   const atlasLayers = spreadAtlasGroups(guiAtlasLayers);
   const usedSprites = onlyUsedSprites ? await extractUsedSpriteData(layers, collapseTemplates) : [];
-  const serializedAtlasData = await exportAtlases(atlasLayers, usedSprites);
+  const serializedAtlasData = await exportAtlases(atlasLayers, 1, usedSprites);
   return serializedAtlasData;
 }
 

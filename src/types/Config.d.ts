@@ -125,6 +125,7 @@ declare module "config/config.json" {
     yAnchors: Record<string, YAnchor>,
     adjustModes: Record<string, AdjustMode>,
     clippingModes: Record<string, ClippingMode>,
+    psdPadding: number,
   };
 
   export default value;

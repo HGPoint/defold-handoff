@@ -1,6 +1,6 @@
-import { describe, it, expect } from "vitest";
 import { convertHexToRGBA } from "utilities/color";
 import { vector4 } from "utilities/math";
+import { describe, expect, it } from "vitest";
 
 describe("color", () => {
   it("should convert #FFFFFF to vector4(1, 1, 1, 1)", () => {

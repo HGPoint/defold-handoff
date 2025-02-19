@@ -47,7 +47,8 @@ The plugin offers three modes, each tailored to specific needs:
 - `src/utilities/atlasExport.ts` – Handles atlas data export.
 - `src/utilities/atlasProcessing.ts` – Handles atlas data processing and transformation.
 - `src/utilities/atlasSerialization.ts` – Handles atlas data serialization.
-- `src/utilities/blob.ts` – Handles operations with blob data.
+- `src/utilities/atlasUpdate.ts` – Handles atlas data serialization.
+- `src/utilities/blob.ts`
 - `src/utilities/clipboard.ts` – Handles clipboard interactions.
 - `src/utilities/color.ts` – Handles color operations.
 - `src/utilities/context.ts` – Handles contextual resource organization (e.g., bundling and combining atlases, managing layers and materials).
@@ -79,16 +80,27 @@ The plugin offers three modes, each tailored to specific needs:
 - `src/utilities/math.ts` – Handles math.
 - `src/utilities/path.ts` – Handles operations with paths based on the project configuration.
 - `src/utilities/pivot.ts` – Handles calculating positions relative to different pivots and environments.
+- `src/utilities/psd.ts`
+- `src/utilities/psdConversion.ts`
+- `src/utilities/psdExport.ts`
+- `src/utilities/psdSerialization.ts`
 - `src/utilities/resources.ts` – Handles resource handoff.
 - `src/utilities/scheme.ts` – Handles GUI scheme boilerplate code.
 - `src/utilities/selection.ts` – Handles operations with selection in Figma.
 - `src/utilities/slice9.ts` – Handles Slice9 placeholders in Figma.
+- `src/utilities/spine.ts`
+- `src/utilities/spineConversion.ts`
+- `src/utilities/spineExport.ts`
+- `src/utilities/spineResource.ts`
+- `src/utilities/spineSerialization.ts`
+- `src/utilities/sprite.ts`
 - `src/utilities/text.ts` – Handles operations with text.
 - `src/utilities/texture.ts` – Handles texture data, including extraction and processing of it.
 - `src/utilities/transformPipeline.ts` – Provides pipeline for data transformation.
 - `src/utilities/ui.ts` – Handles operations within UI application.
 - `src/utilities/updatePipeline.ts` – Provides pipeline for data editing.
 - `src/utilities/validation.ts` – Handles data and resource validation.
+- `src/utilities/variantPipeline.ts` – Handles data and resource validation.
 
 ### Types
 

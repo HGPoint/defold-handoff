@@ -1,3 +1,8 @@
+/**
+ * 
+ * @packageDocumentation
+ */
+
 export async function serializeSpineData(spineData: SpineData): Promise<SerializedSpineData> {
   const { name, bones, slots, skins, filePath } = spineData;
   const serializedSkeleton = serializeSpineSkeletonData(spineData);

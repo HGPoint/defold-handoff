@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
 import { copyArray, removeDoubles } from "utilities/array";
+import { describe, expect, it } from "vitest";
 
 describe("array", () => {
   it("should create a deep copy of the array", () => {

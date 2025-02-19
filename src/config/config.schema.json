@@ -904,10 +904,14 @@
         "None",
         "Stencil"
       ]
+    },
+    "psdPadding": {
+      "type": "integer"
     }
   },
   "required": [
     "ui",
+    "uiSize",
     "screenSize",
     "paths",
     "constKeys",
@@ -918,8 +922,10 @@
     "gameObjectDefaultValues",
     "gameObjectDefaultSpecialValues",
     "atlasMaxSize",
+    "atlasPadding",
     "atlasSpritePadding",
     "atlasDefaultValues",
+    "atlasDefaultSpecialValues",
     "atlasImageDefaultValues",
     "sectionDefaultValues",
     "defaultFontSize",
@@ -933,6 +939,7 @@
     "xAnchors",
     "yAnchors",
     "adjustModes",
-    "clippingModes"
+    "clippingModes",
+    "psdPadding"
   ]
 }

@@ -140,7 +140,7 @@ function updateomitDefaultValues(omitDefaultValues?: boolean) {
  */
 function updateProjectData() {
   const { root: document } = figma;
-  const projectData = {
+  const projectData: ProjectData = {
     screenSize: { ...PROJECT_CONFIG.screenSize },
     paths: { ...PROJECT_CONFIG.paths },
     fontSize: PROJECT_CONFIG.fontSize,

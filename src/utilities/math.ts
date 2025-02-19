@@ -71,14 +71,30 @@ export function areVectorsEqual(a: Vector4, b: Vector4): boolean {
 }
 
 /**
- * Adds two vectors component-wise.
- * @param a - The first vector.
- * @param b - The second vector.
+ * Adds multiple vectors component-wise.
+ * @param vector - The first vector.
+ * @param vectors - Vectors to add.
  * @returns A vector representing the component-wise sum of the two input vectors.
  */
-export function addVectors(a: Vector4, b: Vector4): Vector4 {
-  return vector4(a.x + b.x, a.y + b.y, a.z, a.w);
+export function addVectors(vector: Vector4, ...vectors: Vector4[]): Vector4 {
+  return vectors.reduce(vectorSumReducer, vector);
 }
+
+function vectorSumReducer(vectorSum: Vector4, vector: Vector4) {
+  const x = vectorSum.x + vector.x;
+  const y = vectorSum.y + vector.y
+  const z = vectorSum.z + vector.z
+  const w = vectorSum.w + vector.w
+  return vector4(x, y, z, w);
+}
+
+export function addValueToVector(vector: Vector4, value: number): Vector4 {
+  const x = vector.x + value;
+  const y = vector.y + value;
+  const z = vector.z + value;
+  const w = vector.w + value;
+  return vector4(x, y, z, w);
+} 
 
 /**
  * Subtracts two vectors component-wise.
@@ -107,6 +123,30 @@ export function copyVector(vector: Vector4): Vector4 {
   return vector4(vector.x, vector.y, vector.z, vector.w);
 }
 
+export function flipVector(vector: Vector4): Vector4 {
+  return multiplyVectorByValue(vector, -1);
+}
+
+export function flipVectorX(vector: Vector4): Vector4 {
+  const { x, y, z, w } = vector;
+  return vector4(-x, y, z, w)
+}
+
+export function flipVectorY(vector: Vector4): Vector4 {
+  const { x, y, z, w } = vector;
+  return vector4(x, -y, z, w)
+}
+
+export function flipVectorZ(vector: Vector4): Vector4 {
+  const { x, y, z, w } = vector;
+  return vector4(x, y, -z, w)
+}
+
+export function flipVectorW(vector: Vector4): Vector4 {
+  const { x, y, z, w } = vector;
+  return vector4(x, y, z, -w)
+}
+
 /**
  * Clamps a value between a minimum and maximum value.
  * @param value - The value to clamp.
@@ -116,6 +156,19 @@ export function copyVector(vector: Vector4): Vector4 {
  */
 export function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
+}
+
+export function detectSign(value: number): 1 | -1 {
+  if (value >= 0) {
+    return 1
+  }
+  return -1;
+}
+
+export function absFloor(value: number): number {
+  const sign = detectSign(value);
+  const flooredValue = Math.floor(Math.abs(value));
+  return flooredValue * sign;
 }
 
 /**

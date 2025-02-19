@@ -10,7 +10,7 @@ import { resolveDepthAxisParameters, resolveGameCollectionFilePath, resolveGameC
 import { convertEmptyComponentData, convertGameCollectionData, convertLabelComponentData, convertSpriteComponentData } from "utilities/gameCollectionConversion";
 import { inferGameCollectionParentTransformations } from "utilities/inference";
 import { addVectors, copyVector, isZeroVector, vector4 } from "utilities/math";
-import { isUsedSlice9Layer, isSlice9ServiceLayer } from "utilities/slice9";
+import { isSlice9ServiceLayer, isUsedSlice9Layer } from "utilities/slice9";
 import { extractTextureData } from "utilities/texture";
 
 /**

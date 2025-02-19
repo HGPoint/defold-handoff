@@ -299,14 +299,15 @@ function createPSDFiles(files: SerializedPSDData[]) {
   return Promise.all(psdFiles);
 }
 
-async function createPSDFile({ layers, name }: SerializedPSDData) {
+async function createPSDFile({ layers, name, size }: SerializedPSDData) {
+  const { x: width, y: height } = size;
   const sanitizedGUIName = sanitizeGUIFileName(name);
   const fileName = generatePSDFileName(sanitizedGUIName);
   const children = await createPSDLayers(layers)
   const psdFile: Psd = {
     children,
-    width: 1024,
-    height: 1024
+    width,
+    height
   }
   const buffer = writePsd(psdFile);
   return { fileName, buffer }

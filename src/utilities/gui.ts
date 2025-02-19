@@ -6,10 +6,11 @@
 import config from "config/config.json";
 import { getPluginData, isFigmaComponent, isFigmaComponentInstance, isFigmaRemoved, isFigmaSceneNode, isFigmaSlice, isLayerData, isLayerExportable, isLayerSprite, isLayerSpriteHolder, removePluginData } from "utilities/figma";
 import { exportGUIData, exportGUIPSDData, exportGUIResources, exportGUISpineData, extractGUIAtlasData } from "utilities/guiExport";
-import { postprocessGUIData, postProcessGUISpineAttachmentsData, postProcessGUIPSDData, preprocessGUIData } from "utilities/guiProcessing";
+import { postprocessGUIData, postProcessGUIPSDData, postProcessGUISpineAttachmentsData, preprocessGUIData } from "utilities/guiProcessing";
 import { serializeGUIData, serializeGUISchemeData } from "utilities/guiSerialization";
 import { completeGUIData, ensureGUILayer, extractGUIOriginalData, updateGUIData, updateGUILayer } from "utilities/guiUpdate";
 import { inferGUINodeType } from "utilities/inference";
+import { isVector4 } from "utilities/math";
 import { isSlice9PlaceholderLayer } from "utilities/slice9";
 
 export const GUI_EXPORT_PIPELINE: TransformPipeline<GUIExportPipelineData, GUIData> = {
@@ -95,6 +96,10 @@ export function isGUITemplate(layer: ExportableLayer) {
     }
   }
   return false;
+}
+
+export function hasGUITexture(node: GUINodeData): node is GUINodeData & { texture: string, texture_size: Vector4 } {
+  return !!node.texture && typeof node.texture === "string" && !!node.texture_size && isVector4(node.texture_size)
 }
 
 /**

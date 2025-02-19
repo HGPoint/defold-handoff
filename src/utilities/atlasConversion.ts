@@ -3,8 +3,8 @@
  * @packageDocumentation
  */
 
-import { isFigmaText } from "utilities/figma";
 import { injectAtlasDefaults, injectSpriteDefaults } from "utilities/defaults";
+import { isFigmaText } from "utilities/figma";
 
 /**
  * Converts the atlas to a Defold-like data.

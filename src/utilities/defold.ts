@@ -2,7 +2,7 @@
  * Handles operations with Defold's component text format.
  */
 
-import { splitByLines, joinLines } from "utilities/text";
+import { joinLines, splitByLines } from "utilities/text";
 
 const INDENTATION = "  ";
 

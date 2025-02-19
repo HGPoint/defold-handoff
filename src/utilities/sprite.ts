@@ -1,3 +1,8 @@
+/**
+ * 
+ * @packageDocumentation
+ */
+
 import { findMainFigmaComponent, hasChildren, isFigmaBox, isFigmaComponentInstance, isLayerExportable, isLayerSprite, isVisible } from "utilities/figma";
 import { isUsedSlice9Layer } from "utilities/slice9";
 import { runVariantPipeline } from "utilities/variantPipeline";

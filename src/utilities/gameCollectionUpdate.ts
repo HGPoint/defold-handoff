@@ -5,8 +5,8 @@
 
 import { shouldUpdatePluginData } from "utilities/data";
 import { isLayerData, isLayerNode, setPluginData, tryUpdateFigmaLayerName } from "utilities/figma";
+import { getGameObjectPluginData } from "utilities/gameCollection";
 import { findSlice9Layer, isSlice9PlaceholderLayer, tryRefreshSlice9Placeholder } from "utilities/slice9";
-import { getGameObjectPluginData } from "utilities/gameCollection"
 
 /**
  * Ensures that the layer is a game object layer.

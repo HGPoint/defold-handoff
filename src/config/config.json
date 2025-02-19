@@ -211,5 +211,6 @@
   "clippingModes": {
     "None": "CLIPPING_MODE_NONE",
     "Stencil": "CLIPPING_MODE_STENCIL"
-  }
+  },
+  "psdPadding": 100
 }

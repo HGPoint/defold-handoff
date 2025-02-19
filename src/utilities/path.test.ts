@@ -1,6 +1,6 @@
 import { PROJECT_CONFIG } from "handoff/project";
 import { generateAtlasFileName, generateAtlasPath, generateAtlasesFileName, generateBundleFileName, generateFontFileName, generateFontPath, generateGUIFileName, generateGUINodesFileName, generateGUIPath, generateGameCollectionFileName, generateGameCollectionPath, generateGameCollectionsFileName, generateImageAssetsPath, generateScriptFileName, generateScriptPath, generateSpriteFileName, generateSpritePath, generateSpritesFileName, generateTemplatePath, sanitizeGUIFileName } from "utilities/path";
-import { describe, expect, it, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
 describe("path", () => {
   beforeEach(() => {

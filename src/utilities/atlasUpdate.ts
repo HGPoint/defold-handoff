@@ -1,6 +1,11 @@
+/**
+ * 
+ * @packageDocumentation
+ */
+
+import { getAtlasPluginData } from "utilities/atlas";
 import { shouldUpdatePluginData } from "utilities/data";
 import { isLayerAtlas, setPluginData } from "utilities/figma";
-import { getAtlasPluginData } from "utilities/atlas";
 
 export function ensureAtlasLayer(layer: DataLayer) {
   return layer;

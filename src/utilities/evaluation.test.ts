@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
 import evaluateExpression from "utilities/evaluation";
+import { describe, expect, it } from "vitest";
 
 describe("evaluation", () => {
   it("should evaluate a valid mathematical expression", () => {

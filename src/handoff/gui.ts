@@ -6,7 +6,7 @@
 import { PROJECT_CONFIG } from "handoff/project";
 import { fitLayerToChildLayer, fitLayerToParentLayer, isFigmaBox, isFigmaComponent, isFigmaFrame, isFigmaText, isLayerData, removePluginData, setPluginData } from "utilities/figma";
 import { canChangeGUINodeOverridesPluginData, getGUINodePluginData, GUI_EXPORT_PIPELINE, GUI_SCHEME_SERIALIZATION_PIPELINE, GUI_SERIALIZATION_PIPELINE, GUI_UPDATE_PIPELINE, resolveGUINodePluginData, tryRemoveGUINodeOverridesPluginData } from "utilities/gui";
-import { packGUI, packGUINode } from "utilities/guiExport";
+import { DEFAULT_PACK_OPTIONS, packGUI, packGUINode } from "utilities/guiExport";
 import { inferGUI, inferGUIText } from "utilities/inference";
 import { findSlice9Layer, findSlice9PlaceholderLayer, isSlice9Layer, isSlice9PlaceholderLayer } from "utilities/slice9";
 import { runTransformPipeline, runTransformPipelines } from "utilities/transformPipeline";
@@ -36,8 +36,8 @@ function logGUINode(layer: ExportableLayer) {
  * @param layers - The GUI nodes to export.
  * @returns An array of serialized GUI data.
  */
-export async function exportGUI(layers: ExportableLayer[], textAsSprites: boolean = false, collapseEmpty: boolean = false, collapseTemplates: boolean = false): Promise<SerializedGUIData[]> {
-  const data = packGUI(layers, textAsSprites, collapseEmpty, collapseTemplates);
+export async function exportGUI(layers: ExportableLayer[]): Promise<SerializedGUIData[]> {
+  const data = packGUI(layers, DEFAULT_PACK_OPTIONS);
   const exportGUIData = await runTransformPipelines(GUI_EXPORT_PIPELINE, data);
   const serializedGUIData = await runTransformPipelines(GUI_SERIALIZATION_PIPELINE, exportGUIData);
   return serializedGUIData;
@@ -49,7 +49,7 @@ export async function exportGUI(layers: ExportableLayer[], textAsSprites: boolea
  * @returns Serialized GUI data.
  */
 export async function copyGUI(layer: ExportableLayer): Promise<SerializedGUIData> {
-  const data = packGUINode(layer, false, false, false);
+  const data = packGUINode(layer, DEFAULT_PACK_OPTIONS);
   const exportGUIData = await runTransformPipeline(GUI_EXPORT_PIPELINE, data);
   const serializedGUIData = await runTransformPipeline(GUI_SERIALIZATION_PIPELINE, exportGUIData);
   return serializedGUIData;
@@ -61,7 +61,12 @@ export async function copyGUI(layer: ExportableLayer): Promise<SerializedGUIData
  * @returns GUI scheme boilerplate code.
  */
 export async function copyGUIScheme(layer: ExportableLayer): Promise<SerializedGUIData> {
-  const data = packGUINode(layer);
+  const options: GUIPackOptions = {
+    textAsSprites: false,
+    collapseTemplates: false,
+    collapseEmpty: false
+  }
+  const data = packGUINode(layer, options);
   const exportGUIData = await runTransformPipeline(GUI_EXPORT_PIPELINE, data);
   const serializedGUIData = await runTransformPipeline(GUI_SCHEME_SERIALIZATION_PIPELINE, exportGUIData);
   return serializedGUIData;
@@ -256,6 +261,6 @@ function tryForceGUIChildOnScreen(layer: SceneNode) {
  */
 function forceGUIChildOnScreen(layer: BoxLayer) {
   const pluginData = getGUINodePluginData(layer);
-  const guiNodeData = { defoldGUINode: { ...pluginData, screen: true } };
+  const guiNodeData: PluginData = { defoldGUINode: { ...pluginData, screen: true } };
   setPluginData(layer, guiNodeData);
 }

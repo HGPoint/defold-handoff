@@ -3,10 +3,10 @@
  * @packageDocumentation
  */
 
-import { vector4 } from "utilities/math";
-import { isNonWhiteRGBColor, convertPaintToRGBA, resolveBaseFill, resolveBaseTextOutline } from "utilities/color";
+import { convertPaintToRGBA, isNonWhiteRGBColor, resolveBaseFill, resolveBaseTextOutline } from "utilities/color";
+import { canChangeGUINodeOverridesPluginData, resolveGUINodeOverridesDataKey } from "utilities/gui";
+import { absFloor, vector4 } from "utilities/math";
 import { isSlice9PlaceholderLayer } from "utilities/slice9";
-import { resolveGUINodeOverridesDataKey, canChangeGUINodeOverridesPluginData } from "utilities/gui";
 
 /**
  * Determines whether the Figma layer is a scene node.
@@ -352,6 +352,22 @@ export function hasSolidNonWhiteFills(fills: readonly Paint[] | typeof figma.mix
  */
 function isVisibleSolidNonWhiteFill(fill: Paint): fill is SolidPaint {
   return isVisibleSolidFill(fill) && isNonWhiteRGBColor(fill.color);
+}
+
+function isTextAlignedRight(layer: TextNode) {
+  return layer.textAlignHorizontal === "RIGHT";
+}
+
+function isTextAlignedLeft(layer: TextNode) {
+  return layer.textAlignHorizontal === "LEFT"
+}
+
+function isTextAlignedTop(layer: TextNode) {
+  return layer.textAlignVertical === "TOP";
+}
+
+function isTextAlignedBottom(layer: TextNode) {
+  return layer.textAlignVertical === "BOTTOM";
 }
 
 /**
@@ -766,4 +782,42 @@ export function selectFigmaLayers(layers: SceneNode[], dontFocus?: boolean) {
  */
 export function selectFigmaLayer(layer: SceneNode, dontFocus?: boolean) {
   selectFigmaLayers([layer], dontFocus);
+}
+
+export function calculateTextSpriteAdjustment(layer: TextNode): Vector4 {
+  if (hasAbsoluteRenderBounds(layer) && hasAbsoluteBoundingBox(layer)) {
+    const { absoluteBoundingBox, absoluteRenderBounds } = layer;
+    const { x: boundingBoxX, y: boundingBoxY, width: boundingBoxWidth, height: boundingBoxHeight } = absoluteBoundingBox;
+    const { x: renderBoundsX, y: renderBoundsY, width: renderBoundsWidth, height: renderBoundsHeight } = absoluteRenderBounds;
+    const leftSpace = Math.ceil(renderBoundsX) - boundingBoxX;
+    const rightSpace = (boundingBoxX + boundingBoxWidth) - (Math.ceil(renderBoundsX) + Math.ceil(renderBoundsWidth))
+    const topSpace = Math.ceil(renderBoundsY) - boundingBoxY;
+    const bottomSpace = (boundingBoxY + boundingBoxHeight) - (Math.ceil(renderBoundsY) + Math.ceil(renderBoundsHeight))
+    const x = calculateTextSpriteHorizontalAdjustmentShift(layer, leftSpace, rightSpace)
+    const y = calculateTextSpriteVerticalAdjustmentShift(layer, topSpace, bottomSpace)
+    return vector4(x, y, 0, 0)
+  }
+  return vector4(0);
+}
+
+function calculateTextSpriteHorizontalAdjustmentShift(layer: TextNode, leftSpace: number, rightSpace: number) {
+  if (isTextAlignedRight(layer)) {
+    return -absFloor(rightSpace);
+  }
+  if (isTextAlignedLeft(layer)) {
+    return absFloor(leftSpace);
+  }
+  const shift = (leftSpace + rightSpace) / 2 - rightSpace;
+  return absFloor(shift);
+}
+
+function calculateTextSpriteVerticalAdjustmentShift(layer: TextNode, topSpace: number, bottomSpace: number) {
+  if (isTextAlignedTop(layer)) {
+    return -absFloor(topSpace);
+  }
+  if (isTextAlignedBottom(layer)) {
+    return absFloor(bottomSpace);
+  }
+  const shift = (topSpace + bottomSpace) / 2 - bottomSpace;
+  return absFloor(shift);
 }

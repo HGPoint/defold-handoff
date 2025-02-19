@@ -3,7 +3,7 @@
  * @packageDocumentation
  */
 
-import { findMainFigmaComponent, getPluginData, hasChildren, isFigmaBox, isFigmaText, isFigmaComponentInstance, isFigmaSceneNode, isFigmaSlice, isLayerAtlas, isLayerContextSection, isLayerExportable, isVisible } from "utilities/figma";
+import { findMainFigmaComponent, getPluginData, hasChildren, isFigmaBox, isFigmaComponentInstance, isFigmaSceneNode, isFigmaSlice, isFigmaText, isLayerAtlas, isLayerContextSection, isLayerExportable, isVisible } from "utilities/figma";
 import { generateAtlasPath } from "utilities/path";
 import { runVariantPipeline } from "utilities/variantPipeline";
 

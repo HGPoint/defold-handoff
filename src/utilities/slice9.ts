@@ -6,7 +6,7 @@
 import { updateGameObject } from "handoff/gameCollection";
 import { updateGUINode } from "handoff/gui";
 import { resolvePluginDataKey } from "utilities/data";
-import { findMainFigmaComponent, findClosestFigmaComponentInstance, findFigmaLayerReflection, getPluginData, hasChildren, isFigmaBox, isFigmaComponentInstance, isLayerExportable, isLayerGameObject, isLayerGUINode, isLayerSprite, isVisible, removePluginData, setPluginData, isFigmaFrame } from "utilities/figma";
+import { findClosestFigmaComponentInstance, findFigmaLayerReflection, findMainFigmaComponent, getPluginData, hasChildren, isFigmaBox, isFigmaComponentInstance, isFigmaFrame, isLayerExportable, isLayerGameObject, isLayerGUINode, isLayerSprite, isVisible, removePluginData, setPluginData } from "utilities/figma";
 import { getGameObjectPluginData } from "utilities/gameCollection";
 import { getGUINodePluginData } from "utilities/gui";
 import { inferSizeMode } from "utilities/inference";

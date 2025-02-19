@@ -3,6 +3,12 @@ type GUIExportPipelineData = {
   parameters: GUINodeExportParameters,
 }
 
+type GUIPackOptions = {
+  textAsSprites: boolean,
+  collapseEmpty: boolean,
+  collapseTemplates: boolean
+}
+
 type GUIVariantPipelineData = {
   layer: BoxLayer,
   options: GUINodeDataExportOptions,
@@ -12,6 +18,7 @@ type GUIData = {
   name: string,
   gui: GUIDefoldData,
   nodes: GUINodeData[],
+  size: Vector4
   textures?: TextureResourceData,
   fonts?: FontData,
   layers?: LayerData,
@@ -97,10 +104,10 @@ type GUINodeData = {
 }
 
 type GUINodeExportParameters = {
-  asTemplate?: boolean,
-  textAsSprites?: boolean,
-  collapseEmpty?: boolean,
-  collapseTemplates?: boolean
+  asTemplate: boolean,
+  textAsSprites: boolean,
+  collapseEmpty: boolean,
+  collapseTemplates: boolean
 }
 
 type GUINodeDataExportOptions = {

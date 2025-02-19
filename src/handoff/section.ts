@@ -3,7 +3,7 @@
  * @packageDocumentation
  */
 
-import { getPluginData, setPluginData, removePluginData } from "utilities/figma";
+import { getPluginData, removePluginData, setPluginData } from "utilities/figma";
 
 /**
  * Updates the data bound to a section.
@@ -12,7 +12,7 @@ import { getPluginData, setPluginData, removePluginData } from "utilities/figma"
  */
 export function updateSection(layer: SectionNode, update: PluginSectionData) {
   const pluginData = getPluginData(layer, "defoldSection");
-  const guiNodeData = { defoldSection: { ...pluginData, ...update } };
+  const guiNodeData: PluginData = { defoldSection: { ...pluginData, ...update } };
   setPluginData(layer, guiNodeData); 
 }
 
