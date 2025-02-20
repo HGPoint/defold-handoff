@@ -93,3 +93,12 @@ export function resolveBaseTextShadowColor() {
 export function resolveBaseBackgroundColor() {
   return TRANSPARENT_BLACK;
 }
+
+export function splitColor(color: Vector4) {
+  const colorHue = vector4(color.x, color.y, color.z, 0);
+  const colorAlpha = color.w;
+  return {
+    colorHue,
+    colorAlpha,
+  }
+}

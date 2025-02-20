@@ -82,6 +82,16 @@ export function isGUITemplateType(type: GUINodeType) {
   return type === "TYPE_TEMPLATE";
 }
 
+export function isGUIReplacedByTemplate(data: GUINodeData) {
+  const { replace_template: replace, replace_template_name: name, replace_template_path: path } = data;
+  return replace && !!name && !!path;
+}
+
+export function isGUIReplacedBySpine(data: GUINodeData) {
+  const { replace_spine: replace, replace_spine_name: name, replace_spine_path: path } = data;
+  return replace && !!name && !!path;
+}
+
 /**
  * Determines whether the Figma layer is a GUI node template.
  * @param layer - The Figma layer to check.

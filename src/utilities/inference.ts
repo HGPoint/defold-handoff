@@ -11,7 +11,7 @@ import { resolveBaseBackgroundColor, resolveBaseColor, resolveBaseTextOutline, r
 import { generateContextData } from "utilities/context";
 import { isLayerInferred } from "utilities/data";
 import { injectEmptyComponentDefaults, injectGUINodeDefaults, injectLabelComponentDefaults, injectSpriteComponentDefaults } from "utilities/defaults";
-import { findMainFigmaComponent, getPluginData, hasChildren, hasFont, hasParent, hasSolidNonWhiteFills, hasSolidStrokes, hasSolidVisibleFills, isFigmaBox, isFigmaComponentInstance, isFigmaRectangle, isFigmaSlice, isFigmaText, isLayerAtlas, isLayerExportable, isLayerNode, isLayerSprite, isShadowEffect, resolveFillColor, resolveTextOutlineColor, resolveTextShadowColor, setPluginData } from "utilities/figma";
+import { findMainFigmaComponent, getPluginData, hasAbsoluteRenderBounds, hasChildren, hasFont, hasParent, hasSolidNonWhiteFills, hasSolidStrokes, hasSolidVisibleFills, isFigmaBox, isFigmaComponentInstance, isFigmaRectangle, isFigmaSlice, isFigmaText, isLayerAtlas, isLayerExportable, isLayerNode, isLayerSprite, isShadowEffect, resolveFillColor, resolveTextOutlineColor, resolveTextShadowColor, setPluginData } from "utilities/figma";
 import { tryFindFont } from "utilities/font";
 import { isZeroVector, readableNumber, readableVector, vector4 } from "utilities/math";
 import { calculateCenteredPosition, convertCenteredPositionToPivotedPosition } from "utilities/pivot";
@@ -121,9 +121,9 @@ export async function inferGUIBoxData(layer: BoxLayer, pluginData?: WithNull<Plu
   const context = generateContextData(layer);
   const id = resolveId(layer, pluginData);
   const type = resolveType("TYPE_BOX", pluginData);
-  const { texture } = await inferGUIBoxTexture(layer);
+  const { textureName } = await inferGUIBoxTexture(layer);
   const sizeMode = await inferSizeMode(layer);
-  const visible = inferGUIBoxVisible(layer, texture);
+  const visible = inferGUIBoxVisible(layer, textureName);
   const guiLayer = resolveGUILayer(context, pluginData);
   const data = {
     id,
@@ -275,6 +275,10 @@ function resolvePosition(pluginData ?: WithNull<PluginGameObjectData>) {
   return pluginData?.position || config.gameObjectDefaultValues.position
 }
 
+export function inferFigmaPosition(layer: SceneNode) {
+  return vector4(layer.x, layer.y, 0, 0);
+}
+
 /**
  * Infers the rotation for the GUI node or game object.
  * @param layer - The Figma layer to infer rotation from.
@@ -400,11 +404,11 @@ export function inferFont(layer: TextNode) {
  */
 export async function inferGUIBoxTexture(layer: ExportableLayer) {
   if (isFigmaComponentInstance(layer)) {
-    const mainComponent = await findMainFigmaComponent(layer);
-    if (mainComponent) {
-      const { parent } = mainComponent;
-      if (parent && isLayerAtlas(parent)) {
-        return resolveGUIBoxTexture(parent, layer, mainComponent);
+    const sprite = await findMainFigmaComponent(layer);
+    if (sprite) {
+      const { parent: atlas } = sprite;
+      if (atlas && isLayerAtlas(atlas)) {
+        return resolveGUIBoxTexture(atlas, sprite);
       }
     }
   }
@@ -417,15 +421,26 @@ export async function inferGUIBoxTexture(layer: ExportableLayer) {
  * @param layer - The sprite layer to resolve texture from.
  * @returns The resolved texture property.
  */
-function resolveGUIBoxTexture(atlas: ComponentSetNode, layer: InstanceNode, spriteLayer: ComponentNode) {
-  const atlasName = resolveAtlasName(atlas);
-  const sprite = layer.variantProperties?.Sprite;
-  const textures = sprite ? `${atlasName}/${sprite}` : "";
-  const size = vector4(spriteLayer.width, spriteLayer.height, 0, 0);
+function resolveGUIBoxTexture(atlas: ComponentSetNode, sprite: ComponentNode) {
+  const textureName = resolveGUIBoxTextureNameFromAtlas(atlas, sprite)
+  const textureSize = resolveGUIBoxTextureSizeFromSprite(sprite)
   return {
-    texture: textures,
-    size,
+    textureName,
+    textureSize,
   }
+}
+
+function resolveGUIBoxTextureNameFromAtlas(atlas: ComponentSetNode, sprite: ComponentNode) {
+  const spriteName = convertSpriteName(sprite);
+  const atlasName = resolveAtlasName(atlas);
+  const textureName = `${atlasName}/${spriteName}`;
+  return textureName;
+}
+
+function resolveGUIBoxTextureSizeFromSprite(sprite: ComponentNode) {
+  const { width, height } = sprite;
+  const textureSize = vector4(width, height, 0, 0);
+  return textureSize;
 }
 
 /**
@@ -434,22 +449,45 @@ function resolveGUIBoxTexture(atlas: ComponentSetNode, layer: InstanceNode, spri
  */
 function resolveEmptyGUIBoxTexture() {
   return {
-    texture: "",
-    size: vector4(0),
+    textureName: "",
+    textureSize: vector4(0),
   };
 }
 
 export async function resolveGUITextSpriteNodeImpliedSprite(layer: TextNode) {
-  const name = convertSpriteName(layer);
-  const texture = `text_layers/${name}`;
+  const textureName = resolveGUITextSpriteNodeImpliedTextureName(layer);
+  const textureSize = await resolveGUITextSpriteNodeImpliedTextureSize(layer);
+  return {
+    textureName,
+    textureSize
+  }
+}
+
+function resolveGUITextSpriteNodeImpliedTextureName(layer: TextNode) {
+  const spriteName = convertSpriteName(layer);
+  const textureName = `text_layers/${spriteName}`;
+  return textureName;
+}
+
+async function resolveGUITextSpriteNodeImpliedTextureSize(layer: TextNode) {
+  if (hasAbsoluteRenderBounds(layer)) {
+    return resolveGUITextSpriteNodeImpliedTextureSizeFromBounds(layer);
+  }
+  return await resolveGUITextSpriteNodeImpliedTextureSizeFromExport(layer);
+}
+
+function resolveGUITextSpriteNodeImpliedTextureSizeFromBounds(layer: TextNode & { absoluteRenderBounds: Rect }) {
+  const { width, height } = layer.absoluteRenderBounds;
+  const textureSize = vector4(width, height, 0, 0);
+  return textureSize;
+}
+
+async function resolveGUITextSpriteNodeImpliedTextureSizeFromExport(layer: TextNode) {
   const bytes = await layer.exportAsync({ format: "PNG" });
   const image = figma.createImage(bytes);
   const { width, height } = await image.getSizeAsync();
-  const size = vector4(width, height, 0, 0);
-  return {
-    texture,
-    size,
-  };
+  const textureSize = vector4(width, height, 0, 0);
+  return textureSize;
 }
 
 /**

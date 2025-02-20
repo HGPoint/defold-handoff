@@ -5,11 +5,11 @@
 
 import config from "config/config.json";
 import { PROJECT_CONFIG } from "handoff/project";
-import { resolveBaseColor } from "utilities/color";
+import { resolveBaseColor, splitColor } from "utilities/color";
 import { generateContextData } from "utilities/context";
 import { injectGUIDefaults, injectGUINodeDefaults } from "utilities/defaults";
 import { getPluginData } from "utilities/figma";
-import { inferBackgroundColor, inferClippingVisible, inferColor, inferFont, inferGUIBoxTexture, inferGUIBoxVisible, inferGUINodeType, inferGUITextSizeMode, inferGUITextVisible, inferLineBreak, inferRotation, inferScale, inferSize, inferSizeMode, inferSlice9, inferText, inferTextBoxSize, inferTextLeading, inferTextOutline, inferTextPivot, inferTextScale, inferTextShadow, inferTextTracking, resolveGUITextSpriteNodeImpliedSprite } from "utilities/inference";
+import { inferBackgroundColor, inferClippingVisible, inferColor, inferFigmaPosition, inferFont, inferGUIBoxTexture, inferGUIBoxVisible, inferGUINodeType, inferGUITextSizeMode, inferGUITextVisible, inferLineBreak, inferRotation, inferScale, inferSize, inferSizeMode, inferSlice9, inferText, inferTextBoxSize, inferTextLeading, inferTextOutline, inferTextPivot, inferTextScale, inferTextShadow, inferTextTracking, resolveGUITextSpriteNodeImpliedSprite } from "utilities/inference";
 import { readableVector, vector4 } from "utilities/math";
 import { generateScriptPath } from "utilities/path";
 import { calculateChildPosition, calculateRootPosition } from "utilities/pivot";
@@ -246,7 +246,7 @@ function convertGUIImpliedBoxNodeTransformations(layer: RectangleNode, pivot: Pi
   const size = inferSize(layer);
   const scale = inferScale();
   const position = convertGUINodePosition(layer, pivot, parentPivot, size, parentSize, parentShift, atRoot, asTemplate, pluginData);
-  const figmaPosition = vector4(layer.x, layer.y, 0, 0);
+  const figmaPosition = inferFigmaPosition(layer);
   const rotation = inferRotation(layer);
   return {
     size,
@@ -293,7 +293,7 @@ function convertGUITextNodeTransformations(layer: TextLayer, pivot: Pivot, paren
  * @returns The converted GUI node base transformations.
  */
 function convertGUINodeTransformations(layer: ExportableLayer, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4, parentShift: Vector4, atRoot: boolean, asTemplate: boolean, pluginData?: WithNull<PluginGUINodeData>) {
-  const figmaPosition = vector4(layer.x, layer.y, 0, 0);
+  const figmaPosition = inferFigmaPosition(layer);
   const position = convertGUINodePosition(layer, pivot, parentPivot, size, parentSize, parentShift, atRoot, asTemplate, pluginData);
   const rotation = inferRotation(layer);
   return {
@@ -306,7 +306,7 @@ function convertGUINodeTransformations(layer: ExportableLayer, pivot: Pivot, par
 async function convertGUITextSpriteNodeTransformations(layer: TextLayer, pivot: Pivot, parentPivot: Pivot, parentSize: Vector4, parentShift: Vector4, atRoot: boolean, asTemplate: boolean, pluginData?: WithNull<PluginGUINodeData>) {
   const size = inferSize(layer);
   const scale = inferScale();
-  const figmaPosition = vector4(layer.x, layer.y, 0, 0);
+  const figmaPosition = inferFigmaPosition(layer);
   const position = convertGUINodePosition(layer, pivot, parentPivot, size, parentSize, parentShift, atRoot, asTemplate, pluginData);
   const rotation = inferRotation(layer);
   return {
@@ -388,16 +388,15 @@ function convertGUITextNodeSizeMode(pluginData?: WithNull<PluginGUINodeData>) {
  */
 async function convertGUIBoxNodeVisuals(layer: BoxLayer, pluginData?: WithNull<PluginGUINodeData>) {
   const color = inferColor(layer);
-  const colorHue = vector4(color.x, color.y, color.z, 0);
-  const colorAlpha = color.w;
-  const { texture, size: textureSize } = await inferGUIBoxTexture(layer);
-  const visible = convertGUIBoxNodeVisible(layer, texture, pluginData);
+  const { colorHue, colorAlpha } = splitColor(color);
+  const { textureName, textureSize } = await inferGUIBoxTexture(layer);
+  const visible = convertGUIBoxNodeVisible(layer, textureName, pluginData);
   const clippingVisible = inferClippingVisible(layer);
   return {
     visible,
     color: colorHue,
     alpha: colorAlpha,
-    texture,
+    texture: textureName,
     texture_size: textureSize,
     clipping_visible: clippingVisible,
   };
@@ -405,8 +404,7 @@ async function convertGUIBoxNodeVisuals(layer: BoxLayer, pluginData?: WithNull<P
 
 function convertGUIImpliedBoxNodeVisuals(layer: RectangleNode) {
   const color = inferColor(layer);
-  const colorHue = vector4(color.x, color.y, color.z, 0);
-  const colorAlpha = color.w;
+  const { colorHue, colorAlpha } = splitColor(color);
   const visible = true;
   const clippingVisible = true;
   return {
@@ -425,16 +423,13 @@ function convertGUIImpliedBoxNodeVisuals(layer: RectangleNode) {
  */
 function convertGUITextNodeVisuals(layer: TextLayer, pluginData?: WithNull<PluginGUINodeData>) {
   const color = inferColor(layer);
-  const colorHue = vector4(color.x, color.y, color.z, 0);
-  const colorAlpha = color.w;
+  const { colorHue, colorAlpha } = splitColor(color);
   const visible = convertGUITextNodeVisible(layer, pluginData);
   const font = convertGUITextNodeFont(layer, pluginData);
   const outline = inferTextOutline(layer);
-  const outlineHue = vector4(outline.x, outline.y, outline.z, 0);
-  const outlineAlpha = outline.w;
+  const { colorHue: outlineHue, colorAlpha: outlineAlpha } = splitColor(outline);
   const shadow = inferTextShadow(layer);
-  const shadowHue = vector4(shadow.x, shadow.y, shadow.z, 0);
-  const shadowAlpha = shadow.w;
+  const { colorHue: shadowHue, colorAlpha: shadowAlpha } = splitColor(shadow);
   return {
     visible,
     color: colorHue,
@@ -449,16 +444,15 @@ function convertGUITextNodeVisuals(layer: TextLayer, pluginData?: WithNull<Plugi
 
 async function convertGUITextSpriteNodeVisuals(layer: TextLayer) {
   const color = resolveBaseColor();
-  const colorHue = vector4(color.x, color.y, color.z, 0);
-  const colorAlpha = color.w;
-  const { texture, size: textureSize } = await resolveGUITextSpriteNodeImpliedSprite(layer);
+  const { colorHue, colorAlpha } = splitColor(color);
+  const { textureName, textureSize } = await resolveGUITextSpriteNodeImpliedSprite(layer);
   const visible = true;
   const clippingVisible = false;
   return {
     visible,
     color: colorHue,
     alpha: colorAlpha,
-    texture,
+    texture: textureName,
     texture_size: textureSize,
     clipping_visible: clippingVisible,
   };

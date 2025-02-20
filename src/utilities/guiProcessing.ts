@@ -3,6 +3,7 @@
  * @packageDocumentation
  */
 
+import { isGUIBoxType, isGUIReplacedByTemplate } from "utilities/gui";
 import { inferGUINode } from "utilities/inference";
 import { areVectorsEqual, copyVector, vector4 } from "utilities/math";
 import { calculateChildPosition } from "utilities/pivot";
@@ -30,6 +31,7 @@ export async function postprocessGUIData(gui: GUIData): Promise<GUIData> {
   const { nodes } = gui;
   const collapsedNodes = collapseGUINodes(nodes);
   sanitizeGUINodeIDs(collapsedNodes);
+  adjustGUINodeTypes(collapsedNodes);
   const flatNodes = flattenGUINodes(collapsedNodes);
   gui.nodes = flatNodes;
   return gui;
@@ -149,6 +151,19 @@ function sanitizeGUINode(node: GUINodeData, newParentID: string = "", usedIDs: s
 
 function resolveGUINodeID(originalID: string, index: number): string {
   return `${originalID}_${index}`;
+}
+
+function adjustGUINodeTypes(nodes: GUINodeData[]) {
+  nodes.forEach(adjustGUINodeType)
+}
+
+function adjustGUINodeType(node: GUINodeData) {
+  if (isGUIBoxType(node.type) && isGUIReplacedByTemplate(node)) {
+    node.type = "TYPE_TEMPLATE";
+  }
+  if (node.children) {
+    node.children.forEach(adjustGUINodeType);
+  }
 }
 
 /**
