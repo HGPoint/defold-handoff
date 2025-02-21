@@ -29,18 +29,6 @@ export function generateAtlasPath(atlas: string, extension: string = "atlas"): s
 }
 
 /**
- * Generates the path to the font.
- * @param font - The name of the font.
- * @returns The path to the font.
- */
-export function generateFontPath(font: FontData): string {
-  const { assetsPath, fontAssetsPath } = PROJECT_CONFIG.paths;
-  const fileName = generateFontFileName(font.name);
-  const path = resolveFilePathFromSegments(assetsPath, fontAssetsPath, fileName);
-  return path;
-}
-
-/**
  * Generates the path to the sprite.
  * @param atlasPath - The path to the atlas.
  * @param spriteName - The name of the sprite.
@@ -49,6 +37,25 @@ export function generateFontPath(font: FontData): string {
 export function generateSpritePath(atlasPath: string, spriteName: string): string {
   const fileName = generateSpriteFileName(spriteName);
   const path = resolveFilePathFromPathName(atlasPath, fileName);
+  return path;
+}
+
+/**
+ * Generates the path to the font.
+ * @param font - The name of the font.
+ * @returns The path to the font.
+ */
+export function generateFontPath(font: ProjectFontData): string {
+  const { assetsPath, fontAssetsPath } = PROJECT_CONFIG.paths;
+  const fileName = generateFontFileName(font.name);
+  const path = resolveFilePathFromSegments(assetsPath, fontAssetsPath, fileName);
+  return path;
+}
+
+export function generateSpineScenePath(spinePath: string, spineName: string): string {
+  const { assetsPath, spineAssetsPath } = PROJECT_CONFIG.paths;
+  const fileName = generateSpineSceneFileName(spineName);
+  const path = resolveFilePathFromSegments(assetsPath, spineAssetsPath, spinePath, fileName);
   return path;
 }
 
@@ -216,6 +223,11 @@ export function generateSpritesFileName(atlases: SerializedAtlasData[]) {
 
 export function generateSpineFileName(spineName: string): string {
   const fileName = resolveFileName(spineName, "json");
+  return fileName;
+}
+
+export function generateSpineSceneFileName(spineName: string): string {
+  const fileName = resolveFileName(spineName, "spinescene");
   return fileName;
 }
 
@@ -389,6 +401,7 @@ function pathReducer(path: string, segment: string): string {
   if (!segment) {
     return path;
   }
-  const updatedPath = `${path}/${segment}`;
+  const slash = segment.startsWith("/") ? "" : "/";
+  const updatedPath = `${path}${slash}${segment}`;
   return updatedPath;
 }

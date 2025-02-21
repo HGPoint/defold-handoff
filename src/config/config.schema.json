@@ -309,6 +309,32 @@
         "material": {
           "type": "string"
         },
+        "color": {
+          "type": "object",
+          "properties": {
+            "x": {
+              "type": "integer"
+            },
+            "y": {
+              "type": "integer"
+            },
+            "z": {
+              "type": "integer"
+            },
+            "w": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "x",
+            "y",
+            "z",
+            "w"
+          ]
+        },
+        "alpha": {
+          "type": "number"
+        },
         "inherit_alpha": {
           "type": "boolean"
         },

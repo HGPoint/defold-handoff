@@ -3,9 +3,10 @@
  * @packageDocumentation
  */
 
-import { isGUIBoxType, isGUIReplacedByTemplate } from "utilities/gui";
+import config from "config/config.json";
+import { isGUIBoxType, isGUIReplacedBySpine, isGUIReplacedByTemplate } from "utilities/gui";
 import { inferGUINode } from "utilities/inference";
-import { areVectorsEqual, copyVector, vector4 } from "utilities/math";
+import { addVectors, areVectorsEqual, copyVector, vector4, flipVector } from "utilities/math";
 import { calculateChildPosition } from "utilities/pivot";
 import { tryRestoreSlice9LayerData } from "utilities/slice9";
 import { resolveDefaultRootSpineBone } from "utilities/spine";
@@ -33,8 +34,64 @@ export async function postprocessGUIData(gui: GUIData): Promise<GUIData> {
   sanitizeGUINodeIDs(collapsedNodes);
   adjustGUINodeTypes(collapsedNodes);
   const flatNodes = flattenGUINodes(collapsedNodes);
-  gui.nodes = flatNodes;
+  const impliedNodes = tryGenerateImpliedNodes(flatNodes)
+  gui.nodes = [...flatNodes, ...impliedNodes ];
   return gui;
+}
+
+function tryGenerateImpliedNodes(nodes: GUINodeData[]) {
+  const impliedNodes = nodes.reduce<GUINodeData[]>(tryGenerateImpliedNode, []);
+  return impliedNodes;
+}
+
+function tryGenerateImpliedNode(impliedNodes: GUINodeData[], node: GUINodeData) {
+  if (shouldGenerateWrapperNode(node)) {
+    const wrapperNode = generateWrapperNode(node);
+    impliedNodes.push(wrapperNode);
+  }
+  return impliedNodes;
+}
+
+function shouldGenerateWrapperNode(node: GUINodeData) {
+  return node.wrapper;
+}
+
+function generateWrapperNode(node: GUINodeData) {
+  const wrapperID = `${node.id}_wrapper`;
+  const wrapperSize = resolveWrapperSize(node);
+  const { wrapper_padding: { x, y, z, w } } = node;
+  const shiftX = (x - z) / 2;
+  const shiftY = (w - y) / 2;
+  const nodeShift = vector4(shiftX, shiftY, 0, 0);
+  const wrapperShift = flipVector(nodeShift);
+  const wrapperPosition = addVectors(node.position, wrapperShift)
+  const wrapperNode: GUINodeData = {
+    ...config.guiNodeDefaultValues,
+    ...config.guiNodeDefaultSpecialValues,
+    id: wrapperID,
+    type: "TYPE_BOX",
+    parent: node.parent,
+    size: wrapperSize,
+    position: wrapperPosition,
+    rotation: node.rotation,
+    scale: node.scale,
+    pivot: node.pivot,
+    size_mode: "SIZE_MODE_MANUAL",
+    visible: false,
+  }
+  node.parent = wrapperID;
+  node.position = nodeShift;
+  node.rotation = vector4(0);
+  node.scale = vector4(1);
+  node.pivot = "PIVOT_CENTER";
+  return wrapperNode;
+}
+
+function resolveWrapperSize(node: GUINodeData) {
+  const { size, wrapper_padding: padding } = node;
+  const width = size.x + padding.x + padding.z;
+  const height = size.y + padding.y + padding.w;
+  return vector4(width, height, 0, 0);
 }
 
 /**
@@ -112,11 +169,13 @@ function collapseWithParent(parent: GUINodeData, child: GUINodeData, childIndex:
     for (let index = 0; index < child.children.length; index++) {
       const collapsedChild = child.children[index];
       if (parent.pivot != child.pivot) {
-        const layer = collapsedChild.exportable_layer;
-        const { pivot, size } = collapsedChild;
-        const { pivot: parentPivot, size: parentSize } = parent;
-        const parentShift = vector4(0);
-        collapsedChild.position = calculateChildPosition(layer, pivot, parentPivot, size, parentSize, parentShift);
+        const { exportable_layer: layer } = collapsedChild;
+        if (layer) {
+          const { pivot, size } = collapsedChild;
+          const { pivot: parentPivot, size: parentSize } = parent;
+          const parentShift = vector4(0);
+          collapsedChild.position = calculateChildPosition(layer, pivot, parentPivot, size, parentSize, parentShift);
+        }
       }
       collapsedChild.parent = parent.id;
       parent.children.splice(childIndex, childIndex + index, collapsedChild);
@@ -158,8 +217,12 @@ function adjustGUINodeTypes(nodes: GUINodeData[]) {
 }
 
 function adjustGUINodeType(node: GUINodeData) {
-  if (isGUIBoxType(node.type) && isGUIReplacedByTemplate(node)) {
-    node.type = "TYPE_TEMPLATE";
+  if (isGUIBoxType(node.type)) {
+    if (isGUIReplacedByTemplate(node)) {
+      node.type = "TYPE_TEMPLATE";
+    } else if (isGUIReplacedBySpine(node)) {
+      node.type = "TYPE_CUSTOM";
+    }
   }
   if (node.children) {
     node.children.forEach(adjustGUINodeType);

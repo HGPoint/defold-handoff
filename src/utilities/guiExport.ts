@@ -53,7 +53,7 @@ export async function exportGUIData({ layer, parameters }: GUIExportPipelineData
     size,
   };
   if (resources) {
-    const { textures, fonts, layers } = resources;
+    const { textures, fonts, layers, spines } = resources;
     if (textures) {
       data.textures = textures;
     }
@@ -62,6 +62,9 @@ export async function exportGUIData({ layer, parameters }: GUIExportPipelineData
     }
     if (layers) {
       data.layers = layers;
+    }
+    if (spines) {
+      data.spines = spines;
     }
   }
   return data;
@@ -328,11 +331,14 @@ async function generateParentOptions(layer: ExportableLayer, shouldSkip: boolean
 function resolveGUINodeLayerOptions(shouldSkip: boolean, parentOptions: GUINodeDataExportOptions, guiNodeData: GUINodeData): Pick<GUINodeDataExportOptions, "parentId" | "parentPivot" | "parentSize" | "parentShift"> {
   if (shouldSkip) {
     const { parentId, parentSize, parentPivot, parentShift } = parentOptions;
+    const resolvedParentSize = isZeroVector(parentSize) ? guiNodeData.size : parentSize;
+    const resolvedFigmaPosition = guiNodeData.figma_position || vector4(0);
+    const resolvedParentShift = addVectors(parentShift, resolvedFigmaPosition)
     return {
-      parentId: parentId,
-      parentSize: isZeroVector(parentSize) ? guiNodeData.size : parentSize,
-      parentPivot: parentPivot,
-      parentShift: addVectors(parentShift, guiNodeData.figma_position),
+      parentId,
+      parentSize: resolvedParentSize,
+      parentPivot,
+      parentShift: resolvedParentShift,
     }
   }
   return {

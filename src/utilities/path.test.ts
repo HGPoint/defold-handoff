@@ -24,7 +24,7 @@ describe("path", () => {
   });
 
   it("should generate the correct font path", () => {
-    const path = generateFontPath({ name: "franxurter" });
+    const path = generateFontPath({ name: "franxurter", id: "franxurter" });
     expect(path).toBe("/assets/fonts/franxurter.font");
   });
 

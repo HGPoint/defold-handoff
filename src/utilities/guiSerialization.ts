@@ -137,7 +137,8 @@ export async function serializeGUIData(guiData: GUIData): Promise<SerializedGUID
   const textures = serializeGUITextureData(guiData.textures);
   const fonts = serializeGUIFontsData(guiData.fonts);
   const layers = serializeGUILayersData(guiData.layers);
-  const data = `${gui.replace("<data>\n", `${textures}${fonts}${nodes}${layers}`)}`.trim();
+  const spines = serializeGUISpineData(guiData.spines);
+  const data = `${gui.replace("<data>\n", `${textures}${fonts}${nodes}${layers}`)}${spines}`.trim();
   const templateData = serializeTemplateData(guiData, asTemplate);
   const serializedData = {
     name,
@@ -205,14 +206,25 @@ function guiNodeSerializer(data: string, guiNodeData: GUINodeData): string {
       } else if (isPropertyReplaceTemplate(key, value, guiNodeData)) {
         const serializedTemplate = serializeReplacementTemplateProperty(guiNodeData); 
         return `${serializedProperties}${serializedTemplate}`;
-      } else if (shouldOmitGUITemplateNodeProperty(property)) {
+      } else if (shouldOmitGUIResourceNodeProperty(property)) {
         return serializedProperties;
       }
       return propertySerializer<GUINodeData>(serializedProperties, property);
     }, "");
     return `${data}nodes {\n${indentLines(node)}\n}\n`;
   } else if (isGUIReplacedBySpine(guiNodeData)) {
-    return "";
+    const node = completeKeys.reduce((serializedProperties: string, key) => {
+      const value = guiNodeData[key];
+      const property: [keyof GUINodeData, GUINodeData[keyof GUINodeData]] = [key, value];
+      if (isPropertyReplaceSpine(key, value, guiNodeData)) {
+        const serializedTemplate = serializeReplacementSpineProperty(guiNodeData);
+        return `${serializedProperties}${serializedTemplate}`;
+      } else if (shouldOmitGUIResourceNodeProperty(property)) {
+        return serializedProperties;
+      }
+      return propertySerializer<GUINodeData>(serializedProperties, property);
+    }, "");
+    return `${data}nodes {\n${indentLines(node)}\n}\n`;
   } else {
     const node = completeKeys.reduce((serializedProperties: string, key) => {
       const value = guiNodeData[key];
@@ -235,7 +247,7 @@ function guiNodeSerializer(data: string, guiNodeData: GUINodeData): string {
   }
 }
 
-function shouldOmitGUITemplateNodeProperty(property: [keyof GUINodeData, GUINodeData[keyof GUINodeData]]): boolean {
+function shouldOmitGUIResourceNodeProperty(property: [keyof GUINodeData, GUINodeData[keyof GUINodeData]]): boolean {
   const [key] = property;
   if (EXCLUDED_TEMPLATE_PROPERTY_KEYS.includes(key)) {
     return true;
@@ -387,6 +399,19 @@ function layerDataSerializer(data: string, layer: string): string {
   return `${data}layers\n{\n${indentLines(serializedLayer)}\n}\n`;
 }
 
+function serializeGUISpineData(spineData?: SpineResourceData) {
+  if (spineData) {
+    const data = Object.entries(spineData).reduce(spineDataSerializer, "");
+    return data;
+  }
+  return "";
+}
+
+function spineDataSerializer(data: string, [name, path]: [string, string]) {
+  const serializedSpine = `name: "${name}"\npath: "${path}"`
+  return `${data}resources\n{\n${indentLines(serializedSpine)}\n}\n`;
+}
+
 /**
  * Serializes the template data.
  * @param guiData - The GUI data to be serialized.
@@ -450,9 +475,16 @@ function serializeTemplateProperty(guiNodeData: GUINodeData) {
 }
 
 function serializeReplacementTemplateProperty(guiNodeData: GUINodeData) {
-  const templatePath = generateTemplatePath(guiNodeData.replace_template_path, guiNodeData.replace_template_name);
+  const { replace_template_path: path, replace_template_name: name } = guiNodeData;
+  const templatePath = generateTemplatePath(path, name);
   const template = `template: "${templatePath}"\n`
   return template;
+}
+
+function serializeReplacementSpineProperty(guiNodeData: GUINodeData) {
+  const { replace_spine_name: name } = guiNodeData;
+  const spine = `spine_scene: "${name}"\ncustom_type: 405028931\n`
+  return spine;
 }
 
 function serializeColorProperty(color: Vector4): string {

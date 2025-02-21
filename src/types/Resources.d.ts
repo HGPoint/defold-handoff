@@ -39,3 +39,10 @@ type FontVariantPipelineData = {
 }
 
 type LayerData = string[];
+
+type SpineResourceData = Record<string, string>;
+
+type SpineVariantPipelineData = {
+  layer: SceneNode,
+  skipVariants: boolean,
+}

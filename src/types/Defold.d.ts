@@ -5,7 +5,7 @@ type Vector4 = {
   w: number,
 }
 
-type GUINodeType = "TYPE_TEXT" | "TYPE_BOX" | "TYPE_TEMPLATE";
+type GUINodeType = "TYPE_TEXT" | "TYPE_BOX" | "TYPE_TEMPLATE" | "TYPE_CUSTOM";
 
 type AdjustReference = "ADJUST_REFERENCE_PARENT";
 

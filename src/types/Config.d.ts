@@ -27,6 +27,8 @@ declare module "config/config.json" {
       slice9: Vector4,
       layer: string,
       material: string,
+      color: Vector4,
+      alpha: number,
       inherit_alpha: boolean,
       xanchor: XAnchor,
       yanchor: YAnchor,
