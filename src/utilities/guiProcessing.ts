@@ -6,7 +6,7 @@
 import config from "config/config.json";
 import { isGUIBoxType, isGUIReplacedBySpine, isGUIReplacedByTemplate } from "utilities/gui";
 import { inferGUINode } from "utilities/inference";
-import { addVectors, areVectorsEqual, copyVector, vector4, flipVector } from "utilities/math";
+import { addVectors, areVectorsEqual, copyVector, flipVector, vector4 } from "utilities/math";
 import { calculateChildPosition } from "utilities/pivot";
 import { tryRestoreSlice9LayerData } from "utilities/slice9";
 import { resolveDefaultRootSpineBone } from "utilities/spine";
@@ -109,16 +109,18 @@ function collapseGUINodes(nodes: GUINodeData[]): GUINodeData[] {
  * @returns The collapsed GUI node.
  */
 function collapseGUINode(node: GUINodeData) {
-  if (!node.children || node.children.length === 0) {
-    return node;
-  }
-  node.children = node.children.map(collapseGUINode);
-  for (let index = 0; index < node.children.length; index++) {
-    const child = node.children[index];
-    if (canCollapseWithParent(node, child)) {
-      node.children.splice(index, 1);
-      collapseWithParent(node, child, index);
-      break;
+  if (node.children && node.children.length) {
+    node.children = node.children.map(collapseGUINode);
+    let collapsed = false;
+    let index = 0;
+    while (!collapsed && index < node.children.length) {
+      const child = node.children[index];
+      if (canCollapseWithParent(node, child)) {
+        node.children.splice(index, 1);
+        collapseWithParent(node, child, index);
+        collapsed = true;
+      }
+      index += 1;
     }
   }
   return node;
@@ -178,7 +180,7 @@ function collapseWithParent(parent: GUINodeData, child: GUINodeData, childIndex:
         }
       }
       collapsedChild.parent = parent.id;
-      parent.children.splice(childIndex, childIndex + index, collapsedChild);
+      parent.children.splice(childIndex + index, 0, collapsedChild);
     }
   }
 }

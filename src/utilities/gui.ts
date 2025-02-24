@@ -112,6 +112,10 @@ export function hasGUITexture(node: GUINodeData): node is GUINodeData & { textur
   return !!node.texture && typeof node.texture === "string" && !!node.texture_size && isVector4(node.texture_size)
 }
 
+export function hasExportableLayer(node: GUINodeData): node is GUINodeData & { exportable_layer: ExportableLayer } {
+  return !!node.exportable_layer && !!node.exportable_layer_id && !!node.exportable_layer_name
+}
+
 /**
  * Retrieves the GUI node plugin data bound to the Figma layer, from default and inferred values.
  * @param layer - The Figma layer to retrieve the plugin data from.

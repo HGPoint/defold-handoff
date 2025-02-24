@@ -3,7 +3,7 @@
  * @packageDocumentation
  */
 
-import { hasGUITexture } from "utilities/gui";
+import { hasExportableLayer, hasGUITexture } from "utilities/gui";
 import { isZeroVector } from "utilities/math";
 import { convertSpineBoneName, convertSpineBoneTransformations, convertSpineSkinImageAttachmentPosition, convertSpineSkinImageAttachmentScale, convertSpineSkinImageAttachmentSize, convertSpineSkinMeshAttachmentGeometry, convertSpineSkinMeshAttachmentHull, convertSpineSlotAttachment, convertSpineSlotName } from "utilities/spineConversion";
 
@@ -52,7 +52,7 @@ export function generateSpineSkinData(nodes: GUINodeData[]) {
 }
 
 function spineSkinAttachmentDataReducer(attachments: Record<string, Record<string, SpineAttachmentData>>, node: GUINodeData) {
-  if (hasGUITexture(node)) {
+  if (hasGUITexture(node) && hasExportableLayer(node)) {
     const { id: name } = node;
     if (shouldGenerateSpineSkinImageAttachment(node)) {
       attachments[name] = generateSpineSkinImageAttachment(node);
@@ -68,11 +68,12 @@ function shouldGenerateSpineSkinImageAttachment(node: GUINodeData) {
   return !slice9 || isZeroVector(slice9);
 }
 
-function generateSpineSkinImageAttachment(node: GUINodeData & { texture: string, texture_size: Vector4 }) {
+function generateSpineSkinImageAttachment(node: GUINodeData & { texture: string, texture_size: Vector4, exportable_layer: ExportableLayer }) {
   const path = convertSpineSlotAttachment(node);
   const { x: width, y: height } = convertSpineSkinImageAttachmentSize(node)
   const { x, y, } = convertSpineSkinImageAttachmentPosition(node);
   const { x: scaleX, y: scaleY } = convertSpineSkinImageAttachmentScale(node);
+  const { rotation: { z: rotation } } = node;
   const attachment: SpineAttachmentData = {
     path,
     width,
@@ -80,7 +81,8 @@ function generateSpineSkinImageAttachment(node: GUINodeData & { texture: string,
     x,
     y,
     scaleX,
-    scaleY
+    scaleY,
+    rotation
   };
   return { [path]: attachment };
 }

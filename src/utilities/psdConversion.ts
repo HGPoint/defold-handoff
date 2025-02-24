@@ -3,8 +3,9 @@
  * @packageDocumentation
  */
 
+import { PROJECT_CONFIG } from "handoff/project";
 import { calculateTextSpriteAdjustment, isFigmaText } from "utilities/figma";
-import { hasGUITexture } from "utilities/gui";
+import { hasExportableLayer, hasGUITexture } from "utilities/gui";
 import { addVectors, flipVectorY, multiplyVectorByValue, vector4 } from "utilities/math";
 import { isPivotEast, isPivotNorth, isPivotSouth, isPivotWest } from "utilities/pivot";
 import { resolvePSDLayerSize } from "utilities/psd";
@@ -14,13 +15,13 @@ export function convertPSDLayerName(node: GUINodeData): string {
 }
 
 export function convertPSDLayerPosition(node: GUINodeData, nodes: GUINodeData[], canvasSize: Vector4): Vector4 {
-  if (hasGUITexture(node)) {
+  if (hasGUITexture(node) && hasExportableLayer(node)) {
     return calculatePSDLayerPosition(node, nodes, canvasSize);
   }
   return node.position;
 }
 
-function calculatePSDLayerPosition(node: GUINodeData, nodes: GUINodeData[], canvasSize: Vector4): Vector4 {
+function calculatePSDLayerPosition(node: GUINodeData & { texture: string, texture_size: Vector4, exportable_layer: ExportableLayer }, nodes: GUINodeData[], canvasSize: Vector4): Vector4 {
   const { position } = node;
   const startPosition = flipVectorY(position)
   const size = resolvePSDLayerSize(node);
@@ -29,7 +30,8 @@ function calculatePSDLayerPosition(node: GUINodeData, nodes: GUINodeData[], canv
   const parentShift = calculatePSDLayerPositionParentShift(node, nodes);
   const pivotShift = calculatePSDLayerPositionPivotShift(node, size);
   const adjustmentShift = calculatePSDLayerPositionAdjustmentShift(node);
-  const psdLayerPosition = addVectors(startPosition, sizeShift, canvasShift, parentShift, pivotShift, adjustmentShift);
+  const onScreenShift = calculatePSDLayerPositionOnScreenShift(node);
+  const psdLayerPosition = addVectors(startPosition, sizeShift, canvasShift, parentShift, pivotShift, adjustmentShift, onScreenShift);
   return psdLayerPosition;
 }
 
@@ -50,8 +52,9 @@ function calculatePSDLayerPositionParentShift(node: GUINodeData, nodes: GUINodeD
     const parentNode = nodes.find(node => node.id === parent)
     if (parentNode) {
       const { position: { x, y } } = parentNode;
-      parentShift.x += x;
-      parentShift.y += -y;
+      const { x: screenX, y: screenY } = calculatePSDLayerPositionOnScreenShift(parentNode)
+      parentShift.x += x + screenX;
+      parentShift.y += -y + screenY;
       ({ parent } = parentNode);
     }
   }
@@ -75,10 +78,18 @@ function calculatePSDLayerPositionPivotShift(node: GUINodeData, size: Vector4): 
   return shift;
 }
 
-function calculatePSDLayerPositionAdjustmentShift(node: GUINodeData) {
+function calculatePSDLayerPositionAdjustmentShift(node: GUINodeData & { exportable_layer: ExportableLayer }) {
   const { exportable_layer: layer } = node;
   if (isFigmaText(layer)) {
     return calculateTextSpriteAdjustment(layer);
+  }
+  return vector4(0);
+}
+
+function calculatePSDLayerPositionOnScreenShift(node: GUINodeData) {
+  if (node.screen) {
+    const { x, y } = multiplyVectorByValue(PROJECT_CONFIG.screenSize, 0.5);
+    return vector4(-x, y, 0, 0);
   }
   return vector4(0);
 }

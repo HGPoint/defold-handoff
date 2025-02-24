@@ -5,6 +5,7 @@
 
 import { isAtlasStatic, resolveAtlasName } from "utilities/atlas";
 import { convertAtlasData, convertSpriteData, convertSpriteName } from "utilities/atlasConversion";
+import { checkMeaningfulSpriteSize } from "utilities/sprite";
 
 /**
  * Exports atlas data.
@@ -39,7 +40,9 @@ async function exportSpriteData(images: readonly (SceneNode | SliceNode)[], dire
   for (const sprite of images) {
     if (shouldExportSprite(sprite, usedSprites)) {
       const exportedSprite = await exportSprite(sprite, directory, scale);
-      spriteData.push(exportedSprite);
+      if (exportedSprite) {
+        spriteData.push(exportedSprite);
+      }
     }
   } 
   return spriteData;
@@ -56,17 +59,22 @@ function shouldExportSprite(layer: SceneNode, usedSprites: string[]) {
  * @param scale - The scale to export image at.
  * @returns The sprite data.
  */
-async function exportSprite(layer: SceneNode, directory: string, scale: number = 1): Promise<SpriteData> {
+async function exportSprite(layer: SceneNode, directory: string, scale: number = 1): Promise<WithNull<SpriteData>> {
   const sprite = convertSpriteData();
   const name = convertSpriteName(layer)
   const parameters = await resolveExportParameters(layer, scale);
   const data = await layer.exportAsync(parameters)
-  return {
-    name,
-    directory,
-    sprite,
-    data,
-  };
+  const image = figma.createImage(data)
+  const size = await image.getSizeAsync();
+  if (checkMeaningfulSpriteSize(size)) {
+    return {
+      name,
+      directory,
+      sprite,
+      data,
+    };
+  }
+  return null;
 }
 
 async function resolveExportParameters(layer: SceneNode, scale: number): Promise<ExportSettings> {

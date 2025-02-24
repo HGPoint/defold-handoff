@@ -3,8 +3,9 @@
  * @packageDocumentation
  */
 
+import { PROJECT_CONFIG } from "handoff/project";
 import { calculateTextSpriteAdjustment, isFigmaText } from "utilities/figma";
-import { addVectors, flipVectorY, isZeroVector, vector4 } from "utilities/math";
+import { addVectors, flipVector, flipVectorY, isZeroVector, subVectors, vector4 } from "utilities/math";
 import { isPivotEast, isPivotNorth, isPivotSouth, isPivotWest } from "utilities/pivot";
 
 export function convertSpineBoneName(node: GUINodeData) {
@@ -12,15 +13,25 @@ export function convertSpineBoneName(node: GUINodeData) {
 }
 
 export function convertSpineBoneTransformations(node: GUINodeData) {
-  const { position, rotation: nodeRotation } = node
-  const { x, y } = position;
-  const { z: rotation } = nodeRotation
+  const { position: startPosition } = node
+  const onScreenShift = calculateSpineBonePositionOnScreenShift(node);
+  const { x, y } = addVectors(startPosition, onScreenShift);
   const data = {
     x,
     y,
-    rotation,
   }
   return data;
+}
+
+function calculateSpineBonePositionOnScreenShift(node: GUINodeData) {
+  if (node.screen) {
+    const { position } = node;
+    const padding = subVectors(PROJECT_CONFIG.screenSize, position);
+    const adjustment = flipVector(PROJECT_CONFIG.screenSize);
+    const shift = addVectors(adjustment, padding);
+    return shift;
+  }
+  return vector4(0);
 }
 
 export function convertSpineSlotName(node: GUINodeData) {
@@ -39,7 +50,7 @@ export function convertSpineSkinImageAttachmentSize(node: GUINodeData & { textur
   return vector4(x, y, 0, 0);
 }
 
-export function convertSpineSkinImageAttachmentPosition(node: GUINodeData & { texture: string, texture_size: Vector4 }) {
+export function convertSpineSkinImageAttachmentPosition(node: GUINodeData & { texture: string, texture_size: Vector4, exportable_layer: ExportableLayer }) {
   const pivotShift = calculateSpineSkinImageAttachmentPivotShift(node);
   const adjustmentShift = calculateSpineSkinImageAttachmentAdjustmentShift(node);
   const position = addVectors(pivotShift, adjustmentShift);
@@ -62,7 +73,7 @@ function calculateSpineSkinImageAttachmentPivotShift(node: GUINodeData & { textu
   return position;
 }
 
-function calculateSpineSkinImageAttachmentAdjustmentShift(node: GUINodeData & { texture: string, texture_size: Vector4 }) {
+function calculateSpineSkinImageAttachmentAdjustmentShift(node: GUINodeData & { texture: string, texture_size: Vector4, exportable_layer: ExportableLayer }) {
   const { exportable_layer: layer } = node;
   if (isFigmaText(layer)) {
     const adjustmentShift = calculateTextSpriteAdjustment(layer);
@@ -71,14 +82,14 @@ function calculateSpineSkinImageAttachmentAdjustmentShift(node: GUINodeData & { 
   return vector4(0);
 }
 
-export function convertSpineSkinImageAttachmentScale(node: GUINodeData & { texture: string, texture_size: Vector4 }) {
+export function convertSpineSkinImageAttachmentScale(node: GUINodeData & { texture: string, texture_size: Vector4, exportable_layer: ExportableLayer }) {
   if (shouldCalculateSpineSkinImageAttachmentScale(node)) {
     return calculateSpineSkinImageAttachmentScale(node)
   }
   return vector4(1);
 }
 
-function shouldCalculateSpineSkinImageAttachmentScale(node: GUINodeData) {
+function shouldCalculateSpineSkinImageAttachmentScale(node: GUINodeData & { exportable_layer: ExportableLayer }) {
   const { exportable_layer: layer, slice9 } = node;
   return !isFigmaText(layer) && (!slice9 || isZeroVector(slice9))
 }
@@ -89,7 +100,8 @@ function calculateSpineSkinImageAttachmentScale(node: GUINodeData & { texture: s
   const { x: textureWidth, y: textureHeight } = textureSize;
   const x = width / textureWidth;
   const y = height / textureHeight;
-  return vector4(x, y, 0, 0);
+  const scale = Math.min(x, y);
+  return vector4(scale, scale, 0, 0);
 }
 
 export function convertSpineSkinMeshAttachmentGeometry(node: GUINodeData & { texture_size: Vector4 }) {

@@ -18,9 +18,8 @@ export async function serializeSpineData(spineData: SpineData): Promise<Serializ
 }
 
 function serializeSpineSkeletonData(spineData: SpineData): string {
-  const { skeleton } = spineData;
-  
-  return `"${skeleton.name}": { "spine": "${skeleton.spine}" }`;
+  const { skeleton: { name, spine } } = spineData;
+  return `"${name}": { "spine": "${spine}" }`;
 }
 
 function serializeSpineBoneData(bones: SpineBoneData[]): string {

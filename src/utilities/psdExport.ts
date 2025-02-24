@@ -3,7 +3,7 @@
  * @packageDocumentation
  */
 
-import { hasGUITexture } from "utilities/gui";
+import { hasExportableLayer, hasGUITexture } from "utilities/gui";
 import { ensurePSDLayer } from "utilities/psd";
 import { convertPSDLayerName, convertPSDLayerPosition } from "utilities/psdConversion";
 
@@ -13,7 +13,7 @@ export function generatePSDLayerData(nodes: GUINodeData[], canvasSize: Vector4) 
 }
 
 function psdLayerDataReducer(psdLayers: PSDLayerData[], node: GUINodeData, nodes: GUINodeData[], canvasSize: Vector4) {
-  if (hasGUITexture(node)) {
+  if (hasGUITexture(node) && hasExportableLayer(node)) {
     const name = convertPSDLayerName(node);
     const { x: left, y: top } = convertPSDLayerPosition(node, nodes, canvasSize)
     const layer = ensurePSDLayer(node);

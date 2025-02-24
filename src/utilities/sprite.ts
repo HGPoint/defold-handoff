@@ -41,3 +41,7 @@ export async function extractSpriteData(data: SpriteVariantPipelineData, spriteD
   }
   return spriteData;
 }
+
+export function checkMeaningfulSpriteSize({ width, height }: { width: number, height: number }) {
+  return width > 1 || height > 1;
+}
