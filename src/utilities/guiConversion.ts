@@ -37,7 +37,7 @@ export function convertGUIData(rootData?: WithNull<PluginGUINodeData>): GUIDefol
  * @returns The converted GUI node data.
  */
 export async function convertBoxGUINodeData(layer: BoxLayer, options: GUINodeDataExportOptions): Promise<GUINodeData> {
-  const { namePrefix, variantPrefix, forcedName, parentId, parentPivot, parentSize, parentShift, atRoot, asTemplate } = options;
+  const { namePrefix, variantPrefix, forcedName, parentId, parentPivot, parentSize, parentShift, atRoot, asTemplate, collapseTemplates } = options;
   const context = generateContextData(layer);
   const defaults = injectGUINodeDefaults();
   const data = getPluginData(layer, "defoldGUINode");
@@ -49,7 +49,7 @@ export async function convertBoxGUINodeData(layer: BoxLayer, options: GUINodeDat
   const visuals = await convertGUIBoxNodeVisuals(layer, data);
   const sizeMode = await convertGUIBoxNodeSizeMode(layer, data);
   const transformations = convertGUIBoxNodeTransformations(layer, pivot, parentPivot, parentSize, parentShift, atRoot, asTemplate, data);
-  const parent = convertGUINodeParent(parentId, data);
+  const parent = convertGUINodeParent(collapseTemplates, parentId, data);
   const specialProperties = convertGUINodeSpecialProperties(layer, id, data);
   return {
     ...defaults,
@@ -99,7 +99,7 @@ export function convertImpliedBoxGUINodeData(layer: RectangleNode, options: GUIN
  * @returns The converted GUI node data.
  */
 export function convertTextGUINodeData(layer: TextLayer, options: GUINodeDataExportOptions): GUINodeData {
-  const { namePrefix, variantPrefix, forcedName, parentId, parentPivot, parentSize, parentShift, atRoot, asTemplate } = options;
+  const { namePrefix, variantPrefix, forcedName, parentId, parentPivot, parentSize, parentShift, atRoot, asTemplate, collapseTemplates } = options;
   const context = generateContextData(layer);
   const defaults = injectGUINodeDefaults();
   const data = getPluginData(layer, "defoldGUINode");
@@ -110,7 +110,7 @@ export function convertTextGUINodeData(layer: TextLayer, options: GUINodeDataExp
   const visuals = convertGUITextNodeVisuals(layer, data);
   const sizeMode = convertGUITextNodeSizeMode(data);
   const transformations = convertGUITextNodeTransformations(layer, pivot, parentPivot, parentSize, parentShift, atRoot, asTemplate, data);
-  const parent = convertGUINodeParent(parentId);
+  const parent = convertGUINodeParent(collapseTemplates, parentId);
   const text = inferText(layer);
   const textParameters = convertGUITextNodeParameters(layer);
   const specialProperties = convertGUINodeSpecialProperties(layer, id, data);
@@ -132,7 +132,7 @@ export function convertTextGUINodeData(layer: TextLayer, options: GUINodeDataExp
 }
 
 export async function convertTextSpriteGUINodeData(layer: TextLayer, options: GUINodeDataExportOptions): Promise<GUINodeData> {
-  const { namePrefix, variantPrefix, forcedName, parentId, parentPivot, parentSize, parentShift, atRoot, asTemplate } = options;
+  const { namePrefix, variantPrefix, forcedName, parentId, parentPivot, parentSize, parentShift, atRoot, asTemplate, collapseTemplates } = options;
   const context = generateContextData(layer);
   const defaults = injectGUINodeDefaults();
   const data = getPluginData(layer, "defoldGUINode");
@@ -144,7 +144,7 @@ export async function convertTextSpriteGUINodeData(layer: TextLayer, options: GU
   const visuals = await convertGUITextSpriteNodeVisuals(layer);
   const sizeMode = "SIZE_MODE_MANUAL";
   const transformations = await convertGUITextSpriteNodeTransformations(layer, pivot, parentPivot, parentSize, parentShift, atRoot, asTemplate, data);
-  const parent = convertGUINodeParent(parentId, data);
+  const parent = convertGUINodeParent(collapseTemplates, parentId, data);
   const specialProperties = convertGUINodeSpecialProperties(layer, id, data);
   return {
     ...defaults,
@@ -167,8 +167,8 @@ export async function convertTextSpriteGUINodeData(layer: TextLayer, options: GU
  * @param parentId - The parent ID.
  * @returns The converted GUI node parent data.
  */
-function convertGUINodeParent(parentId?: string, pluginData?: WithNull<PluginGUINodeData>) {
-  if (pluginData?.cloneable) {
+function convertGUINodeParent(collapseTemplates: boolean, parentId?: string, pluginData?: WithNull<PluginGUINodeData>) {
+  if (!collapseTemplates && pluginData?.cloneable) {
     return {};
   }
   return parentId ? { parent: parentId } : {};

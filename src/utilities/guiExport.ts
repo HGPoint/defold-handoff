@@ -135,8 +135,8 @@ async function generateGUIBoxNodeData(data: GUIVariantPipelineData) {
   const guiNodeData = await convertBoxGUINodeData(layer, options);
   if (!guiNodeData.exclude || options.collapseTemplates) {
     const alreadyCloned = await isClonedLayer(layer, guiNodeData, options);
-    if (!alreadyCloned) {
-      if (guiNodeData.cloneable && isFigmaComponentInstance(layer)) {
+    if (!alreadyCloned || options.collapseTemplates) {
+      if (guiNodeData.cloneable &&  !options.collapseTemplates && isFigmaComponentInstance(layer)) {
         const cloneData = await createGUINodeCloneData(layer);
         if (cloneData) {
           options.clones.push(cloneData);

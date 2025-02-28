@@ -6,7 +6,7 @@
 import config from "config/config.json";
 import { getPluginData, isFigmaComponent, isFigmaComponentInstance, isFigmaRemoved, isFigmaSceneNode, isFigmaSlice, isLayerData, isLayerExportable, isLayerSprite, isLayerSpriteHolder, removePluginData } from "utilities/figma";
 import { exportGUIData, exportGUIPSDData, exportGUIResources, exportGUISpineData, extractGUIAtlasData } from "utilities/guiExport";
-import { postprocessGUIData, postProcessGUIPSDData, postProcessGUISpineAttachmentsData, preprocessGUIData } from "utilities/guiProcessing";
+import { postprocessGUIData, postProcessGUIPSDData, postProcessGUISpineAttachmentsData, postProcessGUISpineData, preprocessGUIData } from "utilities/guiProcessing";
 import { serializeGUIData, serializeGUISchemeData } from "utilities/guiSerialization";
 import { completeGUIData, ensureGUILayer, extractGUIOriginalData, updateGUIData, updateGUILayer } from "utilities/guiUpdate";
 import { inferGUINodeType } from "utilities/inference";
@@ -35,6 +35,7 @@ export const GUI_ATLASES_EXTRACT_PIPELINE: TransformPipeline<GUIExportPipelineDa
 
 export const GUI_SPINES_EXPORT_PIPELINE: TransformPipeline<GUIData, SpineData> = {
   transform: exportGUISpineData,
+  afterTransform: postProcessGUISpineData,
 }
 
 export const GUI_SPINE_ATTACHMENTS_EXPORT_PIPELINE: TransformPipeline<GUIData, SpineData> = {

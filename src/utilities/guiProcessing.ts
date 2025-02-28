@@ -247,21 +247,43 @@ function flattenGUINodes(nodes: GUINodeData[]): GUINodeData[] {
   return processedNodes;
 }
 
+export async function postProcessGUISpineData(spine: SpineData): Promise<SpineData> {
+  removeEmptyBones(spine);
+  return spine;
+}
+
+function removeEmptyBones(spine: SpineData) {
+  const { bones, slots } = spine;
+  const slotBones = slots.map(slot => slot.bone)
+  const unusedBoneIndices = bones.reduce((indices, bone, index) => {
+    if (!slotBones.includes(bone.name) && bones.every(spineBone => spineBone.parent != bone.name)) {
+      indices.push(index)
+    }
+    return indices;
+  }, [] as number[]);
+  const sanitizedBones = bones.filter((bone, index) => !unusedBoneIndices.includes(index));
+  spine.bones = sanitizedBones;
+}
+
 export async function postProcessGUISpineAttachmentsData(spine: SpineData): Promise<SpineData> {
   const { bones, slots, skins } = spine;
-  const rootBone = filterRootSpineBone(bones);
+  const rootBone = findRootSpineBone(bones);
   const rootedBoneCoordinates = collapseBoneCoordinates(bones);
   moveAttachmentsToRoot(skins, slots, rootBone, rootedBoneCoordinates);
   return { ...spine, bones: rootBone };
 }
 
-function filterRootSpineBone(bones: SpineBoneData[]) {
-  const rootBone = bones.find((bone) => !bone.parent);
+function findRootSpineBone(bones: SpineBoneData[]) {
+  const rootBone = bones.find(rootBoneFilter);
   if (!rootBone) {
     const bone = resolveDefaultRootSpineBone();
     return [bone]
   }
   return [rootBone];
+}
+
+function rootBoneFilter(bone: SpineBoneData) {
+  return !bone.parent
 }
 
 function collapseBoneCoordinates(originalBones: SpineBoneData[]) {
