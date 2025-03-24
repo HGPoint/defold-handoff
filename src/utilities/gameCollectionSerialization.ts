@@ -322,7 +322,7 @@ function isComponentPropertyDefaultValue(property: [keyof GameObjectData, GameOb
     return value.x === 0 && value.y === 0;
   }
   if (isPropertySizeMode(key, value)) {
-    return value === "SIZE_MODE_MANUAL";
+    return value === "SIZE_MODE_AUTO";
   }
   if (isPropertySlice9(key, value)) {
     return areVectorsEqual(value, { x: 0, y: 0, z: 0, w: 0 });
