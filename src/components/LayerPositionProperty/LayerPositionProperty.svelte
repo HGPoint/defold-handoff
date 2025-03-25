@@ -5,6 +5,8 @@
   
   export let label: string;
   export let value: Vector4;
+  export let min: number = Number.MIN_SAFE_INTEGER;
+  export let max: number = Number.MAX_SAFE_INTEGER;
   export let originalValue: WithNull<Vector4> = null;
   export let disabled = false;
 
@@ -24,14 +26,20 @@
     <NumberInput
       {id}
       bind:value={value.x}
+      {min}
+      {max}
       disabled={true} />
     <span class="widgetComponentLabel">Y:</span>
     <NumberInput
       bind:value={value.y}
+      {min}
+      {max}
       disabled={true} />
     <span class="widgetComponentLabel">Z:</span>
     <NumberInput
       bind:value={value.z}
+      {min}
+      {max}
       {disabled} />
     <Override bind:value={value} {originalValue} />
 </div>
