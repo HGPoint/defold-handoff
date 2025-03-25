@@ -7,7 +7,7 @@ import config from "config/config.json";
 import { generateContextData } from "utilities/context";
 import { injectEmptyComponentDefaults, injectGameCollectionDefaults, injectLabelComponentDefaults, injectSpriteComponentDefaults } from "utilities/defaults";
 import { getPluginData, hasChildren, isFigmaSlice, isLayerExportable } from "utilities/figma";
-import { calculateGameObjectDepth, isGameObjectEmptyType, resolveGameCollectionName, resolveGameObjectPluginData } from "utilities/gameCollection";
+import { calculateGameObjectDepth, isGameObjectEmptyType, resolveGameCollectionName, resolveGameObjectPluginData, resolveGameObjectZPosition } from "utilities/gameCollection";
 import { inferColor, inferGameObjectType, inferLineBreak, inferRotation, inferScale, inferSize, inferSizeMode, inferSlice9, inferSpriteComponentSprite, inferText, inferTextBoxSize, inferTextLeading, inferTextOutline, inferTextPivot, inferTextScale, inferTextShadow, inferTextTracking } from "utilities/inference";
 import { vector4 } from "utilities/math";
 import { calculateCenteredPosition, convertCenteredPositionToPivotedPosition } from "utilities/pivot";
@@ -41,7 +41,7 @@ export async function convertEmptyComponentData(layer: BoxLayer, options: GameOb
   const id = convertGameObjectId(layer, context.ignorePrefixes, forcedName, namePrefix)
   const children = await convertEmptyComponentChildren(layer);
   const sizeMode = undefined;
-  const transformations = convertEmptyComponentTransformations(layer, parentSize, arrangeDepth, depthAxis);
+  const transformations = convertEmptyComponentTransformations(layer, parentSize, arrangeDepth, depthAxis, data);
   const parent = convertGameObjectParent(parentId);
   const specialProperties = convertGameObjectSpecialProperties(layer, "TYPE_EMPTY", options, data);
   return {
@@ -72,7 +72,7 @@ export async function convertSpriteComponentData(layer: BoxLayer | SliceLayer, o
   const type = "TYPE_SPRITE";
   const spriteImage = await inferSpriteComponentSprite(layer);
   const sizeMode = await convertSpriteComponentSizeMode(layer, spriteImage.image, data);
-  const transformations = convertSpriteComponentTransformations(layer, parentSize, arrangeDepth, depthAxis);
+  const transformations = convertSpriteComponentTransformations(layer, parentSize, arrangeDepth, depthAxis, data);
   const parent = convertGameObjectParent(parentId);
   const specialProperties = convertGameObjectSpecialProperties(layer, type, options, data);
   return {
@@ -105,7 +105,7 @@ export async function convertLabelComponentData(layer: TextLayer, options: GameO
   const pivot = inferTextPivot(layer);
   const visuals = convertTextVisuals(layer);
   const sizeMode = undefined;
-  const transformations = convertLabelComponentTransformations(layer, parentSize, arrangeDepth, depthAxis);
+  const transformations = convertLabelComponentTransformations(layer, parentSize, arrangeDepth, depthAxis, data);
   const parent = convertGameObjectParent(parentId);
   const text = inferText(layer);
   const textParameters = convertTextParameters(layer);
@@ -193,12 +193,13 @@ function resolveImpliedGameObject(type: GameObjectType, options: GameObjectDataE
  * @param parentSize - The parent size.
  * @param arrangeDepth - Whether to arrange depth.
  * @param depthAxis - The depth axis.
+ * @param data - The plugin data.
  * @returns The converted base game object transformations data.
  */
-function convertEmptyComponentTransformations(layer: BoxLayer, parentSize: Vector4, arrangeDepth: boolean, depthAxis?: string) {
+function convertEmptyComponentTransformations(layer: BoxLayer, parentSize: Vector4, arrangeDepth: boolean, depthAxis?: string, data?: WithNull<PluginGameObjectData>) {
   const gameObjectTransformations = convertGameObjectTransformations(layer);
   const size = inferSize(layer);
-  const position = convertGameObjectPosition(layer, size, parentSize, arrangeDepth, depthAxis);
+  const position = convertGameObjectPosition(layer, size, parentSize, arrangeDepth, depthAxis, data);
   const scale = inferScale();
   return {
     ...gameObjectTransformations,
@@ -213,14 +214,16 @@ function convertEmptyComponentTransformations(layer: BoxLayer, parentSize: Vecto
  * @param parentSize - The parent size.
  * @param arrangeDepth - Whether to arrange depth.
  * @param depthAxis - The depth axis.
+ * @param data - The plugin data.
  * @returns The converted label game object transformations data.
  */
-function convertLabelComponentTransformations(layer: TextLayer, parentSize: Vector4, arrangeDepth: boolean, depthAxis?: string) {
+function convertLabelComponentTransformations(layer: TextLayer, parentSize: Vector4, arrangeDepth: boolean, depthAxis?: string, data?: WithNull<PluginGameObjectData>) {
   const gameObjectTransformations = convertGameObjectTransformations(layer);
   const textBoxSize = inferSize(layer);
   const scale = inferTextScale(layer);
   const size = inferTextBoxSize(layer, scale);
-  const position = convertLabelComponentPosition(layer, textBoxSize, parentSize, arrangeDepth, depthAxis);
+
+  const position = convertLabelComponentPosition(layer, textBoxSize, parentSize, arrangeDepth, depthAxis, data);
   return {
     ...gameObjectTransformations,
     position,
@@ -235,12 +238,13 @@ function convertLabelComponentTransformations(layer: TextLayer, parentSize: Vect
  * @param parentSize - The parent size.
  * @param arrangeDepth - Whether to arrange depth.
  * @param depthAxis - The depth axis.
+ * @param data - The plugin data.
  * @returns The converted sprite game object transformations data.
  */
-function convertSpriteComponentTransformations(layer: ExportableLayer, parentSize: Vector4, arrangeDepth: boolean, depthAxis?: string) {
+function convertSpriteComponentTransformations(layer: ExportableLayer, parentSize: Vector4, arrangeDepth: boolean, depthAxis?: string, data?: WithNull<PluginGameObjectData>) {
   const gameObjectTransformations = convertGameObjectTransformations(layer);
   const size = inferSize(layer);
-  const position = convertGameObjectPosition(layer, size, parentSize, arrangeDepth, depthAxis);
+  const position = convertGameObjectPosition(layer, size, parentSize, arrangeDepth, depthAxis, data);
   const scale = inferScale();
   return {
     ...gameObjectTransformations,
@@ -271,11 +275,14 @@ function convertGameObjectTransformations(layer: ExportableLayer) {
  * @param parentSize - The parent size.
  * @param arrangeDepth - Whether to arrange depth.
  * @param depthAxis - The depth axis.
+ * @param data - The plugin data.
  * @returns The converted game object position.
  */
-function convertGameObjectPosition(layer: ExportableLayer, size: Vector4, parentSize: Vector4, arrangeDepth: boolean, depthAxis?: string) {
+function convertGameObjectPosition(layer: ExportableLayer, size: Vector4, parentSize: Vector4, arrangeDepth: boolean, depthAxis?: string, data?: WithNull<PluginGameObjectData>) {
   const centeredPosition = calculateCenteredPosition(layer, size, parentSize);
-  centeredPosition.z = calculateGameObjectDepth(layer.x, layer.y, 0, arrangeDepth, depthAxis);
+  centeredPosition.z = resolveGameObjectZPosition(data);
+  centeredPosition.z += calculateGameObjectDepth(layer.x, layer.y, arrangeDepth, depthAxis);
+
   return centeredPosition;
 }
 
@@ -286,12 +293,15 @@ function convertGameObjectPosition(layer: ExportableLayer, size: Vector4, parent
  * @param parentSize - The parent size.
  * @param arrangeDepth - Whether to arrange depth.
  * @param depthAxis - The depth axis.
+ * @param data - The plugin data.
  * @returns The converted label game object position.
  */
-function convertLabelComponentPosition(layer: ExportableLayer, size: Vector4, parentSize: Vector4, arrangeDepth: boolean, depthAxis?: string) {
+function convertLabelComponentPosition(layer: ExportableLayer, size: Vector4, parentSize: Vector4, arrangeDepth: boolean, depthAxis?: string, data?: WithNull<PluginGameObjectData>) {
   const centeredPosition = calculateCenteredPosition(layer, size, parentSize);
   const position = convertCenteredPositionToPivotedPosition(centeredPosition, "PIVOT_CENTER", parentSize);
-  position.z = calculateGameObjectDepth(layer.x, layer.y, 0, arrangeDepth, depthAxis);
+  position.z = resolveGameObjectZPosition(data);
+  position.z += calculateGameObjectDepth(layer.x, layer.y, arrangeDepth, depthAxis);
+
   return position;
 }
 
