@@ -124,9 +124,10 @@ export function calculateCenteredRootPosition(layer: SceneNode, size: Vector4, p
     if (parent && (isFigmaPage(parent) || isFigmaSection(parent))) {
       return vector4(halfScreenWidth, halfScreenHeight, 0, 0);
     } else {
-      const { x, y } = calculateCenteredPosition(layer, size, parentSize);
-      const rootX = x + halfScreenWidth + parentShift.x;
-      const rootY = y + halfScreenHeight + parentShift.y;
+      const centeredPosition = calculateCenteredPosition(layer, size, parentSize);
+      const { x, y } = convertPositionWithParentShift(centeredPosition, parentShift);
+      const rootX = x + halfScreenWidth;
+      const rootY = y + halfScreenHeight;
       return vector4(rootX, rootY, 0, 0);
     }
   }
@@ -151,17 +152,25 @@ export function calculateCenteredRootPosition(layer: SceneNode, size: Vector4, p
 export function calculateChildPosition(layer: SceneNode, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4, parentShift: Vector4, asTemplate?: boolean, data?: WithNull<PluginGUINodeData>) {
   const centeredPosition = calculateCenteredPosition(layer, size, parentSize);
   if (data?.template && !asTemplate) {
-    const shiftedCenterX = centeredPosition.x + parentShift.x;
-    const shiftedCenterY = centeredPosition.y - parentShift.y;
-    const shiftedCenterPosition = vector4(shiftedCenterX, shiftedCenterY, 0, 0);
+    const shiftedCenterPosition = convertPositionWithParentShift(centeredPosition, parentShift);
     return shiftedCenterPosition;
   }
   const rotation = "rotation" in layer ? layer.rotation : 0;
   const pivotedPosition = calculatePivotedPosition(centeredPosition, pivot, parentPivot, size, parentSize, rotation);
-  const shiftedX = pivotedPosition.x + parentShift.x;
-  const shiftedY = pivotedPosition.y - parentShift.y;
-  const shiftedPosition = vector4(shiftedX, shiftedY, 0, 0);
+  const shiftedPosition = convertPositionWithParentShift(pivotedPosition, parentShift);
   return shiftedPosition;
+}
+
+/**
+ * Converts the position by applying a shift from the parent element.
+ * @param position - The original position as a vector.
+ * @param parentShift - The shift vector of the parent element.
+ * @returns A new vector representing the position adjusted by the parent's shift.
+ */
+export function convertPositionWithParentShift(position: Vector4, parentShift: Vector4): Vector4 {
+  const shiftedX = position.x + parentShift.x;
+  const shiftedY = position.y - parentShift.y;
+  return vector4(shiftedX, shiftedY, 0, 0);
 }
 
 /**
@@ -202,7 +211,7 @@ export function calculatePivotedShift(pivot: Pivot, parentPivot: Pivot, size: Ve
   const x = calculatePivotedHorizontalShift(width, parentWidth, pivot, parentPivot);
   const y = calculatePivotedVerticalShift(height, parentHeight, pivot, parentPivot);
   const straightShift = vector4(x, y, 0, 0);
-  const shift = shiftAlongAxis(straightShift, rotation); 
+  const shift = shiftAlongAxis(straightShift, rotation);
   return shift;
 }
 
