@@ -4,7 +4,7 @@
 
   export let id: WithNull<string> = null;
   export let value: number;
-  export let min: number = 0;
+  export let min: number = Number.MIN_SAFE_INTEGER;
   export let max: number = Number.MAX_SAFE_INTEGER;
   export let disabled = false;
 

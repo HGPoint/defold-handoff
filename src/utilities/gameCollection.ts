@@ -173,6 +173,15 @@ export function resolveGameComponentTypeId(type?: GameObjectType) {
 }
 
 /**
+ * Resolves the game object z position.
+ * @param data - The game object plugin data to resolve z position.
+ * @returns The resolved game object z position.
+ */
+export function resolveGameObjectZPosition(data?: WithNull<PluginGameObjectData>) {
+  return data ? data.position.z : 0;
+}
+
+/**
  * Resolves the game object depth axis parameters.
  * @param data - The game object plugin data to resolve the depth axis parameters from.
  * @returns The resolved game object depth axis parameters.
@@ -187,11 +196,10 @@ export function resolveDepthAxisParameters(data?: WithNull<PluginGameObjectData 
  * Calculates the game object depth based on the position.
  * @param x - The x coordinate.
  * @param y - The y coordinate.
- * @param z - The z coordinate.
  * @param arrangeDepth - Whether to arrange the depth.
  * @param depthAxis - The depth axis to use.
  */
-export function calculateGameObjectDepth(x: number, y: number, z: number, arrangeDepth: boolean, depthAxis?: string) {
+export function calculateGameObjectDepth(x: number, y: number, arrangeDepth: boolean, depthAxis?: string) {
   if (arrangeDepth) {
     depthAxis = depthAxis || config.gameObjectDefaultSpecialValues.depth_axis;
     const { axis, step } = parseDepthParameters(depthAxis);
@@ -207,7 +215,7 @@ export function calculateGameObjectDepth(x: number, y: number, z: number, arrang
       return depth;
     }
   }
-  return z;
+  return 0;
 }
 
 /**
