@@ -29,7 +29,7 @@ export function isLayerInferred(layer: SceneNode, pluginDataKey: "defoldGUINode"
  * @param data - The plugin data bound to the Figma layer.
  * @returns True if the layer is skippable, otherwise false.
  */
-export async function isLayerSkippable(layer: ExportableLayer, data: GUINodeData | GameObjectData): Promise<boolean> {
+export async function isLayerSkippable(layer: ExportableLayer, data: GUINodeData | GameObjectData | PluginGUINodeData | PluginGameObjectData): Promise<boolean> {
   return data.skip ||
     layer.name.startsWith(PROJECT_CONFIG.autoskip) ||
     isSlice9PlaceholderLayer(layer) ||

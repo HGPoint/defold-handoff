@@ -18,10 +18,12 @@
   <span class="widgetComponentLabel">W:</span>
   <NumberInput
     {id}
+    min={0}
     bind:value={value.x}
     {disabled} />
   <span class="widgetComponentLabel">H:</span>
   <NumberInput
+    min={0}
     bind:value={value.y}
     {disabled} />
 </div>

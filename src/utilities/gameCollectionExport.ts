@@ -238,19 +238,16 @@ async function generateParentOptions(layer: ExportableLayer, shouldSkip: boolean
 function resolveGameObjectLayerOptions(shouldSkip: boolean, parentOptions: GameObjectDataExportOptions, gameObjectData: GameObjectData): Pick<GameObjectDataExportOptions, "parentId" | "parentSize" | "parentShift"> {
   const { layer } = parentOptions;
   const fallbackParentSize = vector4(layer.width, layer.height, 0, 0)
-
   if (shouldSkip) {
     const { parentId, parentSize, parentShift } = parentOptions;
     const layerParentSize = isZeroVector(parentSize) ? fallbackParentSize : parentSize;
     const layerParentShift = addVectors(parentShift, gameObjectData.figma_position);
-
     return {
       parentId: parentId,
       parentSize: layerParentSize,
       parentShift: layerParentShift,
     }
   }
-
   return {
     parentId: gameObjectData.id,
     parentSize: fallbackParentSize,

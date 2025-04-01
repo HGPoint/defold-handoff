@@ -124,8 +124,7 @@ export function calculateCenteredRootPosition(layer: SceneNode, size: Vector4, p
     if (parent && (isFigmaPage(parent) || isFigmaSection(parent))) {
       return vector4(halfScreenWidth, halfScreenHeight, 0, 0);
     } else {
-      const centeredPosition = calculateCenteredPosition(layer, size, parentSize);
-      const { x, y } = convertPositionWithParentShift(centeredPosition, parentShift);
+      const { x, y } = calculateCenteredPosition(layer, size, parentSize);
       const rootX = x + halfScreenWidth;
       const rootY = y + halfScreenHeight;
       return vector4(rootX, rootY, 0, 0);
@@ -152,12 +151,12 @@ export function calculateCenteredRootPosition(layer: SceneNode, size: Vector4, p
 export function calculateChildPosition(layer: SceneNode, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4, parentShift: Vector4, asTemplate?: boolean, data?: WithNull<PluginGUINodeData>) {
   const centeredPosition = calculateCenteredPosition(layer, size, parentSize);
   if (data?.template && !asTemplate) {
-    const shiftedCenterPosition = convertPositionWithParentShift(centeredPosition, parentShift);
+    const shiftedCenterPosition = addPositionParentShift(centeredPosition, parentShift);
     return shiftedCenterPosition;
   }
   const rotation = "rotation" in layer ? layer.rotation : 0;
   const pivotedPosition = calculatePivotedPosition(centeredPosition, pivot, parentPivot, size, parentSize, rotation);
-  const shiftedPosition = convertPositionWithParentShift(pivotedPosition, parentShift);
+  const shiftedPosition = addPositionParentShift(pivotedPosition, parentShift);
   return shiftedPosition;
 }
 
@@ -167,7 +166,7 @@ export function calculateChildPosition(layer: SceneNode, pivot: Pivot, parentPiv
  * @param parentShift - The shift vector of the parent element.
  * @returns A new vector representing the position adjusted by the parent's shift.
  */
-export function convertPositionWithParentShift(position: Vector4, parentShift: Vector4): Vector4 {
+export function addPositionParentShift(position: Vector4, parentShift: Vector4): Vector4 {
   const shiftedX = position.x + parentShift.x;
   const shiftedY = position.y - parentShift.y;
   return vector4(shiftedX, shiftedY, 0, 0);

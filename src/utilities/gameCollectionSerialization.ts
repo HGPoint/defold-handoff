@@ -4,10 +4,10 @@
  */
 
 import { PROJECT_CONFIG } from "handoff/project";
-import { propertySerializer } from "utilities/dataSerialization";
+import { propertySerializer, serializeVector4Property } from "utilities/dataSerialization";
 import { indentLines, processLines, wrapLinesInQuotes } from "utilities/defold";
 import { isGameObjectLabelType, isGameObjectSpriteType } from "utilities/gameCollection";
-import { areVectorsEqual, isVector4, readableNumber } from "utilities/math";
+import { areVectorsEqual, copyVector, isVector4, readableNumber, vector4 } from "utilities/math";
 import { generateAtlasPath } from "utilities/path";
 
 const GAME_OBJECT_PROPERTY_ORDER: (keyof GameObjectData)[] = [
@@ -206,18 +206,15 @@ function serializeBaseProperties(baseProperties: Partial<Record<keyof GameObject
     const property = [key, value] as [keyof GameObjectData, GameObjectData[keyof GameObjectData]];
     if (shouldOmitGameObjectProperty(property)) {
       return serializedProperties;
-    }
-    if (isPropertyScale(key, value)) {
-      const serializedScale = serializeScale3Property(value);
-      return `${serializedProperties}${serializedScale}`;
-    }
-    if (isPropertyPosition(key, value)) {
-      const serializedPosition = serializePositionProperty(value);
-      return `${serializedProperties}${serializedPosition}`;
-    }
-    if (isPropertyChildren(key, value)) {
+    } else if (isPropertyChildren(key, value)) {
       const serializedChildren = serializeChildrenProperty(value);
       return `${serializedProperties}${serializedChildren}`;
+    } else if (isPropertyScale(key, value)) {
+      const serializedScale = serializeScale3Property(value);
+      return `${serializedProperties}${serializedScale}`;
+    } else if (isPropertyPosition(key, value)) {
+      const serializedPosition = serializePositionProperty(value);
+      return `${serializedProperties}${serializedPosition}`;
     }
     return propertySerializer<GameObjectData>(serializedProperties, property);
   }, "");
@@ -270,30 +267,33 @@ function serializeComponentProperties(componentProperties: Partial<Record<keyof 
     } else {
       if (shouldOmitComponentProperty(property)) {
         return serializedProperties;
-      }
-      if (isPropertyScale(key, value)) {
+      } else if (isPropertyScale(key, value)) {
         const serializedScale = serializeScaleProperty(value);
         return `${serializedProperties}${serializedScale}`;
-      }
-      if (isPropertyPosition(key, value)) {
+      } else if (isPropertyPosition(key, value)) {
         const serializedPosition = serializePositionProperty(value);
         return `${serializedProperties}${serializedPosition}`;
-      }
-      if (isPropertyImage(key, value)) {
+      } else if (isPropertyImage(key, value)) {
         const serializedImage = serializeImageProperty(value);
         return `${serializedProperties}${serializedImage}`;
-      }
-      if (isPropertyMaterial(key, value)) {
+      } else if (isPropertyMaterial(key, value)) {
         const serializedMaterial = serializeMaterialProperty();
         return `${serializedProperties}${serializedMaterial}`;
-      }
-      if (isPropertyTextLeading(key, value)) {
+      } else if (isPropertyTextLeading(key, value)) {
         const serializedMaterial = serializeTextLeadingProperty(value);
         return `${serializedProperties}${serializedMaterial}`;
-      }
-      if (isPropertyTextTracking(key, value)) {
+      } else if (isPropertyTextTracking(key, value)) {
         const serializedMaterial = serializeTextTrackingProperty(value);
         return `${serializedProperties}${serializedMaterial}`;
+      } else if (isPropertyColor(key, value)) {
+        const serializedColor = serializeColorProperty(value);
+        return `${serializedProperties}${serializedColor}`;
+      } else if (isPropertyOutline(key, value)) {
+        const serializedColor = serializeOutlineProperty(value);
+        return `${serializedProperties}${serializedColor}`;
+      } else if (isPropertyShadow(key, value)) {
+        const serializedColor = serializeShadowProperty(value);
+        return `${serializedProperties}${serializedColor}`;
       }
       return propertySerializer<GameObjectData>(serializedProperties, [key, value]);
     }
@@ -481,6 +481,18 @@ function isPropertyPivot(property: keyof GameObjectData, value: GameObjectData[k
   return property === "pivot" && (value === "PIVOT_CENTER" || value === "PIVOT_N" || value === "PIVOT_NE" || value === "PIVOT_E" || value === "PIVOT_SE" || value === "PIVOT_S" || value === "PIVOT_SW" || value === "PIVOT_W" || value === "PIVOT_NW");
 }
 
+function isPropertyColor(property: keyof GameObjectData, value: GameObjectData[keyof GameObjectData]): value is Vector4 {
+  return property === "color" && isVector4(value);
+}
+
+function isPropertyOutline(property: keyof GameObjectData, value: GameObjectData[keyof GameObjectData]): value is Vector4 {
+  return property === "outline" && isVector4(value);
+}
+
+function isPropertyShadow(property: keyof GameObjectData, value: GameObjectData[keyof GameObjectData]): value is Vector4 {
+  return property === "shadow" && isVector4(value);
+}
+
 /**
  * Determines whether the property is children.
  * @param property - The property to be checked.
@@ -530,8 +542,14 @@ function serializeLabelTypeProperty(): string {
  * @param value - The value of the scale3 property.
  * @returns The serialized scale3 property.
  */
-function serializeScale3Property(value: Vector4): string {
-  return `scale3 {\n  x: ${readableNumber(value.x)}\n  y: ${readableNumber(value.y)}\n  z: ${readableNumber(value.z)}\n}\n`;
+function serializeScale3Property(scale3: Vector4): string {
+  const serializableScale3 = copyVector(scale3);
+  serializableScale3.w = 0;
+  const serializedScale3 = serializeVector4Property<GameObjectData>("scale3", serializableScale3, vector4(1, 1, 1, 0));
+  if (serializedScale3) {
+    return `${serializedScale3}\n`;
+  }
+  return "";
 }
 
 /**
@@ -539,8 +557,14 @@ function serializeScale3Property(value: Vector4): string {
  * @param value - The value of the scale property.
  * @returns The serialized scale property.
  */
-function serializeScaleProperty(value: Vector4): string {
-  return `scale {\n  x: ${readableNumber(value.x)}\n  y: ${readableNumber(value.y)}\n  z: ${readableNumber(value.z)}\n}\n`;
+function serializeScaleProperty(scale: Vector4): string {
+  const serializableScale = copyVector(scale);
+  serializableScale.w = 0;
+  const serializedScale = serializeVector4Property<GameObjectData>("scale", serializableScale, vector4(1, 1, 1, 0));
+  if (serializedScale) {
+    return `${serializedScale}\n`;
+  }
+  return "";
 }
 
 /**
@@ -548,8 +572,38 @@ function serializeScaleProperty(value: Vector4): string {
  * @param value - The value of the position property.
  * @returns The serialized position property.
  */
-function serializePositionProperty(value: Vector4): string {
-  return `position {\n  x: ${readableNumber(value.x)}\n  y: ${readableNumber(value.y)}\n  z: ${readableNumber(value.z)}\n}\n`;
+function serializePositionProperty(position: Vector4): string {
+  const serializablePosition = copyVector(position);
+  serializablePosition.w = 0;
+  const serializedPosition = serializeVector4Property<GameObjectData>("position", serializablePosition, vector4(0));
+  if (serializedPosition) {
+    return `${serializedPosition}\n`;
+  }
+  return "";
+}
+
+function serializeColorProperty(color: Vector4): string {
+  const serializedColor = serializeVector4Property<GameObjectData>("color", color, vector4(1));
+  if (serializedColor) {
+    return `${serializedColor}\n`;
+  }
+  return "";
+}
+
+function serializeOutlineProperty(outline: Vector4): string {
+  const serializedOutline = serializeVector4Property<GameObjectData>("outline", outline, vector4(0, 0, 0, 1));
+  if (serializedOutline) {
+    return `${serializedOutline}\n`;
+  }
+  return "";
+}
+
+function serializeShadowProperty(shadow: Vector4): string {
+  const serializedShadow = serializeVector4Property<GameObjectData>("shadow", shadow, vector4(0, 0, 0, 1));
+  if (serializedShadow) {
+    return `${serializedShadow}\n`;
+  }
+  return "";
 }
 
 /**
@@ -590,11 +644,11 @@ function serializeTextTrackingProperty(value: number): string {
 
 /**
  * Serializes the children property.
- * @param value - The value of the children property.
+ * @param children - The value of the children property.
  * @returns The serialized children property.
  */
-function serializeChildrenProperty(value: string[]): string {
-  return value.map((child) => `children: "${child}"\n`).join("");
+function serializeChildrenProperty(children: string[]): string {
+  return children.map((child) => `children: "${child}"\n`).join("");
 }
 
 function orderGameObjectProperties(key1: keyof GameObjectData, key2: keyof GameObjectData) {

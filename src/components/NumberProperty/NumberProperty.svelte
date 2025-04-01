@@ -16,6 +16,7 @@
 </label>
 <NumberInput
   {id}
+  min={0}
   bind:value={value}
   disabled={disabled} />
 <slot />

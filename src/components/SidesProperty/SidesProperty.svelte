@@ -35,18 +35,22 @@
     <span class="widgetComponentLabel">L:</span>
     <NumberInput
       {id}
+      min={0}
       bind:value={editedValue.x}
       {disabled} />
     <span class="widgetComponentLabel">T:</span>
     <NumberInput
+      min={0}  
       bind:value={editedValue.y}
       {disabled} />
     <span class="widgetComponentLabel">R:</span>
     <NumberInput
+      min={0}  
       bind:value={editedValue.z}
       {disabled} />
     <span class="widgetComponentLabel">B:</span>
     <NumberInput
+      min={0}  
       bind:value={editedValue.w}
       {disabled} />
     <button

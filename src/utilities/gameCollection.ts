@@ -173,11 +173,11 @@ export function resolveGameComponentTypeId(type?: GameObjectType) {
 }
 
 /**
- * Resolves the game object z position.
- * @param data - The game object plugin data to resolve z position.
- * @returns The resolved game object z position.
+ * Resolves the game object Z coordinate.
+ * @param data - The game object plugin data to resolve Z coordinate.
+ * @returns The resolved game object Z coordinate.
  */
-export function resolveGameObjectZPosition(data?: WithNull<PluginGameObjectData>) {
+export function resolveGameObjectZCoordinate(data?: WithNull<PluginGameObjectData>) {
   return data ? data.position.z : 0;
 }
 
