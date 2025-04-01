@@ -49,3 +49,13 @@ type DynamicAtlas = {
   name: string,
   images: (SliceNode | TextNode)[]
 }
+
+type AtlasSpaceNode = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  used?: boolean;
+  right?: AtlasSpaceNode;
+  down?: AtlasSpaceNode;
+}

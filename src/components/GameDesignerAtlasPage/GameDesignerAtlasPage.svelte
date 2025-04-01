@@ -12,7 +12,8 @@
       <ActionButton label="Add Sprites to Atlas" action="addSprites" />
     {/if}
     <ActionButton label="Fix Atlas" action="fixAtlases" />
-    <ActionButton label="Sort Atlas" action="sortAtlases" />
+    <ActionButton label="Sort Atlas Alphabetically" action="sortAtlasesAlphabet" />
+    <ActionButton label="Sort Atlas By Size" action="sortAtlasesSize" />
     <ActionButton label="Fit Atlas" action="fitAtlases" />
   </Actions>
   <Actions collapseKey="atlasActionsCollapsed">

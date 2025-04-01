@@ -3,7 +3,8 @@
  * @packageDocumentation
  */
 
-import { appendSprites, ATLAS_EXPORT_PIPELINE, ATLAS_SERIALIZATION_PIPELINE, ATLAS_UPDATE_PIPELINE, canExtractSprite, createAtlasLayer, createSpriteLayers, distributeSprites, extractSprite, fitAtlas, fixAtlas, removeAtlas, tryRestoreAtlasLayer } from "utilities/atlas";
+import {
+  appendSprites, ATLAS_EXPORT_PIPELINE, ATLAS_SERIALIZATION_PIPELINE, ATLAS_UPDATE_PIPELINE, canExtractSprite, createAtlasLayer, createSpriteLayers, packSpritesBySize, packSpritesAlphabetically, extractSprite, fitAtlas, fixAtlas, removeAtlas, tryRestoreAtlasLayer } from "utilities/atlas";
 import { packAtlases } from "utilities/atlasExport";
 import { combineAtlases, spreadAtlasGroups } from "utilities/atlasProcessing";
 import { isFigmaComponentInstance } from "utilities/figma";
@@ -109,8 +110,16 @@ export function fixAtlases(layers: ComponentSetNode[]) {
  * Sorts sprites within each atlas in an array of atlases.
  * @param layers - The atlases whose sprites should be sorted.
  */
-export function sortAtlases(layers: ComponentSetNode[]) {
-  layers.forEach(distributeSprites);
+export function sortAtlasesBySize(layers: ComponentSetNode[]) {
+  layers.forEach(packSpritesBySize);
+}
+
+/**
+ * Sorts sprites within each atlas in an array of atlases.
+ * @param layers - The atlases whose sprites should be sorted.
+ */
+export function sortAtlasesAlphabetically(layers: ComponentSetNode[]) {
+  layers.forEach(packSpritesAlphabetically);
 }
 
 /**

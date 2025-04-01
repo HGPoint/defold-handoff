@@ -821,3 +821,17 @@ function calculateTextSpriteVerticalAdjustmentShift(layer: TextNode, topSpace: n
   const shift = (topSpace + bottomSpace) / 2 - bottomSpace;
   return absFloor(shift);
 }
+
+export function sorterByArea(layerA: SceneNode, layerB: SceneNode) {
+  return layerB.width * layerB.height - layerA.width * layerA.height
+}
+
+export function sorterByName(layerA: SceneNode, layerB: SceneNode) {
+  if (layerA.name < layerB.name) {
+    return -1;
+  }
+  if (layerA.name > layerB.name) {
+    return 1;
+  }
+  return 0;
+}

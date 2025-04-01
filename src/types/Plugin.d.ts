@@ -232,7 +232,8 @@ type PluginMessagesAtlasAction =
   "updateAtlas" |
   "removeAtlases" |
   "fixAtlases" |
-  "sortAtlases" |
+  "sortAtlasesAlphabet" |
+  "sortAtlasesSize" |
   "fitAtlases" |
   "validateAtlases"
 

@@ -8,7 +8,8 @@ import { exportAtlasData } from "utilities/atlasExport";
 import { serializeAtlasData } from "utilities/atlasSerialization";
 import { completeAtlasData, ensureAtlasLayer, extractAtlasOriginalData, updateAtlasData } from "utilities/atlasUpdate";
 import { findSectionWithContextData } from "utilities/context";
-import { findMainFigmaComponent, getPluginData, isFigmaComponent, isFigmaComponentSet, isFigmaRemoved, isFigmaSceneNode, isFigmaSlice, isFigmaText, isLayerAtlas, isLayerContextSection, removePluginData, setPluginData } from "utilities/figma";
+import {
+  findMainFigmaComponent, getPluginData, isFigmaComponent, isFigmaComponentSet, isFigmaRemoved, isFigmaSceneNode, isFigmaSlice, isFigmaText, isLayerAtlas, isLayerContextSection, removePluginData, setPluginData, sorterByArea, sorterByName } from "utilities/figma";
 
 export const ATLAS_EXPORT_PIPELINE: TransformPipeline<AtlasExportPipelineData, AtlasData> = {
   transform: exportAtlasData,
@@ -317,41 +318,61 @@ export async function extractSprite(layer: InstanceNode) {
   return image;
 }
 
-/**
- * Packs sprites within the atlas node, arranging them to fit within the available space.
- * @param atlas - The atlas to pack sprites within.
- * TODO: Implement a more usable sorting algorithm.
- */
-export function distributeSprites(atlas: ComponentSetNode) {
-  let maxHeight = config.atlasPadding;
-  let maxWidth = config.atlasPadding;
-  let currentRowHeight = 0;
-  const sprites = [...atlas.children]
-  sprites.sort(sortSpritesByName);
-  sprites.forEach(sprite => {
-    const { width, height } = sprite;
-    if (height > currentRowHeight) {
-      currentRowHeight = height;
-    }
-    if (maxWidth + width > atlas.width) {
-      maxWidth = config.atlasPadding;
-      maxHeight += currentRowHeight + config.atlasSpritePadding;
-      currentRowHeight = height;
-    }
-    sprite.x = maxWidth;
-    sprite.y = maxHeight;
-    maxWidth += width + config.atlasSpritePadding;
-  });
+export function packSpritesBySize(atlas: ComponentSetNode) {
+  const { width, height } = atlas;
+  const sprites = [...atlas.children];
+  sprites.sort(sorterByArea);
+  packSprites(sprites, width, height);
 }
 
-/**
- * Sorts sprites based on their names.
- * @param sprite1 - The first sprite to compare.
- * @param sprite2 - The second sprite to compare.
- * @returns The comparison result.
- */
-function sortSpritesByName(sprite1: SceneNode, sprite2: SceneNode) {
-  return sprite1.name.localeCompare(sprite2.name);
+export function packSpritesAlphabetically(atlas: ComponentSetNode) {
+  const { width, height } = atlas;
+  const sprites = [...atlas.children];
+  sprites.sort(sorterByName);
+  packSprites(sprites, width, height);
+}
+
+function packSprites(sprites: SceneNode[], width: number, height: number) {
+  const padding = 20
+  const root = {
+    x: padding,
+    y: padding,
+    width: width - padding * 2,
+    height: height - padding * 2
+  };
+  for (const sprite of sprites) {
+    const node = findNode(root, sprite.width, sprite.height);
+    if (node) {
+      sprite.x = node.x;
+      sprite.y = node.y;
+      splitNode(node, sprite.width, sprite.height, padding);
+    }
+  }
+}
+
+function findNode(root: AtlasSpaceNode, width: number, height: number): AtlasSpaceNode | null {
+  if (root.used) {
+    return findNode(root.right!, width, height) || findNode(root.down!, width, height);
+  } else if (width <= root.width && height <= root.height) {
+    return root;
+  }
+  return null;
+}
+
+function splitNode(node: AtlasSpaceNode, width: number, height: number, padding: number) {
+  node.used = true;
+  node.down = {
+    x: node.x,
+    y: node.y + height + padding,
+    width: node.width,
+    height: node.height - height - padding,
+  };
+  node.right = {
+    x: node.x + width + padding,
+    y: node.y,
+    width: node.width - width - padding,
+    height,
+  };
 }
 
 /**

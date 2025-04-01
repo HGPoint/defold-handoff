@@ -4,7 +4,7 @@
  */
 
 import config from "config/config.json";
-import { addSprites, createAtlas, exportAtlases, exportGameCollectionAtlases, exportGUIAtlases, fitAtlases, fixAtlases, removeAtlases, sortAtlases, tryExtractSprite, tryRestoreAtlases, updateAtlas } from "handoff/atlas";
+import { addSprites, createAtlas, exportAtlases, exportGameCollectionAtlases, exportGUIAtlases, fitAtlases, fixAtlases, removeAtlases, sortAtlasesAlphabetically, sortAtlasesBySize, tryExtractSprite, tryRestoreAtlases, updateAtlas } from "handoff/atlas";
 import { exportBareBundle, exportBundle } from "handoff/bundle";
 import { copyGameCollection, exportGameCollections, fixGameObjects, removeGameObjects, updateGameObject } from "handoff/gameCollection";
 import { copyGUI, copyGUIScheme, exportGUI, fixGUI, logGUI, removeGUI, resetGUIOverrides, resizeGUIToScreen, tryFixGUIText, tryForceGUIChildrenOnScreen, tryMatchGUINodeToGUIChild, tryMatchGUINodeToGUIParent, updateGUI, updateGUINode } from "handoff/gui";
@@ -182,8 +182,10 @@ function processUIMessage(message: PluginMessage) {
     onRemoveAtlases();
   } else if (type === "fixAtlases") {
     onFixAtlases();
-  } else if (type === "sortAtlases") {
-    onSortAtlases();
+  } else if (type === "sortAtlasesSize") {
+    onSortAtlasesBySize();
+  } else if (type === "sortAtlasesAlphabet") {
+    onSortAtlasesAlphabetically();
   } else if (type === "fitAtlases") {
     onFitAtlases();
   } else if (type === "updateSection" && data?.section) {
@@ -475,9 +477,15 @@ function onFixAtlases() {
   figma.notify("Atlases fixed");
 }
 
-function onSortAtlases() {
+function onSortAtlasesBySize() {
   const atlases = pickAtlasesFromSelectionData(SELECTION);
-  sortAtlases(atlases);
+  sortAtlasesBySize(atlases);
+  figma.notify("Atlases sorted");
+}
+
+function onSortAtlasesAlphabetically() {
+  const atlases = pickAtlasesFromSelectionData(SELECTION);
+  sortAtlasesAlphabetically(atlases);
   figma.notify("Atlases sorted");
 }
 
