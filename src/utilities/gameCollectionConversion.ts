@@ -10,7 +10,7 @@ import { injectEmptyComponentDefaults, injectGameCollectionDefaults, injectLabel
 import { getPluginData, hasChildren, isFigmaBox, isFigmaSlice, isFigmaText } from "utilities/figma";
 import { calculateGameObjectDepth, isGameObjectEmptyType, resolveGameCollectionName, resolveGameObjectPluginData, resolveGameObjectZCoordinate } from "utilities/gameCollection";
 import { inferColor, inferGameObjectType, inferLineBreak, inferRotation, inferScale, inferSize, inferSizeMode, inferSlice9, inferSpriteComponentSprite, inferText, inferTextBoxSize, inferTextLeading, inferTextOutline, inferTextPivot, inferTextScale, inferTextShadow, inferTextTracking } from "utilities/inference";
-import { vector4 } from "utilities/math";
+import { isZeroVector, vector4 } from "utilities/math";
 import { calculateCenteredPosition, convertCenteredPositionToPivotedPosition } from "utilities/pivot";
 import { isSlice9PlaceholderLayer } from "utilities/slice9";
 
@@ -35,14 +35,14 @@ export function convertGameCollectionData(rootData?: WithNull<PluginGameObjectDa
  * @returns The converted game object data.
  */
 export async function convertEmptyComponentData(layer: BoxLayer, options: GameObjectDataExportOptions): Promise<GameObjectData> {
-  const { namePrefix, forcedName, parentId, parentSize, arrangeDepth, depthAxis } = options;
+  const { namePrefix, forcedName, parentId, parentSize, atRoot, arrangeDepth, depthAxis } = options;
   const context = generateContextData(layer);
   const defaults = injectEmptyComponentDefaults();
   const data = getPluginData(layer, "defoldGameObject");
   const id = convertGameObjectId(layer, context.ignorePrefixes, forcedName, namePrefix)
   const children = await convertEmptyComponentChildren(layer);
   const sizeMode = undefined;
-  const transformations = convertEmptyComponentTransformations(layer, parentSize, arrangeDepth, depthAxis, data);
+  const transformations = convertEmptyComponentTransformations(layer, parentSize, atRoot, arrangeDepth, depthAxis, data);
   const parent = convertGameObjectParent(parentId);
   const specialProperties = convertGameObjectSpecialProperties(layer, "TYPE_EMPTY", options, data);
   return {
@@ -64,7 +64,7 @@ export async function convertEmptyComponentData(layer: BoxLayer, options: GameOb
  * @returns The converted sprite component data.
  */
 export async function convertSpriteComponentData(layer: BoxLayer | SliceLayer, options: GameObjectDataExportOptions): Promise<GameObjectData> {
-  const { namePrefix, forcedName, parentId, parentSize, arrangeDepth, depthAxis } = options;
+  const { namePrefix, forcedName, parentId, parentSize, atRoot, arrangeDepth, depthAxis } = options;
   const context = generateContextData(layer);
   const defaults = injectSpriteComponentDefaults();
   const data = resolveGameObjectPluginData(layer);
@@ -73,7 +73,7 @@ export async function convertSpriteComponentData(layer: BoxLayer | SliceLayer, o
   const type = "TYPE_SPRITE";
   const spriteImage = await inferSpriteComponentSprite(layer);
   const sizeMode = await convertSpriteComponentSizeMode(layer, spriteImage.image, data);
-  const transformations = convertSpriteComponentTransformations(layer, parentSize, arrangeDepth, depthAxis, data);
+  const transformations = convertSpriteComponentTransformations(layer, parentSize, atRoot, arrangeDepth, depthAxis, data);
   const parent = convertGameObjectParent(parentId);
   const specialProperties = convertGameObjectSpecialProperties(layer, type, options, data);
   return {
@@ -195,17 +195,15 @@ function resolveImpliedGameObject(type: GameObjectType, options: GameObjectDataE
  * Converts the base game object transformations to a Defold-like data.
  * @param layer - The Figma layer to convert.
  * @param parentSize - The parent size.
- * @param parentShift - The parent shift.
- * @param atRoot - Whether the layer is at the root level.
  * @param arrangeDepth - Whether to arrange depth.
  * @param depthAxis - The depth axis.
  * @param data - The plugin data.
  * @returns The converted base game object transformations data.
  */
-function convertEmptyComponentTransformations(layer: BoxLayer, parentSize: Vector4, arrangeDepth: boolean, depthAxis?: string, data?: WithNull<PluginGameObjectData>) {
+function convertEmptyComponentTransformations(layer: BoxLayer, parentSize: Vector4, atRoot: boolean, arrangeDepth: boolean, depthAxis?: string, data?: WithNull<PluginGameObjectData>) {
   const gameObjectTransformations = convertGameObjectTransformations(layer);
   const size = inferSize(layer);
-  const position = convertGameObjectPosition(layer, size, parentSize, arrangeDepth, depthAxis, data);
+  const position = convertGameObjectPosition(layer, size, parentSize, atRoot, arrangeDepth, depthAxis, data);
   const scale = inferScale();
   return {
     ...gameObjectTransformations,
@@ -218,7 +216,6 @@ function convertEmptyComponentTransformations(layer: BoxLayer, parentSize: Vecto
  * Converts the label game object transformations to a Defold-like data.
  * @param layer - The Figma layer to convert.
  * @param parentSize - The parent size.
- * @param parentShift - The parent shift.
  * @param arrangeDepth - Whether to arrange depth.
  * @param depthAxis - The depth axis.
  * @param data - The plugin data.
@@ -242,17 +239,15 @@ function convertLabelComponentTransformations(layer: TextLayer, parentSize: Vect
  * Converts the sprite game object transformations to a Defold-like data.
  * @param layer - The Figma layer to convert.
  * @param parentSize - The parent size.
- * @param parentShift - The parent shift.
- * @param atRoot - Whether the layer is at the root level.
  * @param arrangeDepth - Whether to arrange depth.
  * @param depthAxis - The depth axis.
  * @param data - The plugin data.
  * @returns The converted sprite game object transformations data.
  */
-function convertSpriteComponentTransformations(layer: ExportableLayer, parentSize: Vector4, arrangeDepth: boolean, depthAxis?: string, data?: WithNull<PluginGameObjectData>) {
+function convertSpriteComponentTransformations(layer: ExportableLayer, parentSize: Vector4, atRoot: boolean, arrangeDepth: boolean, depthAxis?: string, data?: WithNull<PluginGameObjectData>) {
   const gameObjectTransformations = convertGameObjectTransformations(layer);
   const size = inferSize(layer);
-  const position = convertGameObjectPosition(layer, size, parentSize, arrangeDepth, depthAxis, data);
+  const position = convertGameObjectPosition(layer, size, parentSize, arrangeDepth, atRoot, depthAxis, data);
   const scale = inferScale();
   return {
     ...gameObjectTransformations,
@@ -286,7 +281,10 @@ function convertGameObjectTransformations(layer: ExportableLayer) {
  * @param data - The plugin data.
  * @returns The converted game object position.
  */
-function convertGameObjectPosition(layer: ExportableLayer, size: Vector4, parentSize: Vector4, arrangeDepth: boolean, depthAxis?: string, data?: WithNull<PluginGameObjectData>) {
+function convertGameObjectPosition(layer: ExportableLayer, size: Vector4, parentSize: Vector4, atRoot: boolean, arrangeDepth: boolean, depthAxis?: string, data?: WithNull<PluginGameObjectData>) {
+  if (atRoot && isZeroVector(parentSize)) {
+    return vector4(0);
+  }
   const { x, y } = layer;
   const centeredPosition = calculateCenteredPosition(layer, size, parentSize);
   const resolvedZ = resolveGameObjectZCoordinate(data);
@@ -352,7 +350,6 @@ function convertTextVisuals(layer: TextLayer) {
   const color = inferColor(layer);
   const outline = inferTextOutline(layer);
   const shadow = inferTextShadow(layer);
-  console.log(color);
   return {
     color,
     outline,
