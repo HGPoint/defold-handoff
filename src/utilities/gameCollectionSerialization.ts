@@ -3,6 +3,7 @@
  * @packageDocumentation
  */
 
+import config from "config/config.json"
 import { PROJECT_CONFIG } from "handoff/project";
 import { propertySerializer, serializeVector4Property } from "utilities/dataSerialization";
 import { indentLines, processLines, wrapLinesInQuotes } from "utilities/defold";
@@ -322,7 +323,7 @@ function isComponentPropertyDefaultValue(property: [keyof GameObjectData, GameOb
     return value.x === 0 && value.y === 0;
   }
   if (isPropertySizeMode(key, value)) {
-    return value === "SIZE_MODE_AUTO";
+    return value === config.gameObjectDefaultValues.size_mode;
   }
   if (isPropertySlice9(key, value)) {
     return areVectorsEqual(value, { x: 0, y: 0, z: 0, w: 0 });
@@ -331,7 +332,7 @@ function isComponentPropertyDefaultValue(property: [keyof GameObjectData, GameOb
     return value === "";
   }
   if (isPropertyBlendMode(key, value)) {
-    return value === "BLEND_MODE_ALPHA";
+    return value === config.gameObjectDefaultValues.blend_mode;
   }
   if (isPropertyTextLeading(key, value)) {
     return value === 1;
@@ -340,7 +341,7 @@ function isComponentPropertyDefaultValue(property: [keyof GameObjectData, GameOb
     return value === 0;
   }
   if (isPropertyPivot(key, value)) {
-    return value === "PIVOT_CENTER";
+    return value === config.gameObjectDefaultValues.pivot;
   }
 }
 

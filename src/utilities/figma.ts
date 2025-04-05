@@ -822,15 +822,23 @@ function calculateTextSpriteVerticalAdjustmentShift(layer: TextNode, topSpace: n
   return absFloor(shift);
 }
 
-export function sorterByArea(layerA: SceneNode, layerB: SceneNode) {
+export function layerSorterByArea(layerA: SceneNode, layerB: SceneNode) {
   const areaDifference = layerB.width * layerB.height - layerA.width * layerA.height;
   if (areaDifference == 0) {
-    return sorterByName(layerA, layerB);
+    return layerSorterByName(layerA, layerB);
   }
   return areaDifference;
 }
 
-export function sorterByName(layerA: SceneNode, layerB: SceneNode) {
+export function layerSorterBySide(layerA: SceneNode, layerB: SceneNode) {
+  const sideDifference = Math.max(layerB.width, layerB.height) - Math.max(layerA.width, layerA.height);
+  if (sideDifference == 0) {
+    return layerSorterByName(layerA, layerB);
+  }
+  return sideDifference;
+}
+
+export function layerSorterByName(layerA: SceneNode, layerB: SceneNode) {
   if (layerA.name < layerB.name) {
     return -1;
   }

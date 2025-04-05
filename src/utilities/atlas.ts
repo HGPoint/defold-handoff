@@ -8,8 +8,7 @@ import { exportAtlasData } from "utilities/atlasExport";
 import { serializeAtlasData } from "utilities/atlasSerialization";
 import { completeAtlasData, ensureAtlasLayer, extractAtlasOriginalData, updateAtlasData } from "utilities/atlasUpdate";
 import { findSectionWithContextData } from "utilities/context";
-import {
-  findMainFigmaComponent, getPluginData, isFigmaComponent, isFigmaComponentSet, isFigmaRemoved, isFigmaSceneNode, isFigmaSlice, isFigmaText, isLayerAtlas, isLayerContextSection, removePluginData, setPluginData, sorterByArea, sorterByName } from "utilities/figma";
+import { findMainFigmaComponent, getPluginData, isFigmaComponent, isFigmaComponentSet, isFigmaRemoved, isFigmaSceneNode, isFigmaSlice, isFigmaText, isLayerAtlas, isLayerContextSection, removePluginData, setPluginData, layerSorterByName, layerSorterBySide } from "utilities/figma";
 
 export const ATLAS_EXPORT_PIPELINE: TransformPipeline<AtlasExportPipelineData, AtlasData> = {
   transform: exportAtlasData,
@@ -319,26 +318,26 @@ export async function extractSprite(layer: InstanceNode) {
 }
 
 export function packSpritesBySize(atlas: ComponentSetNode) {
-  const { width, height } = atlas;
+  const { width } = atlas;
   const sprites = [...atlas.children];
-  sprites.sort(sorterByArea);
-  packSprites(sprites, width, height);
+  sprites.sort(layerSorterBySide);
+  packSprites(sprites, width);
 }
 
 export function packSpritesAlphabetically(atlas: ComponentSetNode) {
-  const { width, height } = atlas;
+  const { width } = atlas;
   const sprites = [...atlas.children];
-  sprites.sort(sorterByName);
-  packSprites(sprites, width, height);
+  sprites.sort(layerSorterByName);
+  packSprites(sprites, width);
 }
 
-function packSprites(sprites: SceneNode[], width: number, height: number) {
+function packSprites(sprites: SceneNode[], width: number) {
   const padding = 20
   const root = {
     x: padding,
     y: padding,
     width: width - padding * 2,
-    height: height - padding * 2
+    height: Infinity
   };
   for (const sprite of sprites) {
     const node = findNode(root, sprite.width, sprite.height);
@@ -352,7 +351,9 @@ function packSprites(sprites: SceneNode[], width: number, height: number) {
 
 function findNode(root: AtlasSpaceNode, width: number, height: number): AtlasSpaceNode | null {
   if (root.used) {
-    return findNode(root.right!, width, height) || findNode(root.down!, width, height);
+    if (root.right && root.down) {
+      return findNode(root.right, width, height) || findNode(root.down, width, height);
+    }
   } else if (width <= root.width && height <= root.height) {
     return root;
   }
