@@ -10,7 +10,7 @@ import { injectEmptyComponentDefaults, injectGameCollectionDefaults, injectLabel
 import { getPluginData, hasChildren, isFigmaBox, isFigmaPage, isFigmaSection, isFigmaSlice, isFigmaText } from "utilities/figma";
 import { calculateGameObjectDepth, isGameObjectEmptyType, resolveGameCollectionName, resolveGameObjectPluginData, resolveGameObjectZCoordinate } from "utilities/gameCollection";
 import { inferColor, inferGameObjectType, inferLineBreak, inferRotation, inferScale, inferSize, inferSizeMode, inferSlice9, inferSpriteComponentSprite, inferText, inferTextBoxSize, inferTextLeading, inferTextOutline, inferTextPivot, inferTextScale, inferTextShadow, inferTextTracking } from "utilities/inference";
-import { vector4 } from "utilities/math";
+import { readableVector, vector4 } from "utilities/math";
 import { addPositionParentShift, calculateCenteredPosition, convertCenteredPositionToPivotedPosition } from "utilities/pivot";
 import { isSlice9PlaceholderLayer } from "utilities/slice9";
 
@@ -292,7 +292,8 @@ function convertGameObjectPosition(layer: ExportableLayer, size: Vector4, parent
   const resolvedZ = resolveGameObjectZCoordinate(data);
   const depth = calculateGameObjectDepth(x, y, arrangeDepth, depthAxis);
   shiftedPosition.z = resolvedZ + depth;
-  return shiftedPosition;
+  const readablePosition = readableVector(shiftedPosition);
+  return readablePosition;
 }
 
 /**
@@ -318,7 +319,8 @@ function convertLabelComponentPosition(layer: ExportableLayer, size: Vector4, pa
   const resolvedZ = resolveGameObjectZCoordinate(data);
   const depth = calculateGameObjectDepth(x, y, arrangeDepth, depthAxis);
   shiftedPosition.z = resolvedZ + depth;
-  return shiftedPosition;
+  const readablePosition = readableVector(shiftedPosition);
+  return readablePosition;
 }
 
 /**
