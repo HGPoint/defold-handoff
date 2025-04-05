@@ -39,6 +39,7 @@ type GameObjectData = {
   implied_game_object: boolean,
   arrange_depth: boolean,
   depth_axis?: string,
+  depth_layer?: number,
   path: string,
   exclude: boolean,
   inferred: boolean,

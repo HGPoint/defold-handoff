@@ -627,6 +627,9 @@
         "depth_axis": {
           "type": "string"
         },
+        "depth_layer": {
+          "type": "integer"
+        },
         "path": {
           "type": "string"
         },

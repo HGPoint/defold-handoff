@@ -5,6 +5,7 @@
   export let label: string;
   export let value: number;
   export let disabled = false;
+  export let min: number = 0;
 
   const id = generateRandomId();
 </script>
@@ -16,7 +17,7 @@
 </label>
 <NumberInput
   {id}
-  min={0}
+  {min}
   bind:value={value}
   disabled={disabled} />
 <slot />

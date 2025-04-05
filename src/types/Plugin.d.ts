@@ -115,6 +115,7 @@ type PluginGameObjectData = {
   implied_game_object: boolean,
   arrange_depth: boolean,
   depth_axis: string,
+  depth_layer: number,
   inferred: boolean,
   path: string,
   figma_node_type: NodeType,

@@ -135,7 +135,8 @@
     "inferred": false,
     "implied_game_object": false,
     "arrange_depth": false,
-    "depth_axis": "y0.001",
+    "depth_axis": "y*0.001",
+    "depth_layer": 0,
     "path": ""
   },
   "atlasMaxSize": 4096,

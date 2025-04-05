@@ -2,9 +2,11 @@
   import ActionButton from "components/ActionButton";
   import Actions from "components/Actions";
   import LayerPositionProperty from "components/LayerPositionProperty";
+  import NumberProperty from "components/NumberProperty";
   import OptionsProperty from "components/OptionsProperty";
   import Page from "components/Page";
   import Properties from "components/Properties";
+  import PropertyTip from "components/PropertyTip";
   import SidesProperty from "components/SidesProperty";
   import TextProperty from "components/TextProperty";
   import ToggleProperty from "components/ToggleProperty";
@@ -64,9 +66,14 @@
       <ToggleProperty label="Don't Export" bind:value={gameObject.exclude} />
       <ToggleProperty label="Skip" bind:value={gameObject.skip} disabled={gameObject.exclude} />
       <ToggleProperty label="Implied Game Object" bind:value={gameObject.implied_game_object} disabled={gameObject.exclude} />
+      <NumberProperty label="Depth Layer" bind:value={gameObject.depth_layer} min={Number.MIN_SAFE_INTEGER} disabled={gameObject.exclude} />
       <ToggleProperty label="Arrange Depth" bind:value={gameObject.arrange_depth} disabled={gameObject.exclude} />
       {#if gameObject.arrange_depth && !gameObject.exclude}
-        <TextProperty label="Depth Axis" bind:value={gameObject.depth_axis} disabled={gameObject.exclude} />
+        <TextProperty label="Depth Axis" bind:value={gameObject.depth_axis} disabled={gameObject.exclude}>
+          <PropertyTip>
+            Mathematical expression to determine the depth position of the object. The expression can use the following placeholders: x, y  and z for the position of the object, layer for the depth layer of the object, and index for the index of the Figma layer inside it's parent.  For example <code>layer*10+y*0.001</code>
+          </PropertyTip>
+        </TextProperty>
       {/if}
       {#if !gameObject.exclude}
         <TextProperty label="Path" bind:value={gameObject.path} />

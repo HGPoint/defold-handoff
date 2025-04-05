@@ -3,6 +3,7 @@
  * @packageDocumentation
  */
 
+import evaluateExpression from "utilities/evaluation";
 import config from "config/config.json";
 import { getPluginData, isFigmaComponent, isFigmaComponentInstance, isFigmaSlice, isLayerExportable, isLayerSpriteHolder } from "utilities/figma";
 import { exportGameCollectionData, exportGameCollectionResources, extractGameCollectionAtlasData } from "utilities/gameCollectionExport";
@@ -10,7 +11,6 @@ import { postprocessGameCollectionData, preprocessGameCollectionData } from "uti
 import { serializeGameCollectionData } from "utilities/gameCollectionSerialization";
 import { ensureGameObjectLayer, extractGameObjectOriginalData, preprocessGameObjectData, updateGameObjectData, updateGameObjectLayer } from "utilities/gameCollectionUpdate";
 import { inferGameObjectType } from "utilities/inference";
-import { calculateHypotenuse } from "utilities/math";
 import { isSlice9PlaceholderLayer } from "utilities/slice9";
 
 export const GAME_COLLECTION_EXPORT_PIPELINE: TransformPipeline<ExportableLayer, GameCollectionData> = {
@@ -181,6 +181,21 @@ export function resolveGameObjectZCoordinate(data?: WithNull<PluginGameObjectDat
   return data ? data.position.z : 0;
 }
 
+export function resolveGameObjectDepthLayer(data?: WithNull<PluginGameObjectData>) {
+  return data && data.depth_layer ? data.depth_layer : config.gameObjectDefaultSpecialValues.depth_layer;
+}
+
+export function resolveFigmaLayerIndex(layer: ExportableLayer) {
+  const { parent } = layer;
+  if (parent) {
+    const index = parent.children.indexOf(layer);
+    if (index !== -1) {
+      return index;
+    }
+  }
+  return 0;
+}
+
 /**
  * Resolves the game object depth axis parameters.
  * @param data - The game object plugin data to resolve the depth axis parameters from.
@@ -189,7 +204,8 @@ export function resolveGameObjectZCoordinate(data?: WithNull<PluginGameObjectDat
 export function resolveDepthAxisParameters(data?: WithNull<PluginGameObjectData | GameObjectData>) {
   const arrangeDepth = data?.arrange_depth || config.gameObjectDefaultSpecialValues.arrange_depth;
   const depthAxis = data?.depth_axis || config.gameObjectDefaultSpecialValues.depth_axis;
-  return { arrangeDepth, depthAxis };
+  const depthLayer = data?.depth_layer || config.gameObjectDefaultSpecialValues.depth_layer;
+  return { arrangeDepth, depthAxis, depthLayer };
 }
 
 /**
@@ -199,63 +215,20 @@ export function resolveDepthAxisParameters(data?: WithNull<PluginGameObjectData 
  * @param arrangeDepth - Whether to arrange the depth.
  * @param depthAxis - The depth axis to use.
  */
-export function calculateGameObjectDepth(x: number, y: number, arrangeDepth: boolean, depthAxis?: string) {
+export function calculateGameObjectDepth(x: number, y: number, z: number, layer: number, index: number, arrangeDepth: boolean, depthAxis?: string) {
   if (arrangeDepth) {
     depthAxis = depthAxis || config.gameObjectDefaultSpecialValues.depth_axis;
-    const { axis, step } = parseDepthParameters(depthAxis);
-    if (isDepthAxisXY(axis)) {
-      const distance = calculateHypotenuse(x, y);
-      const depth = distance * step;
-      return depth;
-    } else if (isDepthAxisX(axis)) {
-      const depth = x * step;
-      return depth;
-    } else if (isDepthAxisY(axis)) {
-      const depth = y * step;
+    const depthExpression = depthAxis.
+      replace("layer", `${layer}`).
+      replace("index", `${index}`).
+      replace("x", `${x}`).
+      replace("y", `${y}`).
+      replace("z", `${z}`);
+    console.log("depthExpression", depthExpression);
+    const depth = evaluateExpression(depthExpression);
+    if (depth) {
       return depth;
     }
   }
   return 0;
-}
-
-/**
- * Parses the depth axis parameters.
- * @param depthAxis - The depth axis to parse.
- * @returns The parsed depth axis parameters.
- */
-function parseDepthParameters(depthAxis: string) {
-  const xPosition = depthAxis.toLocaleLowerCase().indexOf("x");
-  const yPosition = depthAxis.toLocaleLowerCase().indexOf("y");
-  const indexStart = xPosition > yPosition ? xPosition : yPosition;
-  const step = parseFloat(depthAxis.slice(indexStart + 1));
-  const axis = `${xPosition !== -1 ? "x" : ""}${yPosition !== -1 ? "y" : ""}`;
-  return { axis, step };
-}
-
-/**
- * Determines whether the depth axis is x.
- * @param axis - The depth axis to check.
- * @returns True if the depth axis is x, otherwise false.
- */
-function isDepthAxisX(axis: string) {
-  return axis.includes("x");
-}
-
-/**
- * Determines whether the depth axis is y.
- * @param axis - The depth axis to check.
- * @returns True if the depth axis is y, otherwise false.
- */
-function isDepthAxisY(axis: string) {
-  return axis.includes("y");
-}
-
-/**
- * Determines whether the depth axis is x and y.
- * @param axis - The depth axis to check.
- * @returns True if the depth axis is x and y, otherwise false.
- */
-function isDepthAxisXY(axis: string) {
-  const axisXY = isDepthAxisX(axis) && isDepthAxisY(axis);
-  return axisXY;
 }
