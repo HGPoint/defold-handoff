@@ -262,7 +262,7 @@ function resolveGameObjectLayerOptions(shouldSkip: boolean, parentOptions: GameO
  * @returns The reorganized game object data.
  */
 function wrapInImpliedGameObject(componentData: GameObjectData): GameObjectData {
-  const { id, position, skip, path, exclude, exportable_layer, exportable_layer_name, exportable_layer_id, figma_position } = componentData;
+  const { id, position, skip, path, exclude, exportable_layer, exportable_layer_name, exportable_layer_id, figma_position, figma_children } = componentData;
   const typeId = resolveGameComponentTypeId(componentData.type);
   componentData.id = `${id}_${typeId}`;
   componentData.position = vector4(0);
@@ -282,6 +282,7 @@ function wrapInImpliedGameObject(componentData: GameObjectData): GameObjectData 
     exportable_layer_name,
     exportable_layer_id,
     figma_position,
+    figma_children,
     components: [componentData]
   }
 }

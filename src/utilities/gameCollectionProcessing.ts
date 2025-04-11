@@ -67,11 +67,44 @@ export async function preprocessGameCollectionData(layer: ExportableLayer): Prom
  */
 export function postprocessGameCollectionData(gameCollection: GameCollectionData): Promise<GameCollectionData> {
   const { gameObjects } = gameCollection;
+  sanitizeGameObjectIDs(gameObjects);
   const restructuredGameObjects = restructureGameObjects(gameObjects);
   restructuredGameObjects.forEach(cleanupGameObjectProperties);
   restructuredGameObjects.forEach(cleanupGameObjectComponents);
   gameCollection.gameObjects = restructuredGameObjects;
   return Promise.resolve(gameCollection);
+}
+
+function sanitizeGameObjectIDs(gameObjects: GameObjectData[]) {
+  gameObjects.forEach((gameObject) => { sanitizeGameObjectID(gameObject, gameObjects) });
+}
+
+function sanitizeGameObjectID(gameObject: GameObjectData, gameObjects: GameObjectData[], usedIDs: string[] = []) {
+  const { id } = gameObject;
+  let newGameObjectID: string;
+  if (usedIDs.includes(id)) {
+    let gameObjectIndex = 1;
+    newGameObjectID = resolveGameObjectID(id, gameObjectIndex);
+    while (usedIDs.includes(newGameObjectID)) {
+      gameObjectIndex += 1;
+      newGameObjectID = resolveGameObjectID(id, gameObjectIndex);
+    }
+    gameObject.id = newGameObjectID;
+    for (const otherGameObject of gameObjects) {
+      if (otherGameObject !== gameObject && otherGameObject.children && otherGameObject.figma_children) {
+        const childIndex = otherGameObject.figma_children.indexOf(gameObject.exportable_layer_id);
+        if (childIndex !== -1) {
+          otherGameObject.children[childIndex] = gameObject.id;
+          break;
+        }
+      }
+    }
+  }
+  usedIDs.push(gameObject.id);
+}
+
+function resolveGameObjectID(originalID: string, index: number): string {
+  return `${originalID}_${index}`;
 }
 
 /**

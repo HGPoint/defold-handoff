@@ -73,6 +73,7 @@ const EXCLUDED_PROPERTY_KEYS = [
   "exportable_layer_name",
   "figma_position",
   "figma_node_type",
+  "figma_children",
   "components"
 ];
 

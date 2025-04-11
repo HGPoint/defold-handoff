@@ -40,7 +40,9 @@ export async function convertEmptyComponentData(layer: BoxLayer, options: GameOb
   const defaults = injectEmptyComponentDefaults();
   const data = getPluginData(layer, "defoldGameObject");
   const id = convertGameObjectId(layer, context.ignorePrefixes, forcedName, namePrefix)
-  const children = await convertEmptyComponentChildren(layer);
+  const componentChildren = await convertEmptyComponentChildren(layer);
+  const children = componentChildren?.children || undefined;
+  const figmaChildren = componentChildren?.figma_children || undefined;
   const sizeMode = undefined;
   const transformations = convertEmptyComponentTransformations(layer, parentSize, atRoot, parentShift, arrangeDepth, depthAxis, data);
   const parent = convertGameObjectParent(parentId);
@@ -50,6 +52,7 @@ export async function convertEmptyComponentData(layer: BoxLayer, options: GameOb
     ...data,
     id,
     children,
+    figma_children: figmaChildren,
     ...specialProperties,
     ...parent,
     ...transformations,
@@ -134,7 +137,8 @@ export async function convertLabelComponentData(layer: TextLayer, options: GameO
  */
 async function convertEmptyComponentChildren(layer: BoxLayer) {
   if (hasChildren(layer)) {
-    const children = []
+    const children: string[] = []
+    const figmaChildren: string[] = []
     for (const child of layer.children) {
       if ((isFigmaBox(child) && !isSlice9PlaceholderLayer(child) && !isFigmaSlice(child)) || isFigmaText(child)) {
         const type = await inferGameObjectType(child);
@@ -142,12 +146,13 @@ async function convertEmptyComponentChildren(layer: BoxLayer) {
         if (isGameObjectEmptyType(type)) {
           if (!childData || !isLayerSkippable(child, childData)) {
             children.push(child.name);
+            figmaChildren.push(child.id);
           }
         }
       }
     }
     if (children.length > 0) {
-      return children;
+      return { children, figma_children: figmaChildren };
     }
   }
   return undefined;

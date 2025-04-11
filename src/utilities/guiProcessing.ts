@@ -186,10 +186,10 @@ function collapseWithParent(parent: GUINodeData, child: GUINodeData, childIndex:
 }
 
 function sanitizeGUINodeIDs(nodes: GUINodeData[]) {
-  nodes.forEach((node) => { sanitizeGUINode(node) });
+  nodes.forEach((node) => { sanitizeGUINodeID(node) });
 }
 
-function sanitizeGUINode(node: GUINodeData, newParentID: string = "", usedIDs: string[] = []) {
+function sanitizeGUINodeID(node: GUINodeData, newParentID: string = "", usedIDs: string[] = []) {
   const { id } = node;
   let newNodeID: string;
   if (newParentID) {
@@ -206,7 +206,7 @@ function sanitizeGUINode(node: GUINodeData, newParentID: string = "", usedIDs: s
   }
   usedIDs.push(node.id);
   if (node.children) {
-    node.children.forEach((child) => sanitizeGUINode(child, newNodeID, usedIDs));
+    node.children.forEach((child) => sanitizeGUINodeID(child, newNodeID, usedIDs));
   }
 }
 
