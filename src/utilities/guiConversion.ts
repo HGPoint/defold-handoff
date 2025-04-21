@@ -71,16 +71,19 @@ export function convertImpliedBoxGUINodeData(layer: RectangleNode, options: GUIN
   const { namePrefix, variantPrefix, forcedName, parentId, parentPivot, parentSize, parentShift, atRoot, asTemplate } = options;
   const context = generateContextData(layer);
   const defaults = injectGUINodeDefaults();
+  const data = getPluginData(layer, "defoldGUINode");
   const id = convertGUINodeId(layer, context.ignorePrefixes, forcedName, namePrefix, variantPrefix)
   const type = "TYPE_BOX";
   const visuals = convertGUIImpliedBoxNodeVisuals(layer);
   const sizeMode = "SIZE_MODE_MANUAL";
-  const transformations = convertGUIImpliedBoxNodeTransformations(layer, "PIVOT_CENTER", parentPivot, parentSize, parentShift, atRoot, asTemplate);
+  const transformations = convertGUIImpliedBoxNodeTransformations(layer, "PIVOT_CENTER", parentPivot, parentSize, parentShift, atRoot, asTemplate, data);
   const parent = parentId;
+  const specialProperties = convertGUINodeSpecialProperties(layer, id, data);
   return {
     ...defaults,
     id,
     type,
+    ...specialProperties,
     parent,
     ...transformations,
     ...visuals,
@@ -242,7 +245,7 @@ function convertGUIBoxNodeTransformations(layer: BoxLayer, pivot: Pivot, parentP
   };
 }
 
-function convertGUIImpliedBoxNodeTransformations(layer: RectangleNode, pivot: Pivot, parentPivot: Pivot, parentSize: Vector4, parentShift: Vector4, atRoot: boolean, asTemplate: boolean, pluginData?: WithNull<PluginGUINodeData>) {
+function convertGUIImpliedBoxNodeTransformations(layer: RectangleNode, pivot: Pivot, parentPivot: Pivot, parentSize: Vector4, parentShift: Vector4, atRoot: boolean, asTemplate: boolean, pluginData: WithNull<PluginGUINodeData>) {
   const size = inferSize(layer);
   const scale = inferScale();
   const position = convertGUINodePosition(layer, pivot, parentPivot, size, parentSize, parentShift, atRoot, asTemplate, pluginData);
@@ -550,7 +553,7 @@ function convertGUITextNodeParameters(layer: TextLayer) {
  * @param pluginData - The GUI node plugin data.
  * @returns The converted special properties.
  */
-function convertGUINodeSpecialProperties(layer: ExportableLayer, id: string, pluginData?: WithNull<PluginGUINodeData>) {
+function convertGUINodeSpecialProperties(layer: ExportableLayer | RectangleNode, id: string, pluginData?: WithNull<PluginGUINodeData>) {
   return {
     screen: !!pluginData?.screen,
     skip: !!pluginData?.skip,

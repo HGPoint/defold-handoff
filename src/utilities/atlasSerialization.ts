@@ -17,7 +17,7 @@ export async function serializeAtlasData(atlasData: AtlasData): Promise<Serializ
   const { name, images } = atlasData;
   const atlas = serializeAtlasDefoldData(atlasData.atlas);
   const sprites = serializeAtlasImageData(images);
-  const data = `${sprites}${atlas}`.trim();
+  const data = `${`${sprites}${atlas}`.trim()}\n`;
   const serializedData = {
     name,
     data,

@@ -173,14 +173,14 @@ async function generateGUIBoxNodeData(data: GUIVariantPipelineData) {
   return guiNodesData;
 }
 
-function canProcessGUIImpliedBoxNode(layer: SceneNode) {
-  return isFigmaRectangle(layer);
+function canProcessGUIImpliedBoxNode(layer: SceneNode): layer is RectangleNode {
+  return isVisible(layer) && isFigmaRectangle(layer);
 }
 
 function generateGUIImpliedBoxNodeData(layer: RectangleNode, options: GUINodeDataExportOptions) {
   const guiNodesData: GUINodeData[] = [];
-  if (isVisible(layer)) {
-    const guiNodeData = convertImpliedBoxGUINodeData(layer, options);
+  const guiNodeData = convertImpliedBoxGUINodeData(layer, options);
+  if (!guiNodeData.exclude) {
     guiNodesData.push(guiNodeData);
   }
   return guiNodesData;

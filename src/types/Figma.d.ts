@@ -1,4 +1,4 @@
-type DataLayer = BoxLayer | TextLayer | ComponentSetNode | SectionNode | DocumentNode;
+type DataLayer = BoxLayer | TextLayer | RectangleNode | ComponentSetNode | SectionNode | DocumentNode;
 
 type ExportableLayer = BoxLayer | TextLayer | SliceLayer;
 

@@ -556,8 +556,11 @@ export function inferTextShadow(layer: TextLayer) {
  * @param layer - The Figma layer to infer line breaks from.
  * @returns Whether the text has line breaks.
  */
-export function inferLineBreak(layer: TextLayer) {
-  return layer.textAutoResize === "HEIGHT" || layer.textAutoResize === "NONE";
+export function inferLineBreak(layer: TextLayer): boolean {
+  if (layer.textAutoResize === "HEIGHT" || layer.textAutoResize === "NONE") {
+    return true;
+  }
+  return layer.characters.includes("\n")
 }
 
 /**

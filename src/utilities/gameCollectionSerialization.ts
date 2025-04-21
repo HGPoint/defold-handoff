@@ -86,7 +86,7 @@ export async function serializeGameCollectionData(gameCollectionData: GameCollec
   const { name, filePath } = gameCollectionData;
   const collection = Object.entries(gameCollectionData.collection).reduce(propertySerializer, "");
   const gameObjects = gameCollectionData.gameObjects.reduce(gameCollectionSerializer, "");
-  const data = `${collection}${gameObjects}`;
+  const data = `${`${collection}${gameObjects}`.trim()}\n`;
   const serializedData = {
     name,
     data,

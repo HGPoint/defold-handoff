@@ -224,7 +224,6 @@ export function calculateGameObjectDepth(x: number, y: number, z: number, layer:
       replace("x", `${x}`).
       replace("y", `${y}`).
       replace("z", `${z}`);
-    console.log("depthExpression", depthExpression);
     const depth = evaluateExpression(depthExpression);
     if (depth) {
       return depth;

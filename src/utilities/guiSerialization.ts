@@ -138,7 +138,7 @@ export async function serializeGUIData(guiData: GUIData): Promise<SerializedGUID
   const fonts = serializeGUIFontsData(guiData.fonts);
   const layers = serializeGUILayersData(guiData.layers);
   const spines = serializeGUISpineData(guiData.spines);
-  const data = `${gui.replace("<data>\n", `${textures}${fonts}${nodes}${layers}`)}${spines}`.trim();
+  const data = `${`${gui.replace("<data>\n", `${textures}${fonts}${nodes}${layers}`)}${spines}`.trim()}\n`;
   const templateData = serializeTemplateData(guiData, asTemplate);
   const serializedData = {
     name,
