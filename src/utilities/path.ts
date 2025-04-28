@@ -336,13 +336,17 @@ function resolveFileNameSuffix<T extends { name: string }>(data: T[], single: st
  * @param bundle - The bundle data to resolve the prefix from.
  * @returns The bundle file name prefix.
  */
-function resolveBundleFileNamePrefix({ gui, gameObjects }: BundleData) {
-  const length = calculateBundleSize(gui, gameObjects);
+function resolveBundleFileNamePrefix({ gui, gameObjects, atlases }: BundleData) {
+  const length = calculateBundleSize(gui, gameObjects, atlases);
   if (length === 1) {
-    if (gui?.length === 1) {
-      return gui.filter(node => !node.template)[0].name;
+    if (gui?.length) {
+      const nonTemplateNodes = gui.filter(node => !node.template);
+      if (nonTemplateNodes.length) {
+        return nonTemplateNodes[0].name;
+      }
+      return gui[0].name;
     }
-    if (gameObjects?.length === 1) {
+    if (gameObjects?.length) {
       return gameObjects[0].name;
     }
   }
@@ -355,10 +359,11 @@ function resolveBundleFileNamePrefix({ gui, gameObjects }: BundleData) {
  * @param gameObjects - The game objects data.
  * @returns The size of the bundle.
  */
-function calculateBundleSize(gui?: SerializedGUIData[], gameObjects?: SerializedGameCollectionData[]) {
-  const guiLength = (gui?.length || gui?.filter(node => !node.template).length || 0)
-  const gameObjectsLength = (gameObjects?.length || 0)
-  const length = guiLength + gameObjectsLength;
+function calculateBundleSize(gui?: SerializedGUIData[], gameObjects?: SerializedGameCollectionData[], atlases?: SerializedAtlasData[]) {
+  const guiLength = gui?.filter(node => !node.template).length || 0;
+  const gameObjectsLength = gameObjects?.length || 0;
+  const atlasesLength = atlases?.length || 0;
+  const length = guiLength + gameObjectsLength + atlasesLength;
   return length;
 }
 

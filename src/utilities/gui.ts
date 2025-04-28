@@ -232,6 +232,13 @@ export function resolveGUINodeNamePrefix(shouldSkip: boolean, options: GUINodeDa
     }
     return "";
   } else if (isFigmaComponentInstance(options.layer) || isFigmaComponent(options.layer)) {
+    const data = getPluginData(options.layer, "defoldGUINode");
+    if (data?.template) {
+      if (options.namePrefix) {
+        return options.namePrefix
+      }
+      return "";
+    }
     if (options.namePrefix) {
       return `${options.namePrefix}${options.layer.name}_`;
     }
