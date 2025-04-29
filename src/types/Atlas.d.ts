@@ -25,9 +25,12 @@ type AtlasDefoldData = {
 type SpriteData = {
   name: string,
   directory: string,
+  format: SpriteFormat,
   sprite: SpriteDefoldData,
   data: WithNull<Uint8Array>,
 }
+
+type SpriteFormat = "PNG" | "JPG" | "SVG";
 
 type SpriteDefoldData = {
   sprite_trim_mode: SpriteTrimMode,
@@ -41,6 +44,7 @@ type SerializedAtlasData = {
 
 type SerializedSpriteData = {
   name: string,
+  format: SpriteFormat,
   directory: string,
   data: WithNull<Uint8Array>,
 }

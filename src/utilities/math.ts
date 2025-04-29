@@ -226,3 +226,10 @@ export function shiftAlongAxis(shift: Vector4, rotation: number): Vector4 {
   const y = shift.x * Math.sin(rotationRadians) + shift.y * Math.cos(rotationRadians);
   return vector4(x, y, 0, 0);
 }
+
+export function detectFlip(transformMatrix: TransformMatrix) {
+  const [[a], [, d]] = transformMatrix;
+  const flipX = a < 0;
+  const flipY = d < 0;
+  return { flipX, flipY };
+}

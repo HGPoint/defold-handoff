@@ -8,7 +8,7 @@ import { exportAtlasData } from "utilities/atlasExport";
 import { serializeAtlasData } from "utilities/atlasSerialization";
 import { completeAtlasData, ensureAtlasLayer, extractAtlasOriginalData, updateAtlasData } from "utilities/atlasUpdate";
 import { findSectionWithContextData } from "utilities/context";
-import { findMainFigmaComponent, getPluginData, isFigmaComponent, isFigmaComponentSet, isFigmaRemoved, isFigmaSceneNode, isFigmaSlice, isFigmaText, isLayerAtlas, isLayerContextSection, removePluginData, setPluginData, layerSorterByName, layerSorterBySide } from "utilities/figma";
+import { findMainFigmaComponent, getPluginData, isFigmaComponent, isFigmaComponentSet, isFigmaRemoved, isFigmaSceneNode, isFigmaSlice, isFigmaText, isLayerAtlas, isLayerContextSection, layerSorterByName, layerSorterBySide, removePluginData, setPluginData } from "utilities/figma";
 
 export const ATLAS_EXPORT_PIPELINE: TransformPipeline<AtlasExportPipelineData, AtlasData> = {
   transform: exportAtlasData,

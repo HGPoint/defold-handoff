@@ -6,7 +6,7 @@
 import { PROJECT_CONFIG } from "handoff/project";
 import { propertySerializer, serializeProperty } from "utilities/dataSerialization";
 import { indentLines } from "utilities/defold";
-import { generateImageAssetsPath, generateSpritePath } from "utilities/path";
+import { generateImageAssetsPath, generateSpritePath, resolveSpriteExtension } from "utilities/path";
 
 /**
  * Serializes atlas data.
@@ -71,9 +71,10 @@ function serializeAtlasImageData(images: SpriteData[]): string {
  * @param spriteData - The sprite data to be serialized.
  * @returns The updated serialized image data.
  */
-function imageDataSerializer(data: string, { name, directory, sprite }: SpriteData) {
+function imageDataSerializer(data: string, { name, format, directory, sprite }: SpriteData) {
   const atlasImageAssetsPath = generateImageAssetsPath(directory);
-  const imagePath = generateSpritePath(atlasImageAssetsPath, name);
+  const extension = resolveSpriteExtension(format);
+  const imagePath = generateSpritePath(atlasImageAssetsPath, name, extension);
   const image = serializeProperty("image", imagePath);
   const imageProperties = serializeAtlasSpriteProperties(sprite);
   return `${data}images {\n${indentLines(`${image}\n${imageProperties}`)}\n}\n`;

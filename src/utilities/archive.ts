@@ -6,7 +6,7 @@
 import config from "config/config.json";
 import JSZip from "jszip";
 import { createBlob } from "utilities/blob";
-import { generateAtlasFileName, generateGUIPath, generateGameCollectionPath, generateSpineFileName, generateSpriteFileName, generateTemplatePath } from "utilities/path";
+import { generateAtlasFileName, generateGUIPath, generateGameCollectionPath, generateSpineFileName, generateSpriteFileName, generateTemplatePath, resolveSpriteExtension } from "utilities/path";
 
 /**
  * Archives the bundled into a zip archive.
@@ -37,10 +37,11 @@ export function archiveBundle({ gui, gameObjects, atlases }: BundleData, project
  * @param spriteData - The sprite to be archived.
  * @param imagesFolder - The folder in archive.
  */
-function archiveAtlasImage({ name, directory, data }: SerializedSpriteData, imagesFolder: JSZip) {
+function archiveAtlasImage({ name, format, directory, data }: SerializedSpriteData, imagesFolder: JSZip) {
   if (data) {
     const atlasImagesFolder = imagesFolder.folder(directory) || imagesFolder;
-    const spriteFileName = generateSpriteFileName(name);
+    const extension = resolveSpriteExtension(format);
+    const spriteFileName = generateSpriteFileName(name, extension);
     const blob = createBlob(data);
     atlasImagesFolder.file(spriteFileName, blob);
   }
@@ -137,9 +138,10 @@ function archiveSpriteAtlas(atlas: SerializedAtlasData, zip: JSZip) {
  * @param spriteData - The sprite to be archived.
  * @param folder - The folder in archive.
  */
-function archiveSpriteImage({ name, data }: SerializedSpriteData, folder: JSZip) {
+function archiveSpriteImage({ name, format, data }: SerializedSpriteData, folder: JSZip) {
   if (data) {
-    const spriteFileName = generateSpriteFileName(name);
+    const extension = resolveSpriteExtension(format);
+    const spriteFileName = generateSpriteFileName(name, extension);
     const blob = createBlob(data);
     folder.file(spriteFileName, blob);
   }

@@ -5,6 +5,7 @@
 
 import { isAtlasStatic, resolveAtlasName } from "utilities/atlas";
 import { convertAtlasData, convertSpriteData, convertSpriteName } from "utilities/atlasConversion";
+import { resolveExportFormat } from "utilities/figma";
 import { checkMeaningfulSpriteSize } from "utilities/sprite";
 
 /**
@@ -63,12 +64,14 @@ async function exportSprite(layer: SceneNode, directory: string, scale: number =
   const sprite = convertSpriteData();
   const name = convertSpriteName(layer)
   const parameters = await resolveExportParameters(layer, scale);
+  const { format } = parameters;
   const data = await layer.exportAsync(parameters)
   const image = figma.createImage(data)
   const size = await image.getSizeAsync();
   if (checkMeaningfulSpriteSize(size)) {
     return {
       name,
+      format,
       directory,
       sprite,
       data,
@@ -77,9 +80,10 @@ async function exportSprite(layer: SceneNode, directory: string, scale: number =
   return null;
 }
 
-async function resolveExportParameters(layer: SceneNode, scale: number): Promise<ExportSettings> {
-  const format = "PNG";
-  const constraint: ExportSettingsConstraints = { type: "SCALE", value: scale };
+async function resolveExportParameters(layer: SceneNode, scale: number) {
+  const { exportSettings } = layer;
+  const format = resolveExportFormat(exportSettings);
+  const constraint: ExportSettingsConstraints = { type: "SCALE", value: scale }; 
   return { format, constraint };
 }
 

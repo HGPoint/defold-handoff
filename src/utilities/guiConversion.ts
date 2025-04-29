@@ -236,7 +236,7 @@ function convertGUINodeType(layer: ExportableLayer, options: GUINodeDataExportOp
  */
 function convertGUIBoxNodeTransformations(layer: BoxLayer, pivot: Pivot, parentPivot: Pivot, parentSize: Vector4, parentShift: Vector4, atRoot: boolean, asTemplate: boolean, pluginData?: WithNull<PluginGUINodeData>) {
   const size = inferSize(layer);
-  const scale = inferScale();
+  const scale = inferScale(layer);
   const guiNodeTransformations = convertGUINodeTransformations(layer, pivot, parentPivot, size, parentSize, parentShift, atRoot, asTemplate, pluginData);
   return {
     ...guiNodeTransformations,
@@ -247,7 +247,7 @@ function convertGUIBoxNodeTransformations(layer: BoxLayer, pivot: Pivot, parentP
 
 function convertGUIImpliedBoxNodeTransformations(layer: RectangleNode, pivot: Pivot, parentPivot: Pivot, parentSize: Vector4, parentShift: Vector4, atRoot: boolean, asTemplate: boolean, pluginData: WithNull<PluginGUINodeData>) {
   const size = inferSize(layer);
-  const scale = inferScale();
+  const scale = inferScale(layer);
   const position = convertGUINodePosition(layer, pivot, parentPivot, size, parentSize, parentShift, atRoot, asTemplate, pluginData);
   const figmaPosition = inferFigmaPosition(layer);
   const rotation = inferRotation(layer);
@@ -308,7 +308,7 @@ function convertGUINodeTransformations(layer: ExportableLayer, pivot: Pivot, par
 
 async function convertGUITextSpriteNodeTransformations(layer: TextLayer, pivot: Pivot, parentPivot: Pivot, parentSize: Vector4, parentShift: Vector4, atRoot: boolean, asTemplate: boolean, pluginData?: WithNull<PluginGUINodeData>) {
   const size = inferSize(layer);
-  const scale = inferScale();
+  const scale = inferScale(layer);
   const figmaPosition = inferFigmaPosition(layer);
   const position = convertGUINodePosition(layer, pivot, parentPivot, size, parentSize, parentShift, atRoot, asTemplate, pluginData);
   const rotation = inferRotation(layer);

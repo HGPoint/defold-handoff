@@ -465,6 +465,19 @@ export function hasFont(fontName: FontName | typeof figma.mixed): fontName is Fo
   return typeof fontName === "object" && !!fontName.family;
 }
 
+export function resolveExportFormat(settings: readonly ExportSettings[]): SpriteFormat {
+  if (!settings || !settings.length) {
+    return "PNG";
+  }
+  const { format } = settings[0];
+  if (format === "JPG") {
+    return "JPG";
+  } else if (format === "SVG") {
+    return "SVG";
+  }
+  return "PNG";
+}
+
 /**
  * Determines whether the variant property has changed.
  * @param change - The property change to check.

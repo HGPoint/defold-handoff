@@ -209,7 +209,7 @@ function convertEmptyComponentTransformations(layer: BoxLayer, parentSize: Vecto
   const gameObjectTransformations = convertGameObjectTransformations(layer);
   const size = inferSize(layer);
   const position = convertGameObjectPosition(layer, size, parentSize, parentShift, atRoot, arrangeDepth, depthAxis, data);
-  const scale = inferScale();
+  const scale = inferScale(layer);
   return {
     ...gameObjectTransformations,
     position,
@@ -253,7 +253,7 @@ function convertSpriteComponentTransformations(layer: ExportableLayer, parentSiz
   const gameObjectTransformations = convertGameObjectTransformations(layer);
   const size = inferSize(layer);
   const position = convertGameObjectPosition(layer, size, parentSize, parentShift, atRoot, arrangeDepth, depthAxis, data);
-  const scale = inferScale();
+  const scale = inferScale(layer);
   return {
     ...gameObjectTransformations,
     position,
@@ -326,7 +326,6 @@ function convertLabelComponentPosition(layer: ExportableLayer, size: Vector4, pa
   const resolvedZ = resolveGameObjectZCoordinate(data);
   const resolvedDepthLayer = resolveGameObjectDepthLayer(data);
   const resolvedIndex = resolveFigmaLayerIndex(layer);
-  console.log(x, y, resolvedZ, resolvedDepthLayer, resolvedIndex, arrangeDepth, depthAxis);
   const depth = calculateGameObjectDepth(x, y, resolvedZ, resolvedDepthLayer, resolvedIndex, arrangeDepth, depthAxis);
   shiftedPosition.z = resolvedZ + depth;
   const readablePosition = readableVector(shiftedPosition);

@@ -13,7 +13,7 @@ import { isLayerInferred } from "utilities/data";
 import { injectEmptyComponentDefaults, injectGUINodeDefaults, injectLabelComponentDefaults, injectSpriteComponentDefaults } from "utilities/defaults";
 import { findMainFigmaComponent, getPluginData, hasAbsoluteRenderBounds, hasChildren, hasFont, hasParent, hasSolidNonWhiteFills, hasSolidStrokes, hasSolidVisibleFills, isFigmaBox, isFigmaComponentInstance, isFigmaRectangle, isFigmaSlice, isFigmaText, isLayerAtlas, isLayerExportable, isLayerNode, isLayerSprite, isShadowEffect, resolveFillColor, resolveTextOutlineColor, resolveTextShadowColor, setPluginData } from "utilities/figma";
 import { tryFindFont } from "utilities/font";
-import { isZeroVector, readableNumber, readableVector, vector4 } from "utilities/math";
+import { detectFlip, isZeroVector, readableNumber, readableVector, vector4 } from "utilities/math";
 import { calculateCenteredPosition, convertCenteredPositionToPivotedPosition } from "utilities/pivot";
 import { findSlice9PlaceholderLayer, isSlice9Layer, parseSlice9Data } from "utilities/slice9";
 import { calculateTextScale, calculateTextStrokeWeight, resolveText } from "utilities/text";
@@ -286,7 +286,11 @@ export function inferFigmaPosition(layer: SceneNode) {
  */
 export function inferRotation(layer: SceneNode) {
   if (isLayerExportable(layer) || isFigmaRectangle(layer)) {
-    return vector4(0, 0, readableNumber(layer.rotation), 0);
+    const { flipX, flipY } = detectFlip(layer.relativeTransform);
+    let { rotation } = layer;
+    rotation = rotation * (flipY ? -1 : 1)
+    rotation = flipX ? 180 - rotation : rotation;
+    return vector4(0, 0, readableNumber(rotation), 0);
   }
   return vector4(0);
 }
@@ -295,8 +299,11 @@ export function inferRotation(layer: SceneNode) {
  * Infers the scale for the GUI node or game object.
  * @returns The inferred scale for the GUI node or game object, which is always 1.
  */
-export function inferScale() {
-  return vector4(1);
+export function inferScale(layer: SceneNode) {
+  const { flipX, flipY } = detectFlip(layer.relativeTransform);
+  const scaleX = flipX ? -1 : 1;
+  const scaleY = flipY ? -1 : 1;
+  return vector4(scaleX, scaleY, 1, 1);
 }
 
 /**

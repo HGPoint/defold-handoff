@@ -34,8 +34,8 @@ export function generateAtlasPath(atlas: string, extension: string = "atlas"): s
  * @param spriteName - The name of the sprite.
  * @returns The path to the sprite.
  */
-export function generateSpritePath(atlasPath: string, spriteName: string): string {
-  const fileName = generateSpriteFileName(spriteName);
+export function generateSpritePath(atlasPath: string, spriteName: string, spriteExtension = "png"): string {
+  const fileName = generateSpriteFileName(spriteName, spriteExtension);
   const path = resolveFilePathFromPathName(atlasPath, fileName);
   return path;
 }
@@ -150,8 +150,10 @@ export function generateGUIFileName(guiName: string): string {
  * @returns The archive file name.
  */
 export function generateGUINodesFileName(gui: SerializedGUIData[]) {
-  const fileNamePrefix = resolveFileNamePrefix(gui);
-  const fileNameSuffix = resolveFileNameSuffix(gui, "node");
+  const guiWithoutTemplates = gui.filter(node => !node.template);
+  const reducedGUI = guiWithoutTemplates.length ? guiWithoutTemplates : gui;
+  const fileNamePrefix = resolveFileNamePrefix(reducedGUI);
+  const fileNameSuffix = resolveFileNameSuffix(reducedGUI, "node");
   const fileName = resolveArchiveFileName(fileNamePrefix, fileNameSuffix);
   return fileName;
 }
@@ -205,8 +207,8 @@ export function generateAtlasesFileName(atlases: SerializedAtlasData[]) {
  * @param spriteName - The name of the sprite.
  * @returns The sprite file name.
  */
-export function generateSpriteFileName(spriteName: string): string {
-  const fileName = resolveFileName(spriteName, "png");
+export function generateSpriteFileName(spriteName: string, spriteExtension = "png"): string {
+  const fileName = resolveFileName(spriteName, spriteExtension);
   return fileName;
 }
 
@@ -336,8 +338,8 @@ function resolveFileNameSuffix<T extends { name: string }>(data: T[], single: st
  * @param bundle - The bundle data to resolve the prefix from.
  * @returns The bundle file name prefix.
  */
-function resolveBundleFileNamePrefix({ gui, gameObjects, atlases }: BundleData) {
-  const length = calculateBundleSize(gui, gameObjects, atlases);
+function resolveBundleFileNamePrefix({ gui, gameObjects }: BundleData) {
+  const length = calculateBundleSize(gui, gameObjects);
   if (length === 1) {
     if (gui?.length) {
       const nonTemplateNodes = gui.filter(node => !node.template);
@@ -359,11 +361,10 @@ function resolveBundleFileNamePrefix({ gui, gameObjects, atlases }: BundleData) 
  * @param gameObjects - The game objects data.
  * @returns The size of the bundle.
  */
-function calculateBundleSize(gui?: SerializedGUIData[], gameObjects?: SerializedGameCollectionData[], atlases?: SerializedAtlasData[]) {
+function calculateBundleSize(gui?: SerializedGUIData[], gameObjects?: SerializedGameCollectionData[]) {
   const guiLength = gui?.filter(node => !node.template).length || 0;
   const gameObjectsLength = gameObjects?.length || 0;
-  const atlasesLength = atlases?.length || 0;
-  const length = guiLength + gameObjectsLength + atlasesLength;
+  const length = guiLength + gameObjectsLength;
   return length;
 }
 
@@ -409,4 +410,13 @@ function pathReducer(path: string, segment: string): string {
   const slash = segment.startsWith("/") ? "" : "/";
   const updatedPath = `${path}${slash}${segment}`;
   return updatedPath;
+}
+
+export function resolveSpriteExtension(format: SpriteFormat): string {
+  if (format === "SVG") {
+    return "svg";
+  } else if (format === "JPG") {
+    return "jpg";
+  }
+  return "png";
 }
