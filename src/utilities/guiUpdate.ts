@@ -4,7 +4,7 @@
  */
 
 import { shouldUpdatePluginData } from "utilities/data";
-import { isLayerData, isLayerNode, setPluginData, tryUpdateFigmaLayerName } from "utilities/figma";
+import { isLayerData, isLayerNode, setPluginData, tryUpdateFigmaLayerName, tryUpdateFigmaLayerScale } from "utilities/figma";
 import { getGUINodePluginData } from "utilities/gui";
 import { findSlice9Layer, isSlice9PlaceholderLayer, tryRefreshSlice9Placeholder } from "utilities/slice9";
 
@@ -72,5 +72,6 @@ export async function updateGUILayer(layer: DataLayer, updateData: PluginGUINode
   if (isLayerNode(layer)) {
     tryUpdateFigmaLayerName(layer, updateData.id);
     tryRefreshSlice9Placeholder(layer, updateData.slice9, originalData?.slice9);
+    tryUpdateFigmaLayerScale(layer, updateData.scaleFactor, originalData?.scaleFactor);
   }
 }

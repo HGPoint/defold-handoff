@@ -3,6 +3,7 @@
   import Actions from "components/Actions";
   import LayerPositionProperty from "components/LayerPositionProperty";
   import NumberProperty from "components/NumberProperty";
+  import ScaleProperty from "components/ScaleProperty";
   import OptionsProperty from "components/OptionsProperty";
   import Page from "components/Page";
   import Properties from "components/Properties";
@@ -50,7 +51,7 @@
     <Properties collapseKey="guiNodePropertiesCollapsed">
       <TextProperty label="Id" bind:value={gameObject.id} />
       <LayerPositionProperty label="Position" bind:value={gameObject.position} />
-      <TransformationProperty label="Scale" bind:value={gameObject.scale} disabled={true} />
+      <ScaleProperty label="Scale" bind:value={gameObject.scaleFactor} />
       {#if isGameObjectSpriteType(gameObject.type)}
         <OptionsProperty label="Material" bind:value={gameObject.material} options={materials} disabled={true} />
       {/if}

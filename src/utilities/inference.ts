@@ -313,18 +313,13 @@ export function inferScale(layer: SceneNode) {
  */
 export function inferTextScale(layer: TextNode) {
   const { fontSize } = layer;
+  const baseScale = inferScale(layer);
   if (typeof fontSize !== "number") {
-    return resolveMixedTextScale();
+    return baseScale;
   }
-  return calculateTextScale(fontSize);
-}
-
-/**
- * Resolves the mixed text scale.
- * @returns The resolved mixed text scale, which is always 1.
- */
-function resolveMixedTextScale() {
-  return vector4(1);
+  const textScale = calculateTextScale(fontSize);
+  const scale = vector4(textScale.x * baseScale.x, textScale.y * baseScale.y, 1, 1);
+  return readableVector(scale);
 }
 
 /**

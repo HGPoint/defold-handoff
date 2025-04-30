@@ -77,6 +77,7 @@ type GUINodeData = {
   cloneable: boolean,
   screen: boolean,
   fixed: boolean,
+  scale_factor: number,
   path: string,
   template: boolean,
   template_path: string,
@@ -126,6 +127,7 @@ type GUINodeDataExportOptions = {
   parentPivot: Pivot,
   parentSize: Vector4,
   parentShift: Vector4,
+  parentScale: number,
 }
 
 type GUINodeExportCloneData = {

@@ -40,7 +40,7 @@ export async function exportGUIData({ layer, parameters }: GUIExportPipelineData
   const { asTemplate } = parameters;
   const rootData = resolveGUINodePluginData(layer);
   const size = resolveGUISize(layer);
-  const exportOptions = resolveGUIExportOptions(layer, parameters);
+  const exportOptions = resolveGUIExportOptions(layer, parameters, rootData);
   const gui = convertGUIData(rootData);
   const filePath = resolveGUIFilePath(rootData);
   const nodes = await generateGUINodeData(exportOptions);
@@ -80,7 +80,8 @@ function resolveGUISize(layer: ExportableLayer) {
  * @param layer - The Figma layer to resolve GUI node export options from
  * @returns The resolved GUI node export options.
  */
-function resolveGUIExportOptions(layer: ExportableLayer, parameters: GUINodeExportParameters): GUINodeDataExportOptions {
+function resolveGUIExportOptions(layer: ExportableLayer, parameters: GUINodeExportParameters, pluginData: WithNull<PluginGUINodeData>): GUINodeDataExportOptions {
+  const scaleFactor = pluginData?.scale_factor || config.guiNodeDefaultSpecialValues.scale_factor;
   const options: GUINodeDataExportOptions = {
     ...parameters,
     layer,
@@ -90,6 +91,7 @@ function resolveGUIExportOptions(layer: ExportableLayer, parameters: GUINodeExpo
     parentPivot: config.guiNodeDefaultValues.pivot,
     parentSize: vector4(0),
     parentShift: vector4(-layer.x, -layer.y, 0, 0),
+    parentScale: scaleFactor,
     clones: []
   }
   return options;
@@ -328,7 +330,9 @@ async function generateParentOptions(layer: ExportableLayer, shouldSkip: boolean
  * @param guiNodeData - The GUI node data.
  * @returns The resolved GUI node layer export options.
  */
-function resolveGUINodeLayerOptions(shouldSkip: boolean, parentOptions: GUINodeDataExportOptions, guiNodeData: GUINodeData): Pick<GUINodeDataExportOptions, "parentId" | "parentPivot" | "parentSize" | "parentShift"> {
+function resolveGUINodeLayerOptions(shouldSkip: boolean, parentOptions: GUINodeDataExportOptions, guiNodeData: GUINodeData): Pick<GUINodeDataExportOptions, "parentId" | "parentPivot" | "parentSize" | "parentShift" | "parentScale"> {
+  const { parentScale } = parentOptions;
+  const resolvedParentScale = parentScale * (guiNodeData.scale_factor || config.guiNodeDefaultSpecialValues.scale_factor);
   if (shouldSkip) {
     const { parentId, parentSize, parentPivot, parentShift } = parentOptions;
     const resolvedParentSize = isZeroVector(parentSize) ? guiNodeData.size : parentSize;
@@ -339,6 +343,7 @@ function resolveGUINodeLayerOptions(shouldSkip: boolean, parentOptions: GUINodeD
       parentSize: resolvedParentSize,
       parentPivot,
       parentShift: resolvedParentShift,
+      parentScale: resolvedParentScale,
     }
   }
   return {
@@ -346,6 +351,7 @@ function resolveGUINodeLayerOptions(shouldSkip: boolean, parentOptions: GUINodeD
     parentSize: guiNodeData.size,
     parentPivot: guiNodeData.pivot,
     parentShift: vector4(0),
+    parentScale
   }
 }
 

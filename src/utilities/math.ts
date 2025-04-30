@@ -114,6 +114,17 @@ export function multiplyVectorByValue(vector: Vector4, value: number): Vector4 {
   return vector4(x, y, z, w);
 }
 
+export function divideVectorByValue(vector: Vector4, value: number): Vector4 {
+  if (value === 0) {
+    return vector;
+  }
+  const x = vector.x / value;
+  const y = vector.y / value;
+  const z = vector.z / value;
+  const w = vector.w / value;
+  return vector4(x, y, z, w);
+}
+
 /**
  * Creates a copy of the vector.
  * @param vector - The vector to copy.

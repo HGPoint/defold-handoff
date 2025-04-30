@@ -5,11 +5,23 @@
 
   export let label: string;
   export let value: number;
-  export let originalValue: WithNull<number> = null;
   export let disabled = false;
+  export let originalValue: WithNull<T> = null;
   export let min: number = 0;
 
   const id = generateRandomId();
+
+  let editedValue: number = value;
+
+  function onApplyClick() {
+    value = editedValue;
+  }
+
+  function refreshEditedValue(updatedValue: Vector4) {
+    editedValue = updatedValue
+  }
+
+  $: refreshEditedValue(value);
 </script>
 
 <label
@@ -18,13 +30,19 @@
     {label}
 </label>
 <div
-  class="widgetContainer"
-  class:widgetContainer-is-overridden={isValueOverridden(value, originalValue)}>
+  class="widgetScale"
+  class:widgetScale-is-overridden={isValueOverridden(value, originalValue)}>
     <NumberInput
       {id}
       {min}
       {disabled}
       bind:value={value} />
+    <button
+      class="widgetApply"
+      {disabled}
+      on:click={onApplyClick}>
+        Apply
+    </button>
     <Override bind:value={value} {originalValue} />
     <slot />
 </div>

@@ -36,6 +36,7 @@ type GameObjectData = {
   textures?: string,
   
   skip: boolean,
+  scale_factor: number,
   implied_game_object: boolean,
   arrange_depth: boolean,
   depth_axis?: string,

@@ -175,7 +175,8 @@ select:hover:disabled {
 .widgetTextSet
 .widgetTextSetItem,
 .widgetDimensions,
-.widgetActionOption {
+.widgetActionOption,
+.widgetScale {
   position: relative;
   display: flex;
   align-items: center;
@@ -186,8 +187,9 @@ select:hover:disabled {
 .widgetSlice9-is-overridden,
 .widgetSelect-is-overridden,
 .widgetCheckbox-is-overridden,
-.widgetContainer,
-.widgetTransformation-is-overridden {
+.widgetContainer-is-overridden,
+.widgetTransformation-is-overridden,
+.widgetScale-is-overridden {
   border-color: #5eb9ff;
 }
 
@@ -202,8 +204,8 @@ select:hover:disabled {
 }
 
 .widgetSlice9,
-.widgetTransformation {
-  position: relative;
+.widgetTransformation,
+.widgetScale {
   padding: 0 0 calc(2.5em + 5px);
 }
 

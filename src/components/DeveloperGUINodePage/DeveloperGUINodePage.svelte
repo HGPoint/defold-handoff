@@ -1,6 +1,7 @@
 <script lang="ts">
   import ActionButton from "components/ActionButton";
   import Actions from "components/Actions";
+  import ScaleProperty from "components/ScaleProperty";
   import OptionsProperty from "components/OptionsProperty";
   import Page from "components/Page";
   import Properties from "components/Properties";
@@ -54,7 +55,7 @@
   <Page>
     <Properties collapseKey="guiNodePropertiesCollapsed">
       <TextProperty label="Id" bind:value={guiNode.id} />
-      <TransformationProperty label="Scale" bind:value={guiNode.scale} originalValue={originalValues?.scale} disabled={true} />
+      <ScaleProperty label="Scale" bind:value={guiNode.scaleFactor} originalValue={originalValues?.scaleFactor} />
       <OptionsProperty label="Size Mode" bind:value={guiNode.size_mode} originalValue={originalValues?.size_mode} options={config.sizeModes} />
       <ToggleProperty label="Enabled" bind:value={guiNode.enabled} originalValue={originalValues?.enabled} />
       <ToggleProperty label="Visible" bind:value={guiNode.visible} originalValue={originalValues?.visible} />

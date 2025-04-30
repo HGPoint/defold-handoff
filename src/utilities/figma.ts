@@ -778,6 +778,12 @@ export function tryUpdateFigmaLayerName(layer: ExportableLayer, name?: string) {
   }
 }
 
+export function tryUpdateFigmaLayerScale(layer: ExportableLayer, scaleFactor: number, originalScaleFactor?: number) {
+  if (!originalScaleFactor || originalScaleFactor !== scaleFactor) {
+    layer.rescale(scaleFactor);
+  }
+}
+
 /**
  * Selects the Figma layers.
  * @param layers - The Figma layers to select.

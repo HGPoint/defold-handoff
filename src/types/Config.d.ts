@@ -50,6 +50,7 @@ declare module "config/config.json" {
       cloneable: boolean,
       inferred: boolean,
       export_variants: string,
+      scale_factor: number,
       path: string,
       template: boolean,
       template_path: string,
@@ -81,6 +82,7 @@ declare module "config/config.json" {
     },
     gameObjectDefaultSpecialValues: {
       skip: boolean,
+      scale_factor: number,
       implied_game_object: boolean,
       arrange_depth: boolean,
       depth_axis: string,
