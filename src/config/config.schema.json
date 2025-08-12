@@ -408,7 +408,7 @@
         "cloneable": {
           "type": "boolean"
         },
-        "scaleFactor": {
+        "scale_factor": {
           "type": "number"
         },
         "path": {
@@ -491,7 +491,7 @@
         "skip",
         "fixed",
         "cloneable",
-        "scaleFactor",
+        "scale_factor",
         "path",
         "template",
         "template_path",
@@ -649,7 +649,7 @@
       },
       "required": [
         "skip",
-        "scaleFactor",
+        "scale_factor",
         "implied_game_object",
         "arrange_depth",
         "depth_axis",

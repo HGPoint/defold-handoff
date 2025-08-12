@@ -80,6 +80,7 @@ const EXCLUDED_PROPERTY_KEYS: (keyof GUINodeData)[] = [
   "replace_spine",
   "replace_spine_name",
   "replace_spine_path",
+  "scale_factor",
 ];
 
 /**
@@ -470,20 +471,20 @@ function isPropertyReplaceSpine(key: keyof GUINodeData, value: GUINodeData[keyof
 
 function serializeTemplateProperty(guiNodeData: GUINodeData) {
   const templatePath = generateTemplatePath(guiNodeData.template_path, guiNodeData.template_name);
-  const template = `template: "${templatePath}"\n`
+  const template = `template: "${templatePath}"\n`;
   return template;
 }
 
 function serializeReplacementTemplateProperty(guiNodeData: GUINodeData) {
   const { replace_template_path: path, replace_template_name: name } = guiNodeData;
   const templatePath = generateTemplatePath(path, name);
-  const template = `template: "${templatePath}"\n`
+  const template = `template: "${templatePath}"\n`;
   return template;
 }
 
 function serializeReplacementSpineProperty(guiNodeData: GUINodeData) {
   const { replace_spine_name: name } = guiNodeData;
-  const spine = `spine_scene: "${name}"\ncustom_type: 405028931\n`
+  const spine = `spine_scene: "${name}"\ncustom_type: 405028931\n`;
   return spine;
 }
 

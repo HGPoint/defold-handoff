@@ -60,7 +60,9 @@ export function isPivotVerticalCenter(pivot: Pivot) {
  */
 export function calculateCenteredPosition(layer: SceneNode, size: Vector4, parentSize: Vector4) {
   const rotation = "rotation" in layer ? layer.rotation : 0;
-  const { x, y } = calculateCenter(layer.x, layer.y, size.x, size.y, rotation);
+  const width = size.x
+  const height = size.y
+  const { x, y } = calculateCenter(layer.x, layer.y, width, height, rotation);
   const centeredX = x - (parentSize.x / 2);
   const centeredY = (parentSize.y / 2) - y;
   return vector4(centeredX, centeredY, 0, 0);
@@ -70,14 +72,13 @@ export function calculateCenteredPosition(layer: SceneNode, size: Vector4, paren
  * Calculates the pivoted position of the layer relative to its parent.
  * @param centeredPosition - The centered position of the layer.
  * @param pivot - The pivot point of the layer.
- * @param parentPivot - The pivot point of the parent.
  * @param size - The size of the layer.
- * @param parentSize - The size of the parent.
+ * @param options
  * @returns The pivoted position of the layer.
  */
-export function calculatePivotedPosition(centeredPosition: Vector4, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4, rotation: number) {
-  const position = convertCenteredPositionToPivotedPosition(centeredPosition, parentPivot, parentSize);
-  const pivotShift = calculatePivotedShift(pivot, parentPivot, size, parentSize, rotation);
+export function calculatePivotedPosition(centeredPosition: Vector4, pivot: Pivot, size: Vector4, rotation: number, options: GUINodeDataExportOptions) {
+  const position = convertCenteredPositionToPivotedPosition(centeredPosition, options);
+  const pivotShift = calculatePivotedShift(pivot, size, rotation, options);
   const pivotedPosition = addVectors(position, pivotShift);
   return pivotedPosition;
 }
@@ -94,13 +95,13 @@ export function calculatePivotedPosition(centeredPosition: Vector4, pivot: Pivot
  * @param data - GUI node data of the layer.
  * @returns The root position of the layer.
  */
-export function calculateRootPosition(layer: SceneNode, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4, parentShift: Vector4, asTemplate: boolean, data?: WithNull<PluginGUINodeData>) {
-  const centeredPosition = calculateCenteredRootPosition(layer, size, parentSize, parentShift, asTemplate, data);
-  if (data?.template && !asTemplate) {
+export function calculateRootPosition(layer: SceneNode, pivot: Pivot, size: Vector4, options: GUINodeDataExportOptions, data?: WithNull<PluginGUINodeData>) {
+  const centeredPosition = calculateCenteredRootPosition(layer, size, options, data);
+  if (data?.template && !options.asTemplate) {
     return centeredPosition;
   }
   const rotation = "rotation" in layer ? layer.rotation : 0;
-  const pivotedPosition = calculatePivotedPosition(centeredPosition, pivot, parentPivot, size, parentSize, rotation);
+  const pivotedPosition = calculatePivotedPosition(centeredPosition, pivot, size, rotation, options);
   return pivotedPosition;
 }
 
@@ -116,8 +117,9 @@ export function calculateRootPosition(layer: SceneNode, pivot: Pivot, parentPivo
  * @param data - GUI node data of the layer.
  * @returns The centered root position of the layer.
  */
-export function calculateCenteredRootPosition(layer: SceneNode, size: Vector4, parentSize: Vector4, parentShift: Vector4, asTemplate: boolean, data?: WithNull<PluginGUINodeData>) {
-  if (data?.screen && !asTemplate) {
+export function calculateCenteredRootPosition(layer: SceneNode, size: Vector4, options: GUINodeDataExportOptions, data?: WithNull<PluginGUINodeData>) {
+  const { parentSize } = options
+  if (data?.screen && !options.asTemplate) {
     const halfScreenWidth = PROJECT_CONFIG.screenSize.x / 2;
     const halfScreenHeight = PROJECT_CONFIG.screenSize.y / 2;
     const { parent } = layer;
@@ -148,14 +150,15 @@ export function calculateCenteredRootPosition(layer: SceneNode, size: Vector4, p
  * @param data - GUI node data of the child layer.
  * @returns The position of the child layer.
  */
-export function calculateChildPosition(layer: SceneNode, pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4, parentShift: Vector4, asTemplate?: boolean, data?: WithNull<PluginGUINodeData>) {
+export function calculateChildPosition(layer: SceneNode, pivot: Pivot, size: Vector4, options: GUINodeDataExportOptions, data?: WithNull<PluginGUINodeData>) {
+  const { parentSize, parentShift } = options
   const centeredPosition = calculateCenteredPosition(layer, size, parentSize);
-  if (data?.template && !asTemplate) {
+  if (data?.template && !options.asTemplate) {
     const shiftedCenterPosition = addPositionParentShift(centeredPosition, parentShift);
     return shiftedCenterPosition;
   }
   const rotation = "rotation" in layer ? layer.rotation : 0;
-  const pivotedPosition = calculatePivotedPosition(centeredPosition, pivot, parentPivot, size, parentSize, rotation);
+  const pivotedPosition = calculatePivotedPosition(centeredPosition, pivot, size, rotation, options);
   const shiftedPosition = addPositionParentShift(pivotedPosition, parentShift);
   return shiftedPosition;
 }
@@ -175,11 +178,11 @@ export function addPositionParentShift(position: Vector4, parentShift: Vector4):
 /**
  * Converts the centered position of the layer to the pivoted position relative to its parent.
  * @param centeredPosition - The centered position of the layer.
- * @param parentPivot - The pivot point of the parent.
- * @param parentSize - The size of the parent.
+ * @param options
  * @returns The pivoted position of the layer.
  */
-export function convertCenteredPositionToPivotedPosition(centeredPosition: Vector4, parentPivot: Pivot, parentSize: Vector4) {
+export function convertCenteredPositionToPivotedPosition(centeredPosition: Vector4, options: GUINodeDataExportOptions) {
+  const { parentSize, parentPivot } = options;
   const { x, y } = centeredPosition;
   const { x: width, y: height } = parentSize;
   const position = centeredPosition;
@@ -199,16 +202,15 @@ export function convertCenteredPositionToPivotedPosition(centeredPosition: Vecto
 /**
  * Calculates the shift of the layer for the pivot point relative to the parent.
  * @param pivot - The pivot point of the layer.
- * @param parentPivot - The pivot point of the parent.
  * @param size - The size of the layer.
- * @param parentSize - The size of the parent.
+ * @param rotation
+ * @param options
  * @returns The shift of the layer.
  */
-export function calculatePivotedShift(pivot: Pivot, parentPivot: Pivot, size: Vector4, parentSize: Vector4, rotation: number) {
+export function calculatePivotedShift(pivot: Pivot, size: Vector4, rotation: number, options: GUINodeDataExportOptions) {
   const { x: width, y: height } = size;
-  const { x: parentWidth, y: parentHeight } = parentSize;
-  const x = calculatePivotedHorizontalShift(width, parentWidth, pivot, parentPivot);
-  const y = calculatePivotedVerticalShift(height, parentHeight, pivot, parentPivot);
+  const x = calculatePivotedHorizontalShift(pivot, width, options);
+  const y = calculatePivotedVerticalShift(pivot, height, options);
   const straightShift = vector4(x, y, 0, 0);
   const shift = shiftAlongAxis(straightShift, rotation);
   return shift;
@@ -216,13 +218,13 @@ export function calculatePivotedShift(pivot: Pivot, parentPivot: Pivot, size: Ve
 
 /**
  * Calculates the horizontal shift of the layer for the pivot point relative to the parent.
- * @param width - The width of the layer.
- * @param parentWidth - The width of the parent.
  * @param pivot - The pivot point of the layer.
- * @param parentPivot - The pivot point of the parent.
+ * @param width - The width of the layer.
+ * @param options
  * @returns The horizontal shift of the layer.
  */
-function calculatePivotedHorizontalShift(width: number, parentWidth: number, pivot: Pivot, parentPivot: Pivot) {
+function calculatePivotedHorizontalShift(pivot: Pivot, width: number, options: GUINodeDataExportOptions) {
+  const { parentPivot } = options
   const halfWidth = width / 2;
   if (isPivotEast(parentPivot)) {
     if (isPivotEast(pivot)) {
@@ -253,13 +255,14 @@ function calculatePivotedHorizontalShift(width: number, parentWidth: number, piv
 
 /**
  * Calculates the vertical shift of the layer for the pivot point relative to the parent.
- * @param height - The height of the layer.
- * @param parentHeight - The height of the parent.
  * @param pivot - The pivot point of the layer.
- * @param parentPivot - The pivot point of the parent.
+ * @param height - The height of the layer.
+ * @param options
  * @returns The vertical shift of the layer.
  */
-function calculatePivotedVerticalShift(height: number, parentHeight: number, pivot: Pivot, parentPivot: Pivot) {
+function calculatePivotedVerticalShift(pivot: Pivot, height: number, options: GUINodeDataExportOptions) {
+  const { parentSize, parentPivot } = options
+  const { y: parentHeight } = parentSize;
   const halfHeight = height / 2;
   if (isPivotNorth(parentPivot)) {
     if (isPivotNorth(pivot)) {

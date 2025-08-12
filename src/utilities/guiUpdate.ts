@@ -72,6 +72,6 @@ export async function updateGUILayer(layer: DataLayer, updateData: PluginGUINode
   if (isLayerNode(layer)) {
     tryUpdateFigmaLayerName(layer, updateData.id);
     tryRefreshSlice9Placeholder(layer, updateData.slice9, originalData?.slice9);
-    tryUpdateFigmaLayerScale(layer, updateData.scaleFactor, originalData?.scaleFactor);
+    tryUpdateFigmaLayerScale(layer, updateData.scale_factor, originalData?.scale_factor);
   }
 }

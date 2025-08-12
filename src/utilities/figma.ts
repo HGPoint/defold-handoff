@@ -780,7 +780,9 @@ export function tryUpdateFigmaLayerName(layer: ExportableLayer, name?: string) {
 
 export function tryUpdateFigmaLayerScale(layer: ExportableLayer, scaleFactor: number, originalScaleFactor?: number) {
   if (!originalScaleFactor || originalScaleFactor !== scaleFactor) {
-    layer.rescale(scaleFactor);
+    const normalizedOriginalScaleFactor = originalScaleFactor || 1;
+    const rescaleFactor = scaleFactor / normalizedOriginalScaleFactor;
+    layer.rescale(rescaleFactor);
   }
 }
 
