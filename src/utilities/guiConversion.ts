@@ -9,7 +9,7 @@ import { resolveBaseColor, splitColor } from "utilities/color";
 import { generateContextData } from "utilities/context";
 import { injectGUIDefaults, injectGUINodeDefaults } from "utilities/defaults";
 import { getPluginData } from "utilities/figma";
-import { inferBackgroundColor, inferClippingVisible, inferColor, inferFigmaPosition, inferFont, inferGUIBoxTexture, inferGUIBoxVisible, inferGUINodeType, inferGUITextSizeMode, inferGUITextVisible, inferLineBreak, inferRotation, inferScale, inferSize, inferSizeMode, inferSlice9, inferText, inferTextBoxSize, inferTextLeading, inferTextOutline, inferTextPivot, inferTextScale, inferTextShadow, inferTextTracking, resolveGUITextSpriteNodeImpliedSprite } from "utilities/inference";
+import { inferBackgroundColor, inferClippingVisible, inferColor, inferFigmaPosition, inferFigmaSize, inferFont, inferGUIBoxTexture, inferGUIBoxVisible, inferGUINodeType, inferGUITextSizeMode, inferGUITextVisible, inferLineBreak, inferRotation, inferScale, inferSize, inferSizeMode, inferSlice9, inferText, inferTextBoxSize, inferTextLeading, inferTextOutline, inferTextPivot, inferTextScale, inferTextShadow, inferTextTracking, resolveGUITextSpriteNodeImpliedSprite } from "utilities/inference";
 import { divideVectorByValue, multiplyVectorByValue, readableVector, readableNumber, vector4 } from "utilities/math";
 import { generateScriptPath } from "utilities/path";
 import { calculateChildPosition, calculateRootPosition } from "utilities/pivot";
@@ -41,7 +41,7 @@ export async function convertBoxGUINodeData(layer: BoxLayer, options: GUINodeDat
   const defaults = injectGUINodeDefaults();
   const data = getPluginData(layer, "defoldGUINode");
   const id = convertGUINodeId(layer, context.ignorePrefixes, options)
-  const slice9 = inferSlice9(layer, data);
+  const slice9 = convertGUINodeSlice9(layer, options, data);
   const type = convertGUINodeType(layer, options, data);
   const guiLayer = convertGUINodeLayer(context, data);
   const pivot = convertGUIBoxNodePivot(data);
@@ -244,6 +244,7 @@ function convertGUIImpliedBoxNodeTransformations(layer: RectangleNode, pivot: Pi
   const scale = convertGUINodeScale(layer, pluginData);
   const position = convertGUINodePosition(layer, pivot, size, options, pluginData);
   const figmaPosition = inferFigmaPosition(layer);
+  const figmaSize = inferFigmaSize(layer);
   const rotation = inferRotation(layer);
   return {
     size,
@@ -251,6 +252,7 @@ function convertGUIImpliedBoxNodeTransformations(layer: RectangleNode, pivot: Pi
     position,
     rotation,
     figma_position: figmaPosition,
+    figma_size: figmaSize,
   };
 }
 
@@ -285,12 +287,14 @@ function convertGUITextNodeTransformations(layer: TextLayer, pivot: Pivot, optio
  */
 function convertGUINodeTransformations(layer: ExportableLayer, pivot: Pivot, size: Vector4, options: GUINodeDataExportOptions, pluginData?: WithNull<PluginGUINodeData>) {
   const figmaPosition = inferFigmaPosition(layer);
-  const position = convertGUINodePosition(layer, pivot, size, options, pluginData);
+  const figmaSize = inferFigmaSize(layer);
+  const position = convertGUINodePosition(layer, pivot, figmaSize, options, pluginData);
   const rotation = inferRotation(layer);
   return {
     position,
     rotation,
     figma_position: figmaPosition,
+    figma_size: figmaSize,
   };
 }
 
@@ -298,6 +302,7 @@ async function convertGUITextSpriteNodeTransformations(layer: TextLayer, pivot: 
   const size = convertGUINodeSize(layer, options, pluginData);
   const scale = convertGUINodeScale(layer, pluginData);
   const figmaPosition = inferFigmaPosition(layer);
+  const figmaSize = inferFigmaSize(layer);
   const position = convertGUINodePosition(layer, pivot, size, options, pluginData);
   const rotation = inferRotation(layer);
   return {
@@ -306,6 +311,7 @@ async function convertGUITextSpriteNodeTransformations(layer: TextLayer, pivot: 
     scale,
     rotation,
     figma_position: figmaPosition,
+    figma_size: figmaSize,
   };
 }
 
@@ -326,11 +332,8 @@ function convertGUIBoxNodePivot(pluginData?: WithNull<PluginGUINodeData>) {
  * Converts the GUI node position to a Defold-like data.
  * @param layer - The Figma layer to convert position for.
  * @param pivot - The pivot point of the layer.
- * @param parentPivot - The pivot point of the parent layer.
  * @param size - The size of the layer.
- * @param parentSize - The size of the parent layer.
- * @param parentShift - The position shift of the parent layer.
- * @param atRoot - Whether the layer is at the root level.
+ * @param options
  * @param pluginData - The GUI node plugin data.
  * @returns The converted GUI node position.
  */
@@ -362,19 +365,19 @@ function convertGUITextNodeScale(layer: TextNode, pluginData?: WithNull<PluginGU
 }
 
 function convertGUINodeSize(layer: SceneNode, options: GUINodeDataExportOptions, pluginData?: WithNull<PluginGUINodeData>) {
-  const { parentScale } = options
+  const { parentScaleFactor } = options
   const layerSize = inferSize(layer);
   const layerScaleFactor = pluginData?.scale_factor || config.guiNodeDefaultSpecialValues.scale_factor;
-  const scaleFactor = parentScale * layerScaleFactor;
+  const scaleFactor = parentScaleFactor * layerScaleFactor;
   const size = divideVectorByValue(layerSize, scaleFactor);
   return readableVector(size);
 }
 
 function convertGUITextNodeSize(layer: TextNode, scale: Vector4, options: GUINodeDataExportOptions, pluginData?: WithNull<PluginGUINodeData>): Vector4 {
-  const { parentScale } = options
+  const { parentScaleFactor } = options
   const layerSize = inferTextBoxSize(layer, scale);
   const layerScaleFactor = pluginData?.scale_factor || config.guiNodeDefaultSpecialValues.scale_factor;
-  const scaleFactor = parentScale * layerScaleFactor;
+  const scaleFactor = parentScaleFactor * layerScaleFactor;
   const size = divideVectorByValue(layerSize, scaleFactor);
   return readableVector(size);
 }
@@ -403,6 +406,15 @@ function convertGUITextNodeSizeMode(pluginData?: WithNull<PluginGUINodeData>) {
     return pluginData.size_mode;
   }
   return inferGUITextSizeMode();
+}
+
+function convertGUINodeSlice9(layer: BoxLayer, options: GUINodeDataExportOptions, pluginData?: WithNull<PluginGUINodeData>) {
+  const { parentScaleFactor } = options
+  const layerSlice9 = inferSlice9(layer, pluginData);
+  const layerScaleFactor = pluginData?.scale_factor || config.guiNodeDefaultSpecialValues.scale_factor;
+  const scaleFactor = parentScaleFactor * layerScaleFactor;
+  const slice9 = divideVectorByValue(layerSlice9, scaleFactor);
+  return readableVector(slice9);
 }
 
 /**

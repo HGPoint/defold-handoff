@@ -239,8 +239,8 @@ export function shiftAlongAxis(shift: Vector4, rotation: number): Vector4 {
 }
 
 export function detectFlip(transformMatrix: TransformMatrix) {
-  const [[a], [, d]] = transformMatrix;
+  const [[a], [, e]] = transformMatrix;
   const flipX = a < 0;
-  const flipY = d < 0;
+  const flipY = e < 0;
   return { flipX, flipY };
 }

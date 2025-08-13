@@ -81,7 +81,6 @@ function resolveGUISize(layer: ExportableLayer) {
  * @returns The resolved GUI node export options.
  */
 function resolveGUIExportOptions(layer: ExportableLayer, parameters: GUINodeExportParameters, pluginData: WithNull<PluginGUINodeData>): GUINodeDataExportOptions {
-  const scaleFactor = pluginData?.scale_factor || config.guiNodeDefaultSpecialValues.scale_factor;
   const options: GUINodeDataExportOptions = {
     ...parameters,
     layer,
@@ -91,7 +90,7 @@ function resolveGUIExportOptions(layer: ExportableLayer, parameters: GUINodeExpo
     parentPivot: config.guiNodeDefaultValues.pivot,
     parentSize: vector4(0),
     parentShift: vector4(-layer.x, -layer.y, 0, 0),
-    parentScale: scaleFactor,
+    parentScaleFactor: 1,
     clones: []
   }
   return options;
@@ -330,12 +329,12 @@ async function generateParentOptions(layer: ExportableLayer, shouldSkip: boolean
  * @param guiNodeData - The GUI node data.
  * @returns The resolved GUI node layer export options.
  */
-function resolveGUINodeLayerOptions(shouldSkip: boolean, parentOptions: GUINodeDataExportOptions, guiNodeData: GUINodeData): Pick<GUINodeDataExportOptions, "parentId" | "parentPivot" | "parentSize" | "parentShift" | "parentScale"> {
-  const { parentScale } = parentOptions;
-  const resolvedParentScale = parentScale * (guiNodeData.scale_factor || config.guiNodeDefaultSpecialValues.scale_factor);
+function resolveGUINodeLayerOptions(shouldSkip: boolean, parentOptions: GUINodeDataExportOptions, guiNodeData: GUINodeData): Pick<GUINodeDataExportOptions, "parentId" | "parentPivot" | "parentSize" | "parentShift" | "parentScaleFactor"> {
+  const { parentScaleFactor } = parentOptions;
+  const resolvedParentScaleFactor = parentScaleFactor * (guiNodeData.scale_factor || config.guiNodeDefaultSpecialValues.scale_factor);
   if (shouldSkip) {
     const { parentId, parentSize, parentPivot, parentShift } = parentOptions;
-    const resolvedParentSize = isZeroVector(parentSize) ? guiNodeData.size : parentSize;
+    const resolvedParentSize = isZeroVector(parentSize) ? guiNodeData.figma_size : parentSize;
     const resolvedFigmaPosition = guiNodeData.figma_position || vector4(0);
     const resolvedParentShift = addVectors(parentShift, resolvedFigmaPosition)
     return {
@@ -343,15 +342,15 @@ function resolveGUINodeLayerOptions(shouldSkip: boolean, parentOptions: GUINodeD
       parentSize: resolvedParentSize,
       parentPivot,
       parentShift: resolvedParentShift,
-      parentScale: resolvedParentScale,
+      parentScaleFactor: resolvedParentScaleFactor,
     }
   }
   return {
     parentId: guiNodeData.id,
-    parentSize: guiNodeData.size,
+    parentSize: guiNodeData.figma_size,
     parentPivot: guiNodeData.pivot,
     parentShift: vector4(0),
-    parentScale
+    parentScaleFactor: resolvedParentScaleFactor
   }
 }
 

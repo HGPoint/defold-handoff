@@ -279,6 +279,10 @@ export function inferFigmaPosition(layer: SceneNode) {
   return vector4(layer.x, layer.y, 0, 0);
 }
 
+export function inferFigmaSize(layer: SceneNode) {
+  return vector4(layer.width, layer.height, 0, 0);
+}
+
 /**
  * Infers the rotation for the GUI node or game object.
  * @param layer - The Figma layer to infer rotation from.

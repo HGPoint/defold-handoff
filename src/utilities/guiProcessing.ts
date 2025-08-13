@@ -173,10 +173,15 @@ function collapseWithParent(parent: GUINodeData, child: GUINodeData, childIndex:
       if (parent.pivot != child.pivot) {
         const { exportable_layer: layer } = collapsedChild;
         if (layer) {
-          const { pivot, size } = collapsedChild;
-          const { pivot: parentPivot, size: parentSize } = parent;
+          const { pivot, figma_size: size } = collapsedChild;
+          const { pivot: parentPivot, figma_size: parentSize } = parent;
           const parentShift = vector4(0);
-          collapsedChild.position = calculateChildPosition(layer, pivot, parentPivot, size, parentSize, parentShift);
+          const options = {
+            parentPivot,
+            parentSize,
+            parentShift
+          }
+          collapsedChild.position = calculateChildPosition(layer, pivot, size, options);
         }
       }
       collapsedChild.parent = parent.id;

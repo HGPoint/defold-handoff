@@ -71,6 +71,7 @@ const EXCLUDED_PROPERTY_KEYS: (keyof GUINodeData)[] = [
   "exportable_layer",
   "exportable_layer_id",
   "exportable_layer_name",
+  "figma_size",
   "figma_position",
   "figma_node_type",
   "children",

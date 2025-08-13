@@ -91,8 +91,9 @@ type GUINodeData = {
   exportable_layer?: ExportableLayer | RectangleNode,
   exportable_layer_name?: string,
   exportable_layer_id?: string,
-  figma_position?: Vector4,
-  figma_node_type?: string,
+  figma_size: Vector4,
+  figma_position: Vector4,
+  figma_node_type: string,
   children?: GUINodeData[],
   script: boolean,
   script_path: string,
@@ -127,7 +128,7 @@ type GUINodeDataExportOptions = {
   parentPivot: Pivot,
   parentSize: Vector4,
   parentShift: Vector4,
-  parentScale: number,
+  parentScaleFactor: number,
 }
 
 type GUINodeExportCloneData = {
