@@ -51,7 +51,7 @@
     <Properties collapseKey="guiNodePropertiesCollapsed">
       <TextProperty label="Id" bind:value={gameObject.id} />
       <LayerPositionProperty label="Position" bind:value={gameObject.position} />
-      <ScaleProperty label="Scale" bind:value={gameObject.scale_factor} />
+      <ScaleProperty label="Scale" bind:value={gameObject.scale_factor} disabled={true} />
       {#if isGameObjectSpriteType(gameObject.type)}
         <OptionsProperty label="Material" bind:value={gameObject.material} options={materials} disabled={true} />
       {/if}

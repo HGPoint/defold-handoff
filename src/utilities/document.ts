@@ -3,7 +3,7 @@
  * @packageDocumentation
  */
 
-import { getPluginData, hasNamePropertyChanged, hasSizePropertyChanged, hasVariantPropertyChanged, isDocumentDeleteChange, isDocumentPropertyChange, isFigmaComponentInstance, isFigmaRemoved, setPluginData } from "utilities/figma";
+import { getPluginData, hasNamePropertyChanged, hasScalePropertyChanged, hasSizePropertyChanged, hasVariantPropertyChanged, isDocumentDeleteChange, isDocumentPropertyChange, isFigmaComponentInstance, isFigmaRemoved, setPluginData } from "utilities/figma";
 import { removeGUINodeOverridesPluginData, resolveGUINodeOverridesDataKey } from "utilities/gui";
 import { isSlice9Layer, isSlice9PlaceholderLayer, tryRefreshSlice9, tryRefreshSlice9SizeMode, tryUpdateSlice9LayerName, tryUpdateSlice9PlaceholderLayerName } from "utilities/slice9";
 
@@ -64,6 +64,9 @@ function processPropertyChange(change: DocumentChange) {
       if (hasVariantPropertyChanged(change)) {
         onVariantPropertyChange(node);
       }
+      if (hasScalePropertyChanged(change)) {
+        onScalePropertyChange(node);
+      }
     }
   }
 }
@@ -88,6 +91,10 @@ function onVariantPropertyChange(node: SceneNode) {
   if (isSlice9Layer(node) && isFigmaComponentInstance(node)) {
     tryRefreshSlice9(node);
   }
+}
+
+function onScalePropertyChange(node: SceneNode) {
+  figma.notify(`${node.name} was scaled. To apply scaling correctly, use the DefoldHandoff UI.`);
 }
 
 function onSizePropertyChange(node: SceneNode) {

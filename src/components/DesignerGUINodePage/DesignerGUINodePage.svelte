@@ -1,6 +1,9 @@
 <script lang="ts">
   import ActionButton from "components/ActionButton";
   import Actions from "components/Actions";
+  import Page from "components/Page";
+  import Properties from "components/Properties";
+  import ScaleProperty from "components/ScaleProperty";
   import Slice9Editor from "components/Slice9Editor";
   import selectionState from "state/selection";
   import { isGUIBoxType, isGUITemplateType, isGUITextType } from "utilities/gui";
@@ -25,7 +28,7 @@
     }
   }
 
-    function updatePlugin(updatedProperties: WithNull<PluginGUINodeData>) {
+  function updatePlugin(updatedProperties: WithNull<PluginGUINodeData>) {
     if (shouldSendUpdate()) {
       postMessageToPlugin("updateGUINode", { guiNode });
     }
@@ -40,15 +43,22 @@
   $: requestImage(guiNode);
 </script>
 
-<Slice9Editor label={guiNode.id} bind:value={guiNode.slice9} />
-<Actions title="Tools" collapseKey="guiNodeToolsCollapsed">
-  {#if isGUITextType(guiNode.type)}
-    <ActionButton label="Fix Text" action="fixGUIText" />
-  {/if}
-  {#if (isGUIBoxType(guiNode.type) || isGUITemplateType(guiNode.type)) && !isZeroVector(guiNode.slice9)}
-    <ActionButton label="Refresh Slice 9" action="restoreSlice9" />
-  {/if}
-  <ActionButton label="Export GUI as Spine" action="exportGUISpine" />
-  <ActionButton label="Export GUI as Spine Attachments" action="exportGUISpineAttachments" />
-  <ActionButton label="Export GUI as PSD" action="exportGUIPSD" />
-</Actions>
+{#if guiNode}
+  <Page>
+    <Properties>
+      <ScaleProperty label="Scale" bind:value={guiNode.scale_factor} />
+      <Slice9Editor label={guiNode.id} bind:value={guiNode.slice9} />
+    </Properties>
+    <Actions title="Tools" collapseKey="guiNodeToolsCollapsed">
+      {#if isGUITextType(guiNode.type)}
+        <ActionButton label="Fix Text" action="fixGUIText" />
+      {/if}
+      {#if (isGUIBoxType(guiNode.type) || isGUITemplateType(guiNode.type)) && !isZeroVector(guiNode.slice9)}
+        <ActionButton label="Refresh Slice 9" action="restoreSlice9" />
+      {/if}
+      <ActionButton label="Export GUI as Spine" action="exportGUISpine" />
+      <ActionButton label="Export GUI as Spine Attachments" action="exportGUISpineAttachments" />
+      <ActionButton label="Export GUI as PSD" action="exportGUIPSD" />
+    </Actions>
+  </Page>
+{/if}

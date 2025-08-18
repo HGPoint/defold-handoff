@@ -479,6 +479,30 @@ export function resolveExportFormat(settings: readonly ExportSettings[]): Sprite
 }
 
 /**
+ * Determines whether the layer was scaled.
+ * @param change - The property change to check.
+ * @param property - The property to check.
+ * @returns True if the property has changed, otherwise false.
+ */
+export function hasScalePropertyChanged(change: PropertyChange) {
+  if (change.properties.length == 6) {
+    const scaleProperties: NodeChangeProperty[] = ["strokeWeight", "width", "height", "relativeTransform", "x", "y"]
+    return scaleProperties.every(property => change.properties.includes(property))
+  }
+  return false;
+}
+
+/**
+ * Determines whether the property has changed.
+ * @param change - The property change to check.
+ * @param property - The property to check.
+ * @returns True if the property has changed, otherwise false.
+ */
+function hasPropertyChanged(change: PropertyChange, property: NodeChangePropertyExtended) {
+  return change.properties.some(changeProperty => changeProperty === property);
+}
+
+/**
  * Determines whether the variant property has changed.
  * @param change - The property change to check.
  * @returns True if the variant property has changed, otherwise false.
@@ -494,16 +518,6 @@ export function hasVariantPropertyChanged(change: PropertyChange) {
  */
 export function hasNamePropertyChanged(change: PropertyChange) {
   return hasPropertyChanged(change, "name");
-}
-
-/**
- * Determines whether the property has changed.
- * @param change - The property change to check.
- * @param property - The property to check.
- * @returns True if the property has changed, otherwise false.
- */
-function hasPropertyChanged(change: PropertyChange, property: NodeChangePropertyExtended) {
-  return change.properties.some(changeProperty => changeProperty === property);
 }
 
 /**
