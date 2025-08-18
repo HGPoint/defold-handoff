@@ -280,7 +280,17 @@ export function inferFigmaPosition(layer: SceneNode) {
 }
 
 export function inferFigmaSize(layer: SceneNode) {
-  return vector4(layer.width, layer.height, 0, 0);
+  if (isSlice9Layer(layer)) {
+    const placeholder = findSlice9PlaceholderLayer(layer);
+    if (placeholder) {
+      const size = vector4(placeholder.width, placeholder.height, 0, 0);
+      const readableSize = readableVector(size);
+      return readableSize;
+    }
+  }
+  const size = vector4(layer.width, layer.height, 0, 0);
+  const readableSize = readableVector(size);
+  return readableSize;
 }
 
 /**

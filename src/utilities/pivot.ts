@@ -5,7 +5,7 @@
 
 import { PROJECT_CONFIG } from "handoff/project";
 import { isFigmaPage, isFigmaSection } from "utilities/figma";
-import { addVectors, calculateCenter, isZeroVector, shiftAlongAxis, vector4 } from "utilities/math";
+import { addVectors, calculateCenter, divideVectorByValue, isZeroVector, shiftAlongAxis, vector4 } from "utilities/math";
 
 /**
  * Determines whether the pivot point is located to the north.
@@ -151,15 +151,17 @@ export function calculateCenteredRootPosition(layer: SceneNode, size: Vector4, o
  * @returns The position of the child layer.
  */
 export function calculateChildPosition(layer: SceneNode, pivot: Pivot, size: Vector4, options: GUINodeDataExportOptions, data?: WithNull<PluginGUINodeData>) {
-  const { parentSize, parentShift } = options
+  const { parentSize, parentShift, parentScaleFactor } = options
   const centeredPosition = calculateCenteredPosition(layer, size, parentSize);
   if (data?.template && !options.asTemplate) {
-    const shiftedCenterPosition = addPositionParentShift(centeredPosition, parentShift);
+    const layerShiftedCenterPosition = addPositionParentShift(centeredPosition, parentShift);
+    const shiftedCenterPosition = divideVectorByValue(layerShiftedCenterPosition, parentScaleFactor)
     return shiftedCenterPosition;
   }
   const rotation = "rotation" in layer ? layer.rotation : 0;
   const pivotedPosition = calculatePivotedPosition(centeredPosition, pivot, size, rotation, options);
-  const shiftedPosition = addPositionParentShift(pivotedPosition, parentShift);
+  const layerShiftedPosition = addPositionParentShift(pivotedPosition, parentShift);
+  const shiftedPosition = divideVectorByValue(layerShiftedPosition, parentScaleFactor)
   return shiftedPosition;
 }
 

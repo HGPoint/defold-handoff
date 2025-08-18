@@ -230,7 +230,7 @@ function convertGUINodeType(layer: ExportableLayer, options: GUINodeDataExportOp
  */
 function convertGUIBoxNodeTransformations(layer: BoxLayer, pivot: Pivot, options: GUINodeDataExportOptions, pluginData?: WithNull<PluginGUINodeData>) {
   const size = convertGUINodeSize(layer, options, pluginData);
-  const scale = convertGUINodeScale(layer, pluginData);
+  const scale = convertGUINodeScale(layer, options, pluginData);
   const guiNodeTransformations = convertGUINodeTransformations(layer, pivot, size, options, pluginData);
   return {
     ...guiNodeTransformations,
@@ -241,7 +241,7 @@ function convertGUIBoxNodeTransformations(layer: BoxLayer, pivot: Pivot, options
 
 function convertGUIImpliedBoxNodeTransformations(layer: RectangleNode, pivot: Pivot, options: GUINodeDataExportOptions, pluginData: WithNull<PluginGUINodeData>) {
   const size = convertGUINodeSize(layer, options, pluginData);
-  const scale = convertGUINodeScale(layer, pluginData);
+  const scale = convertGUINodeScale(layer, options, pluginData);
   const position = convertGUINodePosition(layer, pivot, size, options, pluginData);
   const figmaPosition = inferFigmaPosition(layer);
   const figmaSize = inferFigmaSize(layer);
@@ -265,7 +265,7 @@ function convertGUIImpliedBoxNodeTransformations(layer: RectangleNode, pivot: Pi
  * @returns The converted text GUI node transformations.
  */
 function convertGUITextNodeTransformations(layer: TextLayer, pivot: Pivot, options: GUINodeDataExportOptions, pluginData?: WithNull<PluginGUINodeData>) {
-  const scale = convertGUITextNodeScale(layer, pluginData);
+  const scale = convertGUITextNodeScale(layer, options, pluginData);
   const textBoxSize = convertGUINodeSize(layer, options, pluginData);
   const size = convertGUITextNodeSize(layer, scale, options, pluginData);
   const guiNodeTransformations = convertGUINodeTransformations(layer, pivot, textBoxSize, options, pluginData);
@@ -300,7 +300,7 @@ function convertGUINodeTransformations(layer: ExportableLayer, pivot: Pivot, siz
 
 async function convertGUITextSpriteNodeTransformations(layer: TextLayer, pivot: Pivot, options: GUINodeDataExportOptions, pluginData?: WithNull<PluginGUINodeData>) {
   const size = convertGUINodeSize(layer, options, pluginData);
-  const scale = convertGUINodeScale(layer, pluginData);
+  const scale = convertGUINodeScale(layer, options, pluginData);
   const figmaPosition = inferFigmaPosition(layer);
   const figmaSize = inferFigmaSize(layer);
   const position = convertGUINodePosition(layer, pivot, size, options, pluginData);
@@ -348,7 +348,7 @@ function convertGUINodePosition(layer: SceneNode, pivot: Pivot, size: Vector4, o
   return readablePosition;
 }
 
-function convertGUINodeScale(layer: SceneNode, pluginData?: WithNull<PluginGUINodeData>) {
+function convertGUINodeScale(layer: SceneNode, options: GUINodeDataExportOptions, pluginData?: WithNull<PluginGUINodeData>) {
   const layerScale = inferScale(layer);
   const layerScaleFactor = pluginData?.scale_factor || config.guiNodeDefaultSpecialValues.scale_factor;
   const scale = multiplyVectorByValue(layerScale, layerScaleFactor);
@@ -356,10 +356,12 @@ function convertGUINodeScale(layer: SceneNode, pluginData?: WithNull<PluginGUINo
   return convertedScale;
 }
 
-function convertGUITextNodeScale(layer: TextNode, pluginData?: WithNull<PluginGUINodeData>): Vector4 {
+function convertGUITextNodeScale(layer: TextNode, options: GUINodeDataExportOptions, pluginData?: WithNull<PluginGUINodeData>): Vector4 {
+  const { parentScaleFactor } = options;
   const layerScale = inferTextScale(layer);
   const layerScaleFactor = pluginData?.scale_factor || config.guiNodeDefaultSpecialValues.scale_factor;
-  const scale = multiplyVectorByValue(layerScale, layerScaleFactor);
+  const scaleFactor = layerScaleFactor * parentScaleFactor;
+  const scale = divideVectorByValue(layerScale, scaleFactor);
   const convertedScale = vector4(readableNumber(scale.x), readableNumber(scale.y), 1, 1);
   return convertedScale;
 }
