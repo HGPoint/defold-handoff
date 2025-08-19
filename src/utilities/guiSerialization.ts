@@ -74,6 +74,7 @@ const EXCLUDED_PROPERTY_KEYS: (keyof GUINodeData)[] = [
   "figma_size",
   "figma_position",
   "figma_node_type",
+  "figma_node_id",
   "children",
   "replace_template",
   "replace_template_name",

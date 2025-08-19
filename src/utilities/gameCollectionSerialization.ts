@@ -74,6 +74,7 @@ const EXCLUDED_PROPERTY_KEYS = [
   "figma_position",
   "figma_size",
   "figma_node_type",
+  "figma_node_id",
   "figma_children",
   "components"
 ];

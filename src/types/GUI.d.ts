@@ -94,6 +94,7 @@ type GUINodeData = {
   figma_size: Vector4,
   figma_position: Vector4,
   figma_node_type: string,
+  figma_node_id: string,
   children?: GUINodeData[],
   script: boolean,
   script_path: string,

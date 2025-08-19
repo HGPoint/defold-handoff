@@ -49,6 +49,8 @@ type GameObjectData = {
   exportable_layer_id: string,
   figma_size: Vector4,
   figma_position: Vector4,
+  figma_node_type: string,
+  figma_node_id: string,
   figma_children?: string[],
   components?: GameObjectData[],
 }
