@@ -3,6 +3,7 @@ type UIMode = "developer" | "designer" | "game-designer";
 type UIData = {
   mode: UIMode,
   collapsed: boolean,
+  resetScroll: boolean,
 
   guiNodePropertiesCollapsed?: boolean,
   guiNodeSpecialPropertiesCollapsed?: boolean,

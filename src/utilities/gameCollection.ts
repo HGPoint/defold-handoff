@@ -80,6 +80,7 @@ export async function getGameObjectPluginData(layer: Exclude<ExportableLayer, Sl
     id,
     type,
     figma_node_type: layer.type,
+    figma_node_id: layer.id
   }
 }
 

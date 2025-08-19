@@ -94,13 +94,14 @@ function onVariantPropertyChange(node: SceneNode) {
 }
 
 function onScalePropertyChange(node: SceneNode) {
+  if (isSlice9Layer(node) || isSlice9PlaceholderLayer(node)) {
+    tryRefreshSlice9SizeMode(node);
+  }
   figma.notify(`${node.name} was scaled. To apply scaling correctly, use the DefoldHandoff UI.`);
 }
 
 function onSizePropertyChange(node: SceneNode) {
-  if (isSlice9Layer(node)) {
-    tryRefreshSlice9SizeMode(node);
-  } else if (isSlice9PlaceholderLayer(node)) {
+  if (isSlice9Layer(node) || isSlice9PlaceholderLayer(node)) {
     tryRefreshSlice9SizeMode(node);
   }
 }

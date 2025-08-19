@@ -6,6 +6,7 @@
  */
 
 import { copyGUI, copyGUIScheme, copyGameObjects, exportAtlases, exportBundle, exportGUI, exportGameCollection, exportPSD, exportSpines, exportSprites } from "utilities/resources";
+import { areMultipleAtlasesSelected, areMultipleGUINodesSelected, areMultipleGameObjectsSelected, areMultipleSectionsSelected, isAtlasSelected, isGUINodeSelected, isGameObjectSelected, isSameGUINodeSelected, isSameGameObjectSelected, isSectionSelected } from "utilities/selection";
 
 /**
  * Resolves the plugin version.
@@ -175,6 +176,32 @@ export function isCurrentUIModeGameDesigner(): boolean {
  */
 export function isSelectionUpdated(selection: SelectionUIData, currentSelection: SelectionUIData): boolean {
   return JSON.stringify(selection) !== JSON.stringify(currentSelection);
+}
+
+/**
+ * Determines whether the scroll in the UI window should be reset.
+ * @param selection - The new selection.
+ * @param currentSelection - The current selection.
+ * @returns True if the scroll should be reset, otherwise false.
+ */
+export function shouldResetScroll(selection: SelectionUIData, currentSelection: SelectionUIData): boolean {
+  if (
+    areMultipleAtlasesSelected(selection) ||
+    areMultipleGUINodesSelected(selection) ||
+    areMultipleGameObjectsSelected(selection) ||
+    areMultipleSectionsSelected(selection) ||
+    isAtlasSelected(selection) ||
+    isSectionSelected(selection)
+  ) {
+    return true
+  }
+  if (
+    (isGUINodeSelected(selection) && isGUINodeSelected(currentSelection) && isSameGUINodeSelected(selection, currentSelection)) ||
+    (isGameObjectSelected(selection) && isGameObjectSelected(currentSelection) && isSameGameObjectSelected(selection, currentSelection))
+  ) {
+    return false
+  }
+  return true
 }
 
 /**

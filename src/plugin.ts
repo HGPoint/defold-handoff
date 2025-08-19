@@ -65,6 +65,7 @@ function onSelectionChange() {
  */
 function onDocumentChange(event: DocumentChangeEvent) {
   processDocumentChanges(event);
+  updateSelection();
 }
 
 /**

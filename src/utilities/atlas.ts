@@ -402,6 +402,9 @@ function fixSprite(sprite: ComponentNode) {
   fixSpriteName(sprite);
   lockSprite(sprite);
   fitSprite(sprite);
+  removePluginData(sprite, "defoldGUINode")
+  removePluginData(sprite, "defoldGameObject")
+  removePluginData(sprite, "defoldSlice9")
 }
 
 /**

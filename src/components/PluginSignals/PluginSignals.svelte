@@ -2,7 +2,7 @@
   import imageState from "state/image";
   import selectionState from "state/selection";
   import uiState from "state/ui";
-  import { isPluginMessage, isPluginMessagePayload, isSelectionUIData, isSelectionUpdated, isUIMode, onPluginMessage } from "utilities/ui";
+  import { isPluginMessage, isPluginMessagePayload, isSelectionUIData, isSelectionUpdated, isUIMode, onPluginMessage, shouldResetScroll } from "utilities/ui";
 
   function onMessage(event: MessageEvent) {
     if (isPluginMessage(event)) {
@@ -24,6 +24,7 @@
   function onSelectionChanged(data: PluginMessagePayload) {
     const { selection } = data;
     if (isSelectionUIData(selection) && isSelectionUpdated(selection, $selectionState)) {
+      $uiState.resetScroll = shouldResetScroll(selection, $selectionState)
       $selectionState = selection;
       $imageState = null;
     }

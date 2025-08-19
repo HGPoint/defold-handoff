@@ -40,7 +40,7 @@ export async function exportGUIData({ layer, parameters }: GUIExportPipelineData
   const { asTemplate } = parameters;
   const rootData = resolveGUINodePluginData(layer);
   const size = resolveGUISize(layer);
-  const exportOptions = resolveGUIExportOptions(layer, parameters, rootData);
+  const exportOptions = resolveGUIExportOptions(layer, parameters);
   const gui = convertGUIData(rootData);
   const filePath = resolveGUIFilePath(rootData);
   const nodes = await generateGUINodeData(exportOptions);
@@ -80,7 +80,7 @@ function resolveGUISize(layer: ExportableLayer) {
  * @param layer - The Figma layer to resolve GUI node export options from
  * @returns The resolved GUI node export options.
  */
-function resolveGUIExportOptions(layer: ExportableLayer, parameters: GUINodeExportParameters, pluginData: WithNull<PluginGUINodeData>): GUINodeDataExportOptions {
+function resolveGUIExportOptions(layer: ExportableLayer, parameters: GUINodeExportParameters): GUINodeDataExportOptions {
   const options: GUINodeDataExportOptions = {
     ...parameters,
     layer,

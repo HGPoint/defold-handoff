@@ -135,6 +135,7 @@ export function getGUINodePluginData(layer: Exclude<ExportableLayer, SliceLayer>
     type,
     export_variants: exportVariants,
     figma_node_type: layer.type,
+    figma_node_id: layer.id
   }
 }
 

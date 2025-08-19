@@ -82,6 +82,7 @@ type PluginGUINodeData = {
   script_name: string,
   wrapper: boolean,
   wrapper_padding: Vector4,
+  figma_node_id: string,
   figma_node_type: NodeType,
   replace_template: boolean,
   replace_template_name: string,
@@ -120,6 +121,7 @@ type PluginGameObjectData = {
   depth_layer: number,
   inferred: boolean,
   path: string,
+  figma_node_id: string,
   figma_node_type: NodeType,
 }
 

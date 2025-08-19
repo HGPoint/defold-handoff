@@ -7,7 +7,7 @@ import config from "config/config.json";
 import { PROJECT_CONFIG } from "handoff/project";
 import { copyArray, removeDoubles } from "utilities/array";
 import { findSectionWithContextData, generateContextData } from "utilities/context";
-import { findMainFigmaComponent, getPluginData, isFigmaComponentInstance, isFigmaFrame, isFigmaGroup, isFigmaSection, isFigmaSlice, isFigmaText, isLayerAtlas, isLayerGUINode, isLayerGameObject, isLayerNode, isLayerSprite } from "utilities/figma";
+import { findMainFigmaComponent, getPluginData, isFigmaComponentInstance, isFigmaFrame, isFigmaGroup, isFigmaSection, isFigmaSlice, isFigmaText, isLayerAtlas, isLayerAtlasSprite, isLayerGUINode, isLayerGameObject, isLayerNode, isLayerSprite } from "utilities/figma";
 import { resolvesGUINodeType } from "utilities/gui";
 import { inferGameObjectType, resolveGameObjectPosition, resolveLabelComponentPosition } from "utilities/inference";
 import { findSlice9Layer, isSlice9PlaceholderLayer, isSlice9ServiceLayer } from "utilities/slice9";
@@ -134,7 +134,7 @@ function selectionDataReducer(selection: SelectionData, layer: SceneNode): Selec
       selection.atlases.push(layer);
     } else if (isFigmaSection(layer)) {
       selection.sections.push(layer);
-    } else if (isLayerNode(layer)) {
+    } else if (isLayerNode(layer) && !(isLayerAtlasSprite(layer))) {
       const originalLayer = isSlice9PlaceholderLayer(layer) ? findSlice9Layer(layer) : layer;
       if (originalLayer) {
         if (isCurrentUIModeDeveloper() || isCurrentUIModeDesigner()) {
@@ -153,7 +153,7 @@ function selectionDataReducer(selection: SelectionData, layer: SceneNode): Selec
       if (!isFigmaText(layer)) {
         selection.layers.push(layer);
       }
-    } else if (!isFigmaSlice(layer) && !isFigmaGroup(layer)) {
+    } else if (!isFigmaSlice(layer) && !isFigmaGroup(layer) && !isLayerAtlasSprite(layer)) {
       selection.layers.push(layer);
     }
   }
@@ -214,6 +214,7 @@ function guiNodeConverter(data: PluginGUINodeData[], layer: Exclude<ExportableLa
     id,
     type,
     figma_node_type: layer.type,
+    figma_node_id: layer.id
   };
   data.push(guiNodeData);
   return data;
@@ -251,6 +252,7 @@ async function gameObjectConverter(layer: Exclude<ExportableLayer, SliceLayer>):
     type,
     position,
     figma_node_type: layer.type,
+    figma_node_id: layer.id
   };
   return gameObjectData;
 }
@@ -486,4 +488,16 @@ export function pickFirstAtlasFromSelectionData(selection: SelectionData) {
 export function pickLayersFromSelectionData(selection: SelectionData) {
   const { layers } = selection;
   return layers;
+}
+
+export function isSameGUINodeSelected(selection: SelectionUIData, currentSelection: SelectionUIData): boolean {
+  const [selectedNode] = selection.gui;
+  const [currentNode] = currentSelection.gui;
+  return selectedNode.figma_node_id == currentNode.figma_node_id
+}
+
+export function isSameGameObjectSelected(selection: SelectionUIData, currentSelection: SelectionUIData): boolean {
+  const [selectedNode] = selection.gameObjects;
+  const [currentNode] = currentSelection.gameObjects;
+  return selectedNode.figma_node_id == currentNode.figma_node_id
 }

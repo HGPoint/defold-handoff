@@ -249,6 +249,16 @@ export function isLayerAtlas(layer: BaseNode): layer is ComponentSetNode {
  * @param layer - The Figma layer to check.
  * @returns True if the Figma layer is a sprite, otherwise false.
  */
+export function isLayerAtlasSprite(layer: BaseNode): boolean {
+  const { parent } = layer;
+  return !!parent && isLayerAtlas(parent);
+}
+
+/**
+ * Determines whether the Figma layer is a sprite.
+ * @param layer - The Figma layer to check.
+ * @returns True if the Figma layer is a sprite, otherwise false.
+ */
 export async function isLayerSprite(layer: BaseNode): Promise<boolean> {
   if (isFigmaComponentInstance(layer)) {
     const mainComponent = await findMainFigmaComponent(layer);

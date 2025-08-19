@@ -62,6 +62,7 @@ export function inferGUIText(layer: TextNode) {
     ...inferredData,
     inferred: true,
     figma_node_type: layer.type,
+    figma_node_id: layer.id
   };
   const guiNodeData = { defoldGUINode: data };
   setPluginData(layer, guiNodeData);
@@ -106,6 +107,7 @@ export async function inferGUIBox(layer: BoxLayer) {
     ...inferredData,
     inferred: true,
     figma_node_type: layer.type,
+    figma_node_id: layer.id
   };
   const guiNodeData = { defoldGUINode: data };
   setPluginData(layer, guiNodeData);
@@ -674,6 +676,7 @@ function inferEmptyComponent(layer: BoxLayer) {
     ...inferredData,
     inferred: true,
     figma_node_type: layer.type,
+    figma_node_id: layer.id
   };
   const gameObjectData = { defoldGameObject: data };
   setPluginData(layer, gameObjectData);
@@ -710,6 +713,7 @@ async function inferSpriteComponent(layer: BoxLayer) {
     ...inferredData,
     inferred: true,
     figma_node_type: layer.type,
+    figma_node_id: layer.id
   };
   const gameObjectData = { defoldGameObject: data };
   setPluginData(layer, gameObjectData);
@@ -746,6 +750,7 @@ export function inferLabelComponent(layer: TextNode) {
     ...inferredData,
     inferred: true,
     figma_node_type: layer.type,
+    figma_node_id: layer.id
   };
   const gameObjectData = { defoldGameObject: data };
   setPluginData(layer, gameObjectData);

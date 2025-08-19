@@ -79,6 +79,7 @@ export async function copyGUIScheme(layer: ExportableLayer): Promise<SerializedG
  * @returns An array of results for each GUI node update.
  */
 export async function updateGUI(layers: DataLayer[], updates: PluginGUINodeData[]) {
+  console.log("----------------------------------")
   const result = await runUpdatePipelines(GUI_UPDATE_PIPELINE, layers, updates); 
   return result;
 }
