@@ -216,9 +216,10 @@ export function resolveDepthAxisParameters(data?: WithNull<PluginGameObjectData 
  * @param arrangeDepth - Whether to arrange the depth.
  * @param depthAxis - The depth axis to use.
  */
-export function calculateGameObjectDepth(x: number, y: number, z: number, layer: number, index: number, arrangeDepth: boolean, depthAxis?: string) {
+export function calculateGameObjectDepth(x: number, y: number, z: number, layer: number, index: number, options: GameObjectDataExportOptions) {
+  const { arrangeDepth } = options
   if (arrangeDepth) {
-    depthAxis = depthAxis || config.gameObjectDefaultSpecialValues.depth_axis;
+    const depthAxis = options.depthAxis || config.gameObjectDefaultSpecialValues.depth_axis;
     const depthExpression = depthAxis.
       replace("layer", `${layer}`).
       replace("index", `${index}`).

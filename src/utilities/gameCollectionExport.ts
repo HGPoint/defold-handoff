@@ -45,7 +45,7 @@ export async function exportGameCollectionData(layer: ExportableLayer, resources
  * @param data - The plugin data to resolve game collection export options from.
  * @returns The resolved game collection export options.
  */
-function resolveGameCollectionExportOptions(layer: ExportableLayer, data?: WithNull<PluginGameObjectData>): GameObjectDataExportOptions {
+export function resolveGameCollectionExportOptions(layer: ExportableLayer, data?: WithNull<PluginGameObjectData>): GameObjectDataExportOptions {
   const parentTransformations = inferGameCollectionParentTransformations(layer);
   const depthAxisParameters = resolveDepthAxisParameters(data);
   return {
@@ -53,6 +53,7 @@ function resolveGameCollectionExportOptions(layer: ExportableLayer, data?: WithN
     atRoot: true,
     namePrefix: "",
     parentId: "",
+    parentPivot: "PIVOT_CENTER",
     ...parentTransformations,
     ...depthAxisParameters,
   }
@@ -235,7 +236,7 @@ async function generateParentOptions(layer: ExportableLayer, shouldSkip: boolean
  * @param gameObjectData - The game object data.
  * @returns The resolved game object layer export options.
  */
-function resolveGameObjectLayerOptions(shouldSkip: boolean, parentOptions: GameObjectDataExportOptions, gameObjectData: GameObjectData): Pick<GameObjectDataExportOptions, "parentId" | "parentSize" | "parentShift"> {
+function resolveGameObjectLayerOptions(shouldSkip: boolean, parentOptions: GameObjectDataExportOptions, gameObjectData: GameObjectData): Pick<GameObjectDataExportOptions, "parentId" | "parentSize" | "parentShift" | "parentPivot"> {
   const { layer, atRoot } = parentOptions;
   const fallbackParentSize = vector4(layer.width, layer.height, 0, 0)
   if (shouldSkip) {
@@ -247,12 +248,14 @@ function resolveGameObjectLayerOptions(shouldSkip: boolean, parentOptions: GameO
       parentId: parentId,
       parentSize: resolvedParentSize,
       parentShift: resolvedParentShift,
+      parentPivot: "PIVOT_CENTER"
     }
   }
   return {
     parentId: gameObjectData.id,
     parentSize: fallbackParentSize,
     parentShift: vector4(0),
+    parentPivot: "PIVOT_CENTER"
   }
 }
 
@@ -262,7 +265,7 @@ function resolveGameObjectLayerOptions(shouldSkip: boolean, parentOptions: GameO
  * @returns The reorganized game object data.
  */
 function wrapInImpliedGameObject(componentData: GameObjectData): GameObjectData {
-  const { id, position, skip, path, exclude, exportable_layer, exportable_layer_name, exportable_layer_id, figma_position, figma_size, figma_children } = componentData;
+  const { id, position, skip, path, exclude, exportable_layer, exportable_layer_name, exportable_layer_id, figma_node_id, figma_node_type, figma_position, figma_size, figma_children } = componentData;
   const typeId = resolveGameComponentTypeId(componentData.type);
   componentData.id = `${id}_${typeId}`;
   componentData.position = vector4(0);
@@ -281,6 +284,8 @@ function wrapInImpliedGameObject(componentData: GameObjectData): GameObjectData 
     exportable_layer,
     exportable_layer_name,
     exportable_layer_id,
+    figma_node_id,
+    figma_node_type,
     figma_size,
     figma_position,
     figma_children,

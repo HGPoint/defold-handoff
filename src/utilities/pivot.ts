@@ -58,7 +58,8 @@ export function isPivotVerticalCenter(pivot: Pivot) {
  * @param parentSize - The size of the parent.
  * @returns The centered position of the layer.
  */
-export function calculateCenteredPosition(layer: SceneNode, size: Vector4, parentSize: Vector4) {
+export function calculateCenteredPosition(layer: SceneNode, size: Vector4, options: GUINodeDataExportOptions | GameObjectDataExportOptions) {
+  const { parentSize } = options
   const rotation = "rotation" in layer ? layer.rotation : 0;
   const width = size.x
   const height = size.y
@@ -126,7 +127,7 @@ export function calculateCenteredRootPosition(layer: SceneNode, size: Vector4, o
     if (parent && (isFigmaPage(parent) || isFigmaSection(parent))) {
       return vector4(halfScreenWidth, halfScreenHeight, 0, 0);
     } else {
-      const { x, y } = calculateCenteredPosition(layer, size, parentSize);
+      const { x, y } = calculateCenteredPosition(layer, size, options);
       const rootX = x + halfScreenWidth;
       const rootY = y + halfScreenHeight;
       return vector4(rootX, rootY, 0, 0);
@@ -135,7 +136,7 @@ export function calculateCenteredRootPosition(layer: SceneNode, size: Vector4, o
   if (isZeroVector(parentSize)) {
     return vector4(0);
   }
-  return calculateCenteredPosition(layer, size, parentSize);
+  return calculateCenteredPosition(layer, size, options);
 }
 
 /**
@@ -151,8 +152,8 @@ export function calculateCenteredRootPosition(layer: SceneNode, size: Vector4, o
  * @returns The position of the child layer.
  */
 export function calculateChildPosition(layer: SceneNode, pivot: Pivot, size: Vector4, options: GUINodeDataExportOptions, data?: WithNull<PluginGUINodeData>) {
-  const { parentSize, parentShift, parentScaleFactor } = options
-  const centeredPosition = calculateCenteredPosition(layer, size, parentSize);
+  const { parentShift, parentScaleFactor } = options
+  const centeredPosition = calculateCenteredPosition(layer, size, options);
   if (data?.template && !options.asTemplate) {
     const layerShiftedCenterPosition = addPositionParentShift(centeredPosition, parentShift);
     const shiftedCenterPosition = divideVectorByValue(layerShiftedCenterPosition, parentScaleFactor)
@@ -183,7 +184,7 @@ export function addPositionParentShift(position: Vector4, parentShift: Vector4):
  * @param options
  * @returns The pivoted position of the layer.
  */
-export function convertCenteredPositionToPivotedPosition(centeredPosition: Vector4, options: GUINodeDataExportOptions) {
+export function convertCenteredPositionToPivotedPosition(centeredPosition: Vector4, options: GUINodeDataExportOptions | GameObjectDataExportOptions) {
   const { parentSize, parentPivot } = options;
   const { x, y } = centeredPosition;
   const { x: width, y: height } = parentSize;

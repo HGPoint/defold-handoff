@@ -8,6 +8,18 @@ import sveltePreprocess from "svelte-preprocess";
 
 const HTML_TEMPLATE = `<style>{{style}}</style><div id="root" class="root"></div><script>const defoldHandoffUIMode={{defoldHandoffUIMode}};{{script}}</script>`
 
+function fileExists(filePath) {
+  return new Promise((resolve, reject) => {
+    fs.stat(filePath, (err, data) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(data);
+      }
+    });
+  });
+}
+
 function readFile(filePath) {
   return new Promise((resolve, reject) => {
     fs.readFile(filePath, (err, data) => {
@@ -36,10 +48,12 @@ let inlineResources = {
   name: 'inline-resources',
   setup(build) {
     build.onEnd(() => {
-      Promise.all([
-        readFile('./dist/app.js'),
-        readFile('./dist/app.css'),
-      ])
+      fileExists('./dist/app.js')
+        .then(() =>
+          Promise.all([
+            readFile('./dist/app.js'),
+            readFile('./dist/app.css'),
+          ]))
         .then((data) => {
           const [script, styles] = data;
           const content = HTML_TEMPLATE
@@ -49,7 +63,7 @@ let inlineResources = {
         })
         .catch((err) => {
           console.error(err);
-          process.exit(1);
+          // process.exit(1);
         });
     });
   },

@@ -17,6 +17,7 @@ import { detectFlip, isZeroVector, readableNumber, readableVector, vector4 } fro
 import { calculateCenteredPosition, convertCenteredPositionToPivotedPosition } from "utilities/pivot";
 import { findSlice9PlaceholderLayer, isSlice9Layer, parseSlice9Data } from "utilities/slice9";
 import { calculateTextScale, calculateTextStrokeWeight, resolveText } from "utilities/text";
+import { resolveGameCollectionExportOptions } from "utilities/gameCollectionExport"
 
 /**
  * Infers properties for GUI.
@@ -819,8 +820,8 @@ export function resolveGameObjectPosition(layer: BoxLayer | SliceNode, pluginDat
   const { parent } = layer;
   if (parent && isLayerExportable(parent)) {
     const size = inferSize(layer);
-    const parentSize = inferSize(parent);
-    const centeredPosition = calculateCenteredPosition(layer, size, parentSize);
+    const options = resolveGameCollectionExportOptions(layer, pluginData);
+    const centeredPosition = calculateCenteredPosition(layer, size, options);
     centeredPosition.z = backupPosition.z
     return {
       ...config.gameObjectDefaultValues.position,
@@ -842,9 +843,9 @@ export function resolveLabelComponentPosition(layer: TextLayer, pluginData?: Wit
   const { parent } = layer;
   if (parent && isLayerExportable(parent)) {
     const size = inferSize(layer);
-    const parentSize = inferSize(parent);
-    const centeredPosition = calculateCenteredPosition(layer, size, parentSize);
-    const position = convertCenteredPositionToPivotedPosition(centeredPosition, "PIVOT_CENTER", parentSize);
+    const options = resolveGameCollectionExportOptions(layer, pluginData);
+    const centeredPosition = calculateCenteredPosition(layer, size, options);
+    const position = convertCenteredPositionToPivotedPosition(centeredPosition, options);
     position.z = backupPosition.z
     return {
       ...config.gameObjectDefaultValues.position,

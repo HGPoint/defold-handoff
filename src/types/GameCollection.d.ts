@@ -63,6 +63,7 @@ type GameObjectDataExportOptions = {
   parentId: string,
   parentSize: Vector4,
   parentShift: Vector4,
+  parentPivot: Pivot,
   arrangeDepth: boolean,
   depthAxis?: string,
 }
