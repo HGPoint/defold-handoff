@@ -70,7 +70,6 @@ export function calculateCenteredPosition(layer: SceneNode, size: Vector4, optio
   const centeredX = center.x - (parentSize.x / 2);
   const centeredY = (parentSize.y / 2) - center.y;
   return vector4(centeredX, centeredY, 0, 0);
-  // return center;
 }
 
 /** 

@@ -312,10 +312,7 @@ export function inferRotation(layer: SceneNode): Vector4 {
   if (isLayerExportable(layer) || isFigmaRectangle(layer)) {
     const actionableLayer = ensureActionableLayer(layer)
     if (isFigmaBox(actionableLayer)) {
-      const { flipX, flipY } = detectFlip(actionableLayer.relativeTransform);
-      let { rotation } = actionableLayer;
-      rotation = rotation * (flipY ? -1 : 1)
-      rotation = flipX ? 180 - rotation : rotation;
+      const { rotation } = actionableLayer;
       return vector4(0, 0, readableNumber(rotation), 0);
     }
   }
@@ -834,7 +831,6 @@ export function resolveGameObjectPosition(layer: BoxLayer | SliceNode, pluginDat
   const { parent } = layer;
   if (parent && isLayerExportable(parent)) {
     const size = inferSize(layer);
-    const figmaPosition = inferFigmaPosition(layer);
     const options = resolveGameCollectionExportOptions(layer, pluginData);
     const centeredPosition = calculateCenteredPosition(layer, size, options);
     centeredPosition.z = backupPosition.z
