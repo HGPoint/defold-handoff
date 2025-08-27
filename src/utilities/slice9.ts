@@ -12,6 +12,26 @@ import { getGUINodePluginData } from "utilities/gui";
 import { inferSizeMode } from "utilities/inference";
 import { areVectorsEqual, isZeroVector, vector4 } from "utilities/math";
 
+export function ensureOriginalLayer(layer: BaseNode): BaseNode {
+  if (isSlice9PlaceholderLayer(layer)) {
+    const slice9Layer = findSlice9Layer(layer)
+    if (slice9Layer) {
+      return slice9Layer
+    }
+  }
+  return layer;
+}
+
+export function ensureActionableLayer(layer: BaseNode): BaseNode {
+  if (isFigmaBox(layer) && isSlice9Layer(layer)) {
+    const slice9PlaceholderLayer = findSlice9PlaceholderLayer(layer)
+    if (slice9PlaceholderLayer) {
+      return slice9PlaceholderLayer
+    }
+  }
+  return layer;
+}
+
 /**
  * Determines whether a Figma layer is a slice9 layer.
  * @param layer - The Figma layer to check.
@@ -840,7 +860,7 @@ function updateSlice9PlaceholderLayerName(placeholder: FrameNode, layer: Instanc
 }
 
 export async function tryRefreshSlice9SizeMode(layer: SceneNode) {
-  const originalLayer = isSlice9PlaceholderLayer(layer) ? findSlice9Layer(layer) : layer;
+  const originalLayer = ensureOriginalLayer(layer);
   if (originalLayer && isFigmaBox(originalLayer)) {
     const sizeMode = await inferSizeMode(originalLayer);
     if (isLayerGUINode(originalLayer)) {

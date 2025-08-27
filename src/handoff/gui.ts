@@ -8,7 +8,7 @@ import { fitLayerToChildLayer, fitLayerToParentLayer, isFigmaBox, isFigmaCompone
 import { canChangeGUINodeOverridesPluginData, getGUINodePluginData, GUI_EXPORT_PIPELINE, GUI_SCHEME_SERIALIZATION_PIPELINE, GUI_SERIALIZATION_PIPELINE, GUI_UPDATE_PIPELINE, resolveGUINodePluginData, tryRemoveGUINodeOverridesPluginData } from "utilities/gui";
 import { DEFAULT_PACK_OPTIONS, packGUI, packGUINode } from "utilities/guiExport";
 import { inferGUI, inferGUIText } from "utilities/inference";
-import { findSlice9Layer, findSlice9PlaceholderLayer, isSlice9Layer, isSlice9PlaceholderLayer } from "utilities/slice9";
+import { ensureOriginalLayer, findSlice9PlaceholderLayer, isSlice9Layer } from "utilities/slice9";
 import { runTransformPipeline, runTransformPipelines } from "utilities/transformPipeline";
 import { runUpdatePipeline, runUpdatePipelines } from "utilities/updatePipeline";
 
@@ -79,7 +79,6 @@ export async function copyGUIScheme(layer: ExportableLayer): Promise<SerializedG
  * @returns An array of results for each GUI node update.
  */
 export async function updateGUI(layers: DataLayer[], updates: PluginGUINodeData[]) {
-  console.log("----------------------------------")
   const result = await runUpdatePipelines(GUI_UPDATE_PIPELINE, layers, updates); 
   return result;
 }
@@ -250,7 +249,7 @@ export function tryForceGUIChildrenOnScreen(layer: SceneNode) {
  * @param layer - The GUI node to force "on screen".
  */
 function tryForceGUIChildOnScreen(layer: SceneNode) {
-  const originalLayer = isSlice9PlaceholderLayer(layer) ? findSlice9Layer(layer) : layer;
+  const originalLayer = ensureOriginalLayer(layer);
   if (originalLayer && isFigmaBox(originalLayer)) {
     forceGUIChildOnScreen(originalLayer);
   }

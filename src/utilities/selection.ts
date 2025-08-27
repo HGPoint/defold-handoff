@@ -10,7 +10,7 @@ import { findSectionWithContextData, generateContextData } from "utilities/conte
 import { findMainFigmaComponent, getPluginData, isFigmaComponentInstance, isFigmaFrame, isFigmaGroup, isFigmaSection, isFigmaSlice, isFigmaText, isLayerAtlas, isLayerAtlasSprite, isLayerGUINode, isLayerGameObject, isLayerNode, isLayerSprite } from "utilities/figma";
 import { resolvesGUINodeType } from "utilities/gui";
 import { inferGameObjectType, resolveGameObjectPosition, resolveLabelComponentPosition } from "utilities/inference";
-import { findSlice9Layer, isSlice9PlaceholderLayer, isSlice9ServiceLayer } from "utilities/slice9";
+import { ensureOriginalLayer, isSlice9ServiceLayer } from "utilities/slice9";
 import { isCurrentUIModeDesigner, isCurrentUIModeDeveloper, isCurrentUIModeGameDesigner } from "utilities/ui";
 
 /**
@@ -135,8 +135,8 @@ function selectionDataReducer(selection: SelectionData, layer: SceneNode): Selec
     } else if (isFigmaSection(layer)) {
       selection.sections.push(layer);
     } else if (isLayerNode(layer) && !(isLayerAtlasSprite(layer))) {
-      const originalLayer = isSlice9PlaceholderLayer(layer) ? findSlice9Layer(layer) : layer;
-      if (originalLayer) {
+      const originalLayer = ensureOriginalLayer(layer);
+      if (originalLayer && isLayerNode(originalLayer)) {
         if (isCurrentUIModeDeveloper() || isCurrentUIModeDesigner()) {
           selection.gui.push(originalLayer);
         } else if (isCurrentUIModeGameDesigner()) {

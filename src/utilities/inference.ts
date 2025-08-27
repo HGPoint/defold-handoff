@@ -15,7 +15,7 @@ import { findMainFigmaComponent, getPluginData, hasAbsoluteRenderBounds, hasChil
 import { tryFindFont } from "utilities/font";
 import { detectFlip, isZeroVector, readableNumber, readableVector, vector4 } from "utilities/math";
 import { calculateCenteredPosition, convertCenteredPositionToPivotedPosition } from "utilities/pivot";
-import { findSlice9PlaceholderLayer, isSlice9Layer, parseSlice9Data } from "utilities/slice9";
+import { findSlice9PlaceholderLayer, isSlice9Layer, parseSlice9Data, ensureActionableLayer } from "utilities/slice9";
 import { calculateTextScale, calculateTextStrokeWeight, resolveText } from "utilities/text";
 import { resolveGameCollectionExportOptions } from "utilities/gameCollectionExport"
 
@@ -279,6 +279,13 @@ function resolvePosition(pluginData ?: WithNull<PluginGameObjectData>) {
 }
 
 export function inferFigmaPosition(layer: SceneNode) {
+  if (isSlice9Layer(layer)) {
+    const placeholder = findSlice9PlaceholderLayer(layer);
+    if (placeholder) {
+      console.log(placeholder.name, placeholder.x, placeholder.y)
+      return vector4(placeholder.x, placeholder.y, 0, 0);
+    }
+  }
   return vector4(layer.x, layer.y, 0, 0);
 }
 
@@ -301,13 +308,16 @@ export function inferFigmaSize(layer: SceneNode) {
  * @param layer - The Figma layer to infer rotation from.
  * @returns The inferred rotation for the GUI node or game object.
  */
-export function inferRotation(layer: SceneNode) {
+export function inferRotation(layer: SceneNode): Vector4 {
   if (isLayerExportable(layer) || isFigmaRectangle(layer)) {
-    const { flipX, flipY } = detectFlip(layer.relativeTransform);
-    let { rotation } = layer;
-    rotation = rotation * (flipY ? -1 : 1)
-    rotation = flipX ? 180 - rotation : rotation;
-    return vector4(0, 0, readableNumber(rotation), 0);
+    const actionableLayer = ensureActionableLayer(layer)
+    if (isFigmaBox(actionableLayer)) {
+      const { flipX, flipY } = detectFlip(actionableLayer.relativeTransform);
+      let { rotation } = actionableLayer;
+      rotation = rotation * (flipY ? -1 : 1)
+      rotation = flipX ? 180 - rotation : rotation;
+      return vector4(0, 0, readableNumber(rotation), 0);
+    }
   }
   return vector4(0);
 }
@@ -317,10 +327,14 @@ export function inferRotation(layer: SceneNode) {
  * @returns The inferred scale for the GUI node or game object, which is always 1.
  */
 export function inferScale(layer: SceneNode) {
-  const { flipX, flipY } = detectFlip(layer.relativeTransform);
-  const scaleX = flipX ? -1 : 1;
-  const scaleY = flipY ? -1 : 1;
-  return vector4(scaleX, scaleY, 1, 1);
+  const actionableLayer = ensureActionableLayer(layer)
+  if (isFigmaBox(actionableLayer)) {
+    const { flipX, flipY } = detectFlip(actionableLayer.relativeTransform);
+    const scaleX = flipX ? -1 : 1;
+    const scaleY = flipY ? -1 : 1;
+    return vector4(scaleX, scaleY, 1, 1);
+  }
+  return vector4(1)
 }
 
 /**
@@ -820,6 +834,7 @@ export function resolveGameObjectPosition(layer: BoxLayer | SliceNode, pluginDat
   const { parent } = layer;
   if (parent && isLayerExportable(parent)) {
     const size = inferSize(layer);
+    const figmaPosition = inferFigmaPosition(layer);
     const options = resolveGameCollectionExportOptions(layer, pluginData);
     const centeredPosition = calculateCenteredPosition(layer, size, options);
     centeredPosition.z = backupPosition.z

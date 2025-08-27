@@ -6,7 +6,7 @@
 import { shouldUpdatePluginData } from "utilities/data";
 import { isLayerData, isLayerNode, setPluginData, tryUpdateFigmaLayerName, tryUpdateFigmaLayerScale } from "utilities/figma";
 import { getGUINodePluginData } from "utilities/gui";
-import { findSlice9Layer, isSlice9PlaceholderLayer, tryRefreshSlice9Placeholder } from "utilities/slice9";
+import { ensureOriginalLayer, tryRefreshSlice9Placeholder } from "utilities/slice9";
 
 /**
  * Ensures that the layer is a GUI node layer.
@@ -14,7 +14,7 @@ import { findSlice9Layer, isSlice9PlaceholderLayer, tryRefreshSlice9Placeholder 
  * @returns The GUI node layer, or null if the layer is not a GUI node layer.
  */
 export function ensureGUILayer(layer: DataLayer) {
-  const originalLayer = isSlice9PlaceholderLayer(layer) ? findSlice9Layer(layer) : layer;
+  const originalLayer = ensureOriginalLayer(layer);
   if (originalLayer && isLayerData(originalLayer)) {
     return originalLayer;
   }

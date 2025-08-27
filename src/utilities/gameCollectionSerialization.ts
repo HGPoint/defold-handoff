@@ -3,12 +3,12 @@
  * @packageDocumentation
  */
 
-import config from "config/config.json"
+import config from "config/config.json";
 import { PROJECT_CONFIG } from "handoff/project";
-import { propertySerializer, serializeVector4Property } from "utilities/dataSerialization";
+import { propertySerializer, serializeVector4Property, serializeQuaternionProperty } from "utilities/dataSerialization";
 import { indentLines, processLines, wrapLinesInQuotes } from "utilities/defold";
 import { isGameObjectLabelType, isGameObjectSpriteType } from "utilities/gameCollection";
-import { areVectorsEqual, copyVector, isVector4, readableNumber, vector4 } from "utilities/math";
+import { areVectorsEqual, convertRotationToQuaternion, copyVector, isVector4, readableNumber, vector4 } from "utilities/math";
 import { generateAtlasPath } from "utilities/path";
 
 const GAME_OBJECT_PROPERTY_ORDER: (keyof GameObjectData)[] = [
@@ -219,6 +219,9 @@ function serializeBaseProperties(baseProperties: Partial<Record<keyof GameObject
     } else if (isPropertyPosition(key, value)) {
       const serializedPosition = serializePositionProperty(value);
       return `${serializedProperties}${serializedPosition}`;
+    } else if (isPropertyRotation(key, value)) {
+      const serializedRotation = serializeRotationProperty(value);
+      return `${serializedProperties}${serializedRotation}`;
     }
     return propertySerializer<GameObjectData>(serializedProperties, property);
   }, "");
@@ -277,6 +280,9 @@ function serializeComponentProperties(componentProperties: Partial<Record<keyof 
       } else if (isPropertyPosition(key, value)) {
         const serializedPosition = serializePositionProperty(value);
         return `${serializedProperties}${serializedPosition}`;
+      } else if (isPropertyRotation(key, value)) {
+        const serializedRotation = serializeRotationProperty(value);
+        return `${serializedProperties}${serializedRotation}`;
       } else if (isPropertyImage(key, value)) {
         const serializedImage = serializeImageProperty(value);
         return `${serializedProperties}${serializedImage}`;
@@ -582,6 +588,15 @@ function serializePositionProperty(position: Vector4): string {
   const serializedPosition = serializeVector4Property<GameObjectData>("position", serializablePosition, vector4(0));
   if (serializedPosition) {
     return `${serializedPosition}\n`;
+  }
+  return "";
+}
+
+function serializeRotationProperty(rotation: Vector4): string {
+  const serializableRotation = convertRotationToQuaternion(rotation.z);
+  const serializedRotation = serializeQuaternionProperty<GameObjectData>("rotation", serializableRotation, vector4(0));
+  if (serializedRotation) {
+    return `${serializedRotation}\n`;
   }
   return "";
 }

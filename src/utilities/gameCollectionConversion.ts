@@ -11,7 +11,7 @@ import { getPluginData, hasChildren, isFigmaBox, isFigmaPage, isFigmaSection, is
 import { calculateGameObjectDepth, isGameObjectEmptyType, resolveFigmaLayerIndex, resolveGameCollectionName, resolveGameObjectDepthLayer, resolveGameObjectPluginData, resolveGameObjectZCoordinate } from "utilities/gameCollection";
 import { inferColor, inferFigmaPosition, inferFigmaSize, inferGameObjectType, inferLineBreak, inferRotation, inferScale, inferSize, inferSizeMode, inferSlice9, inferSpriteComponentSprite, inferText, inferTextBoxSize, inferTextLeading, inferTextOutline, inferTextPivot, inferTextScale, inferTextShadow, inferTextTracking } from "utilities/inference";
 import { readableVector, vector4 } from "utilities/math";
-import { addPositionParentShift, calculateCenteredPosition, convertCenteredPositionToPivotedPosition } from "utilities/pivot";
+import { calculateCenteredPosition, convertCenteredPositionToPivotedPosition } from "utilities/pivot";
 import { isSlice9PlaceholderLayer } from "utilities/slice9";
 
 /**
@@ -294,20 +294,19 @@ function convertGameObjectTransformations(layer: ExportableLayer) {
  * @returns The converted game object position.
  */
 function convertGameObjectPosition(layer: ExportableLayer, size: Vector4, options: GameObjectDataExportOptions, data?: WithNull<PluginGameObjectData>) {
-  const { parentShift, atRoot } = options
+  const { atRoot } = options
   const { parent } = layer;
   if (atRoot && (!parent || (isFigmaPage(parent) || isFigmaSection(parent)))) {
     return vector4(0);
   }
   const { x, y } = layer;
   const centeredPosition = calculateCenteredPosition(layer, size, options);
-  const shiftedPosition = addPositionParentShift(centeredPosition, parentShift);
   const resolvedZ = resolveGameObjectZCoordinate(data);
   const resolvedDepthLayer = resolveGameObjectDepthLayer(data);
   const resolvedIndex = resolveFigmaLayerIndex(layer);
   const depth = calculateGameObjectDepth(x, y, resolvedZ, resolvedDepthLayer, resolvedIndex, options);
-  shiftedPosition.z = resolvedZ + depth;
-  const readablePosition = readableVector(shiftedPosition);
+  centeredPosition.z = resolvedZ + depth;
+  const readablePosition = readableVector(centeredPosition);
   return readablePosition;
 }
 
@@ -323,7 +322,7 @@ function convertGameObjectPosition(layer: ExportableLayer, size: Vector4, option
  * @returns The converted label game object position.
  */
 function convertLabelComponentPosition(layer: ExportableLayer, size: Vector4, options: GameObjectDataExportOptions, data?: WithNull<PluginGameObjectData>) {
-  const { parentShift, atRoot } = options
+  const { atRoot } = options
   const { parent } = layer;
   if (atRoot && (!parent || (isFigmaPage(parent) || isFigmaSection(parent)))) {
     return vector4(0);
@@ -331,13 +330,12 @@ function convertLabelComponentPosition(layer: ExportableLayer, size: Vector4, op
   const { x, y } = layer;
   const centeredPosition = calculateCenteredPosition(layer, size, options);
   const pivotedPosition = convertCenteredPositionToPivotedPosition(centeredPosition, options);
-  const shiftedPosition = addPositionParentShift(pivotedPosition, parentShift);
   const resolvedZ = resolveGameObjectZCoordinate(data);
   const resolvedDepthLayer = resolveGameObjectDepthLayer(data);
   const resolvedIndex = resolveFigmaLayerIndex(layer);
   const depth = calculateGameObjectDepth(x, y, resolvedZ, resolvedDepthLayer, resolvedIndex, options);
-  shiftedPosition.z = resolvedZ + depth;
-  const readablePosition = readableVector(shiftedPosition);
+  pivotedPosition.z = resolvedZ + depth;
+  const readablePosition = readableVector(pivotedPosition);
   return readablePosition;
 }
 

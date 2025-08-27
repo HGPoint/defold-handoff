@@ -164,3 +164,38 @@ function serializeOmittedVector4Value(value: Vector4, defaultValue: Vector4 = ve
   serializedValue += "}";
   return serializedValue;
 }
+
+export function serializeQuaternionProperty<T>(property: keyof T, value: Vector4, defaultValue: Vector4 = vector4(0)): string {
+  const serializedValue = PROJECT_CONFIG.omitDefaultValues ? serializeOmittedQuaternionValue(value, defaultValue) : serializeQuaternionValue(value);
+  if (!serializedValue) {
+    return "";
+  }
+  return `${property.toString()} ${serializedValue}`;
+}
+
+function serializeQuaternionValue(value: Vector4): string {
+  const { x, y, z, w } = value;
+  return `{\n  x: ${x}\n  y: ${y}\n  z: ${z}\n  w: ${w}\n}`;
+}
+
+function serializeOmittedQuaternionValue(value: Vector4, defaultValue: Vector4 = vector4(0)): string {
+  const { x, y, z, w } = value;
+  if (x === defaultValue.x && y === defaultValue.y && z === defaultValue.z && w === defaultValue.w) {
+    return "";
+  }
+  let serializedValue = "{\n";
+  if (x !== defaultValue.x) {
+    serializedValue += `  x: ${x}\n`;
+  }
+  if (y !== defaultValue.y) {
+    serializedValue += `  y: ${y}\n`;
+  }
+  if (z !== defaultValue.z) {
+    serializedValue += `  z: ${z}\n`;
+  }
+  if (w !== defaultValue.w) {
+    serializedValue += `  w: ${w}\n`;
+  }
+  serializedValue += "}";
+  return serializedValue;
+}

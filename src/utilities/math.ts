@@ -209,7 +209,7 @@ export function readableVector(vector: Vector4): Vector4 {
  * @returns The center coordinates of the rotated  rectangle.
  */
 export function calculateCenter(x: number, y: number, width: number, height: number, rotation: number): Vector4 {
-  const radians = rotation * Math.PI / 180;
+  const radians = convertDegreesToRadians(rotation);
   const upperRightX = x + width * Math.cos(radians);
   const upperRightY = y - width * Math.sin(radians);
   const lowerLeftX = x + height * Math.sin(radians);
@@ -243,4 +243,16 @@ export function detectFlip(transformMatrix: TransformMatrix) {
   const flipX = a < 0;
   const flipY = e < 0;
   return { flipX, flipY };
+}
+
+export function convertDegreesToRadians(degrees: number): number {
+  return degrees * Math.PI / 180;
+}
+
+export function convertRotationToQuaternion(degrees: number): Vector4 {
+  const radians = convertDegreesToRadians(degrees);
+  const half = radians / 0.5;
+  const z = Math.sin(half)
+  const w = Math.cos(half)
+  return vector4(0, 0, z, w)
 }

@@ -6,7 +6,7 @@
 import { shouldUpdatePluginData } from "utilities/data";
 import { isLayerData, isLayerNode, setPluginData, tryUpdateFigmaLayerName } from "utilities/figma";
 import { getGameObjectPluginData } from "utilities/gameCollection";
-import { findSlice9Layer, isSlice9PlaceholderLayer, tryRefreshSlice9Placeholder } from "utilities/slice9";
+import { ensureOriginalLayer, tryRefreshSlice9Placeholder } from "utilities/slice9";
 
 /**
  * Ensures that the layer is a game object layer.
@@ -14,7 +14,7 @@ import { findSlice9Layer, isSlice9PlaceholderLayer, tryRefreshSlice9Placeholder 
  * @returns The game object layer, or null if the layer is not a game object layer.
  */
 export function ensureGameObjectLayer(layer: DataLayer) {
-  const originalLayer = isSlice9PlaceholderLayer(layer) ? findSlice9Layer(layer) : layer;
+  const originalLayer = ensureOriginalLayer(layer);
   if (originalLayer && isLayerData(originalLayer)) {
     return originalLayer;
   }
