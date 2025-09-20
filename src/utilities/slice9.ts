@@ -60,6 +60,10 @@ export function isSlice9PlaceholderLayer(layer: BaseNode): layer is FrameNode {
   return layer.name.endsWith("-slice9Placeholder");
 }
 
+export function maybeSlice9PlaceholderLayer(layer: BaseNode) {
+  return layer.name.endsWith("-slice9Placeholder");
+}
+
 /**
  * Checks if a Figma layer is a slice9 service frame by its name.
  * @param layer - The Figma layer to check.
@@ -220,17 +224,14 @@ export async function createSlice9Placeholder(layer: InstanceNode, slice9: Vecto
  * @returns The created placeholder frame.
  */
 function createSlice9PlaceholderFrame(layer: InstanceNode) {
-  const parent = layer.parent;
+  const { parent } = layer;
   const hierarchyPosition = parent ? parent.children.indexOf(layer) : 0;
   const absolutePosition = layer.layoutPositioning === "ABSOLUTE";
-  const width = layer.width;
-  const height = layer.height;
-  const positionX = layer.x;
-  const positionY = layer.y;
+  const { width, height, x, y } = layer;
   const placeholder = figma.createFrame();
   placeholder.name = `${layer.name}-slice9Placeholder`;
-  placeholder.x = positionX;
-  placeholder.y = positionY;
+  placeholder.x = x;
+  placeholder.y = y;
   placeholder.resizeWithoutConstraints(width, height);
   placeholder.constraints = { horizontal: "STRETCH", vertical: "STRETCH" };
   placeholder.fills = [];
@@ -873,4 +874,35 @@ export async function tryRefreshSlice9SizeMode(layer: SceneNode) {
       updateGameObject(originalLayer, update);
     }
   }
+}
+
+export async function tryWrapSlice9PlaceholderComponentRoot(node: ComponentNode) {
+  if (maybeSlice9PlaceholderLayer(node)) {
+    const originalLayer = await findOriginalSlice9Layer(node)
+    if (originalLayer) {
+      const { name: placeholderName } = node;
+      const { name: originalName } = originalLayer;
+      const { width, height } = node;
+      const placeholderWrapper = figma.createFrame();
+      placeholderWrapper.resizeWithoutConstraints(width, height);
+      placeholderWrapper.x = 0;
+      placeholderWrapper.y = 0;
+      placeholderWrapper.name = placeholderName;
+      node.name = originalName;
+      node.insertChild(0, placeholderWrapper)
+      moveSlice9PlaceholderFramesToNewRoot(placeholderWrapper, node)
+    }
+  }
+}
+
+function moveSlice9PlaceholderFramesToNewRoot(newRoot: FrameNode, layer: ComponentNode) {
+  layer.children.forEach((child: SceneNode, index: number) => {
+    if (index > 0) {
+      newRoot.appendChild(child)
+    }
+  });
+}
+
+export function slice9WasCreated(updatedSlice9: Vector4, originalSlice9?: Vector4) {
+  return !isZeroVector(updatedSlice9) && (!originalSlice9 || isZeroVector(originalSlice9))
 }

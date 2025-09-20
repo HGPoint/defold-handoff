@@ -146,7 +146,7 @@
       <ActionButton label="Copy GUI" action="copyGUI" />
       <ActionButton label="Copy GUI Scheme" action="copyGUIScheme" />
     </Actions>
-    {#if $selectionState.layers.length > 1}
+    {#if $selectionState.layers.length}
       <Actions title="Atlas Actions" collapseKey="layersActionsCollapsed">
         <ActionButton label="Create Atlas" action="createAtlas" />
       </Actions>

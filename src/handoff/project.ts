@@ -51,7 +51,7 @@ function updateProjectProperties(update: Partial<ProjectData>) {
   updateFontStrokeRatio(update.fontStrokeRatio);
   updateFontFamilies(update.fontFamilies);
   updateAutoskip(update.autoskip);
-  updateomitDefaultValues(update.omitDefaultValues);
+  updateOmitDefaultValues(update.omitDefaultValues);
 }
 
 /**
@@ -129,7 +129,7 @@ function updateAutoskip(autoskip?: string) {
  * Updates the exclude default values property.
  * @param omitDefaultValues - The new exclude default values property update to apply.
  */
-function updateomitDefaultValues(omitDefaultValues?: boolean) {
+function updateOmitDefaultValues(omitDefaultValues?: boolean) {
   if (omitDefaultValues !== undefined) {
     PROJECT_CONFIG.omitDefaultValues = omitDefaultValues;
   }

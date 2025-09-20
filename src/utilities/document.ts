@@ -3,9 +3,9 @@
  * @packageDocumentation
  */
 
-import { getPluginData, hasNamePropertyChanged, hasScalePropertyChanged, hasSizePropertyChanged, hasVariantPropertyChanged, isDocumentDeleteChange, isDocumentPropertyChange, isFigmaComponentInstance, isFigmaRemoved, setPluginData } from "utilities/figma";
+import { getPluginData, hasNamePropertyChanged, hasScalePropertyChanged, hasSizePropertyChanged, hasVariantPropertyChanged, isDocumentCreateChange, isDocumentDeleteChange, isDocumentPropertyChange, isFigmaComponent, isFigmaComponentInstance, isFigmaRemoved, setPluginData } from "utilities/figma";
 import { removeGUINodeOverridesPluginData, resolveGUINodeOverridesDataKey } from "utilities/gui";
-import { isSlice9Layer, isSlice9PlaceholderLayer, tryRefreshSlice9, tryRefreshSlice9SizeMode, tryUpdateSlice9LayerName, tryUpdateSlice9PlaceholderLayerName } from "utilities/slice9";
+import { isSlice9Layer, isSlice9PlaceholderLayer, tryRefreshSlice9, tryRefreshSlice9SizeMode, tryUpdateSlice9LayerName, tryUpdateSlice9PlaceholderLayerName, tryWrapSlice9PlaceholderComponentRoot } from "utilities/slice9";
 
 /**
  * Processes changes to the Figma document.
@@ -35,6 +35,12 @@ function processNodeChange(change: DocumentChange) {
     const { node } = change;
     if (isFigmaRemoved(node)) {
       removeGUINodeOverridesPluginData(node);
+    }
+  }
+  if (isDocumentCreateChange(change)) {
+    const { node } = change;
+    if (!isFigmaRemoved(node) && isFigmaComponent(node)) {
+      tryWrapSlice9PlaceholderComponentRoot(node);
     }
   }
 }

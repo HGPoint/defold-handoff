@@ -557,6 +557,10 @@ export function isDocumentDeleteChange(change: DocumentChange): change is Delete
   return change.type === "DELETE";
 } 
 
+export function isDocumentCreateChange(change: DocumentChange): change is CreateChange {
+  return change.type === "CREATE";
+} 
+
 /**
  * Determines whether two component properties are equal. Text properties are always considered equal.
  * @param property1 - The first component property to compare.
@@ -827,6 +831,12 @@ export function selectFigmaLayers(layers: SceneNode[], dontFocus?: boolean) {
  */
 export function selectFigmaLayer(layer: SceneNode, dontFocus?: boolean) {
   selectFigmaLayers([layer], dontFocus);
+}
+
+export function lockFigmaLayer(layer: SceneNode) {
+  if (!isFigmaRemoved(layer)) {
+    layer.locked = true;
+  }
 }
 
 export function calculateTextSpriteAdjustment(layer: TextNode): Vector4 {

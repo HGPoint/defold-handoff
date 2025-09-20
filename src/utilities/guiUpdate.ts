@@ -3,10 +3,11 @@
  * @packageDocumentation
  */
 
+import delay from "utilities/delay";
 import { shouldUpdatePluginData } from "utilities/data";
-import { isLayerData, isLayerNode, setPluginData, tryUpdateFigmaLayerName, tryUpdateFigmaLayerScale } from "utilities/figma";
+import { isFigmaSceneNode, isLayerData, isLayerNode, selectFigmaLayer, setPluginData, tryUpdateFigmaLayerName, tryUpdateFigmaLayerScale } from "utilities/figma";
 import { getGUINodePluginData } from "utilities/gui";
-import { ensureOriginalLayer, tryRefreshSlice9Placeholder } from "utilities/slice9";
+import { ensureOriginalLayer, tryRefreshSlice9Placeholder, slice9WasCreated } from "utilities/slice9";
 
 /**
  * Ensures that the layer is a GUI node layer.
@@ -73,5 +74,15 @@ export async function updateGUILayer(layer: DataLayer, updateData: PluginGUINode
     tryUpdateFigmaLayerName(layer, updateData.id);
     tryRefreshSlice9Placeholder(layer, updateData.slice9, originalData?.slice9);
     tryUpdateFigmaLayerScale(layer, updateData.scale_factor, originalData?.scale_factor);
+    trySelectCreatedSlice9Placeholder(layer, updateData.slice9, originalData?.slice9)
+  }
+}
+
+async function trySelectCreatedSlice9Placeholder(layer: DataLayer, updatedSlice9: Vector4, originalSlice9?: Vector4) {
+  if (slice9WasCreated(updatedSlice9, originalSlice9)) {
+    await delay(0.1)
+    if (layer.parent && isFigmaSceneNode(layer.parent)) {
+      selectFigmaLayer(layer.parent, true)
+    }
   }
 }

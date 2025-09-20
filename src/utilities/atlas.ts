@@ -8,7 +8,7 @@ import { exportAtlasData } from "utilities/atlasExport";
 import { serializeAtlasData } from "utilities/atlasSerialization";
 import { completeAtlasData, ensureAtlasLayer, extractAtlasOriginalData, updateAtlasData } from "utilities/atlasUpdate";
 import { findSectionWithContextData } from "utilities/context";
-import { findMainFigmaComponent, getPluginData, isFigmaComponent, isFigmaComponentSet, isFigmaRemoved, isFigmaSceneNode, isFigmaSlice, isFigmaText, isLayerAtlas, isLayerContextSection, layerSorterByName, layerSorterBySide, removePluginData, setPluginData } from "utilities/figma";
+import { findMainFigmaComponent, getPluginData, isFigmaComponent, isFigmaComponentSet, isFigmaSceneNode, isFigmaSlice, isFigmaText, isLayerAtlas, isLayerContextSection, layerSorterByName, layerSorterBySide, lockFigmaLayer, removePluginData, setPluginData } from "utilities/figma";
 
 export const ATLAS_EXPORT_PIPELINE: TransformPipeline<AtlasExportPipelineData, AtlasData> = {
   transform: exportAtlasData,
@@ -423,10 +423,7 @@ function fixSpriteName(sprite: ComponentNode) {
  * @param sprite - The sprite to lock.
  */
 function lockSprite(sprite: ComponentNode) {
-  const [ layer ] = sprite.children;
-  if (!isFigmaRemoved(layer)) {
-    layer.locked = true;
-  }
+  sprite.children.forEach(lockFigmaLayer)
 }
 
 /**
