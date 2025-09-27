@@ -147,6 +147,7 @@ export function createAtlasLayer(sprites: ComponentNode[]) {
   atlas.name = "atlas";
   createAtlasData(atlas);
   styleAtlas(atlas);
+  fitAtlas(atlas)
   return atlas;
 }
 
@@ -231,6 +232,11 @@ export function fixAtlas(layer: ComponentSetNode) {
  * @param atlas - The atlas to fit.
  */
 export function fitAtlas(atlas: ComponentSetNode) {
+  fitAtlasBounds(atlas)
+  fitAtlasSprites(atlas)
+}
+
+function fitAtlasBounds(atlas: ComponentSetNode) {
   const bounds = atlas.absoluteRenderBounds;
   if (bounds !== null) {
     const { width: atlasWidth, height: atlasHeight } = atlas;
@@ -238,6 +244,28 @@ export function fitAtlas(atlas: ComponentSetNode) {
     const fittedWidth = width > atlasWidth ? width + config.atlasPadding : atlasWidth;
     const fittedHeight = height > atlasHeight ? height + config.atlasPadding : atlasHeight;
     atlas.resizeWithoutConstraints(fittedWidth, fittedHeight);
+  }
+}
+
+function fitAtlasSprites(atlas: ComponentSetNode) {
+  let closestX = Infinity;
+  let closestY = Infinity;
+  for (const sprite of atlas.children) {
+    const { x, y } = sprite
+    if (x < config.atlasPadding && x < closestX) {
+      closestX = x
+    }
+    if (y < config.atlasPadding && y < closestY) {
+      closestY = y
+    }
+  }
+  const shiftX = closestX < Infinity ? config.atlasPadding - closestX : 0;
+  const shiftY = closestY < Infinity ? config.atlasPadding - closestY : 0;
+  if (closestX || closestY) {
+    for (const sprite of atlas.children) {
+      sprite.x += shiftX;
+      sprite.y += shiftY;
+    }
   }
 }
 
@@ -436,9 +464,13 @@ function fitSprite(sprite: ComponentNode) {
   if (renderBounds !== null && boxBounds !== null) {
     const { x: prevX, y: prevY } = boxBounds;
     const { width: newWidth, height: newHeight, x: newX, y: newY } = renderBounds;
-    const changePositionX = Math.floor((newX - prevX));
-    const changePositionY = Math.floor((newY - prevY));
-    sprite.resizeWithoutConstraints(newWidth, newHeight)
+    const normalizedX = Math.ceil(newX);
+    const normalizedY = Math.ceil(newY);
+    const normalizedWidth = Math.ceil(newWidth);
+    const normalizedHeight = Math.ceil(newHeight);
+    const changePositionX = Math.floor((normalizedX - prevX));
+    const changePositionY = Math.floor((normalizedY - prevY));
+    sprite.resizeWithoutConstraints(normalizedWidth, normalizedHeight)
     sprite.children.forEach(child => {
       child.x -= changePositionX;
       child.y -= changePositionY;
