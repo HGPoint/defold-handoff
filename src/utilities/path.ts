@@ -374,7 +374,9 @@ function calculateBundleSize(gui?: SerializedGUIData[], gameObjects?: Serialized
  * @returns The full file path.
  */
 function resolveFilePathFromPathName(path: string, fileName: string): string {
-  return `${path}/${fileName}`;
+  const pathSegments: string[] = [path, fileName] 
+  const filePath = joinPathSegments(pathSegments);
+  return filePath;
 }
 
 /**
@@ -410,6 +412,13 @@ function pathReducer(path: string, segment: string): string {
   const slash = segment.startsWith("/") ? "" : "/";
   const updatedPath = `${path}${slash}${segment}`;
   return updatedPath;
+}
+
+export function ensureRelativePath(path: string): string {
+  if (path.startsWith("/")) {
+    return path.slice(1);
+  }
+  return path;
 }
 
 export function resolveSpriteExtension(format: SpriteFormat): string {

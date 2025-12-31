@@ -28,13 +28,13 @@ export async function serializeAtlasData(atlasData: AtlasData): Promise<Serializ
 
 function serializeAtlasDefoldData(atlasData: AtlasDefoldData) {
   const properties = Object.entries(atlasData) as [keyof AtlasDefoldData, AtlasDefoldData[keyof AtlasDefoldData]][];
-    const data = properties.reduce((serializedProperties: string, property) => {
-      if (shouldExcludeAtlasProperty(property)) {
-        return serializedProperties;
-      }
-      return propertySerializer(serializedProperties, property);
-    }, "");
-    return data;
+  const data = properties.reduce((serializedProperties: string, property) => {
+    if (shouldExcludeAtlasProperty(property)) {
+      return serializedProperties;
+    }
+    return propertySerializer(serializedProperties, property, false);
+  }, "");
+  return data;
 }
 
 function shouldExcludeAtlasProperty([property, value]: [keyof AtlasDefoldData, AtlasDefoldData[keyof AtlasDefoldData]]) {

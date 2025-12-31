@@ -60,15 +60,15 @@ export function isPivotVerticalCenter(pivot: Pivot) {
  * @returns The centered position of the layer.
  */
 export function calculateCenteredPosition(layer: SceneNode, size: Vector4, options: GUINodeDataExportOptions | GameObjectDataExportOptions) {
-  const { parentSize } = options;
+  const { parentSize, parentShift } = options;
   const rotation = inferRotation(layer);
   const figmaSize = inferFigmaSize(layer);
   const figmaPosition = inferFigmaPosition(layer);
   const { x, y } = figmaPosition;
   const { x: width, y: height } = figmaSize;
   const center = calculateCenter(x, y, width, height, rotation.z);
-  const centeredX = center.x - (parentSize.x / 2);
-  const centeredY = (parentSize.y / 2) - center.y;
+  const centeredX = center.x - (parentSize.x / 2) + parentShift.x;
+  const centeredY = (parentSize.y / 2) - center.y - parentShift.y;
   return vector4(centeredX, centeredY, 0, 0);
 }
 
@@ -104,8 +104,8 @@ export function calculateRootPosition(layer: SceneNode, pivot: Pivot, size: Vect
   if (data?.template && !options.asTemplate) {
     return centeredPosition;
   }
-  const rotation = "rotation" in layer ? layer.rotation : 0;
-  const pivotedPosition = calculatePivotedPosition(centeredPosition, pivot, size, rotation, options);
+  const rotation = inferRotation(layer)
+  const pivotedPosition = calculatePivotedPosition(centeredPosition, pivot, size, rotation.z, options);
   return pivotedPosition;
 }
 

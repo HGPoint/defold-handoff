@@ -5,11 +5,12 @@
 
 import config from "config/config.json";
 import { PROJECT_CONFIG } from "handoff/project";
-import { propertySerializer, serializeVector4Property, serializeQuaternionProperty } from "utilities/dataSerialization";
+import { propertySerializer, serializeQuaternionProperty, serializeVector4Property } from "utilities/dataSerialization";
 import { indentLines, processLines, wrapLinesInQuotes } from "utilities/defold";
 import { isGameObjectLabelType, isGameObjectSpriteType } from "utilities/gameCollection";
-import { areVectorsEqual, convertRotationToQuaternion, copyVector, isVector4, readableNumber, vector4 } from "utilities/math";
+import { areVectorsEqual, convertRotationToQuaternion, copyVector, isVector4, vector4 } from "utilities/math";
 import { generateAtlasPath } from "utilities/path";
+import { formattedNumber } from "utilities/text";
 
 const GAME_OBJECT_PROPERTY_ORDER: (keyof GameObjectData)[] = [
   "id",
@@ -86,8 +87,8 @@ const EXCLUDED_PROPERTY_KEYS = [
  */
 export async function serializeGameCollectionData(gameCollectionData: GameCollectionData): Promise<SerializedGameCollectionData> {
   const { name, filePath } = gameCollectionData;
-  const collection = Object.entries(gameCollectionData.collection).reduce(propertySerializer, "");
-  const gameObjects = gameCollectionData.gameObjects.reduce(gameCollectionSerializer, "");
+  const collection = Object.entries(gameCollectionData.collection).reduce(gameCollectionDataSerializer, "");
+  const gameObjects = gameCollectionData.gameObjects.reduce(gameObjectsSerializer, "");
   const data = `${`${collection}${gameObjects}`.trim()}\n`;
   const serializedData = {
     name,
@@ -97,13 +98,17 @@ export async function serializeGameCollectionData(gameCollectionData: GameCollec
   return Promise.resolve(serializedData);
 }
 
+function gameCollectionDataSerializer(serializedData: string, [property, value]: [keyof GameCollectionDefoldData, GameCollectionDefoldData[keyof GameCollectionDefoldData]]) {
+  return propertySerializer<GameCollectionDefoldData>(serializedData, [property, value])
+}
+
 /**
  * Reducer function that serializes game object data.
  * @param serializedData - The cumulative serialized game object data.
  * @param gameObjectData - The game object data to be serialized.
  * @returns The updated cumulative serialized game object data.
  */
-function gameCollectionSerializer(serializedData: string, gameObjectData: GameObjectData): string {
+function gameObjectsSerializer(serializedData: string, gameObjectData: GameObjectData): string {
   const baseProperties = filterBaseProperties(gameObjectData);
   const embeddedProperties = filterEmbeddedProperties(gameObjectData);
   const serializedBaseProperties = serializeBaseProperties(baseProperties);
@@ -555,7 +560,7 @@ function serializeLabelTypeProperty(): string {
 function serializeScale3Property(scale3: Vector4): string {
   const serializableScale3 = copyVector(scale3);
   serializableScale3.w = 0;
-  const serializedScale3 = serializeVector4Property<GameObjectData>("scale3", serializableScale3, vector4(1, 1, 1, 0));
+  const serializedScale3 = serializeVector4Property<GameObjectData>("scale3", serializableScale3, true, vector4(1, 1, 1, 0));
   if (serializedScale3) {
     return `${serializedScale3}\n`;
   }
@@ -570,7 +575,7 @@ function serializeScale3Property(scale3: Vector4): string {
 function serializeScaleProperty(scale: Vector4): string {
   const serializableScale = copyVector(scale);
   serializableScale.w = 0;
-  const serializedScale = serializeVector4Property<GameObjectData>("scale", serializableScale, vector4(1, 1, 1, 0));
+  const serializedScale = serializeVector4Property<GameObjectData>("scale", serializableScale, true, vector4(1, 1, 1, 0));
   if (serializedScale) {
     return `${serializedScale}\n`;
   }
@@ -585,7 +590,7 @@ function serializeScaleProperty(scale: Vector4): string {
 function serializePositionProperty(position: Vector4): string {
   const serializablePosition = copyVector(position);
   serializablePosition.w = 0;
-  const serializedPosition = serializeVector4Property<GameObjectData>("position", serializablePosition, vector4(0));
+  const serializedPosition = serializeVector4Property<GameObjectData>("position", serializablePosition, true, vector4(0));
   if (serializedPosition) {
     return `${serializedPosition}\n`;
   }
@@ -594,7 +599,7 @@ function serializePositionProperty(position: Vector4): string {
 
 function serializeRotationProperty(rotation: Vector4): string {
   const serializableRotation = convertRotationToQuaternion(rotation.z);
-  const serializedRotation = serializeQuaternionProperty<GameObjectData>("rotation", serializableRotation, vector4(0));
+  const serializedRotation = serializeQuaternionProperty<GameObjectData>("rotation", serializableRotation, true, vector4(0));
   if (serializedRotation) {
     return `${serializedRotation}\n`;
   }
@@ -602,7 +607,7 @@ function serializeRotationProperty(rotation: Vector4): string {
 }
 
 function serializeColorProperty(color: Vector4): string {
-  const serializedColor = serializeVector4Property<GameObjectData>("color", color, vector4(1));
+  const serializedColor = serializeVector4Property<GameObjectData>("color", color, true, vector4(1));
   if (serializedColor) {
     return `${serializedColor}\n`;
   }
@@ -610,7 +615,7 @@ function serializeColorProperty(color: Vector4): string {
 }
 
 function serializeOutlineProperty(outline: Vector4): string {
-  const serializedOutline = serializeVector4Property<GameObjectData>("outline", outline, vector4(0, 0, 0, 1));
+  const serializedOutline = serializeVector4Property<GameObjectData>("outline", outline, true, vector4(0, 0, 0, 1));
   if (serializedOutline) {
     return `${serializedOutline}\n`;
   }
@@ -618,7 +623,7 @@ function serializeOutlineProperty(outline: Vector4): string {
 }
 
 function serializeShadowProperty(shadow: Vector4): string {
-  const serializedShadow = serializeVector4Property<GameObjectData>("shadow", shadow, vector4(0, 0, 0, 1));
+  const serializedShadow = serializeVector4Property<GameObjectData>("shadow", shadow, true, vector4(0, 0, 0, 1));
   if (serializedShadow) {
     return `${serializedShadow}\n`;
   }
@@ -649,7 +654,8 @@ function serializeMaterialProperty(): string {
  * @returns The serialized text leading property.
  */
 function serializeTextLeadingProperty(value: number): string {
-  return `leading: ${readableNumber(value)}\n`;
+  const formattedValue = formattedNumber(value)
+  return `leading: ${formattedValue}\n`;
 }
 
 /**
@@ -658,7 +664,8 @@ function serializeTextLeadingProperty(value: number): string {
  * @returns The serialized text tracking property.
  */
 function serializeTextTrackingProperty(value: number): string {
-  return `tracking: ${readableNumber(value)}\n`;
+  const formattedValue = formattedNumber(value)
+  return `tracking: ${formattedValue}\n`;
 }
 
 /**

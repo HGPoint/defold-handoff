@@ -100,7 +100,7 @@ function resolveGUIExportOptions(layer: ExportableLayer, parameters: GUINodeExpo
  * Generates GUI node data.
  * @param options - The GUI node data export options.
  */
-async function generateGUINodeData(options: GUINodeDataExportOptions) {
+async function generateGUINodeData(options: GUINodeDataExportOptions): Promise<GUINodeData[]> {
   const { layer, textAsSprites } = options;
   if (canProcessGUIBoxNode(layer)) {
     return await generateGUIBoxNodeData({ layer, options });

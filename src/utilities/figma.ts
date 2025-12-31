@@ -204,7 +204,7 @@ export function isLayerContext(layer: BaseNode): layer is ContextLayer {
  * @param layer - The Figma layer to check.
  * @returns True if the Figma layer is a node layer, otherwise false.
  */
-export function isLayerNode(layer: BaseNode): layer is BoxLayer | TextNode {
+export function isLayerNode(layer: BaseNode): layer is Exclude<ExportableLayer, SliceLayer> {
   return isFigmaBox(layer) || isFigmaText(layer) || isFigmaRectangle(layer);
 }
 

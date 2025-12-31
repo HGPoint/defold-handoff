@@ -4,7 +4,7 @@
  */
 
 import { PROJECT_CONFIG } from "handoff/project";
-import { fitLayerToChildLayer, fitLayerToParentLayer, isFigmaBox, isFigmaComponent, isFigmaFrame, isFigmaText, isLayerData, removePluginData, setPluginData } from "utilities/figma";
+import { fitLayerToChildLayer, fitLayerToParentLayer, isFigmaBox, isFigmaComponent, isFigmaFrame, isFigmaText, isLayerData, isLayerNode, removePluginData, setPluginData } from "utilities/figma";
 import { canChangeGUINodeOverridesPluginData, getGUINodePluginData, GUI_EXPORT_PIPELINE, GUI_SCHEME_SERIALIZATION_PIPELINE, GUI_SERIALIZATION_PIPELINE, GUI_UPDATE_PIPELINE, resolveGUINodePluginData, tryRemoveGUINodeOverridesPluginData } from "utilities/gui";
 import { DEFAULT_PACK_OPTIONS, packGUI, packGUINode } from "utilities/guiExport";
 import { inferGUI, inferGUIText } from "utilities/inference";
@@ -248,9 +248,9 @@ export function tryForceGUIChildrenOnScreen(layer: SceneNode) {
  * Attempts to force a GUI node layer to be exported "on screen".
  * @param layer - The GUI node to force "on screen".
  */
-function tryForceGUIChildOnScreen(layer: SceneNode) {
+function tryForceGUIChildOnScreen(layer: SceneNode): void {
   const originalLayer = ensureOriginalLayer(layer);
-  if (originalLayer && isFigmaBox(originalLayer)) {
+  if (originalLayer && isLayerNode(originalLayer)) {
     forceGUIChildOnScreen(originalLayer);
   }
 }
@@ -259,7 +259,7 @@ function tryForceGUIChildOnScreen(layer: SceneNode) {
  * Forces a GUI node layer to be exported "on screen".
  * @param layer - The GUI node to force "on screen".
  */
-function forceGUIChildOnScreen(layer: BoxLayer) {
+function forceGUIChildOnScreen(layer: Exclude<ExportableLayer, SliceLayer>): void {
   const pluginData = getGUINodePluginData(layer);
   const guiNodeData: PluginData = { defoldGUINode: { ...pluginData, screen: true } };
   setPluginData(layer, guiNodeData);

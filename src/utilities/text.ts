@@ -68,3 +68,10 @@ export function joinLines(lines: string[], divider = "\n") {
   const result = lines.join(divider);
   return result;
 }
+
+export function formattedNumber(number: number): string {
+  if (Number.isInteger(number)) {
+    return number.toFixed(1);
+  }
+  return number.toString();
+}

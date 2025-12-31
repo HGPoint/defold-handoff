@@ -1,6 +1,6 @@
 type DataLayer = BoxLayer | TextLayer | RectangleNode | ComponentSetNode | SectionNode | DocumentNode;
 
-type ExportableLayer = BoxLayer | TextLayer | SliceLayer;
+type ExportableLayer = BoxLayer | TextLayer | RectangleNode | SliceLayer;
 
 type ContextLayer = ExportableLayer | ComponentSetNode;
 

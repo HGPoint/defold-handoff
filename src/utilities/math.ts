@@ -199,6 +199,18 @@ export function readableVector(vector: Vector4): Vector4 {
   return vector4(x, y, z, w);
 }
 
+export function readablePreciseNumber(number: number): number {
+  return Math.round(number * 100000) / 100000;
+}
+
+export function readableQuaternion(vector: Vector4): Vector4 {
+  const x = readablePreciseNumber(vector.x);
+  const y = readablePreciseNumber(vector.y);
+  const z = readablePreciseNumber(vector.z);
+  const w = readablePreciseNumber(vector.w);
+  return vector4(x, y, z, w);
+}
+
 /**
  * Calculates the coordinates of the center of a rectangle rotated around its top-left corner.
  * @param x - The x-coordinate of the top-left corner.

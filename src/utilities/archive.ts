@@ -6,7 +6,7 @@
 import config from "config/config.json";
 import JSZip from "jszip";
 import { createBlob } from "utilities/blob";
-import { generateAtlasFileName, generateGUIPath, generateGameCollectionPath, generateSpineFileName, generateSpriteFileName, generateTemplatePath, resolveSpriteExtension } from "utilities/path";
+import { ensureRelativePath, generateAtlasFileName, generateGUIPath, generateGameCollectionPath, generateSpineFileName, generateSpriteFileName, generateTemplatePath, resolveSpriteExtension } from "utilities/path";
 
 /**
  * Archives the bundled into a zip archive.
@@ -62,8 +62,9 @@ function archiveGameObjects(gameObjects: SerializedGameCollectionData[], assetsF
  * @param assetsFolder - The folder in archive.
  */
 function archiveGameObject({ name, data, filePath }: SerializedGameCollectionData, assetsFolder: JSZip) {
-  const gameCollectionFileName = generateGameCollectionPath(name, filePath);
-  assetsFolder.file(gameCollectionFileName, data);
+  const gameCollectionFilePath = generateGameCollectionPath(name, filePath);
+  const relativePath = ensureRelativePath(gameCollectionFilePath)
+  assetsFolder.file(relativePath, data);
 }
 
 /**
@@ -83,7 +84,8 @@ function archiveGUI(guiNodes: SerializedGUIData[], assetsFolder: JSZip) {
 function archiveGUINode({ name, data, template, templateName, templatePath, filePath }: SerializedGUIData, assetsFolder: JSZip) {
   const isTemplate = template && templateName && templatePath;
   const guiFilePath = isTemplate ? generateTemplatePath(templatePath, templateName) : generateGUIPath(name, filePath);
-  assetsFolder.file(guiFilePath, data);
+  const relativePath = ensureRelativePath(guiFilePath)
+  assetsFolder.file(relativePath, data);
 }
 
 /**

@@ -282,7 +282,6 @@ export function inferFigmaPosition(layer: SceneNode) {
   if (isSlice9Layer(layer)) {
     const placeholder = findSlice9PlaceholderLayer(layer);
     if (placeholder) {
-      console.log(placeholder.name, placeholder.x, placeholder.y)
       return vector4(placeholder.x, placeholder.y, 0, 0);
     }
   }
@@ -416,7 +415,7 @@ export function resolveGUILayer(context: PluginContextData, pluginData?: WithNul
  * @returns The inferred font for the GUI text node or label game object.
  */
 export function inferFont(layer: TextNode) {
-  if (hasFont(layer.fontName)) {
+  if (hasFont(layer.fontName) && PROJECT_CONFIG.fontFamilies.length) {
     const { family: fontFamily } = layer.fontName;
     const foundFont = tryFindFont(fontFamily);
     if (foundFont) {
@@ -601,6 +600,9 @@ export function inferLineBreak(layer: TextLayer): boolean {
 export function inferTextLeading(layer: TextLayer) {
   const { lineHeight, fontSize } = layer;
   if (typeof lineHeight === "object" && "value" in lineHeight && typeof fontSize === "number") {
+    if (lineHeight.unit == "PERCENT") {
+      return (lineHeight.value / 100 * fontSize) / fontSize;
+    }
     return lineHeight.value / fontSize;
   }
   return 1;
