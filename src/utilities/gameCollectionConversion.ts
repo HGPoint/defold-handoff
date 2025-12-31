@@ -9,7 +9,7 @@ import { isLayerSkippable } from "utilities/data";
 import { injectEmptyComponentDefaults, injectGameCollectionDefaults, injectLabelComponentDefaults, injectSpriteComponentDefaults } from "utilities/defaults";
 import { getPluginData, hasChildren, isFigmaBox, isFigmaPage, isFigmaSection, isFigmaSlice, isFigmaText } from "utilities/figma";
 import { calculateGameObjectDepth, isGameObjectEmptyType, resolveFigmaLayerIndex, resolveGameCollectionName, resolveGameObjectDepthLayer, resolveGameObjectPluginData, resolveGameObjectZCoordinate } from "utilities/gameCollection";
-import { inferColor, inferFigmaPosition, inferFigmaSize, inferGameObjectType, inferLineBreak, inferRotation, inferScale, inferSize, inferSizeMode, inferSlice9, inferSpriteComponentSprite, inferText, inferTextBoxSize, inferTextLeading, inferTextOutline, inferTextPivot, inferTextScale, inferTextShadow, inferTextTracking } from "utilities/inference";
+import { inferColor, inferFigmaPosition, inferFigmaSize, inferGameObjectType, inferLineBreak, inferRotation, inferScale, inferSize, inferSizeMode, inferSlice9, inferSpriteComponentSprite, inferText, inferTextBoxSize, inferTextCase, inferTextLeading, inferTextOutline, inferTextPivot, inferTextScale, inferTextShadow, inferTextTracking } from "utilities/inference";
 import { readableVector, vector4 } from "utilities/math";
 import { calculateCenteredPosition, convertCenteredPositionToPivotedPosition } from "utilities/pivot";
 import { isSlice9PlaceholderLayer } from "utilities/slice9";
@@ -391,10 +391,12 @@ function convertTextParameters(layer: TextLayer) {
   const lineBreak = inferLineBreak(layer);
   const textLeading = inferTextLeading(layer);
   const textTracking = inferTextTracking(layer);
+  const textCase = inferTextCase(layer);
   return {
     line_break: lineBreak,
     text_leading: textLeading,
     text_tracking: textTracking,
+    text_case: textCase,
   };
 }
 

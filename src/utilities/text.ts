@@ -75,3 +75,28 @@ export function formattedNumber(number: number): string {
   }
   return number.toString();
 }
+
+export function resolveTextForm(text: string, textCase?: TextCase): string {
+  if (textCase === "LOWER") {
+    return text.toLowerCase();
+  } else if (textCase === "UPPER") {
+    return text.toUpperCase()
+  } else if (textCase === "TITLE") {
+    return capitalizeText(text);
+  }
+  return text;
+}
+
+export function capitalizeText(text: string): string {
+  return text
+    .split(/\s+/)
+    .map(capitalizeWord)
+    .join(" ");
+}
+
+export function capitalizeWord(text: string): string {
+  if (text) {
+    return text[0].toUpperCase() + text.slice(1);
+  }
+  return text;
+}

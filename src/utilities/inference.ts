@@ -13,11 +13,11 @@ import { isLayerInferred } from "utilities/data";
 import { injectEmptyComponentDefaults, injectGUINodeDefaults, injectLabelComponentDefaults, injectSpriteComponentDefaults } from "utilities/defaults";
 import { findMainFigmaComponent, getPluginData, hasAbsoluteRenderBounds, hasChildren, hasFont, hasParent, hasSolidNonWhiteFills, hasSolidStrokes, hasSolidVisibleFills, isFigmaBox, isFigmaComponentInstance, isFigmaRectangle, isFigmaSlice, isFigmaText, isLayerAtlas, isLayerExportable, isLayerNode, isLayerSprite, isShadowEffect, resolveFillColor, resolveTextOutlineColor, resolveTextShadowColor, setPluginData } from "utilities/figma";
 import { tryFindFont } from "utilities/font";
+import { resolveGameCollectionExportOptions } from "utilities/gameCollectionExport";
 import { detectFlip, isZeroVector, readableNumber, readableVector, vector4 } from "utilities/math";
 import { calculateCenteredPosition, convertCenteredPositionToPivotedPosition } from "utilities/pivot";
-import { findSlice9PlaceholderLayer, isSlice9Layer, parseSlice9Data, ensureActionableLayer } from "utilities/slice9";
+import { ensureActionableLayer, findSlice9PlaceholderLayer, isSlice9Layer, parseSlice9Data } from "utilities/slice9";
 import { calculateTextScale, calculateTextStrokeWeight, resolveText } from "utilities/text";
-import { resolveGameCollectionExportOptions } from "utilities/gameCollectionExport"
 
 /**
  * Infers properties for GUI.
@@ -597,7 +597,7 @@ export function inferLineBreak(layer: TextLayer): boolean {
  * @param layer - The Figma layer to infer text leading from.
  * @returns The inferred text leading for the GUI text node or label game object.
  */
-export function inferTextLeading(layer: TextLayer) {
+export function inferTextLeading(layer: TextLayer): number {
   const { lineHeight, fontSize } = layer;
   if (typeof lineHeight === "object" && "value" in lineHeight && typeof fontSize === "number") {
     if (lineHeight.unit == "PERCENT") {
@@ -613,11 +613,18 @@ export function inferTextLeading(layer: TextLayer) {
  * @param layer - The Figma layer to infer text tracking from.
  * @returns The inferred text tracking for the GUI text node or label game object.
  */
-export function inferTextTracking(layer: TextLayer) {
+export function inferTextTracking(layer: TextLayer): number {
   if (typeof layer.letterSpacing == "number") {
     return layer.letterSpacing;
   }
   return 0
+}
+
+export function inferTextCase(layer: TextLayer): TextCase {
+  if (typeof layer.textCase == "string") {
+    return layer.textCase
+  }
+  return "ORIGINAL"
 }
 
 /**

@@ -334,7 +334,7 @@ function resolveGUINodeLayerOptions(shouldSkip: boolean, parentOptions: GUINodeD
   const resolvedParentScaleFactor = parentScaleFactor * (guiNodeData.scale_factor || config.guiNodeDefaultSpecialValues.scale_factor);
   if (shouldSkip) {
     const { parentId, parentSize, parentPivot, parentShift } = parentOptions;
-    const resolvedParentSize = isZeroVector(parentSize) ? guiNodeData.figma_size : parentSize;
+    const resolvedParentSize = isZeroVector(parentSize)  ? guiNodeData.figma_size : parentSize;
     const resolvedFigmaPosition = guiNodeData.figma_position || vector4(0);
     const resolvedParentShift = addVectors(parentShift, resolvedFigmaPosition)
     return {
@@ -518,11 +518,10 @@ export function processChildGUITemplates(layers: readonly SceneNode[], packOptio
           const parameters = { ...packOptions, asTemplate: true };
           const template = { layer, parameters };
           templateNodes.push(template);
-        } else {
-          const { children } = layer;
-          const childTemplateNodes = processChildGUITemplates(children, packOptions);
-          templateNodes.push(...childTemplateNodes);
         }
+        const { children } = layer;
+        const childTemplateNodes = processChildGUITemplates(children, packOptions);
+        templateNodes.push(...childTemplateNodes);
       }
     }
   }

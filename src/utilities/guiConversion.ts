@@ -9,8 +9,8 @@ import { resolveBaseColor, splitColor } from "utilities/color";
 import { generateContextData } from "utilities/context";
 import { injectGUIDefaults, injectGUINodeDefaults } from "utilities/defaults";
 import { getPluginData } from "utilities/figma";
-import { inferBackgroundColor, inferClippingVisible, inferColor, inferFigmaPosition, inferFigmaSize, inferFont, inferGUIBoxTexture, inferGUIBoxVisible, inferGUINodeType, inferGUITextSizeMode, inferGUITextVisible, inferLineBreak, inferRotation, inferScale, inferSize, inferSizeMode, inferSlice9, inferText, inferTextBoxSize, inferTextLeading, inferTextOutline, inferTextPivot, inferTextScale, inferTextShadow, inferTextTracking, resolveGUITextSpriteNodeImpliedSprite } from "utilities/inference";
-import { divideVectorByValue, multiplyVectorByValue, readableVector, readableNumber, vector4 } from "utilities/math";
+import { inferBackgroundColor, inferClippingVisible, inferColor, inferFigmaPosition, inferFigmaSize, inferFont, inferGUIBoxTexture, inferGUIBoxVisible, inferGUINodeType, inferGUITextSizeMode, inferGUITextVisible, inferLineBreak, inferRotation, inferScale, inferSize, inferSizeMode, inferSlice9, inferText, inferTextBoxSize, inferTextCase, inferTextLeading, inferTextOutline, inferTextPivot, inferTextScale, inferTextShadow, inferTextTracking, resolveGUITextSpriteNodeImpliedSprite } from "utilities/inference";
+import { divideVectorByValue, multiplyVectorByValue, readableNumber, readableVector, vector4 } from "utilities/math";
 import { generateScriptPath } from "utilities/path";
 import { calculateChildPosition, calculateRootPosition } from "utilities/pivot";
 
@@ -574,10 +574,12 @@ function convertGUITextNodeParameters(layer: TextLayer) {
   const lineBreak = inferLineBreak(layer);
   const textLeading = inferTextLeading(layer);
   const textTracking = inferTextTracking(layer);
+  const textCase = inferTextCase(layer);
   return {
     line_break: lineBreak,
     text_leading: textLeading,
     text_tracking: textTracking,
+    text_case: textCase,
   };
 }
 

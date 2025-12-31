@@ -4,12 +4,13 @@
  */
 
 import { PROJECT_CONFIG } from "handoff/project";
-import { propertySerializer, serializeVector4Property } from "utilities/dataSerialization";
+import { propertySerializer, serializeProperty, serializeVector4Property } from "utilities/dataSerialization";
 import { indentLines } from "utilities/defold";
 import { isGUIReplacedBySpine, isGUIReplacedByTemplate, isGUITemplateType } from "utilities/gui";
 import { areVectorsEqual, isVector4, vector4 } from "utilities/math";
 import { generateTemplatePath } from "utilities/path";
 import { extractScheme } from "utilities/scheme";
+import { resolveTextForm } from "utilities/text";
 
 const GUI_NODE_PROPERTY_ORDER: (keyof GUINodeData)[] = [
   "position",
@@ -83,6 +84,7 @@ const EXCLUDED_PROPERTY_KEYS: (keyof GUINodeData)[] = [
   "replace_spine_name",
   "replace_spine_path",
   "scale_factor",
+  "text_case",
 ];
 
 /**
@@ -256,6 +258,9 @@ function guiNodeSerializer(data: string, guiNodeData: GUINodeData): string {
         return `${serializedProperties}${serializedColor}`;
       } else if (isPropertyScale(key, value)) {
         const serializedColor = serializeScaleProperty(value);
+        return `${serializedProperties}${serializedColor}`;
+      } else if (isPropertyText(key, value)) {
+        const serializedColor = serializeTextProperty(value, guiNodeData.text_case);
         return `${serializedProperties}${serializedColor}`;
       }
       return propertySerializer<GUINodeData>(serializedProperties, property);
@@ -494,6 +499,10 @@ function isPropertyScale(key: keyof GUINodeData, value: GUINodeData[keyof GUINod
   return key === "scale" && isVector4(value);
 }
 
+function isPropertyText(key: keyof GUINodeData, value: GUINodeData[keyof GUINodeData]): value is string {
+  return key === "text" && typeof value === "string"
+}
+
 function isPropertyTemplate(key: keyof GUINodeData, value: GUINodeData[keyof GUINodeData], guiNodeData: GUINodeData): value is boolean {
   return key === "template" && typeof value === "boolean" && value && !!guiNodeData.template_path && !!guiNodeData.template_name;
 }
@@ -550,25 +559,34 @@ function serializeShadowProperty(shadow: Vector4): string {
 }
 
 function serializePositionProperty(position: Vector4): string {
-  const serializedShadow = serializeVector4Property<GUINodeData>("position", position, true, vector4(0));
-  if (serializedShadow) {
-    return `${serializedShadow}\n`;
+  const serializedPosition = serializeVector4Property<GUINodeData>("position", position, true, vector4(0));
+  if (serializedPosition) {
+    return `${serializedPosition}\n`;
   }
   return ""
 }
 
 function serializeRotationProperty(rotation: Vector4): string {
-  const serializedShadow = serializeVector4Property<GUINodeData>("rotation", rotation, true, vector4(0));
-  if (serializedShadow) {
-    return `${serializedShadow}\n`;
+  const serializedRotation = serializeVector4Property<GUINodeData>("rotation", rotation, true, vector4(0));
+  if (serializedRotation) {
+    return `${serializedRotation}\n`;
   }
   return ""
 }
 
 function serializeScaleProperty(scale: Vector4): string {
-  const serializedShadow = serializeVector4Property<GUINodeData>("scale", scale, true, vector4(1));
-  if (serializedShadow) {
-    return `${serializedShadow}\n`;
+  const serializedScale = serializeVector4Property<GUINodeData>("scale", scale, true, vector4(1));
+  if (serializedScale) {
+    return `${serializedScale}\n`;
+  }
+  return ""
+}
+
+function serializeTextProperty(text: string, textCase?: TextCase): string {
+  const resolvedText = resolveTextForm(text, textCase)
+  const serializedText = serializeProperty<GUINodeData>("text", resolvedText);
+  if (serializedText) {
+    return `${serializedText}\n`;
   }
   return ""
 }
