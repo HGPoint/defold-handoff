@@ -157,11 +157,12 @@ export function calculateCenteredRootPosition(layer: SceneNode, size: Vector4, o
 export function calculateChildPosition(layer: SceneNode, pivot: Pivot, size: Vector4, options: GUINodeDataExportOptions, data?: WithNull<PluginGUINodeData>) {
   const { parentScaleFactor } = options
   const centeredPosition = calculateCenteredPosition(layer, size, options);
-  if (data?.template && !options.asTemplate) {
-    const shiftedCenterPosition = divideVectorByValue(centeredPosition, parentScaleFactor)
-    return shiftedCenterPosition;
-  }
   const rotation = inferRotation(layer)
+  if (data?.template && !options.asTemplate) {
+    const pivotedPosition = calculatePivotedPosition(centeredPosition, "PIVOT_CENTER", size, rotation.z, options)
+    const shiftedPosition = divideVectorByValue(pivotedPosition, parentScaleFactor)
+    return shiftedPosition;
+  }
   const pivotedPosition = calculatePivotedPosition(centeredPosition, pivot, size, rotation.z, options);
   const shiftedPosition = divideVectorByValue(pivotedPosition, parentScaleFactor)
   return shiftedPosition;
