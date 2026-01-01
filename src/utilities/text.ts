@@ -22,7 +22,7 @@ export function calculateTextScale(fontSize: number) {
  * @returns The calculated text stroke weight.
  */
 export function calculateTextStrokeWeight(fontSize: number) {
-  return fontSize * PROJECT_CONFIG.fontStrokeRatio
+  return fontSize * PROJECT_CONFIG.fontStrokeRatio;
 }
 
 /**
@@ -80,7 +80,7 @@ export function resolveTextForm(text: string, textCase?: TextCase): string {
   if (textCase === "LOWER") {
     return text.toLowerCase();
   } else if (textCase === "UPPER") {
-    return text.toUpperCase()
+    return text.toUpperCase();
   } else if (textCase === "TITLE") {
     return capitalizeText(text);
   }

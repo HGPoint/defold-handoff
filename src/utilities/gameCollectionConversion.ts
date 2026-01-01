@@ -20,7 +20,7 @@ import { isSlice9PlaceholderLayer } from "utilities/slice9";
  * @returns The converted game collection data.
  */
 export function convertGameCollectionData(rootData?: WithNull<PluginGameObjectData>): GameCollectionDefoldData {
-  const name = resolveGameCollectionName(rootData)
+  const name = resolveGameCollectionName(rootData);
   const defaults = injectGameCollectionDefaults();
   return {
     ...defaults,
@@ -38,7 +38,7 @@ export async function convertEmptyComponentData(layer: BoxLayer, options: GameOb
   const context = generateContextData(layer);
   const defaults = injectEmptyComponentDefaults();
   const data = getPluginData(layer, "defoldGameObject");
-  const id = convertGameObjectId(layer, context, options)
+  const id = convertGameObjectId(layer, context, options);
   const componentChildren = await convertEmptyComponentChildren(layer);
   const children = componentChildren?.children || undefined;
   const figmaChildren = componentChildren?.figma_children || undefined;
@@ -71,7 +71,7 @@ export async function convertSpriteComponentData(layer: BoxLayer | SliceLayer, o
   const context = generateContextData(layer);
   const defaults = injectSpriteComponentDefaults();
   const data = resolveGameObjectPluginData(layer);
-  const id = convertGameObjectId(layer, context, options)
+  const id = convertGameObjectId(layer, context, options);
   const slice9 = convertSpriteComponentSlice9(layer);
   const type = "TYPE_SPRITE";
   const spriteImage = await inferSpriteComponentSprite(layer);
@@ -105,7 +105,7 @@ export async function convertLabelComponentData(layer: TextLayer, options: GameO
   const context = generateContextData(layer);
   const defaults = injectLabelComponentDefaults();
   const data = getPluginData(layer, "defoldGameObject");
-  const id = convertGameObjectId(layer, context, options)
+  const id = convertGameObjectId(layer, context, options);
   const type = "TYPE_LABEL";
   const pivot = inferTextPivot(layer);
   const visuals = convertTextVisuals(layer);
@@ -140,8 +140,8 @@ export async function convertLabelComponentData(layer: TextLayer, options: GameO
  */
 async function convertEmptyComponentChildren(layer: BoxLayer) {
   if (hasChildren(layer)) {
-    const children: string[] = []
-    const figmaChildren: string[] = []
+    const children: string[] = [];
+    const figmaChildren: string[] = [];
     for (const child of layer.children) {
       if ((isFigmaBox(child) && !isSlice9PlaceholderLayer(child) && !isFigmaSlice(child)) || isFigmaText(child)) {
         const type = await inferGameObjectType(child);
@@ -167,7 +167,7 @@ async function convertEmptyComponentChildren(layer: BoxLayer) {
  * @returns The converted game object parent data.
  */
 function convertGameObjectParent(options: GameObjectDataExportOptions) {
-  const { parentId } = options
+  const { parentId } = options;
   return parentId ? { parent: parentId } : {};
 }
 
@@ -179,8 +179,8 @@ function convertGameObjectParent(options: GameObjectDataExportOptions) {
  * @returns The converted game object ID.
  */
 function convertGameObjectId(layer: ExportableLayer, context: PluginContextData, options: GameObjectDataExportOptions) {
-  const { ignorePrefixes } = context
-  const { forcedName, namePrefix } = options
+  const { ignorePrefixes } = context;
+  const { forcedName, namePrefix } = options;
   const name = forcedName || layer.name;
   if (!ignorePrefixes) {
     return `${namePrefix || ""}${name}`;
@@ -274,7 +274,7 @@ function convertSpriteComponentTransformations(layer: ExportableLayer, options: 
  */
 function convertGameObjectTransformations(layer: ExportableLayer) {
   const rotation = inferRotation(layer);
-  const figmaPosition = inferFigmaPosition(layer)
+  const figmaPosition = inferFigmaPosition(layer);
   const figmaSize = inferFigmaSize(layer);
   return {
     rotation,
@@ -294,7 +294,7 @@ function convertGameObjectTransformations(layer: ExportableLayer) {
  * @returns The converted game object position.
  */
 function convertGameObjectPosition(layer: ExportableLayer, size: Vector4, options: GameObjectDataExportOptions, data?: WithNull<PluginGameObjectData>) {
-  const { atRoot } = options
+  const { atRoot } = options;
   const { parent } = layer;
   if (atRoot && (!parent || (isFigmaPage(parent) || isFigmaSection(parent)))) {
     return vector4(0);
@@ -322,7 +322,7 @@ function convertGameObjectPosition(layer: ExportableLayer, size: Vector4, option
  * @returns The converted label game object position.
  */
 function convertLabelComponentPosition(layer: ExportableLayer, size: Vector4, options: GameObjectDataExportOptions, data?: WithNull<PluginGameObjectData>) {
-  const { atRoot } = options
+  const { atRoot } = options;
   const { parent } = layer;
   if (atRoot && (!parent || (isFigmaPage(parent) || isFigmaSection(parent)))) {
     return vector4(0);
@@ -347,9 +347,9 @@ function convertLabelComponentPosition(layer: ExportableLayer, size: Vector4, op
  */
 function convertSpriteComponentSlice9(layer: BoxLayer | SliceLayer, data?: WithNull<PluginGameObjectData>) {
   if (isFigmaSlice(layer)) {
-    return vector4(0)
+    return vector4(0);
   }
-  return inferSlice9(layer, data)
+  return inferSlice9(layer, data);
 }
 
 /**

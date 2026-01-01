@@ -25,11 +25,11 @@ export function archiveBundle({ gui, gameObjects, atlases }: BundleData, project
     const paths = {
       ...config.paths,
       ...projectConfig.paths,
-    }
+    };
     const folder = zip.folder(paths.assetsPath) || zip;
     archiveAtlases(atlases, folder, paths);
   }
-  return zip.generateAsync({ type: "blob" })
+  return zip.generateAsync({ type: "blob" });
 }
 
 /**
@@ -63,7 +63,7 @@ function archiveGameObjects(gameObjects: SerializedGameCollectionData[], assetsF
  */
 function archiveGameObject({ name, data, filePath }: SerializedGameCollectionData, assetsFolder: JSZip) {
   const gameCollectionFilePath = generateGameCollectionPath(name, filePath);
-  const relativePath = ensureRelativePath(gameCollectionFilePath)
+  const relativePath = ensureRelativePath(gameCollectionFilePath);
   assetsFolder.file(relativePath, data);
 }
 
@@ -84,7 +84,7 @@ function archiveGUI(guiNodes: SerializedGUIData[], assetsFolder: JSZip) {
 function archiveGUINode({ name, data, template, templateName, templatePath, filePath }: SerializedGUIData, assetsFolder: JSZip) {
   const isTemplate = template && templateName && templatePath;
   const guiFilePath = isTemplate ? generateTemplatePath(templatePath, templateName) : generateGUIPath(name, filePath);
-  const relativePath = ensureRelativePath(guiFilePath)
+  const relativePath = ensureRelativePath(guiFilePath);
   assetsFolder.file(relativePath, data);
 }
 
@@ -97,7 +97,7 @@ function archiveGUINode({ name, data, template, templateName, templatePath, file
 function archiveAtlases(atlases: SerializedAtlasData[], assetsFolder: JSZip, paths: ProjectPathData) {
   const imagesFolder = assetsFolder.folder(paths.imageAssetsPath) || assetsFolder;
   const atlasesFolder = assetsFolder.folder(paths.atlasAssetsPath) || assetsFolder;
-  atlases.forEach((atlas) => { archiveAtlas(atlas, atlasesFolder, imagesFolder); })
+  atlases.forEach((atlas) => { archiveAtlas(atlas, atlasesFolder, imagesFolder); });
 }
 
 /**
@@ -120,9 +120,9 @@ function archiveAtlas({ data, name, images }: SerializedAtlasData, atlasesFolder
 export function archiveSprites({ atlases }: BundleData) {
   const zip = new JSZip();
   if (atlases && atlases.length > 0) {
-    atlases.forEach((atlas) => { archiveSpriteAtlas(atlas, zip) })
+    atlases.forEach((atlas) => { archiveSpriteAtlas(atlas, zip); });
   }
-  return zip.generateAsync({ type: "blob" })
+  return zip.generateAsync({ type: "blob" });
 }
 
 /**
@@ -132,7 +132,7 @@ export function archiveSprites({ atlases }: BundleData) {
  */
 function archiveSpriteAtlas(atlas: SerializedAtlasData, zip: JSZip) {
   const folder = zip.folder(atlas.name) || zip;
-  atlas.images.forEach((image) => { archiveSpriteImage(image, folder) });
+  atlas.images.forEach((image) => { archiveSpriteImage(image, folder); });
 }
 
 /**
@@ -157,14 +157,14 @@ export function archiveSpineBundle({ spines, atlases }: BundleData) {
   if (atlases && atlases.length > 0) {
     const folder = zip.folder("images") || zip;
     if (atlases && atlases.length > 0) {
-      atlases.forEach((atlas) => { archiveSpineImages(atlas, folder) });
+      atlases.forEach((atlas) => { archiveSpineImages(atlas, folder); });
     }
   }
-  return zip.generateAsync({ type: "blob" })
+  return zip.generateAsync({ type: "blob" });
 }
 
 function archiveSpineImages(atlas: SerializedAtlasData, folder: JSZip) {
-  atlas.images.forEach((image) => { archiveSpriteImage(image, folder) });
+  atlas.images.forEach((image) => { archiveSpriteImage(image, folder); });
 }
 
 function archiveSpines(spines: SerializedSpineData[], assetsFolder: JSZip) {
@@ -178,10 +178,10 @@ function archiveSpine(spine: SerializedSpineData, assetsFolder: JSZip) {
 
 export async function archivePSD(files: { fileName: string, buffer: ArrayBuffer }[]) {
   const zip = new JSZip();
-  files.forEach((file) => { archivePSDFile(file, zip) });
+  files.forEach((file) => { archivePSDFile(file, zip); });
   return zip.generateAsync({ type: "blob" });
 }
 
 function archivePSDFile({ fileName, buffer }: { fileName: string, buffer: ArrayBuffer }, zip: JSZip) {
-  zip.file(fileName, buffer)
+  zip.file(fileName, buffer);
 }

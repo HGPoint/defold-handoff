@@ -24,6 +24,7 @@ export async function exportAtlasData({ layer, parameters: { scale, usedSprites 
   const spriteData = await exportSpriteData(images, directory, scale, usedSprites);
   return {
     name,
+    id: directory,
     atlas,
     images: spriteData,
   };
@@ -50,7 +51,7 @@ async function exportSpriteData(images: readonly (SceneNode | SliceNode)[], dire
 }
 
 function shouldExportSprite(layer: SceneNode, usedSprites: string[]) {
-  return !usedSprites.length || usedSprites.includes(layer.id)
+  return !usedSprites.length || usedSprites.includes(layer.id);
 }
 
 /**
@@ -62,11 +63,11 @@ function shouldExportSprite(layer: SceneNode, usedSprites: string[]) {
  */
 async function exportSprite(layer: SceneNode, directory: string, scale: number = 1): Promise<WithNull<SpriteData>> {
   const sprite = convertSpriteData();
-  const name = convertSpriteName(layer)
+  const name = convertSpriteName(layer);
   const parameters = await resolveExportParameters(layer, scale);
   const { format } = parameters;
-  const data = await layer.exportAsync(parameters)
-  const image = figma.createImage(data)
+  const data = await layer.exportAsync(parameters);
+  const image = figma.createImage(data);
   const size = await image.getSizeAsync();
   if (checkMeaningfulSpriteSize(size)) {
     return {

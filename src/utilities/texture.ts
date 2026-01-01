@@ -9,7 +9,7 @@ import { runVariantPipeline } from "utilities/variantPipeline";
 
 const TEXTURE_VARIANT_PIPELINE: VariantPipeline<TextureVariantPipelineData, TextureResourceData> = {
   process: extractTextureData,
-}
+};
 
 /**
  * Recursively extracts texture data from a tree of Figma layers.
@@ -64,7 +64,7 @@ function shouldProcessSlice(layer: SliceNode) {
 }
 
 function shouldProcessText(layer: TextNode, textAsSprites: boolean) {
-  return textAsSprites && isVisible(layer)
+  return textAsSprites && isVisible(layer);
 }
 
 function shouldAppendDynamicTextureData(textureAtlasData: TextureAtlasData, id: string): textureAtlasData is TextureDynamicAtlasData {

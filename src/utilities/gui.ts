@@ -18,35 +18,35 @@ export const GUI_EXPORT_PIPELINE: TransformPipeline<GUIExportPipelineData, GUIDa
   beforeTransform: preprocessGUIData,
   transform: exportGUIData,
   afterTransform: postprocessGUIData,
-}
+};
 
 export const GUI_SERIALIZATION_PIPELINE: TransformPipeline<GUIData, SerializedGUIData> = {
   transform: serializeGUIData,
-}
+};
 
 export const GUI_SCHEME_SERIALIZATION_PIPELINE: TransformPipeline<GUIData, SerializedGUIData> = {
   transform: serializeGUISchemeData
-}
+};
 
 export const GUI_ATLASES_EXTRACT_PIPELINE: TransformPipeline<GUIExportPipelineData, AtlasLayer[]> = {
   extractResources: exportGUIResources,
   transform: extractGUIAtlasData,
-}
+};
 
 export const GUI_SPINES_EXPORT_PIPELINE: TransformPipeline<GUIData, SpineData> = {
   transform: exportGUISpineData,
   afterTransform: postProcessGUISpineData,
-}
+};
 
 export const GUI_SPINE_ATTACHMENTS_EXPORT_PIPELINE: TransformPipeline<GUIData, SpineData> = {
   transform: exportGUISpineData,
   afterTransform: postProcessGUISpineAttachmentsData,
-}
+};
 
 export const GUI_PSD_EXPORT_PIPELINE: TransformPipeline<GUIData, PSDData> = {
   transform: exportGUIPSDData,
   afterTransform: postProcessGUIPSDData,
-}
+};
 
 export const GUI_UPDATE_PIPELINE: UpdatePipeline<PluginGUINodeData> = {
   ensureLayer: ensureGUILayer,
@@ -54,7 +54,7 @@ export const GUI_UPDATE_PIPELINE: UpdatePipeline<PluginGUINodeData> = {
   beforeUpdate: completeGUIData,
   update: updateGUIData,
   afterUpdate: updateGUILayer,
-}
+};
 
 /**
  * Determines whether the GUI node type is box.
@@ -110,11 +110,11 @@ export function isGUITemplate(layer: ExportableLayer) {
 }
 
 export function hasGUITexture(node: GUINodeData): node is GUINodeData & { texture: string, texture_size: Vector4 } {
-  return !!node.texture && typeof node.texture === "string" && !!node.texture_size && isVector4(node.texture_size)
+  return !!node.texture && typeof node.texture === "string" && !!node.texture_size && isVector4(node.texture_size);
 }
 
 export function hasExportableLayer(node: GUINodeData): node is GUINodeData & { exportable_layer: ExportableLayer } {
-  return !!node.exportable_layer && !!node.exportable_layer_id && !!node.exportable_layer_name
+  return !!node.exportable_layer && !!node.exportable_layer_id && !!node.exportable_layer_name;
 }
 
 /**
@@ -136,7 +136,7 @@ export function getGUINodePluginData(layer: Exclude<ExportableLayer, SliceLayer>
     export_variants: exportVariants,
     figma_node_type: layer.type,
     figma_node_id: layer.id
-  }
+  };
 }
 
 /**
@@ -185,7 +185,7 @@ async function tryPurgeUnusedGUINodeOverridesPluginData(key: string) {
  * @returns True if the GUI node overrides plugin data should be purged, otherwise false.
  */
 function shouldPurgeGUINodeOverridesPluginData(layer: WithNull<BaseNode>) {
-  return !layer || (isFigmaSceneNode(layer) && isFigmaRemoved(layer))
+  return !layer || (isFigmaSceneNode(layer) && isFigmaRemoved(layer));
 }
 
 /**
@@ -236,7 +236,7 @@ export function resolveGUINodeNamePrefix(shouldSkip: boolean, options: GUINodeDa
     const data = getPluginData(options.layer, "defoldGUINode");
     if (data?.template) {
       if (options.namePrefix) {
-        return options.namePrefix
+        return options.namePrefix;
       }
       return "";
     }
@@ -262,7 +262,7 @@ export async function resolveGUINodeForcedName(layer: ExportableLayer, parentOpt
       return parentOptions.forcedName;
     }
     if (isLayerExportable(parent) && await isLayerSpriteHolder(parent)) {
-      return parent.name
+      return parent.name;
     }
   }
   return undefined;

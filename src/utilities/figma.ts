@@ -295,9 +295,9 @@ export function isVisible(layer: SceneNode): boolean {
     if (!currentLayer.visible) {
       return false;
     }
-    currentLayer = currentLayer.parent || null
+    currentLayer = currentLayer.parent || null;
   }
-  while (currentLayer && isFigmaSceneNode(currentLayer))
+  while (currentLayer && isFigmaSceneNode(currentLayer));
   return true;
 }
 
@@ -308,7 +308,7 @@ export function isVisible(layer: SceneNode): boolean {
  */
 export function hasParent(layer: BaseNode): layer is SceneNode & { parent: SceneNode } {
   const { parent } = layer;
-  return !!parent && isFigmaSceneNode(parent)
+  return !!parent && isFigmaSceneNode(parent);
 }
 
 /**
@@ -369,7 +369,7 @@ function isTextAlignedRight(layer: TextNode) {
 }
 
 function isTextAlignedLeft(layer: TextNode) {
-  return layer.textAlignHorizontal === "LEFT"
+  return layer.textAlignHorizontal === "LEFT";
 }
 
 function isTextAlignedTop(layer: TextNode) {
@@ -496,8 +496,8 @@ export function resolveExportFormat(settings: readonly ExportSettings[]): Sprite
  */
 export function hasScalePropertyChanged(change: PropertyChange) {
   if (change.properties.length == 6) {
-    const scaleProperties: NodeChangeProperty[] = ["strokeWeight", "width", "height", "relativeTransform", "x", "y"]
-    return scaleProperties.every(property => change.properties.includes(property))
+    const scaleProperties: NodeChangeProperty[] = ["strokeWeight", "width", "height", "relativeTransform", "x", "y"];
+    return scaleProperties.every(property => change.properties.includes(property));
   }
   return false;
 }
@@ -601,7 +601,7 @@ export function haveEqualExposedComponentProperties(exposedInstance1: InstanceNo
       isVisible(exposedInstance2) &&
       areEqualComponentPropertySets(exposedInstance1.componentProperties, exposedInstance2.componentProperties)
     )
-  )
+  );
 }
 
 /**
@@ -674,7 +674,7 @@ export async function setPluginData(layer: DataLayer, data: PluginData) {
  * @param data - The plugin data to set.
  */
 function pluginDataSetter<TKey extends PluginDataKey>(layer: DataLayer, key: TKey, value: PluginData[TKey]) {
-  layer.setPluginData(key, JSON.stringify(value))
+  layer.setPluginData(key, JSON.stringify(value));
 }
 
 /**
@@ -768,7 +768,7 @@ export function findClosestFigmaComponentInstance(layer: SceneNode): WithNull<In
     }
     currentLayer = currentLayer.parent || null;
   }
-  while (currentLayer && isFigmaSceneNode(currentLayer))
+  while (currentLayer && isFigmaSceneNode(currentLayer));
   return null;
 }
 
@@ -792,7 +792,7 @@ export function findFigmaLayerReflection(component: ComponentNode, layer: SceneN
 }
 
 function figmaLayerReflectionChecker(layer: SceneNode, id: string) {
-  return id.includes(`;${layer.id}`)
+  return id.includes(`;${layer.id}`);
 }
 
 /**
@@ -845,12 +845,12 @@ export function calculateTextSpriteAdjustment(layer: TextNode): Vector4 {
     const { x: boundingBoxX, y: boundingBoxY, width: boundingBoxWidth, height: boundingBoxHeight } = absoluteBoundingBox;
     const { x: renderBoundsX, y: renderBoundsY, width: renderBoundsWidth, height: renderBoundsHeight } = absoluteRenderBounds;
     const leftSpace = Math.ceil(renderBoundsX) - boundingBoxX;
-    const rightSpace = (boundingBoxX + boundingBoxWidth) - (Math.ceil(renderBoundsX) + Math.ceil(renderBoundsWidth))
+    const rightSpace = (boundingBoxX + boundingBoxWidth) - (Math.ceil(renderBoundsX) + Math.ceil(renderBoundsWidth));
     const topSpace = Math.ceil(renderBoundsY) - boundingBoxY;
-    const bottomSpace = (boundingBoxY + boundingBoxHeight) - (Math.ceil(renderBoundsY) + Math.ceil(renderBoundsHeight))
-    const x = calculateTextSpriteHorizontalAdjustmentShift(layer, leftSpace, rightSpace)
-    const y = calculateTextSpriteVerticalAdjustmentShift(layer, topSpace, bottomSpace)
-    return vector4(x, y, 0, 0)
+    const bottomSpace = (boundingBoxY + boundingBoxHeight) - (Math.ceil(renderBoundsY) + Math.ceil(renderBoundsHeight));
+    const x = calculateTextSpriteHorizontalAdjustmentShift(layer, leftSpace, rightSpace);
+    const y = calculateTextSpriteVerticalAdjustmentShift(layer, topSpace, bottomSpace);
+    return vector4(x, y, 0, 0);
   }
   return vector4(0);
 }

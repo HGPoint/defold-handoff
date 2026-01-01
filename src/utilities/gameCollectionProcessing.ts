@@ -15,7 +15,7 @@ const EMPTY_COMPONENT_PROPERTIES = [
   "scale",
   "children",
   "components",
-]
+];
 
 const SPRITE_COMPONENT_PROPERTIES = [
   "type",
@@ -76,7 +76,7 @@ export function postprocessGameCollectionData(gameCollection: GameCollectionData
 }
 
 function sanitizeGameObjectIDs(gameObjects: GameObjectData[]) {
-  gameObjects.forEach((gameObject) => { sanitizeGameObjectID(gameObject, gameObjects) });
+  gameObjects.forEach((gameObject) => { sanitizeGameObjectID(gameObject, gameObjects); });
 }
 
 function sanitizeGameObjectID(gameObject: GameObjectData, gameObjects: GameObjectData[], usedIDs: string[] = []) {
@@ -186,7 +186,7 @@ function shouldRemoveProperty(key: keyof GameObjectData, type?: GameObjectType) 
  */
 function cleanupGameObjectComponents(gameObject: GameObjectData) {
   if (gameObject.components) {
-    const children: GameObjectData[] = []
+    const children: GameObjectData[] = [];
     for (const child of gameObject.components) {
       if (!isGameObjectEmptyType(child.type)) {
         children.push(child);

@@ -45,7 +45,7 @@ const GUI_NODE_PROPERTY_ORDER: (keyof GUINodeData)[] = [
   "alpha",
   "enabled",
   "visible",
-]
+];
 
 /**
  * An array containing keys of properties to be excluded during serialization.
@@ -161,13 +161,13 @@ function serializeGUIDefoldData(guiData: GUIDefoldData): string {
       return serializedProperties;
     }
     if (!serializedProperties) {
-      serializedProperties += `<data>\n`
+      serializedProperties += `<data>\n`;
     }
     const [ key, value ] = property;
     if (key === "script") {
       if (value) {
         const serializedScriptProperty = propertySerializer("", property, false);
-        serializedProperties = serializedScriptProperty + serializedProperties
+        serializedProperties = serializedScriptProperty + serializedProperties;
       }
       return serializedProperties;
     }
@@ -295,11 +295,11 @@ function isGUINodePropertyDefaultValue([key, value]: [keyof GUINodeData, GUINode
   if (key === "size") {
     if (isVector4(value)) {
       if (guiNodeData && guiNodeData.texture && guiNodeData.size_mode == "SIZE_MODE_AUTO") {
-        return true
+        return true;
       }
-      return areVectorsEqual(value, { x: 0, y: 0, z: 0, w: 0 })
+      return areVectorsEqual(value, { x: 0, y: 0, z: 0, w: 0 });
     }
-    return false
+    return false;
   }
   if (key === "size_mode") {
     return value === "SIZE_MODE_MANUAL"; 
@@ -324,7 +324,7 @@ function isGUINodePropertyDefaultValue([key, value]: [keyof GUINodeData, GUINode
   }
   if (isVector4(value)) {
     if (key === "scale" || key === "color") {
-      return areVectorsEqual(value, { x: 1, y: 1, z: 1, w: 1 })
+      return areVectorsEqual(value, { x: 1, y: 1, z: 1, w: 1 });
     }
     if (key === "position" || key === "rotation" || key === "slice9") {
       return areVectorsEqual(value, { x: 0, y: 0, z: 0, w: 0 });
@@ -362,7 +362,7 @@ function isGUINodePropertyDefaultValue([key, value]: [keyof GUINodeData, GUINode
  */
 function serializeGUITextureData(textureData?: TextureResourceData) {
   if (textureData) {
-    const data = Object.entries(textureData).reduce(textureDataSerializer, "")
+    const data = Object.entries(textureData).reduce(textureDataSerializer, "");
     return data;
   }
   return "";
@@ -388,7 +388,7 @@ function textureDataSerializer(data: string, [name, texture]: [string, TextureAt
  */
 function serializeGUIFontsData(fontData?: FontData) {
   if (fontData) {
-    const data = Object.entries(fontData).reduce(fontsDataSerializer, "")
+    const data = Object.entries(fontData).reduce(fontsDataSerializer, "");
     return data;
   }
   return "";
@@ -439,7 +439,7 @@ function serializeGUISpineData(spineData?: SpineResourceData) {
 }
 
 function spineDataSerializer(data: string, [name, path]: [string, string]) {
-  const serializedSpine = `name: "${name}"\npath: "${path}"`
+  const serializedSpine = `name: "${name}"\npath: "${path}"`;
   return `${data}resources\n{\n${indentLines(serializedSpine)}\n}\n`;
 }
 
@@ -455,7 +455,7 @@ function serializeTemplateData(guiData: GUIData, asTemplate: boolean) {
       template: true,
       templateName: guiData.nodes[0].template_name,
       templatePath: guiData.nodes[0].template_path,
-    }
+    };
   }
   return {};
 }
@@ -500,7 +500,7 @@ function isPropertyScale(key: keyof GUINodeData, value: GUINodeData[keyof GUINod
 }
 
 function isPropertyText(key: keyof GUINodeData, value: GUINodeData[keyof GUINodeData]): value is string {
-  return key === "text" && typeof value === "string"
+  return key === "text" && typeof value === "string";
 }
 
 function isPropertyTemplate(key: keyof GUINodeData, value: GUINodeData[keyof GUINodeData], guiNodeData: GUINodeData): value is boolean {
@@ -563,7 +563,7 @@ function serializePositionProperty(position: Vector4): string {
   if (serializedPosition) {
     return `${serializedPosition}\n`;
   }
-  return ""
+  return "";
 }
 
 function serializeRotationProperty(rotation: Vector4): string {
@@ -571,7 +571,7 @@ function serializeRotationProperty(rotation: Vector4): string {
   if (serializedRotation) {
     return `${serializedRotation}\n`;
   }
-  return ""
+  return "";
 }
 
 function serializeScaleProperty(scale: Vector4): string {
@@ -579,14 +579,14 @@ function serializeScaleProperty(scale: Vector4): string {
   if (serializedScale) {
     return `${serializedScale}\n`;
   }
-  return ""
+  return "";
 }
 
 function serializeTextProperty(text: string, textCase?: TextCase): string {
-  const resolvedText = resolveTextForm(text, textCase)
+  const resolvedText = resolveTextForm(text, textCase);
   const serializedText = serializeProperty<GUINodeData>("text", resolvedText);
   if (serializedText) {
     return `${serializedText}\n`;
   }
-  return ""
+  return "";
 }

@@ -374,7 +374,7 @@ function calculateBundleSize(gui?: SerializedGUIData[], gameObjects?: Serialized
  * @returns The full file path.
  */
 function resolveFilePathFromPathName(path: string, fileName: string): string {
-  const pathSegments: string[] = [path, fileName] 
+  const pathSegments: string[] = [path, fileName]; 
   const filePath = joinPathSegments(pathSegments);
   return filePath;
 }

@@ -15,7 +15,7 @@ const mexp = new Mexp();
 export default function evaluateExpression(expression: string): WithNull<number> {
   let result: WithNull<number>;
   try {
-    result = mexp.eval(expression)
+    result = mexp.eval(expression);
   } catch (error) {
     result = null;
   }

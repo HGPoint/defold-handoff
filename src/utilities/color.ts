@@ -100,5 +100,5 @@ export function splitColor(color: Vector4) {
   return {
     colorHue,
     colorAlpha,
-  }
+  };
 }

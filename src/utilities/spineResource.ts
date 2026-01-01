@@ -9,7 +9,7 @@ import { runVariantPipeline } from "utilities/variantPipeline";
 
 const SPINE_VARIANT_PIPELINE: VariantPipeline<SpineVariantPipelineData, SpineResourceData> = {
   process: extractSpineData,
-}
+};
 
 export async function extractSpineData(data: SpineVariantPipelineData, spineData: SpineResourceData = {}): Promise<SpineResourceData> {
   const { layer, skipVariants } = data;
@@ -34,8 +34,8 @@ function processSpineResourceData(layer: BoxLayer) {
   const data = getPluginData(layer, "defoldGUINode");
   if (canProcessSpineResourceData(data)) {
     const { replace_spine_name: name, replace_spine_path: path } = data;
-    const spinePath = generateSpineScenePath(path, name)
-    return { [name]: spinePath }
+    const spinePath = generateSpineScenePath(path, name);
+    return { [name]: spinePath };
   }
   return null;
 }

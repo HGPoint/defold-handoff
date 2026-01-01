@@ -56,7 +56,7 @@ export function resolveGameCollectionExportOptions(layer: ExportableLayer, data?
     parentPivot: "PIVOT_CENTER",
     ...parentTransformations,
     ...depthAxisParameters,
-  }
+  };
 }
 
 /**
@@ -67,9 +67,9 @@ export function resolveGameCollectionExportOptions(layer: ExportableLayer, data?
 async function generateGameObjectData(options: GameObjectDataExportOptions) {
   const { layer } = options;
   if (await canProcessSpriteComponent(layer)) {
-    return await generateSpriteComponentData(layer, options)
+    return await generateSpriteComponentData(layer, options);
   } else if (canProcessLabelComponent(layer)) {
-    return await generateLabelComponentData(layer, options)
+    return await generateLabelComponentData(layer, options);
   } else if (canProcessEmptyComponent(layer)) {
     return await generateEmptyComponentData(layer, options);
   }
@@ -82,7 +82,7 @@ async function generateGameObjectData(options: GameObjectDataExportOptions) {
  * @returns True if the layer can be processed as a sprite game object, otherwise false.
  */
 async function canProcessSpriteComponent(layer: ExportableLayer) {
-  return (isVisible(layer) && isFigmaSlice(layer)) || ((isVisible(layer) || isUsedSlice9Layer(layer)) && !isSlice9ServiceLayer(layer) && await isLayerSprite(layer))
+  return (isVisible(layer) && isFigmaSlice(layer)) || ((isVisible(layer) || isUsedSlice9Layer(layer)) && !isSlice9ServiceLayer(layer) && await isLayerSprite(layer));
 }
 
 /**
@@ -181,7 +181,7 @@ async function generateEmptyComponentData(layer: BoxLayer, options: GameObjectDa
  * @returns True if the children of the layer can be processed as game objects, otherwise false.
  */
 async function canProcessComponentChildren(layer: BoxLayer) {
-  return hasChildren(layer) && !await isLayerSprite(layer)
+  return hasChildren(layer) && !await isLayerSprite(layer);
 }
 
 /**
@@ -226,7 +226,7 @@ async function generateParentOptions(layer: ExportableLayer, shouldSkip: boolean
     forcedName,
     ...depthAxisParameters,
     ...layerOptions,
-  }
+  };
 }
 
 /**
@@ -238,25 +238,25 @@ async function generateParentOptions(layer: ExportableLayer, shouldSkip: boolean
  */
 function resolveGameObjectLayerOptions(shouldSkip: boolean, parentOptions: GameObjectDataExportOptions, gameObjectData: GameObjectData): Pick<GameObjectDataExportOptions, "parentId" | "parentSize" | "parentShift" | "parentPivot"> {
   const { layer, atRoot } = parentOptions;
-  const fallbackParentSize = vector4(layer.width, layer.height, 0, 0)
+  const fallbackParentSize = vector4(layer.width, layer.height, 0, 0);
   if (shouldSkip) {
     const { parentId, parentSize, parentShift } = parentOptions;
     const resolvedParentSize = isZeroVector(parentSize) ? fallbackParentSize : parentSize;
     const resolvedFigmaPosition = gameObjectData.figma_position || vector4(0);
-    const resolvedParentShift = atRoot ? vector4(0) : addVectors(parentShift, resolvedFigmaPosition)
+    const resolvedParentShift = atRoot ? vector4(0) : addVectors(parentShift, resolvedFigmaPosition);
     return {
       parentId: parentId,
       parentSize: resolvedParentSize,
       parentShift: resolvedParentShift,
       parentPivot: "PIVOT_CENTER"
-    }
+    };
   }
   return {
     parentId: gameObjectData.id,
     parentSize: fallbackParentSize,
     parentShift: vector4(0),
     parentPivot: "PIVOT_CENTER"
-  }
+  };
 }
 
 /**
@@ -291,7 +291,7 @@ function wrapInImpliedGameObject(componentData: GameObjectData): GameObjectData 
     figma_children,
     scale_factor: 1,
     components: [componentData]
-  }
+  };
 }
 
 /**
@@ -316,7 +316,7 @@ export async function extractGameCollectionAtlasData(data: ExportableLayer, reso
  * @returns The exported bundled game collection resources.
  */
 export async function exportGameCollectionResources(layer: ExportableLayer): Promise<PipelineResources> {
-  const parameters = { layer, skipVariants: false, textAsSprites: false }
+  const parameters = { layer, skipVariants: false, textAsSprites: false };
   const textures = await extractTextureData(parameters);
   return { textures };
 }

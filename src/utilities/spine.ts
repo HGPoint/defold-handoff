@@ -25,5 +25,5 @@ export function resolveDefaultRootSpineBone() {
     x: 0,
     y: 0,
     rotation: 0
-  }
+  };
 }

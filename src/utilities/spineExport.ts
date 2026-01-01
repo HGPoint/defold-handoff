@@ -64,13 +64,13 @@ function spineSkinAttachmentDataReducer(attachments: Record<string, Record<strin
 }
 
 function shouldGenerateSpineSkinImageAttachment(node: GUINodeData) {
-  const { slice9 } = node
+  const { slice9 } = node;
   return !slice9 || isZeroVector(slice9);
 }
 
 function generateSpineSkinImageAttachment(node: GUINodeData & { texture: string, texture_size: Vector4, exportable_layer: ExportableLayer }) {
   const path = convertSpineSlotAttachment(node);
-  const { x: width, y: height } = convertSpineSkinImageAttachmentSize(node)
+  const { x: width, y: height } = convertSpineSkinImageAttachmentSize(node);
   const { x, y, } = convertSpineSkinImageAttachmentPosition(node);
   const { x: scaleX, y: scaleY } = convertSpineSkinImageAttachmentScale(node);
   const { rotation: { z: rotation } } = node;

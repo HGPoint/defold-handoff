@@ -11,9 +11,25 @@ import { convertAtlasData } from "utilities/atlasConversion";
  * @returns The combined atlases.
  */
 export function combineAtlases(atlases: AtlasData[]) {
-  const atlasCombinationData = generateAtlasCombinationData(atlases);
+  const uniqueAtlases = filterUniqueAtlases(atlases);
+  const atlasCombinationData = generateAtlasCombinationData(uniqueAtlases);
   const combinedAtlases = processAtlasCombinationData(atlasCombinationData, atlases);
   return combinedAtlases;
+}
+
+function filterUniqueAtlases(atlases: AtlasData[]) {
+  return atlases.reduce(uniqueAtlasesReducer, [] as AtlasData[]);
+}
+
+function uniqueAtlasesReducer(filteredAtlases: AtlasData[], atlas: AtlasData) {
+  if (filteredAtlases.every((filteredAtlas) => uniqueAtlasFilter(filteredAtlas, atlas))) {
+    filteredAtlases.push(atlas);
+  }
+  return filteredAtlases;
+}
+
+function uniqueAtlasFilter(filteredAtlas: AtlasData, atlas: AtlasData) {
+  return atlas.id != filteredAtlas.id;
 }
 
 /**
@@ -49,7 +65,7 @@ function atlasCombinationDataReducer(combinationData: Record<string, number[]>, 
  * @returns The combined atlases.
  */
 function processAtlasCombinationData(atlasCombinationData: Record<string, number[]>, atlases: AtlasData[]) {
-  return Object.entries(atlasCombinationData).reduce((combinedAtlases, [combinedAtlasName, combinedAtlasIndexes]) => combinedAtlasReducer(combinedAtlases, combinedAtlasName, combinedAtlasIndexes, atlases), [] as AtlasData[])
+  return Object.entries(atlasCombinationData).reduce((combinedAtlases, [combinedAtlasName, combinedAtlasIndexes]) => combinedAtlasReducer(combinedAtlases, combinedAtlasName, combinedAtlasIndexes, atlases), [] as AtlasData[]);
 }
 
 /**
@@ -70,6 +86,7 @@ function combinedAtlasReducer(combinedAtlases: AtlasData[], combineAtlasName: st
     const images = combineAtlasSprites(atlasIndexes, atlases);
     const combinedAtlas: AtlasData = {
       name,
+      id: name,
       atlas,
       images
     };
@@ -85,7 +102,7 @@ function combinedAtlasReducer(combinedAtlases: AtlasData[], combineAtlasName: st
  * @returns The combined sprites.
  */
 function combineAtlasSprites(atlasIndexes: number[], atlases: AtlasData[]) {
-  return atlasIndexes.reduce((atlasesImages, atlasIndex) => combinedAtlasSpriteReducer(atlasesImages, atlasIndex, atlases), [] as SpriteData[])
+  return atlasIndexes.reduce((atlasesImages, atlasIndex) => combinedAtlasSpriteReducer(atlasesImages, atlasIndex, atlases), [] as SpriteData[]);
 }
 
 /**

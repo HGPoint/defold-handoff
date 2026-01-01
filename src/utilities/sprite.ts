@@ -9,7 +9,7 @@ import { runVariantPipeline } from "utilities/variantPipeline";
 
 const USED_SPRITE_VARIANT_PIPELINE: VariantPipeline<SpriteVariantPipelineData, SpriteResourceData> = {
   process: extractSpriteData,
-}
+};
 
 export async function extractUsedSpriteData(layers: Exclude<ExportableLayer, SliceLayer>[], skipVariants: boolean) {
   const result = [];

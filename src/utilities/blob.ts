@@ -10,10 +10,19 @@
  */
 export function createBlob(data: string): Blob
 export function createBlob(data: ArrayBuffer): Blob
-export function createBlob(data: ArrayBuffer | string): Blob {
+export function createBlob(data: Uint8Array): Blob;
+export function createBlob(data: ArrayBuffer | Uint8Array | string): Blob {
   const type = resolveBlobType(data);
-  const blob = new Blob([data], { type });
+  const payload = resolvePayload(data);
+  const blob = new Blob([payload], { type });
   return blob;
+}
+
+function resolvePayload(data: ArrayBuffer | Uint8Array | string) {
+  if (typeof data === "string" || data instanceof ArrayBuffer) {
+    return data;
+  }
+  return data.slice().buffer;
 }
 
 /**
@@ -21,12 +30,13 @@ export function createBlob(data: ArrayBuffer | string): Blob {
  * @param data - The data to resolve the type from.
  * @returns The resolved MIME type.
  */
-function resolveBlobType(data: ArrayBuffer | string): string {
+function resolveBlobType(data: ArrayBuffer | Uint8Array | string): string {
   if (typeof data === "string") {
     return "text/plain";
   }
-  if (data instanceof ArrayBuffer) {
+  if (data instanceof ArrayBuffer || data instanceof Uint8Array) {
     return "image/png";
   }
+
   return "";
 }

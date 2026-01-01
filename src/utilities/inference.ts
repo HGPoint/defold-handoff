@@ -275,7 +275,7 @@ export function inferTextPivot(layer: TextLayer): Pivot {
  * @returns The inferred position for GUI node the game object.
  */
 function resolvePosition(pluginData ?: WithNull<PluginGameObjectData>) {
-  return pluginData?.position || config.gameObjectDefaultValues.position
+  return pluginData?.position || config.gameObjectDefaultValues.position;
 }
 
 export function inferFigmaPosition(layer: SceneNode) {
@@ -309,7 +309,7 @@ export function inferFigmaSize(layer: SceneNode) {
  */
 export function inferRotation(layer: SceneNode): Vector4 {
   if (isLayerExportable(layer) || isFigmaRectangle(layer)) {
-    const actionableLayer = ensureActionableLayer(layer)
+    const actionableLayer = ensureActionableLayer(layer);
     if (isFigmaBox(actionableLayer)) {
       const { rotation } = actionableLayer;
       return vector4(0, 0, readableNumber(rotation), 0);
@@ -323,14 +323,14 @@ export function inferRotation(layer: SceneNode): Vector4 {
  * @returns The inferred scale for the GUI node or game object, which is always 1.
  */
 export function inferScale(layer: SceneNode) {
-  const actionableLayer = ensureActionableLayer(layer)
+  const actionableLayer = ensureActionableLayer(layer);
   if (isFigmaBox(actionableLayer)) {
     const { flipX, flipY } = detectFlip(actionableLayer.relativeTransform);
     const scaleX = flipX ? -1 : 1;
     const scaleY = flipY ? -1 : 1;
     return vector4(scaleX, scaleY, 1, 1);
   }
-  return vector4(1)
+  return vector4(1);
 }
 
 /**
@@ -392,7 +392,7 @@ export function inferSlice9(layer: BoxLayer, data?: WithNull<PluginGUINodeData |
   if (parsedSlice9 && !isZeroVector(parsedSlice9)) {
     return parsedSlice9;
   }
-  return data?.slice9 || vector4(0)
+  return data?.slice9 || vector4(0);
 }
 
 /**
@@ -451,12 +451,12 @@ export async function inferGUIBoxTexture(layer: ExportableLayer) {
  * @returns The resolved texture property.
  */
 function resolveGUIBoxTexture(atlas: ComponentSetNode, sprite: ComponentNode) {
-  const textureName = resolveGUIBoxTextureNameFromAtlas(atlas, sprite)
-  const textureSize = resolveGUIBoxTextureSizeFromSprite(sprite)
+  const textureName = resolveGUIBoxTextureNameFromAtlas(atlas, sprite);
+  const textureSize = resolveGUIBoxTextureSizeFromSprite(sprite);
   return {
     textureName,
     textureSize,
-  }
+  };
 }
 
 function resolveGUIBoxTextureNameFromAtlas(atlas: ComponentSetNode, sprite: ComponentNode) {
@@ -489,7 +489,7 @@ export async function resolveGUITextSpriteNodeImpliedSprite(layer: TextNode) {
   return {
     textureName,
     textureSize
-  }
+  };
 }
 
 function resolveGUITextSpriteNodeImpliedTextureName(layer: TextNode) {
@@ -589,7 +589,7 @@ export function inferLineBreak(layer: TextLayer): boolean {
   if (layer.textAutoResize === "HEIGHT" || layer.textAutoResize === "NONE") {
     return true;
   }
-  return layer.characters.includes("\n")
+  return layer.characters.includes("\n");
 }
 
 /**
@@ -617,14 +617,14 @@ export function inferTextTracking(layer: TextLayer): number {
   if (typeof layer.letterSpacing == "number") {
     return layer.letterSpacing;
   }
-  return 0
+  return 0;
 }
 
 export function inferTextCase(layer: TextLayer): TextCase {
   if (typeof layer.textCase == "string") {
-    return layer.textCase
+    return layer.textCase;
   }
-  return "ORIGINAL"
+  return "ORIGINAL";
 }
 
 /**
@@ -665,7 +665,7 @@ export async function inferGameObjects(layers: readonly SceneNode[], inferChildr
 export async function inferGameObject(layer: SceneNode, inferChildren = true, forceInfer = false) {
   const shouldInfer = !isLayerInferred(layer, "defoldGameObject") || forceInfer;
   if (isFigmaBox(layer)) {
-    if ((shouldInfer) && await isLayerSprite(layer)) {
+    if (shouldInfer && await isLayerSprite(layer)) {
       inferSpriteComponent(layer);
     } else {
       if (shouldInfer) {
@@ -821,12 +821,12 @@ export function inferGameCollectionParentTransformations(layer: ExportableLayer)
     return {
       parentSize: vector4(width, height, 0, 0),
       parentShift: vector4(-x, -y, 0, 0),
-    }
+    };
   }
   return {
     parentSize: vector4(0),
     parentShift: vector4(0),
-  }
+  };
 }
 
 /**
@@ -836,20 +836,20 @@ export function inferGameCollectionParentTransformations(layer: ExportableLayer)
  * @returns The inferred game object position.
  */
 export function resolveGameObjectPosition(layer: BoxLayer | SliceNode, pluginData?: WithNull<PluginGameObjectData>): Vector4 {
-  const backupPosition = pluginData?.position || config.gameObjectDefaultValues.position
+  const backupPosition = pluginData?.position || config.gameObjectDefaultValues.position;
   const { parent } = layer;
   if (parent && isLayerExportable(parent)) {
     const size = inferSize(layer);
     const options = resolveGameCollectionExportOptions(layer, pluginData);
     const centeredPosition = calculateCenteredPosition(layer, size, options);
-    centeredPosition.z = backupPosition.z
+    centeredPosition.z = backupPosition.z;
     return {
       ...config.gameObjectDefaultValues.position,
       ...pluginData?.position,
       ...centeredPosition
-    }
+    };
   }
-  return backupPosition
+  return backupPosition;
 }
 
 /**
@@ -859,21 +859,21 @@ export function resolveGameObjectPosition(layer: BoxLayer | SliceNode, pluginDat
  * @returns The inferred the label game object position.
  */
 export function resolveLabelComponentPosition(layer: TextLayer, pluginData?: WithNull<PluginGameObjectData>): Vector4 {
-  const backupPosition = pluginData?.position || config.gameObjectDefaultValues.position
+  const backupPosition = pluginData?.position || config.gameObjectDefaultValues.position;
   const { parent } = layer;
   if (parent && isLayerExportable(parent)) {
     const size = inferSize(layer);
     const options = resolveGameCollectionExportOptions(layer, pluginData);
     const centeredPosition = calculateCenteredPosition(layer, size, options);
     const position = convertCenteredPositionToPivotedPosition(centeredPosition, options);
-    position.z = backupPosition.z
+    position.z = backupPosition.z;
     return {
       ...config.gameObjectDefaultValues.position,
       ...pluginData?.position,
       ...position
-    }
+    };
   }
-  return backupPosition
+  return backupPosition;
 }
 
 /**

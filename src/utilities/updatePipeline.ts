@@ -5,12 +5,13 @@
 
 /**
  * Runs pipelines for updating layer data.
+ * Assumes `layers` and `updates` are aligned and have the same length.
  * @param pipeline - The update pipeline to execute.
  * @param layers - The layers to update.
  * @param updates - The updates to apply to each layer.
  * @returns The results of the update pipelines.
  */
-export async function runUpdatePipelines<TData>(pipeline: UpdatePipeline<TData>, layers: DataLayer[], updates: TData[]) {
+export async function runUpdatePipelines<TData>(pipeline: UpdatePipeline<TData>, layers: DataLayer[], updates: TData[]): Promise<boolean[]> {
   const pipelinePromises = updates.map((update, index) => runUpdatePipeline(pipeline, layers[index], update));
   return Promise.all(pipelinePromises);
 }
@@ -22,7 +23,7 @@ export async function runUpdatePipelines<TData>(pipeline: UpdatePipeline<TData>,
  * @param update - The update to apply.
  * @returns The result of the update pipeline.
  */
-export async function runUpdatePipeline<TData>(pipeline: UpdatePipeline<TData>, originalLayer: DataLayer, update: TData) {
+export async function runUpdatePipeline<TData>(pipeline: UpdatePipeline<TData>, originalLayer: DataLayer, update: TData): Promise<boolean> {
   const layer = pipeline.ensureLayer(originalLayer);
   if (layer) {
     const originalData = await pipeline.extractOriginalData(layer);
@@ -31,6 +32,7 @@ export async function runUpdatePipeline<TData>(pipeline: UpdatePipeline<TData>, 
     await runAfterUpdatePipelineStep(pipeline, layer, preprocessedUpdate, originalData);
     return result;
   }
+  return true;
 }
 
 /**
@@ -41,7 +43,7 @@ export async function runUpdatePipeline<TData>(pipeline: UpdatePipeline<TData>, 
  * @param originalData - The original data of the layer.
  * @returns The preprocessed data.
  */
-async function runPreprocessingPipelineStep<TData>(pipeline: UpdatePipeline<TData>, layer: DataLayer, update: TData, originalData: WithNull<TData>) {
+async function runPreprocessingPipelineStep<TData>(pipeline: UpdatePipeline<TData>, layer: DataLayer, update: TData, originalData: WithNull<TData>): Promise<TData> {
   if (pipeline.beforeUpdate) {
     const preprocessedData = await pipeline.beforeUpdate(layer, update, originalData);
     return preprocessedData;
@@ -58,7 +60,7 @@ async function runPreprocessingPipelineStep<TData>(pipeline: UpdatePipeline<TDat
  * @returns The result of the update step.
  * @throws Will throw an error if the update fails or the data is invalid.
  */
-async function runUpdatePipelineSteps<TData>(pipeline: UpdatePipeline<TData>, layer: DataLayer, update: TData, originalData: WithNull<TData>) {
+async function runUpdatePipelineSteps<TData>(pipeline: UpdatePipeline<TData>, layer: DataLayer, update: TData, originalData: WithNull<TData>): Promise<boolean> {
   const result = await pipeline.update(layer, update, originalData);
   if (result) {
     if (pipeline.updateValidator) {
@@ -77,7 +79,7 @@ async function runUpdatePipelineSteps<TData>(pipeline: UpdatePipeline<TData>, la
  * @param update - The update data.
  * @param originalData - The original data of the layer.
  */
-async function runAfterUpdatePipelineStep<TData>(pipeline: UpdatePipeline<TData>, layer: DataLayer, update: TData, originalData: WithNull<TData>) {
+async function runAfterUpdatePipelineStep<TData>(pipeline: UpdatePipeline<TData>, layer: DataLayer, update: TData, originalData: WithNull<TData>): Promise<void> {
   if (pipeline.afterUpdate) {
     await pipeline.afterUpdate(layer, update, originalData);
   }

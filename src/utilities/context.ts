@@ -33,7 +33,7 @@ export function findSectionWithContextData(layer: BaseNode): WithNull<SectionNod
   }
   const { parent } = layer;
   if (parent) {
-    return findSectionWithContextData(parent)
+    return findSectionWithContextData(parent);
   }
   return null;
 }
@@ -52,7 +52,7 @@ function generateContextDataFromSection(section: SectionNode): PluginContextData
     layers,
     materials,
     ignorePrefixes
-  }
+  };
 }
 
 /**
@@ -65,5 +65,5 @@ function generateDefaultContextData(): PluginContextData {
     layers,
     materials,
     ignorePrefixes,
-  }
+  };
 }

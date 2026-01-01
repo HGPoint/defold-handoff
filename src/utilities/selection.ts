@@ -183,7 +183,7 @@ export async function convertSelectionDataToSelectionUIData(selection: Selection
     project,
     context,
     meta
-  }
+  };
 }
 
 /**
@@ -324,7 +324,7 @@ export function generateSelectionContextData(selection: SelectionData): PluginCo
     layers,
     materials,
     ignorePrefixes,
-  }
+  };
 }
 
 /**
@@ -389,7 +389,7 @@ export function reduceAtlasesFromSelectionData(selection: SelectionData): Compon
 function impliedSectionAtlasesReducer(impliedSections: { sections: SectionNode[], atlases: ComponentSetNode[] }, atlas: ComponentSetNode): { sections: SectionNode[], atlases: ComponentSetNode[] } {
   const atlasContextSection = findSectionWithContextData(atlas);
   if (atlasContextSection) {
-    const atlasContextData = getPluginData(atlasContextSection, "defoldSection")
+    const atlasContextData = getPluginData(atlasContextSection, "defoldSection");
     if (atlasContextData?.jumbo) {
       impliedSections.sections.push(atlasContextSection);
     } else {
@@ -407,7 +407,7 @@ function impliedSectionAtlasesReducer(impliedSections: { sections: SectionNode[]
  */
 function sectionAtlasesReducer(atlases: ComponentSetNode[], section: SectionNode): ComponentSetNode[] {
     const sectionAtlases = section.children.filter((child) => uniqueAtlasFilter(child, atlases));
-    return [ ...atlases, ...sectionAtlases ]
+    return [ ...atlases, ...sectionAtlases ];
 }
 
 /**
@@ -417,7 +417,7 @@ function sectionAtlasesReducer(atlases: ComponentSetNode[], section: SectionNode
  * @returns True if the layer is a unique atlas, false otherwise.
  */
 function uniqueAtlasFilter(layer: SceneNode, atlases: ComponentSetNode[]): layer is ComponentSetNode {
-  return isLayerAtlas(layer) && !atlases.includes(layer)
+  return isLayerAtlas(layer) && !atlases.includes(layer);
 }
 
 /**
@@ -436,7 +436,7 @@ export function pickGUIFromSelectionData(selection: SelectionData) {
  * @returns The first GUI node.
  */
 export function pickFirstGUINodeFromSelectionData(selection: SelectionData) {
-  const { gui: [ layer ] } = selection
+  const { gui: [ layer ] } = selection;
   return layer;
 }
 
@@ -493,11 +493,11 @@ export function pickLayersFromSelectionData(selection: SelectionData) {
 export function isSameGUINodeSelected(selection: SelectionUIData, currentSelection: SelectionUIData): boolean {
   const [selectedNode] = selection.gui;
   const [currentNode] = currentSelection.gui;
-  return selectedNode.figma_node_id == currentNode.figma_node_id
+  return selectedNode.figma_node_id == currentNode.figma_node_id;
 }
 
 export function isSameGameObjectSelected(selection: SelectionUIData, currentSelection: SelectionUIData): boolean {
   const [selectedNode] = selection.gameObjects;
   const [currentNode] = currentSelection.gameObjects;
-  return selectedNode.figma_node_id == currentNode.figma_node_id
+  return selectedNode.figma_node_id == currentNode.figma_node_id;
 }

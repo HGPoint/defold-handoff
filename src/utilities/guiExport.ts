@@ -27,7 +27,7 @@ export const DEFAULT_PACK_OPTIONS: GUIPackOptions = {
   textAsSprites: false,
   collapseTemplates: false,
   collapseEmpty: false,
-}
+};
 
 /**
  * Exports GUI data.
@@ -92,7 +92,7 @@ function resolveGUIExportOptions(layer: ExportableLayer, parameters: GUINodeExpo
     parentShift: vector4(-layer.x, -layer.y, 0, 0),
     parentScaleFactor: 1,
     clones: []
-  }
+  };
   return options;
 }
 
@@ -137,7 +137,7 @@ async function generateGUIBoxNodeData(data: GUIVariantPipelineData) {
   if (!guiNodeData.exclude || options.collapseTemplates) {
     const alreadyCloned = await isClonedLayer(layer, guiNodeData, options);
     if (!alreadyCloned || options.collapseTemplates) {
-      if (guiNodeData.cloneable &&  !options.collapseTemplates && isFigmaComponentInstance(layer)) {
+      if (guiNodeData.cloneable && !options.collapseTemplates && isFigmaComponentInstance(layer)) {
         const cloneData = await createGUINodeCloneData(layer);
         if (cloneData) {
           options.clones.push(cloneData);
@@ -234,7 +234,7 @@ async function generateGUITextSpriteNodeData(layer: TextNode, options: GUINodeDa
 async function tryInferGUINode(layer: ExportableLayer) {
   if (isLayerData(layer)) {
     const pluginData = getPluginData(layer, "defoldGUINode");
-    if (!pluginData?.inferred) {
+    if (!pluginData?.exclude && !pluginData?.inferred) {
       if (isFigmaBox(layer)) {
         await inferGUIBox(layer);
       } else if (isFigmaText(layer)) {
@@ -289,7 +289,7 @@ async function createGUINodeCloneData(clone: InstanceNode) {
     return {
       cloneOf: mainComponent,
       cloneInstance: clone,
-    }
+    };
   }
 }
 
@@ -319,7 +319,7 @@ async function generateParentOptions(layer: ExportableLayer, shouldSkip: boolean
     forcedName,
     clones,
     ...parentParameters,
-  }
+  };
 }
 
 /**
@@ -336,14 +336,14 @@ function resolveGUINodeLayerOptions(shouldSkip: boolean, parentOptions: GUINodeD
     const { parentId, parentSize, parentPivot, parentShift } = parentOptions;
     const resolvedParentSize = isZeroVector(parentSize)  ? guiNodeData.figma_size : parentSize;
     const resolvedFigmaPosition = guiNodeData.figma_position || vector4(0);
-    const resolvedParentShift = addVectors(parentShift, resolvedFigmaPosition)
+    const resolvedParentShift = addVectors(parentShift, resolvedFigmaPosition);
     return {
       parentId,
       parentSize: resolvedParentSize,
       parentPivot,
       parentShift: resolvedParentShift,
       parentScaleFactor: resolvedParentScaleFactor,
-    }
+    };
   }
   return {
     parentId: guiNodeData.id,
@@ -351,7 +351,7 @@ function resolveGUINodeLayerOptions(shouldSkip: boolean, parentOptions: GUINodeD
     parentPivot: guiNodeData.pivot,
     parentShift: vector4(0),
     parentScaleFactor: resolvedParentScaleFactor
-  }
+  };
 }
 
 function shouldSkipEmpty(layer: BoxLayer, guiNodeData: GUINodeData, { collapseEmpty, atRoot }: GUINodeDataExportOptions) {
@@ -367,7 +367,7 @@ function shouldSkipEmpty(layer: BoxLayer, guiNodeData: GUINodeData, { collapseEm
  * @returns True if the children of the layer can be processed as GUI nodes, otherwise false.
  */
 async function canProcessGUIBoxNodeChildren(layer: BoxLayer, guiNodeData: GUINodeData, options: GUINodeDataExportOptions) {
-  return hasChildren(layer) && (options.collapseTemplates || !guiNodeData.template || (options.atRoot && options.asTemplate)) && !(await isLayerSprite(layer))
+  return hasChildren(layer) && (options.collapseTemplates || !guiNodeData.template || (options.atRoot && options.asTemplate)) && !(await isLayerSprite(layer));
 }
 
 /**
@@ -447,7 +447,7 @@ export async function exportGUISpineData(guiData: GUIData): Promise<SpineData> {
 
 export async function exportGUIPSDData(guiData: GUIData): Promise<PSDData> {
   const { name, nodes } = guiData;
-  const canvasSize = resolvePSDFileSize(guiData)
+  const canvasSize = resolvePSDFileSize(guiData);
   const filePath = resolvePSDFilePath();
   const layers = generatePSDLayerData(nodes, canvasSize);
   const data: PSDData = {
@@ -455,7 +455,7 @@ export async function exportGUIPSDData(guiData: GUIData): Promise<PSDData> {
     size: canvasSize,
     layers,
     filePath
-  }
+  };
   return data;
 }
 

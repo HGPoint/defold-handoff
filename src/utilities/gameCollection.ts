@@ -3,8 +3,8 @@
  * @packageDocumentation
  */
 
-import evaluateExpression from "utilities/evaluation";
 import config from "config/config.json";
+import evaluateExpression from "utilities/evaluation";
 import { getPluginData, isFigmaComponent, isFigmaComponentInstance, isFigmaSlice, isLayerExportable, isLayerSpriteHolder } from "utilities/figma";
 import { exportGameCollectionData, exportGameCollectionResources, extractGameCollectionAtlasData } from "utilities/gameCollectionExport";
 import { postprocessGameCollectionData, preprocessGameCollectionData } from "utilities/gameCollectionProcessing";
@@ -18,16 +18,16 @@ export const GAME_COLLECTION_EXPORT_PIPELINE: TransformPipeline<ExportableLayer,
   beforeTransform: preprocessGameCollectionData,
   transform: exportGameCollectionData,
   afterTransform: postprocessGameCollectionData,
-}
+};
 
 export const GAME_COLLECTION_SERIALIZATION_PIPELINE: TransformPipeline<GameCollectionData, SerializedGameCollectionData> = {
   transform: serializeGameCollectionData,
-}
+};
 
 export const GAME_COLLECTION_ATLASES_EXTRACT_PIPELINE: TransformPipeline<ExportableLayer, AtlasLayer[]> = {
   extractResources: exportGameCollectionResources,
   transform: extractGameCollectionAtlasData,
-}
+};
 
 export const GAME_OBJECT_UPDATE_PIPELINE: UpdatePipeline<PluginGameObjectData> = {
     ensureLayer: ensureGameObjectLayer,
@@ -35,7 +35,7 @@ export const GAME_OBJECT_UPDATE_PIPELINE: UpdatePipeline<PluginGameObjectData> =
     beforeUpdate: preprocessGameObjectData,
     update: updateGameObjectData,
     afterUpdate: updateGameObjectLayer,
-}
+};
 
 /**
  * Determines whether the game object type is empty.
@@ -81,7 +81,7 @@ export async function getGameObjectPluginData(layer: Exclude<ExportableLayer, Sl
     type,
     figma_node_type: layer.type,
     figma_node_id: layer.id
-  }
+  };
 }
 
 /**
@@ -91,7 +91,7 @@ export async function getGameObjectPluginData(layer: Exclude<ExportableLayer, Sl
  */
 export function resolveGameObjectPluginData(layer: ExportableLayer) {
   if (!isFigmaSlice(layer)) {
-    const data = getPluginData(layer, "defoldGameObject")
+    const data = getPluginData(layer, "defoldGameObject");
     if (data) {
       return data;
     }
@@ -146,7 +146,7 @@ export async function resolveGameObjectForcedName(layer: ExportableLayer, parent
       return parentOptions.forcedName;
     }
     if (isLayerExportable(parent) && await isLayerSpriteHolder(parent)) {
-      return parent.name
+      return parent.name;
     }
   }
   return undefined;
@@ -217,7 +217,7 @@ export function resolveDepthAxisParameters(data?: WithNull<PluginGameObjectData 
  * @param depthAxis - The depth axis to use.
  */
 export function calculateGameObjectDepth(x: number, y: number, z: number, layer: number, index: number, options: GameObjectDataExportOptions) {
-  const { arrangeDepth } = options
+  const { arrangeDepth } = options;
   if (arrangeDepth) {
     const depthAxis = options.depthAxis || config.gameObjectDefaultSpecialValues.depth_axis;
     const depthExpression = depthAxis.

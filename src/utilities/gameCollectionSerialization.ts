@@ -100,7 +100,7 @@ export async function serializeGameCollectionData(gameCollectionData: GameCollec
 }
 
 function gameCollectionDataSerializer(serializedData: string, [property, value]: [keyof GameCollectionDefoldData, GameCollectionDefoldData[keyof GameCollectionDefoldData]]) {
-  return propertySerializer<GameCollectionDefoldData>(serializedData, [property, value])
+  return propertySerializer<GameCollectionDefoldData>(serializedData, [property, value]);
 }
 
 /**
@@ -646,7 +646,7 @@ function serializeImageProperty(value: string): string {
  * @returns The serialized material property, which is always an empty string.
  */
 function serializeMaterialProperty(): string {
-  return ""
+  return "";
 }
 
 /**
@@ -655,7 +655,7 @@ function serializeMaterialProperty(): string {
  * @returns The serialized text leading property.
  */
 function serializeTextLeadingProperty(value: number): string {
-  const formattedValue = formattedNumber(value)
+  const formattedValue = formattedNumber(value);
   return `leading: ${formattedValue}\n`;
 }
 
@@ -665,7 +665,7 @@ function serializeTextLeadingProperty(value: number): string {
  * @returns The serialized text tracking property.
  */
 function serializeTextTrackingProperty(value: number): string {
-  const formattedValue = formattedNumber(value)
+  const formattedValue = formattedNumber(value);
   return `tracking: ${formattedValue}\n`;
 }
 

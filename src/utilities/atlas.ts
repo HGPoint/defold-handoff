@@ -50,7 +50,7 @@ export function getAtlasPluginData(layer: ComponentSetNode): PluginAtlasData {
     ...config.atlasDefaultSpecialValues,
     ...pluginData,
     id,
-  }
+  };
 }
 
 /**
@@ -64,7 +64,7 @@ export function resolveAtlasName(atlas: AtlasLayer) {
   }
   const contextSection = findSectionWithContextData(atlas);
   if (contextSection) {
-    const atlasContextData = getPluginData(contextSection, "defoldSection")
+    const atlasContextData = getPluginData(contextSection, "defoldSection");
     if (atlasContextData?.jumbo) {
       return atlasContextData.jumbo;
     }
@@ -147,7 +147,7 @@ export function createAtlasLayer(sprites: ComponentNode[]) {
   atlas.name = "atlas";
   createAtlasData(atlas);
   styleAtlas(atlas);
-  fitAtlas(atlas)
+  fitAtlas(atlas);
   return atlas;
 }
 
@@ -232,8 +232,8 @@ export function fixAtlas(layer: ComponentSetNode) {
  * @param atlas - The atlas to fit.
  */
 export function fitAtlas(atlas: ComponentSetNode) {
-  fitAtlasBounds(atlas)
-  fitAtlasSprites(atlas)
+  fitAtlasBounds(atlas);
+  fitAtlasSprites(atlas);
 }
 
 function fitAtlasBounds(atlas: ComponentSetNode) {
@@ -251,12 +251,12 @@ function fitAtlasSprites(atlas: ComponentSetNode) {
   let closestX = Infinity;
   let closestY = Infinity;
   for (const sprite of atlas.children) {
-    const { x, y } = sprite
+    const { x, y } = sprite;
     if (x < config.atlasPadding && x < closestX) {
-      closestX = x
+      closestX = x;
     }
     if (y < config.atlasPadding && y < closestY) {
-      closestY = y
+      closestY = y;
     }
   }
   const shiftX = closestX < Infinity ? config.atlasPadding - closestX : 0;
@@ -360,7 +360,7 @@ export function packSpritesAlphabetically(atlas: ComponentSetNode) {
 }
 
 function packSprites(sprites: SceneNode[], width: number) {
-  const padding = 20
+  const padding = 20;
   const root = {
     x: padding,
     y: padding,
@@ -430,9 +430,9 @@ function fixSprite(sprite: ComponentNode) {
   fixSpriteName(sprite);
   lockSprite(sprite);
   fitSprite(sprite);
-  removePluginData(sprite, "defoldGUINode")
-  removePluginData(sprite, "defoldGameObject")
-  removePluginData(sprite, "defoldSlice9")
+  removePluginData(sprite, "defoldGUINode");
+  removePluginData(sprite, "defoldGameObject");
+  removePluginData(sprite, "defoldSlice9");
 }
 
 /**
@@ -451,7 +451,7 @@ function fixSpriteName(sprite: ComponentNode) {
  * @param sprite - The sprite to lock.
  */
 function lockSprite(sprite: ComponentNode) {
-  sprite.children.forEach(lockFigmaLayer)
+  sprite.children.forEach(lockFigmaLayer);
 }
 
 /**
@@ -470,7 +470,7 @@ function fitSprite(sprite: ComponentNode) {
     const normalizedHeight = Math.ceil(newHeight);
     const changePositionX = Math.floor((normalizedX - prevX));
     const changePositionY = Math.floor((normalizedY - prevY));
-    sprite.resizeWithoutConstraints(normalizedWidth, normalizedHeight)
+    sprite.resizeWithoutConstraints(normalizedWidth, normalizedHeight);
     sprite.children.forEach(child => {
       child.x -= changePositionX;
       child.y -= changePositionY;

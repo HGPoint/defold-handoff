@@ -12,7 +12,7 @@ const FONT_CACHE: { [key: string]: WithNull<string> } = {};
 
 const FONT_VARIANT_PIPELINE: VariantPipeline<FontVariantPipelineData, FontData> = {
   process: extractFontData,
-}
+};
 
 /**
  * Attempts to find a matching font family in the project configuration.

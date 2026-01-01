@@ -82,9 +82,9 @@ export function addVectors(vector: Vector4, ...vectors: Vector4[]): Vector4 {
 
 function vectorSumReducer(vectorSum: Vector4, vector: Vector4) {
   const x = vectorSum.x + vector.x;
-  const y = vectorSum.y + vector.y
-  const z = vectorSum.z + vector.z
-  const w = vectorSum.w + vector.w
+  const y = vectorSum.y + vector.y;
+  const z = vectorSum.z + vector.z;
+  const w = vectorSum.w + vector.w;
   return vector4(x, y, z, w);
 }
 
@@ -140,22 +140,22 @@ export function flipVector(vector: Vector4): Vector4 {
 
 export function flipVectorX(vector: Vector4): Vector4 {
   const { x, y, z, w } = vector;
-  return vector4(-x, y, z, w)
+  return vector4(-x, y, z, w);
 }
 
 export function flipVectorY(vector: Vector4): Vector4 {
   const { x, y, z, w } = vector;
-  return vector4(x, -y, z, w)
+  return vector4(x, -y, z, w);
 }
 
 export function flipVectorZ(vector: Vector4): Vector4 {
   const { x, y, z, w } = vector;
-  return vector4(x, y, -z, w)
+  return vector4(x, y, -z, w);
 }
 
 export function flipVectorW(vector: Vector4): Vector4 {
   const { x, y, z, w } = vector;
-  return vector4(x, y, z, -w)
+  return vector4(x, y, z, -w);
 }
 
 /**
@@ -171,7 +171,7 @@ export function clamp(value: number, min: number, max: number): number {
 
 export function detectSign(value: number): 1 | -1 {
   if (value >= 0) {
-    return 1
+    return 1;
   }
   return -1;
 }
@@ -264,7 +264,7 @@ export function convertDegreesToRadians(degrees: number): number {
 export function convertRotationToQuaternion(degrees: number): Vector4 {
   const radians = convertDegreesToRadians(degrees);
   const half = radians / 0.5;
-  const z = Math.sin(half)
-  const w = Math.cos(half)
-  return vector4(0, 0, z, w)
+  const z = Math.sin(half);
+  const w = Math.cos(half);
+  return vector4(0, 0, z, w);
 }

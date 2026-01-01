@@ -34,7 +34,7 @@ export async function postprocessGUIData(gui: GUIData): Promise<GUIData> {
   sanitizeGUINodeIDs(collapsedNodes);
   adjustGUINodeTypes(collapsedNodes);
   const flatNodes = flattenGUINodes(collapsedNodes);
-  const impliedNodes = tryGenerateImpliedNodes(flatNodes)
+  const impliedNodes = tryGenerateImpliedNodes(flatNodes);
   gui.nodes = [...flatNodes, ...impliedNodes ];
   return gui;
 }
@@ -64,7 +64,7 @@ function generateWrapperNode(node: GUINodeData) {
   const shiftY = (w - y) / 2;
   const nodeShift = vector4(shiftX, shiftY, 0, 0);
   const wrapperShift = flipVector(nodeShift);
-  const wrapperPosition = addVectors(node.position, wrapperShift)
+  const wrapperPosition = addVectors(node.position, wrapperShift);
   const wrapperNode: GUINodeData = {
     ...config.guiNodeDefaultValues,
     ...config.guiNodeDefaultSpecialValues,
@@ -78,7 +78,7 @@ function generateWrapperNode(node: GUINodeData) {
     pivot: node.pivot,
     size_mode: "SIZE_MODE_MANUAL",
     visible: false,
-  }
+  };
   node.parent = wrapperID;
   node.position = nodeShift;
   node.rotation = vector4(0);
@@ -161,9 +161,9 @@ function collapseWithParent(parent: GUINodeData, child: GUINodeData, childIndex:
   parent.material = child.material;
   parent.adjust_mode = child.adjust_mode;
   parent.blend_mode = child.blend_mode;
-  parent.exportable_layer = child.exportable_layer
-  parent.exportable_layer_id = child.exportable_layer_id
-  parent.exportable_layer_name = child.exportable_layer_name
+  parent.exportable_layer = child.exportable_layer;
+  parent.exportable_layer_id = child.exportable_layer_id;
+  parent.exportable_layer_name = child.exportable_layer_name;
   if (child.children) {
     if (!parent.children) {
       parent.children = [];
@@ -180,7 +180,7 @@ function collapseWithParent(parent: GUINodeData, child: GUINodeData, childIndex:
             parentPivot,
             parentSize,
             parentShift
-          }
+          };
           collapsedChild.position = calculateChildPosition(layer, pivot, size, options);
         }
       }
@@ -191,7 +191,7 @@ function collapseWithParent(parent: GUINodeData, child: GUINodeData, childIndex:
 }
 
 function sanitizeGUINodeIDs(nodes: GUINodeData[]) {
-  nodes.forEach((node) => { sanitizeGUINodeID(node) });
+  nodes.forEach((node) => { sanitizeGUINodeID(node); });
 }
 
 function sanitizeGUINodeID(node: GUINodeData, newParentID: string = "", usedIDs: string[] = []) {
@@ -220,7 +220,7 @@ function resolveGUINodeID(originalID: string, index: number): string {
 }
 
 function adjustGUINodeTypes(nodes: GUINodeData[]) {
-  nodes.forEach(adjustGUINodeType)
+  nodes.forEach(adjustGUINodeType);
 }
 
 function adjustGUINodeType(node: GUINodeData) {
@@ -259,10 +259,10 @@ export async function postProcessGUISpineData(spine: SpineData): Promise<SpineDa
 
 function removeEmptyBones(spine: SpineData) {
   const { bones, slots } = spine;
-  const slotBones = slots.map(slot => slot.bone)
+  const slotBones = slots.map(slot => slot.bone);
   const unusedBoneIndices = bones.reduce((indices, bone, index) => {
     if (!slotBones.includes(bone.name) && bones.every(spineBone => spineBone.parent != bone.name)) {
-      indices.push(index)
+      indices.push(index);
     }
     return indices;
   }, [] as number[]);
@@ -282,13 +282,13 @@ function findRootSpineBone(bones: SpineBoneData[]) {
   const rootBone = bones.find(rootBoneFilter);
   if (!rootBone) {
     const bone = resolveDefaultRootSpineBone();
-    return [bone]
+    return [bone];
   }
   return [rootBone];
 }
 
 function rootBoneFilter(bone: SpineBoneData) {
-  return !bone.parent
+  return !bone.parent;
 }
 
 function collapseBoneCoordinates(originalBones: SpineBoneData[]) {
@@ -302,12 +302,12 @@ function collapseBoneCoordinates(originalBones: SpineBoneData[]) {
     }
     depth[name] = boneDepth;
     return depth;
-  }, {} as Record<string, number>)
+  }, {} as Record<string, number>);
   const sortedBones = originalBones.slice().sort((bone1, bone2) => {
     const depthBone1 = boneDepths[bone1.name];
     const depthBone2 = boneDepths[bone2.name];
     return depthBone1 - depthBone2; 
-  })
+  });
   const originalBoneCoordinates = originalBones.reduce((coordinates, bone) => {
     const { name, x, y } = bone;
     const boneX = x ?? 0;
@@ -336,7 +336,7 @@ function moveAttachmentsToRoot(skins: SpineSkinData[], slots: SpineSlotData[], c
   return slots.forEach((slot) => {
     const { bone, name, attachment: attachmentName } = slot;
     const boneCoordinates = rootedBoneCoordinates[bone];
-    const attachment = attachments[name][attachmentName]
+    const attachment = attachments[name][attachmentName];
     slot.bone = rootBone.name;
     if (attachment.type === "mesh") {
       if (attachment.vertices) {
@@ -355,7 +355,7 @@ function moveAttachmentsToRoot(skins: SpineSkinData[], slots: SpineSlotData[], c
 export async function postProcessGUIPSDData(psdData: PSDData): Promise<PSDData> {
   const { layers } = psdData;
   const flatLayers = flattenCenterPSDLayers(layers);
-  return { ...psdData, layers: flatLayers }
+  return { ...psdData, layers: flatLayers };
 }
 
 function flattenCenterPSDLayers(layers: PSDLayerData[]): PSDLayerData[] {

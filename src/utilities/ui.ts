@@ -12,7 +12,7 @@ import { areMultipleAtlasesSelected, areMultipleGUINodesSelected, areMultipleGam
  * Resolves the plugin version.
  * @returns The plugin version.
  */
-export function resolvePluginVersion() {
+export function resolvePluginVersion(): string {
   // @ts-expect-error: Undefined PKG variable.
   return PKG.version;
 }
@@ -27,16 +27,17 @@ export function generateRandomId(): string {
 
 /**
  * Determines whether a property value overrides the original value.
+ * Checks using JSON.stringify have a tiny probability of false positives because of key orders, floats, etc.
  * @param value - The value to check.
  * @param originalValue - The original value to compare against.
  * @returns True if the value is an override, otherwise false.
  */
-export function isValueOverridden<T extends PluginGUINodeData[keyof PluginGUINodeData]>(value: WithNull<T>, originalValue: WithNull<T>): originalValue is T {
-  if (originalValue) {
+export function isValueOverridden<T extends PluginGUINodeData[keyof PluginGUINodeData]>(value: WithNull<T>, originalValue: WithNull<T>): boolean {
+  if (originalValue !== null) {
     if (typeof originalValue === "object") {
       return JSON.stringify(value) !== JSON.stringify(originalValue);
     }
-    return value !== originalValue
+    return value !== originalValue;
   }
   return false;
 }
@@ -95,15 +96,10 @@ export function isSelectionUIData(selection?: SelectionUIData): selection is Sel
  * @param mode - The UI mode to check.
  * @returns True if the UI mode is valid, otherwise false.
  */
-export function isUIMode(mode?: string): mode is UIMode {
-  return mode === null ||
-  (
-    !!mode && (
-      mode === "developer" ||
-      mode === "designer" ||
-      mode === "game-designer"
-    )
-  );
+export function isUIMode(mode: string): mode is UIMode {
+  return isUIModeDeveloper(mode) ||
+    isUIModeDesigner(mode) ||
+    isUIModeGameDesigner(mode);
 }
 
 /**
@@ -111,7 +107,7 @@ export function isUIMode(mode?: string): mode is UIMode {
  * @param mode - The UI mode to check.
  * @returns True if the UI mode is "developer", otherwise false.
  */
-export function isUIModeDeveloper(mode?: UIMode): mode is "developer" {
+export function isUIModeDeveloper(mode: string): mode is "developer" {
   return mode === "developer";
 }
 
@@ -120,7 +116,7 @@ export function isUIModeDeveloper(mode?: UIMode): mode is "developer" {
  * @param mode - The UI mode to check.
  * @returns True if the UI mode is "designer", otherwise false.
  */
-export function isUIModeDesigner(mode?: UIMode): mode is "designer" {
+export function isUIModeDesigner(mode: string): mode is "designer" {
   return mode === "designer";
 }
 
@@ -129,7 +125,7 @@ export function isUIModeDesigner(mode?: UIMode): mode is "designer" {
  * @param mode - The UI mode to check.
  * @returns True if the UI mode is "game designer", otherwise false.
  */
-export function isUIModeGameDesigner(mode?: UIMode): mode is "game-designer" {
+export function isUIModeGameDesigner(mode: string): mode is "game-designer" {
   return mode === "game-designer";
 }
 
@@ -137,8 +133,8 @@ export function isUIModeGameDesigner(mode?: UIMode): mode is "game-designer" {
  * Retrieves the current UI mode.
  * @returns The current UI mode.
  */
-export function getCurrentUIMode() {
-  return figma.command as UIMode;
+export function getCurrentUIMode(): string {
+  return figma.command;
 }
 
 /**
@@ -193,15 +189,23 @@ export function shouldResetScroll(selection: SelectionUIData, currentSelection: 
     isAtlasSelected(selection) ||
     isSectionSelected(selection)
   ) {
-    return true
+    return true;
   }
   if (
-    (isGUINodeSelected(selection) && isGUINodeSelected(currentSelection) && isSameGUINodeSelected(selection, currentSelection)) ||
-    (isGameObjectSelected(selection) && isGameObjectSelected(currentSelection) && isSameGameObjectSelected(selection, currentSelection))
+    (
+      isGUINodeSelected(selection) &&
+      isGUINodeSelected(currentSelection) &&
+      isSameGUINodeSelected(selection, currentSelection)
+    ) ||
+    (
+      isGameObjectSelected(selection) &&
+      isGameObjectSelected(currentSelection) &&
+      isSameGameObjectSelected(selection, currentSelection)
+    )
   ) {
-    return false
+    return false;
   }
-  return true
+  return true;
 }
 
 /**
@@ -209,7 +213,7 @@ export function shouldResetScroll(selection: SelectionUIData, currentSelection: 
  * @param type - The type of plugin message.
  * @param data - The data associated with the message.
  */
-export function postMessageToPlugin(type: PluginMessageAction, data?: PluginMessagePayload) {
+export function postMessageToPlugin(type: PluginMessageAction, data?: PluginMessagePayload): void {
   parent.postMessage({ pluginMessage: { type, data } }, "*");
 }
 
@@ -218,7 +222,7 @@ export function postMessageToPlugin(type: PluginMessageAction, data?: PluginMess
  * @param type - The type of plugin message.
  * @param data - The data associated with the message.
  */
-export function onPluginMessage(type: PluginMessageAction, data?: PluginMessagePayload) {
+export function onPluginMessage(type: PluginMessageAction, data?: PluginMessagePayload): void {
   if (data) {
     if (type === "guiExported") {
       onGUIExported(data);
@@ -244,42 +248,42 @@ export function onPluginMessage(type: PluginMessageAction, data?: PluginMessageP
   }
 }
 
-function onGUIExported(data: PluginMessagePayload) {
+function onGUIExported(data: PluginMessagePayload): void {
   exportGUI(data);
 }
 
-function onGUICopied(data: PluginMessagePayload) {
+function onGUICopied(data: PluginMessagePayload): void {
   copyGUI(data);
 }
 
-function onGUISchemeCopied(data: PluginMessagePayload) {
+function onGUISchemeCopied(data: PluginMessagePayload): void {
   copyGUIScheme(data);
 }
 
-function onGameCollectionsExported(data: PluginMessagePayload) {
+function onGameCollectionsExported(data: PluginMessagePayload): void {
   exportGameCollection(data);
 }
 
-function onGameCollectionCopied(data: PluginMessagePayload) {
+function onGameCollectionCopied(data: PluginMessagePayload): void {
   copyGameObjects(data);
 }
 
-function onAtlasesExported(data: PluginMessagePayload) {
+function onAtlasesExported(data: PluginMessagePayload): void {
   exportAtlases(data);
 }
 
-function onSpritesExported(data: PluginMessagePayload) {
+function onSpritesExported(data: PluginMessagePayload): void {
   exportSprites(data);
 }
 
-function onSpinesExported(data: PluginMessagePayload) {
+function onSpinesExported(data: PluginMessagePayload): void {
   exportSpines(data);
 }
 
-function onPSDExported(data: PluginMessagePayload) {
+function onPSDExported(data: PluginMessagePayload): void {
   exportPSD(data);
 }
 
-function onBundleExported(data: PluginMessagePayload) {
+function onBundleExported(data: PluginMessagePayload): void {
   exportBundle(data);
 }

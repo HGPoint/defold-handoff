@@ -4,8 +4,8 @@
  */
 
 import { PROJECT_CONFIG } from "handoff/project";
-import { inferFigmaSize, inferFigmaPosition, inferRotation } from "utilities/inference";
 import { isFigmaPage, isFigmaSection } from "utilities/figma";
+import { inferFigmaPosition, inferFigmaSize, inferRotation, inferScale } from "utilities/inference";
 import { addVectors, calculateCenter, divideVectorByValue, isZeroVector, shiftAlongAxis, vector4 } from "utilities/math";
 
 /**
@@ -62,11 +62,14 @@ export function isPivotVerticalCenter(pivot: Pivot) {
 export function calculateCenteredPosition(layer: SceneNode, size: Vector4, options: GUINodeDataExportOptions | GameObjectDataExportOptions) {
   const { parentSize, parentShift } = options;
   const rotation = inferRotation(layer);
+  const scale = inferScale(layer);
   const figmaSize = inferFigmaSize(layer);
   const figmaPosition = inferFigmaPosition(layer);
   const { x, y } = figmaPosition;
   const { x: width, y: height } = figmaSize;
-  const center = calculateCenter(x, y, width, height, rotation.z);
+  const normalizedX = scale.x == -1 ? x - width : x;
+  const normalizedY = scale.y == -1 ? y - height : y;
+  const center = calculateCenter(normalizedX, normalizedY, width, height, rotation.z);
   const centeredX = center.x - (parentSize.x / 2) + parentShift.x;
   const centeredY = (parentSize.y / 2) - center.y - parentShift.y;
   return vector4(centeredX, centeredY, 0, 0);
@@ -104,7 +107,7 @@ export function calculateRootPosition(layer: SceneNode, pivot: Pivot, size: Vect
   if (data?.template && !options.asTemplate) {
     return centeredPosition;
   }
-  const rotation = inferRotation(layer)
+  const rotation = inferRotation(layer);
   const pivotedPosition = calculatePivotedPosition(centeredPosition, pivot, size, rotation.z, options);
   return pivotedPosition;
 }
@@ -122,7 +125,7 @@ export function calculateRootPosition(layer: SceneNode, pivot: Pivot, size: Vect
  * @returns The centered root position of the layer.
  */
 export function calculateCenteredRootPosition(layer: SceneNode, size: Vector4, options: GUINodeDataExportOptions, data?: WithNull<PluginGUINodeData>) {
-  const { parentSize } = options
+  const { parentSize } = options;
   if (data?.screen && !options.asTemplate) {
     const halfScreenWidth = PROJECT_CONFIG.screenSize.x / 2;
     const halfScreenHeight = PROJECT_CONFIG.screenSize.y / 2;
@@ -155,16 +158,16 @@ export function calculateCenteredRootPosition(layer: SceneNode, size: Vector4, o
  * @returns The position of the child layer.
  */
 export function calculateChildPosition(layer: SceneNode, pivot: Pivot, size: Vector4, options: GUINodeDataExportOptions, data?: WithNull<PluginGUINodeData>) {
-  const { parentScaleFactor } = options
+  const { parentScaleFactor } = options;
   const centeredPosition = calculateCenteredPosition(layer, size, options);
-  const rotation = inferRotation(layer)
+  const rotation = inferRotation(layer);
   if (data?.template && !options.asTemplate) {
-    const pivotedPosition = calculatePivotedPosition(centeredPosition, "PIVOT_CENTER", size, rotation.z, options)
-    const shiftedPosition = divideVectorByValue(pivotedPosition, parentScaleFactor)
+    const pivotedPosition = calculatePivotedPosition(centeredPosition, "PIVOT_CENTER", size, rotation.z, options);
+    const shiftedPosition = divideVectorByValue(pivotedPosition, parentScaleFactor);
     return shiftedPosition;
   }
   const pivotedPosition = calculatePivotedPosition(centeredPosition, pivot, size, rotation.z, options);
-  const shiftedPosition = divideVectorByValue(pivotedPosition, parentScaleFactor)
+  const shiftedPosition = divideVectorByValue(pivotedPosition, parentScaleFactor);
   return shiftedPosition;
 }
 
@@ -217,7 +220,7 @@ export function calculatePivotedShift(pivot: Pivot, size: Vector4, rotation: num
  * @returns The horizontal shift of the layer.
  */
 function calculatePivotedHorizontalShift(pivot: Pivot, width: number, options: GUINodeDataExportOptions) {
-  const { parentPivot } = options
+  const { parentPivot } = options;
   const halfWidth = width / 2;
   if (isPivotEast(parentPivot)) {
     if (isPivotEast(pivot)) {
@@ -254,7 +257,7 @@ function calculatePivotedHorizontalShift(pivot: Pivot, width: number, options: G
  * @returns The vertical shift of the layer.
  */
 function calculatePivotedVerticalShift(pivot: Pivot, height: number, options: GUINodeDataExportOptions) {
-  const { parentSize, parentPivot } = options
+  const { parentSize, parentPivot } = options;
   const { y: parentHeight } = parentSize;
   const halfHeight = height / 2;
   if (isPivotNorth(parentPivot)) {
@@ -270,7 +273,7 @@ function calculatePivotedVerticalShift(pivot: Pivot, height: number, options: GU
     } else if (isPivotSouth(pivot)) {
       return parentHeight - halfHeight;
     }
-    return parentHeight
+    return parentHeight;
   } else {
     if (isPivotNorth(pivot)) {
       return halfHeight;

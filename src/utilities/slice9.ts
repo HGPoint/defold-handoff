@@ -14,9 +14,9 @@ import { areVectorsEqual, isZeroVector, vector4 } from "utilities/math";
 
 export function ensureOriginalLayer(layer: BaseNode): BaseNode {
   if (isSlice9PlaceholderLayer(layer)) {
-    const slice9Layer = findSlice9Layer(layer)
+    const slice9Layer = findSlice9Layer(layer);
     if (slice9Layer) {
-      return slice9Layer
+      return slice9Layer;
     }
   }
   return layer;
@@ -24,9 +24,9 @@ export function ensureOriginalLayer(layer: BaseNode): BaseNode {
 
 export function ensureActionableLayer(layer: BaseNode): BaseNode {
   if (isFigmaBox(layer) && isSlice9Layer(layer)) {
-    const slice9PlaceholderLayer = findSlice9PlaceholderLayer(layer)
+    const slice9PlaceholderLayer = findSlice9PlaceholderLayer(layer);
     if (slice9PlaceholderLayer) {
-      return slice9PlaceholderLayer
+      return slice9PlaceholderLayer;
     }
   }
   return layer;
@@ -43,12 +43,12 @@ export function isSlice9Layer(layer: SceneNode): layer is InstanceNode {
 
 export function isUsedSlice9Layer(layer: SceneNode): layer is InstanceNode {
   if (isSlice9Layer(layer)) {
-    const placeholder = findSlice9PlaceholderLayer(layer)
+    const placeholder = findSlice9PlaceholderLayer(layer);
     if (placeholder) {
-      return isVisible(placeholder) && !layer.visible
+      return isVisible(placeholder) && !layer.visible;
     }
   }
-  return false
+  return false;
 }
 
 /**
@@ -70,7 +70,7 @@ export function maybeSlice9PlaceholderLayer(layer: BaseNode) {
  * @returns True if the layer is a slice9 service frame, false otherwise.
  */
 export function isSlice9ServiceLayer(layer: SceneNode): layer is FrameNode {
-  return layer.name.startsWith("slice9Frame-")
+  return layer.name.startsWith("slice9Frame-");
 }
 
 /**
@@ -79,7 +79,7 @@ export function isSlice9ServiceLayer(layer: SceneNode): layer is FrameNode {
  * @returns True if the layer is a slice9 service left top layer, false otherwise.
  */
 function isSlice9ServiceLeftTopLayer(layer: SceneNode): layer is FrameNode {
-  return layer.name.endsWith("leftTop")
+  return layer.name.endsWith("leftTop");
 }
 
 /**
@@ -88,7 +88,7 @@ function isSlice9ServiceLeftTopLayer(layer: SceneNode): layer is FrameNode {
  * @returns True if the layer is a slice9 service center top frame, false otherwise.
  */
 function isSlice9ServiceCenterTopLayer(layer: SceneNode): layer is FrameNode {
-  return layer.name.endsWith("centerTop")
+  return layer.name.endsWith("centerTop");
 }
 
 /**
@@ -97,7 +97,7 @@ function isSlice9ServiceCenterTopLayer(layer: SceneNode): layer is FrameNode {
  * @returns True if the layer is a slice9 service right top frame, false otherwise.
  */
 function isSlice9ServiceRightTopLayer(layer: SceneNode): layer is FrameNode {
-  return layer.name.endsWith("rightTop")
+  return layer.name.endsWith("rightTop");
 }
 
 /**
@@ -106,7 +106,7 @@ function isSlice9ServiceRightTopLayer(layer: SceneNode): layer is FrameNode {
  * @returns True if the layer is a slice9 service left center frame, false otherwise.
  */
 function isSlice9ServiceLeftCenterLayer(layer: SceneNode): layer is FrameNode {
-  return layer.name.endsWith("leftCenter")
+  return layer.name.endsWith("leftCenter");
 }
 
 /**
@@ -115,7 +115,7 @@ function isSlice9ServiceLeftCenterLayer(layer: SceneNode): layer is FrameNode {
  * @returns True if the layer is a slice9 service center frame, false otherwise.
  */
 function isSlice9ServiceRightCenterLayer(layer: SceneNode): layer is FrameNode {
-  return layer.name.endsWith("rightCenter")
+  return layer.name.endsWith("rightCenter");
 }
 
 /**
@@ -124,7 +124,7 @@ function isSlice9ServiceRightCenterLayer(layer: SceneNode): layer is FrameNode {
  * @returns True if the layer is a slice9 service left bottom frame, false otherwise.
  */
 function isSlice9ServiceLeftBottomLayer(layer: SceneNode): layer is FrameNode {
-  return layer.name.endsWith("leftBottom")
+  return layer.name.endsWith("leftBottom");
 }
 
 /**
@@ -133,7 +133,7 @@ function isSlice9ServiceLeftBottomLayer(layer: SceneNode): layer is FrameNode {
  * @returns True if the layer is a slice9 service center bottom frame, false otherwise.
  */
 function isSlice9ServiceCenterBottomLayer(layer: SceneNode): layer is FrameNode {
-  return layer.name.endsWith("centerBottom")
+  return layer.name.endsWith("centerBottom");
 }
 
 /**
@@ -142,7 +142,7 @@ function isSlice9ServiceCenterBottomLayer(layer: SceneNode): layer is FrameNode 
  * @returns True if the layer is a slice9 service right bottom frame, false otherwise.
  */
 function isSlice9ServiceRightBottomLayer(layer: SceneNode): layer is FrameNode {
-  return layer.name.endsWith("rightBottom")
+  return layer.name.endsWith("rightBottom");
 }
 
 /**
@@ -239,7 +239,7 @@ function createSlice9PlaceholderFrame(layer: InstanceNode) {
   placeholder.layoutPositioning = absolutePosition ? "ABSOLUTE" : "AUTO";
   placeholder.appendChild(layer);
   layer.constraints = { horizontal: "MIN", vertical: "MIN" };
-  return placeholder
+  return placeholder;
 }
 
 /**
@@ -259,7 +259,7 @@ async function createSlice9ServiceFrames(placeholder: FrameNode, layer: Instance
     createSlice9LeftBottomServiceFrame(placeholder, layer, slice9),
     createSlice9CenterBottomServiceFrame(placeholder, layer, slice9),
     createSlice9RightBottomServiceFrame(placeholder, layer, slice9),
-  ]
+  ];
   await Promise.all(promises);
 }
 
@@ -289,7 +289,7 @@ async function createSlice9LeftTopServiceFrame(placeholder: FrameNode, layer: In
     frame.fills = [{ type: "IMAGE", scaleMode: "TILE", imageHash: fillImage.hash }];
     clone.remove();
     placeholder.appendChild(frame);
-    frame.name = "slice9Frame-leftTop"
+    frame.name = "slice9Frame-leftTop";
     frame.locked = true;
     return frame;
   }
@@ -322,7 +322,7 @@ async function createSlice9CenterTopServiceFrame(placeholder: FrameNode, layer: 
     frame.fills = [{ type: "IMAGE", scaleMode: "CROP", imageHash: fillImage.hash }];
     clone.remove();
     placeholder.appendChild(frame);
-    frame.name = "slice9Frame-centerTop"
+    frame.name = "slice9Frame-centerTop";
     frame.locked = true;
     const frameWidth = placeholder.width - left - right;
     frame.resize(frameWidth, height);
@@ -357,7 +357,7 @@ async function createSlice9RightTopServiceFrame(placeholder: FrameNode, layer: I
     frame.fills = [{ type: "IMAGE", scaleMode: "TILE", imageHash: fillImage.hash }];
     clone.remove();
     placeholder.appendChild(frame);
-    frame.name = "slice9Frame-rightTop"
+    frame.name = "slice9Frame-rightTop";
     frame.locked = true;
     const frameX = placeholder.width - right;
     frame.x = frameX;
@@ -392,7 +392,7 @@ async function createSlice9LeftCenterServiceFrame(placeholder: FrameNode, layer:
     frame.fills = [{ type: "IMAGE", scaleMode: "TILE", imageHash: fillImage.hash }];
     clone.remove();
     placeholder.appendChild(frame);
-    frame.name = "slice9Frame-leftCenter"
+    frame.name = "slice9Frame-leftCenter";
     frame.locked = true;
     const frameHeight = placeholder.height - top - bottom;
     frame.resize(width, frameHeight);
@@ -426,7 +426,7 @@ async function createSlice9CenterServiceFrame(placeholder: FrameNode, layer: Ins
   frame.fills = [{ type: "IMAGE", scaleMode: "CROP", imageHash: fillImage.hash }];
   clone.remove();
   placeholder.appendChild(frame);
-  frame.name = "slice9Frame-center"
+  frame.name = "slice9Frame-center";
   frame.locked = true;
   const frameWidth = placeholder.width - left - right;
   const frameHeight = placeholder.height - top - bottom;
@@ -460,7 +460,7 @@ async function createSlice9RightCenterServiceFrame(placeholder: FrameNode, layer
     frame.fills = [{ type: "IMAGE", scaleMode: "TILE", imageHash: fillImage.hash }];
     clone.remove();
     placeholder.appendChild(frame);
-    frame.name = "slice9Frame-rightCenter"
+    frame.name = "slice9Frame-rightCenter";
     frame.locked = true;
     const frameHeight = placeholder.height - top - bottom;
     const frameX = placeholder.width - right;
@@ -497,7 +497,7 @@ async function createSlice9LeftBottomServiceFrame(placeholder: FrameNode, layer:
     frame.fills = [{ type: "IMAGE", scaleMode: "TILE", imageHash: fillImage.hash }];
     clone.remove();
     placeholder.appendChild(frame);
-    frame.name = "slice9Frame-leftBottom"
+    frame.name = "slice9Frame-leftBottom";
     frame.locked = true;
     const frameY = placeholder.height - bottom;
     frame.y = frameY;
@@ -532,7 +532,7 @@ async function createSlice9CenterBottomServiceFrame(placeholder: FrameNode, laye
     frame.fills = [{ type: "IMAGE", scaleMode: "CROP", imageHash: fillImage.hash }];
     clone.remove();
     placeholder.appendChild(frame);
-    frame.name = "slice9Frame-centerBottom"
+    frame.name = "slice9Frame-centerBottom";
     frame.locked = true;
     const frameWidth = placeholder.width - left - right;
     const frameY = placeholder.height - bottom;
@@ -569,7 +569,7 @@ async function createSlice9RightBottomServiceFrame(placeholder: FrameNode, layer
     frame.fills = [{ type: "IMAGE", scaleMode: "TILE", imageHash: fillImage.hash }];
     clone.remove();
     placeholder.appendChild(frame);
-    frame.name = "slice9Frame-rightBottom"
+    frame.name = "slice9Frame-rightBottom";
     frame.locked = true;
     const frameX = placeholder.width - right;
     const frameY = placeholder.height - bottom;
@@ -614,7 +614,7 @@ export async function tryRefreshSlice9Placeholder(layer: ExportableLayer, slice9
  * @returns True if the slice9 placeholder should be refreshed, false otherwise.
  */
 function shouldRefreshSlice9Placeholder(slice9?: Vector4, oldSlice9?: Vector4): slice9 is Vector4 {
-  return !!slice9 && (!oldSlice9 || !areVectorsEqual(oldSlice9, slice9))
+  return !!slice9 && (!oldSlice9 || !areVectorsEqual(oldSlice9, slice9));
 }
 
 /**
@@ -878,7 +878,7 @@ export async function tryRefreshSlice9SizeMode(layer: SceneNode) {
 
 export async function tryWrapSlice9PlaceholderComponentRoot(node: ComponentNode) {
   if (maybeSlice9PlaceholderLayer(node)) {
-    const originalLayer = await findOriginalSlice9Layer(node)
+    const originalLayer = await findOriginalSlice9Layer(node);
     if (originalLayer) {
       const { name: placeholderName } = node;
       const { name: originalName } = originalLayer;
@@ -889,8 +889,8 @@ export async function tryWrapSlice9PlaceholderComponentRoot(node: ComponentNode)
       placeholderWrapper.y = 0;
       placeholderWrapper.name = placeholderName;
       node.name = originalName;
-      node.insertChild(0, placeholderWrapper)
-      moveSlice9PlaceholderFramesToNewRoot(placeholderWrapper, node)
+      node.insertChild(0, placeholderWrapper);
+      moveSlice9PlaceholderFramesToNewRoot(placeholderWrapper, node);
     }
   }
 }
@@ -898,11 +898,11 @@ export async function tryWrapSlice9PlaceholderComponentRoot(node: ComponentNode)
 function moveSlice9PlaceholderFramesToNewRoot(newRoot: FrameNode, layer: ComponentNode) {
   layer.children.forEach((child: SceneNode, index: number) => {
     if (index > 0) {
-      newRoot.appendChild(child)
+      newRoot.appendChild(child);
     }
   });
 }
 
 export function slice9WasCreated(updatedSlice9: Vector4, originalSlice9?: Vector4) {
-  return !isZeroVector(updatedSlice9) && (!originalSlice9 || isZeroVector(originalSlice9))
+  return !isZeroVector(updatedSlice9) && (!originalSlice9 || isZeroVector(originalSlice9));
 }

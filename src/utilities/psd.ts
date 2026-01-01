@@ -28,7 +28,7 @@ export function resolvePSDFileSize(guiData: GUIData) {
 export function ensurePSDLayer(node: GUINodeData & { exportable_layer: ExportableLayer }) {
   const { exportable_layer: layer, slice9 } = node;
   if (layer && isFigmaBox(layer) && slice9 && !isZeroVector(slice9)) {
-    const placeholderLayer = findSlice9PlaceholderLayer(layer)
+    const placeholderLayer = findSlice9PlaceholderLayer(layer);
     if (placeholderLayer) {
       return placeholderLayer;
     }
@@ -40,7 +40,7 @@ export function resolvePSDLayerSize(node: GUINodeData & { exportable_layer: Expo
   const { size, exportable_layer: layer } = node;
   if (layer && isFigmaText(layer) && hasGUITexture(node)) {
     const { texture_size: textureSize } = node;
-    return textureSize
+    return textureSize;
   }
-  return size
+  return size;
 }

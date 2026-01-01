@@ -5,7 +5,7 @@
 
 import config from "config/config.json";
 import { PROJECT_CONFIG } from "handoff/project";
-import { isVector4, readableNumber, readableVector, readableQuaternion, vector4, areVectorsEqual } from "utilities/math";
+import { areVectorsEqual, isVector4, readableNumber, readableQuaternion, readableVector, vector4 } from "utilities/math";
 import { formattedNumber } from "utilities/text";
 
 /**
@@ -99,8 +99,8 @@ function isVector4Property<T>(value: T[keyof T]): value is T[keyof T] & Vector4 
  */
 function serializeSimpleProperty<T>(property: keyof T, value: number | boolean | string, format: boolean = true): string {
   if (typeof value === "number") {
-    const readableValue = readableNumber(value)
-    const resolvedValue = format ? formattedNumber(readableValue) : readableValue
+    const readableValue = readableNumber(value);
+    const resolvedValue = format ? formattedNumber(readableValue) : readableValue;
     return `${property.toString()}: ${resolvedValue}`;
   }
   return `${property.toString()}: ${value}`;
@@ -131,7 +131,7 @@ export function serializeVector4Property<T>(property: keyof T, value: Vector4, f
 }
 
 function serializeVector4Value(value: Vector4, format: boolean = true): string {
-  const { x, y, z, w } = readableVector(value)
+  const { x, y, z, w } = readableVector(value);
   const resolvedX = format ? formattedNumber(x) : x;
   const resolvedY = format ? formattedNumber(y) : y;
   const resolvedZ = format ? formattedNumber(z) : z;
@@ -144,7 +144,7 @@ function serializeOmittedVector4Value(value: Vector4, defaultValue: Vector4 = ve
   if (areVectorsEqual(vector, defaultValue)) {
     return "";
   }
-  const { x, y, z, w } = vector
+  const { x, y, z, w } = vector;
   let serializedValue = "{\n";
   if (x !== defaultValue.x) {
     const formattedX = format ? formattedNumber(x) : x;
@@ -175,7 +175,7 @@ export function serializeQuaternionProperty<T>(property: keyof T, value: Vector4
 }
 
 function serializeQuaternionValue(value: Vector4, format: boolean = true): string {
-  const { x, y, z, w } = readableQuaternion(value)
+  const { x, y, z, w } = readableQuaternion(value);
   const resolvedX = format ? formattedNumber(x) : x;
   const resolvedY = format ? formattedNumber(y) : y;
   const resolvedZ = format ? formattedNumber(z) : z;

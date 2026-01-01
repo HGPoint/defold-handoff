@@ -40,7 +40,7 @@ export async function convertBoxGUINodeData(layer: BoxLayer, options: GUINodeDat
   const context = generateContextData(layer);
   const defaults = injectGUINodeDefaults();
   const data = getPluginData(layer, "defoldGUINode");
-  const id = convertGUINodeId(layer, context.ignorePrefixes, options)
+  const id = convertGUINodeId(layer, context.ignorePrefixes, options);
   const slice9 = convertGUINodeSlice9(layer, options, data);
   const type = convertGUINodeType(layer, options, data);
   const guiLayer = convertGUINodeLayer(context, data);
@@ -70,7 +70,7 @@ export function convertImpliedBoxGUINodeData(layer: RectangleNode, options: GUIN
   const context = generateContextData(layer);
   const defaults = injectGUINodeDefaults();
   const data = getPluginData(layer, "defoldGUINode");
-  const id = convertGUINodeId(layer, context.ignorePrefixes, options)
+  const id = convertGUINodeId(layer, context.ignorePrefixes, options);
   const type = "TYPE_BOX";
   const visuals = convertGUIImpliedBoxNodeVisuals(layer);
   const sizeMode = "SIZE_MODE_MANUAL";
@@ -102,7 +102,7 @@ export function convertTextGUINodeData(layer: TextLayer, options: GUINodeDataExp
   const context = generateContextData(layer);
   const defaults = injectGUINodeDefaults();
   const data = getPluginData(layer, "defoldGUINode");
-  const id = convertGUINodeId(layer, context.ignorePrefixes, options)
+  const id = convertGUINodeId(layer, context.ignorePrefixes, options);
   const type = convertGUINodeType(layer, options, data);
   const guiLayer = convertGUINodeLayer(context, data);
   const pivot = inferTextPivot(layer);
@@ -127,14 +127,14 @@ export function convertTextGUINodeData(layer: TextLayer, options: GUINodeDataExp
     ...textParameters,
     pivot,
     size_mode: sizeMode,
-  }
+  };
 }
 
 export async function convertTextSpriteGUINodeData(layer: TextLayer, options: GUINodeDataExportOptions): Promise<GUINodeData> {
   const context = generateContextData(layer);
   const defaults = injectGUINodeDefaults();
   const data = getPluginData(layer, "defoldGUINode");
-  const id = convertGUINodeId(layer, context.ignorePrefixes, options)
+  const id = convertGUINodeId(layer, context.ignorePrefixes, options);
   const slice9 = vector4(0);
   const type = "TYPE_BOX";
   const guiLayer = convertGUINodeLayer(context, data);
@@ -167,7 +167,7 @@ export async function convertTextSpriteGUINodeData(layer: TextLayer, options: GU
  * @returns The converted GUI node parent data.
  */
 function convertGUINodeParent(options: GUINodeDataExportOptions, pluginData?: WithNull<PluginGUINodeData>) {
-  const { collapseTemplates, parentId } = options
+  const { collapseTemplates, parentId } = options;
   if (!collapseTemplates && pluginData?.cloneable) {
     return {};
   }
@@ -194,7 +194,7 @@ function resolveGUIScript(pluginData?: WithNull<PluginGUINodeData>) {
  * @returns The converted GUI node ID.
  */
 function convertGUINodeId(layer: SceneNode, ignorePrefixes: boolean, options: GUINodeDataExportOptions) {
-  const { forcedName, namePrefix, variantPrefix } = options
+  const { forcedName, namePrefix, variantPrefix } = options;
   const name = forcedName || layer.name;
   if (!ignorePrefixes) {
     return `${namePrefix || ""}${name}${variantPrefix ? `_${variantPrefix.toLowerCase()}` : ""}`;
@@ -348,9 +348,11 @@ function convertGUINodePosition(layer: SceneNode, pivot: Pivot, size: Vector4, o
 }
 
 function convertGUINodeScale(layer: SceneNode, options: GUINodeDataExportOptions, pluginData?: WithNull<PluginGUINodeData>) {
+  const { parentScaleFactor } = options;
   const layerScale = inferScale(layer);
   const layerScaleFactor = pluginData?.scale_factor || config.guiNodeDefaultSpecialValues.scale_factor;
-  const scale = multiplyVectorByValue(layerScale, layerScaleFactor);
+  const scaleFactor = layerScaleFactor * parentScaleFactor;
+  const scale = multiplyVectorByValue(layerScale, scaleFactor);
   const convertedScale = vector4(readableNumber(scale.x), readableNumber(scale.y), 1, 1);
   return convertedScale;
 }
@@ -366,7 +368,7 @@ function convertGUITextNodeScale(layer: TextNode, options: GUINodeDataExportOpti
 }
 
 function convertGUINodeSize(layer: SceneNode, options: GUINodeDataExportOptions, pluginData?: WithNull<PluginGUINodeData>) {
-  const { parentScaleFactor } = options
+  const { parentScaleFactor } = options;
   const layerSize = inferSize(layer);
   const layerScaleFactor = pluginData?.scale_factor || config.guiNodeDefaultSpecialValues.scale_factor;
   const scaleFactor = parentScaleFactor * layerScaleFactor;
@@ -375,7 +377,7 @@ function convertGUINodeSize(layer: SceneNode, options: GUINodeDataExportOptions,
 }
 
 function convertGUITextNodeSize(layer: TextNode, scale: Vector4, options: GUINodeDataExportOptions, pluginData?: WithNull<PluginGUINodeData>): Vector4 {
-  const { parentScaleFactor } = options
+  const { parentScaleFactor } = options;
   const layerSize = inferTextBoxSize(layer, scale);
   const layerScaleFactor = pluginData?.scale_factor || config.guiNodeDefaultSpecialValues.scale_factor;
   const scaleFactor = parentScaleFactor * layerScaleFactor;
@@ -410,7 +412,7 @@ function convertGUITextNodeSizeMode(pluginData?: WithNull<PluginGUINodeData>) {
 }
 
 function convertGUINodeSlice9(layer: BoxLayer, options: GUINodeDataExportOptions, pluginData?: WithNull<PluginGUINodeData>) {
-  const { parentScaleFactor } = options
+  const { parentScaleFactor } = options;
   const layerSlice9 = inferSlice9(layer, pluginData);
   const layerScaleFactor = pluginData?.scale_factor || config.guiNodeDefaultSpecialValues.scale_factor;
   const scaleFactor = parentScaleFactor * layerScaleFactor;

@@ -4,6 +4,7 @@ type AtlasExportPipelineData = {
 }
 
 type AtlasData = {
+  id: string,
   name: string,
   atlas: AtlasDefoldData,
   images: SpriteData[],

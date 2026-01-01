@@ -11,7 +11,7 @@ import { isAtlasDynamic } from "utilities/atlas";
  * @param atlases - The atlases to validate.
  * @returns True if all atlases are valid, otherwise false.
  */
-export function validateAtlases(atlases: AtlasLayer[]) {
+export function validateAtlases(atlases: AtlasLayer[]): boolean {
   return atlases.every(validateAtlas);
 }
 
@@ -20,17 +20,22 @@ export function validateAtlases(atlases: AtlasLayer[]) {
  * @param atlas - The atlas to validate.
  * @returns True if the atlas is valid, otherwise false.
  */
-export function validateAtlas(atlas: AtlasLayer) {
+export function validateAtlas(atlas: AtlasLayer): boolean {
   try {
     if (isAtlasDynamic(atlas)) {
       return true;
     } else {
-      return validateAtlasSize(atlas);
+      return validateStaticAtlasSize(atlas);
     }
-  } catch (error) {
+  } catch (error: unknown) {
     const { name } = atlas;
     console.error(`Error validating atlas: ${name}`);
-    console.error(error);
+    if (error instanceof Error) {
+      console.error(error.message);
+      if (error.stack) console.error(error.stack);
+    } else {
+      console.error(error);
+    }
     return false;
   }
 }
@@ -41,9 +46,9 @@ export function validateAtlas(atlas: AtlasLayer) {
  * @returns True if the atlas size is valid, otherwise false.
  * @throws Will throw an error if the atlas size exceeds the maximum size.
  */
-function validateAtlasSize(atlas: ComponentSetNode) {
-  const atlasSize = calculateAtlasSize(atlas);
-  const atlasMaxSize = calculateAtlasMaxSize();
+function validateStaticAtlasSize(atlas: ComponentSetNode): boolean {
+  const atlasSize = calculateStaticAtlasSize(atlas);
+  const atlasMaxSize = calculateStaticAtlasMaxSize();
   const isValid = atlasSize <= atlasMaxSize;
   if (!isValid) {
     throw new Error(`Atlas size exceeds maximum size: ${atlasSize} > ${atlasMaxSize}`);
@@ -55,7 +60,7 @@ function validateAtlasSize(atlas: ComponentSetNode) {
  * Calculates the maximum allowable size for an atlas based on the configuration.
  * @returns The maximum allowable size an atlas can have.
  */
-function calculateAtlasMaxSize() {
+function calculateStaticAtlasMaxSize(): number {
   const { atlasMaxSize } = config;
   const maxSize = atlasMaxSize * atlasMaxSize;
   return maxSize;
@@ -66,8 +71,8 @@ function calculateAtlasMaxSize() {
  * @param atlas - The atlas to calculate the size of.
  * @returns The total size of the atlas.
  */
-function calculateAtlasSize(atlas: ComponentSetNode) {
-  const size = atlas.children.reduce(atlasSizeReducer, 0);
+function calculateStaticAtlasSize(atlas: ComponentSetNode): number {
+  const size = atlas.children.reduce(staticAtlasSizeReducer, 0);
   return size;
 }
 
@@ -77,8 +82,8 @@ function calculateAtlasSize(atlas: ComponentSetNode) {
  * @param sprite - The sprite to add to the cumulative size.
  * @returns The updated cumulative size of the atlas.
  */
-function atlasSizeReducer(size: number, sprite: SceneNode) {
-  const spriteSize = sprite.width * sprite.height;
+function staticAtlasSizeReducer(size: number, sprite: SceneNode): number {
+  const spriteSize = Math.ceil(sprite.width * sprite.height);
   const updatedSize = size + spriteSize; 
   return updatedSize;
 }

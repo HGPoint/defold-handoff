@@ -99,5 +99,5 @@ export function resolvePluginDataKey(layer: SceneNode): WithNull<"defoldGUINode"
   } else if (isLayerGameObject(layer)) {
     return "defoldGameObject";
   }
-  return null
+  return null;
 }

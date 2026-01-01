@@ -15,7 +15,7 @@ export function generatePSDLayerData(nodes: GUINodeData[], canvasSize: Vector4) 
 function psdLayerDataReducer(psdLayers: PSDLayerData[], node: GUINodeData, nodes: GUINodeData[], canvasSize: Vector4) {
   if (hasGUITexture(node) && hasExportableLayer(node)) {
     const name = convertPSDLayerName(node);
-    const { x: left, y: top } = convertPSDLayerPosition(node, nodes, canvasSize)
+    const { x: left, y: top } = convertPSDLayerPosition(node, nodes, canvasSize);
     const layer = ensurePSDLayer(node);
     const psdLayer: PSDLayerData = {
       name,

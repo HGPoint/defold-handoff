@@ -166,7 +166,7 @@ function tryRestoreDataFromOverrides(node: InstanceNode) {
   const key = resolveGUINodeOverridesDataKey(id);
   const guiNodeDataOverrides = getPluginData(document, key);
   if (guiNodeDataOverrides) {
-    const guiNodeData = { defoldGUINode: guiNodeDataOverrides }
+    const guiNodeData = { defoldGUINode: guiNodeDataOverrides };
     setPluginData(node, guiNodeData);
   }
 }

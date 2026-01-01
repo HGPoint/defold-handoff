@@ -303,14 +303,14 @@ async function createPSDFile({ layers, name, size }: SerializedPSDData) {
   const { x: width, y: height } = size;
   const sanitizedGUIName = sanitizeGUIFileName(name);
   const fileName = generatePSDFileName(sanitizedGUIName);
-  const children = await createPSDLayers(layers)
+  const children = await createPSDLayers(layers);
   const psdFile: Psd = {
     children,
     width,
     height
-  }
+  };
   const buffer = writePsd(psdFile);
-  return { fileName, buffer }
+  return { fileName, buffer };
 }
 
 async function createPSDLayers(layers: SerializedPSDLayerData[]) {
@@ -328,15 +328,15 @@ async function createPSDLayer(layer: SerializedPSDLayerData) {
   const { data } = layer;
   if (data) {
     const { name, top, left } = layer;
-    const imageData = await convertUint8ArrayToImageData(data)
+    const imageData = await convertUint8ArrayToImageData(data);
     if (imageData) {
       const psdLayer: Layer = {
         name,
         top,
         left,
         imageData
-      }
-      return psdLayer
+      };
+      return psdLayer;
     }
   }
   return null;

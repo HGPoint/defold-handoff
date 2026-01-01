@@ -13,13 +13,13 @@ export function convertSpineBoneName(node: GUINodeData) {
 }
 
 export function convertSpineBoneTransformations(node: GUINodeData) {
-  const { position: startPosition } = node
+  const { position: startPosition } = node;
   const onScreenShift = calculateSpineBonePositionOnScreenShift(node);
   const { x, y } = addVectors(startPosition, onScreenShift);
   const data = {
     x,
     y,
-  }
+  };
   return data;
 }
 
@@ -84,14 +84,14 @@ function calculateSpineSkinImageAttachmentAdjustmentShift(node: GUINodeData & { 
 
 export function convertSpineSkinImageAttachmentScale(node: GUINodeData & { texture: string, texture_size: Vector4, exportable_layer: ExportableLayer }) {
   if (shouldCalculateSpineSkinImageAttachmentScale(node)) {
-    return calculateSpineSkinImageAttachmentScale(node)
+    return calculateSpineSkinImageAttachmentScale(node);
   }
   return vector4(1);
 }
 
 function shouldCalculateSpineSkinImageAttachmentScale(node: GUINodeData & { exportable_layer: ExportableLayer }) {
   const { exportable_layer: layer, slice9 } = node;
-  return !isFigmaText(layer) && (!slice9 || isZeroVector(slice9))
+  return !isFigmaText(layer) && (!slice9 || isZeroVector(slice9));
 }
 
 function calculateSpineSkinImageAttachmentScale(node: GUINodeData & { texture: string, texture_size: Vector4 }) {
@@ -110,14 +110,14 @@ export function convertSpineSkinMeshAttachmentGeometry(node: GUINodeData & { tex
   const halfHeight = height / 2;
   const baseVertices = resolveBaseVertices(halfWidth, halfHeight);
   const baseUVs = resolveBaseUVs();
-  const groupedVertices: number[][] = []
-  const groupedUVs: number[][] = []
+  const groupedVertices: number[][] = [];
+  const groupedUVs: number[][] = [];
   for (let index = 0; index < 4; index += 1) {
-    groupedVertices.push(baseVertices[index])
-    groupedUVs.push(baseUVs[index])
-    tryConvertMiddleVerticesAndUVs(index, slice9, halfWidth, halfHeight, textureWidth, textureHeight, groupedVertices, groupedUVs)
+    groupedVertices.push(baseVertices[index]);
+    groupedUVs.push(baseUVs[index]);
+    tryConvertMiddleVerticesAndUVs(index, slice9, halfWidth, halfHeight, textureWidth, textureHeight, groupedVertices, groupedUVs);
   }
-  tryConvertInsideVerticesAndUVs(slice9, halfWidth, halfHeight, textureWidth, textureHeight, groupedVertices, groupedUVs)
+  tryConvertInsideVerticesAndUVs(slice9, halfWidth, halfHeight, textureWidth, textureHeight, groupedVertices, groupedUVs);
   const polygons = findPolygons(width, height, slice9);
   const triangles = convertTriangles(polygons, groupedVertices);
   const edges = convertEdges(polygons, groupedVertices);
@@ -128,7 +128,7 @@ export function convertSpineSkinMeshAttachmentGeometry(node: GUINodeData & { tex
     uvs,
     triangles,
     edges,
-  }
+  };
 }
 
 function resolveBaseVertices(halfWidth: number, halfHeight: number) {
@@ -153,54 +153,54 @@ function tryConvertMiddleVerticesAndUVs(index: number, slice9: Vector4, halfWidt
   if (index == 0) {
     if (slice9.x > 0) {
       const vertex = [-halfWidth + slice9.x, -halfHeight];
-      vertices.push(vertex)
+      vertices.push(vertex);
       const uv = [slice9.x / textureWidth, 1];
-      uvs.push(uv)
+      uvs.push(uv);
     }
     if (slice9.z > 0) {
       const vertex = [halfWidth - slice9.z, -halfHeight];
-      vertices.push(vertex)
+      vertices.push(vertex);
       const uv = [(textureWidth - slice9.z) / textureWidth, 1];
-      uvs.push(uv)
+      uvs.push(uv);
     }
   } else if (index == 1) {
     if (slice9.y > 0) {
       const vertex = [halfWidth, -halfHeight + slice9.y];
-      vertices.push(vertex)
+      vertices.push(vertex);
       const uv = [1, (textureHeight - slice9.y) / textureHeight];
-      uvs.push(uv)
+      uvs.push(uv);
     }
     if (slice9.w > 0) {
       const vertex = [halfWidth, halfHeight - slice9.w];
-      vertices.push(vertex)
+      vertices.push(vertex);
       const uv = [1, slice9.w / textureHeight];
-      uvs.push(uv)
+      uvs.push(uv);
     }
   } else if (index == 2) {
     if (slice9.z > 0) {
       const vertex = [halfWidth - slice9.z, halfHeight];
-      vertices.push(vertex)
+      vertices.push(vertex);
       const uv = [(textureWidth - slice9.z) / textureWidth, 0];
-      uvs.push(uv)
+      uvs.push(uv);
     }
     if (slice9.x > 0) {
       const vertex = [-halfWidth + slice9.x, halfHeight];
-      vertices.push(vertex)
+      vertices.push(vertex);
       const uv = [slice9.x / textureWidth, 0];
-      uvs.push(uv)
+      uvs.push(uv);
     }
   } else if (index == 3) {
     if (slice9.w > 0) {
       const vertex = [-halfWidth, halfHeight - slice9.w];
-      vertices.push(vertex)
+      vertices.push(vertex);
       const uv = [0, slice9.w / textureHeight];
-      uvs.push(uv)
+      uvs.push(uv);
     }
     if (slice9.y > 0) {
       const vertex = [-halfWidth, -halfHeight + slice9.y];
-      vertices.push(vertex)
+      vertices.push(vertex);
       const uv = [0, (textureHeight - slice9.y) / textureHeight];
-      uvs.push(uv)
+      uvs.push(uv);
     }
   }
 }
@@ -211,13 +211,13 @@ function tryConvertInsideVerticesAndUVs(slice9: Vector4, halfWidth: number, half
       const vertex = [-halfWidth + slice9.x, -halfHeight + slice9.y];
       vertices.push(vertex);
       const uv = [slice9.x / textureWidth, (textureHeight - slice9.y) / textureHeight];
-      uvs.push(uv)
+      uvs.push(uv);
     }
     if (slice9.w > 0) {
       const vertex = [-halfWidth + slice9.x, halfHeight - slice9.w];
       vertices.push(vertex);
       const uv = [slice9.x / textureWidth, slice9.w / textureHeight];
-      uvs.push(uv)
+      uvs.push(uv);
     }
   }
   if (slice9.z > 0) {
@@ -225,13 +225,13 @@ function tryConvertInsideVerticesAndUVs(slice9: Vector4, halfWidth: number, half
       const vertex = [halfWidth - slice9.z, -halfHeight + slice9.y];
       vertices.push(vertex);
       const uv = [(textureWidth - slice9.z) / textureWidth, (textureHeight - slice9.y) / textureHeight];
-      uvs.push(uv)
+      uvs.push(uv);
     }
     if (slice9.w > 0) {
       const vertex = [halfWidth - slice9.z, halfHeight - slice9.w];
       vertices.push(vertex);
       const uv = [(textureWidth - slice9.z) / textureWidth, slice9.w / textureHeight];
-      uvs.push(uv)
+      uvs.push(uv);
     }
   }
 }
@@ -261,7 +261,7 @@ function findPolygons(width: number, height: number, slice9: Vector4) {
       return cumulative;
     }
     return [...cumulative, slice];
-  }, [])
+  }, []);
 }
 
 function convertTriangles(polygons: number[][], vertices: number[][]) {
@@ -279,7 +279,7 @@ function convertTrianglePoints(polygons: number[][]) {
     const triangle1 = [...point1, ...point2, ...point3];
     const triangle2 = [...point3, ...point4, ...point1];
     return [...cumulative, triangle1, triangle2];
-  }, [])
+  }, []);
   return triangles;
 }
 
@@ -320,7 +320,7 @@ function convertEdgePoints(polygons: number[][]) {
       cumulative.push(polygonEdge4);
     }
     return cumulative;
-  }, [])
+  }, []);
   return edgePoints;
 }
 
@@ -339,5 +339,5 @@ function convertEdgePointsToIndices(edgePoints: number[][], vertices: number[][]
 export function convertSpineSkinMeshAttachmentHull(node: GUINodeData) {
   const { slice9 } = node;
   const additionalVertices = Object.values(slice9).reduce((cumulative, value) => cumulative + (value > 0 ? 2 : 0), 0);
-  return 4 + additionalVertices
+  return 4 + additionalVertices;
 }
