@@ -6,7 +6,7 @@
   export let label: string;
   export let value: number;
   export let disabled = false;
-  export let originalValue: WithNull<T> = null;
+  export let originalValue: WithNull<number> = null;
   export let min: number = 0;
 
   const id = generateRandomId();
@@ -17,7 +17,7 @@
     value = editedValue;
   }
 
-  function refreshEditedValue(updatedValue: Vector4) {
+  function refreshEditedValue(updatedValue: number) {
     editedValue = updatedValue
   }
 

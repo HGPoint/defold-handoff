@@ -37,7 +37,7 @@ export async function copyGameCollection(layer: ExportableLayer): Promise<Serial
  * @param update - The update data to apply.
  * @returns True if the update was successful, false otherwise.
  */
-export async function updateGameObject(layer: DataLayer, update: PluginGameObjectData) {
+export async function updateGameObject(layer: DataLayer, update: PluginGameObjectData): Promise<boolean> {
   const result = await runUpdatePipeline(GAME_OBJECT_UPDATE_PIPELINE, layer, update);
   return result;
 }
@@ -46,7 +46,7 @@ export async function updateGameObject(layer: DataLayer, update: PluginGameObjec
  * Destroys an array of game objects, by removing bound game object data from the Figma layers.
  * @param layers - The game objects to destroy.
  */
-export function removeGameObjects(layers: SceneNode[]) {
+export function removeGameObjects(layers: SceneNode[]): void {
   layers.forEach(tryRemoveGameObject);
 }
 
@@ -54,7 +54,7 @@ export function removeGameObjects(layers: SceneNode[]) {
  * Attempts to destroy a game object, by removing bound game object data from the Figma layer.
  * @param layer - The game object to destroy.
  */
-function tryRemoveGameObject(layer: SceneNode) {
+function tryRemoveGameObject(layer: SceneNode): void {
   if (isLayerData(layer)) {
     removeGameObject(layer);
   }
@@ -64,7 +64,7 @@ function tryRemoveGameObject(layer: SceneNode) {
  * Destroys a game object, by removing bound game object data from the Figma layer.
  * @param layer - The game object to destroy.
  */
-export function removeGameObject(layer: DataLayer) {
+export function removeGameObject(layer: DataLayer): void {
   removePluginData(layer, "defoldGameObject");
   removePluginData(layer, "defoldSlice9");
 }
@@ -73,6 +73,6 @@ export function removeGameObject(layer: DataLayer) {
  * Infers game object data from an array of Figma layers.
  * @param layers - The Figma layers to infer data for.
  */
-export function fixGameObjects(layers: SceneNode[]) {
+export function fixGameObjects(layers: SceneNode[]): void {
   inferGameObjects(layers, true, true);
 }

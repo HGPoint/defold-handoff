@@ -61,7 +61,8 @@
         image = url;
         img.removeEventListener('load', onLoad);
       }
-      const blob = new Blob([data], { type: 'image/png' });
+      const payload = data.slice().buffer;
+      const blob = new Blob([payload], { type: 'image/png' });
       const url = URL.createObjectURL(blob);
       var img = new Image();
       img.addEventListener('load', onLoad);

@@ -1,15 +1,15 @@
-type DataLayer = BoxLayer | TextLayer | RectangleNode | ComponentSetNode | SectionNode | DocumentNode;
+type DataLayer = BoxLayer | TextLayer | RectangleNode | ComponentSetNode | SectionNode | DocumentNode
 
-type ExportableLayer = BoxLayer | TextLayer | RectangleNode | SliceLayer;
+type ExportableLayer = BoxLayer | TextLayer | RectangleNode | SliceLayer
 
-type ContextLayer = ExportableLayer | ComponentSetNode;
+type ContextLayer = ExportableLayer | ComponentSetNode
 
-type BoxLayer = FrameNode | ComponentNode | InstanceNode;
+type BoxLayer = FrameNode | ComponentNode | InstanceNode
 
-type TextLayer = TextNode;
+type TextLayer = TextNode
 
 type AtlasLayer = ComponentSetNode | DynamicAtlas
 
-type SliceLayer = SliceNode;
+type SliceLayer = SliceNode
 
-type NodeChangePropertyExtended = NodeChangeProperty | "variant";
+type NodeChangePropertyExtended = NodeChangeProperty | "variant"

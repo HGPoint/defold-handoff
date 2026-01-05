@@ -10,7 +10,7 @@ declare module "config/config.json" {
         width: number,
         height: number,
       }
-    }
+    },
     screenSize: Vector4,
     paths: ProjectPathData
     constKeys: string[]
@@ -19,7 +19,7 @@ declare module "config/config.json" {
       material: string,
       adjust_reference: AdjustReference,
       max_nodes: number,
-    }
+    },
     guiNodeDefaultValues: {
       scale: Vector4,
       enabled: boolean,
@@ -41,7 +41,7 @@ declare module "config/config.json" {
       blend_mode: BlendingMode,
       custom_type: 0,
       template_node_child: boolean,
-    }
+    },
     guiNodeDefaultSpecialValues: {
       exclude: boolean
       screen: boolean,
@@ -66,11 +66,11 @@ declare module "config/config.json" {
       replace_spine: boolean,
       replace_spine_name: string,
       replace_spine_path: string,
-    }
+    },
     gameCollectionDefaultValues: {
       name: string,
       scale_along_z: number,
-    }
+    },
     gameObjectDefaultValues: {
       position: Vector4,
       scale: Vector4,
@@ -100,14 +100,14 @@ declare module "config/config.json" {
       inner_padding: number,
       max_page_width: number,
       max_page_height: number,
-    }
+    },
     atlasDefaultSpecialValues: {
       extension: string,
       ignore: boolean,
-    }
+    },
     atlasImageDefaultValues: {
-      sprite_trim_mode: SpriteTrimMode
-    }
+      sprite_trim_mode: SpriteTrimMode,
+    },
     sectionDefaultValues: {
       bundled: boolean,
       jumbo: string,
@@ -116,7 +116,7 @@ declare module "config/config.json" {
       layers: ProjectLayerData[],
       materials: ProjectMaterialData[],
       ignorePrefixes: boolean,
-    }
+    },
     defaultFontSize: number,
     defaultFontStrokeRatio: number,
     defaultFontFamilies: ProjectFontData[],

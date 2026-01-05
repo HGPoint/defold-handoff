@@ -21,12 +21,13 @@ import { convertSelectionDataToSelectionUIData, pickAtlasesFromSelectionData, pi
 import { tryRestoreSlice9Placeholder } from "utilities/slice9";
 
 let SELECTION: SelectionData = { gui: [], atlases: [], layers: [], sections: [], gameObjects: [] };
-let LAST_EXTRACTED_IMAGE: string | null = null;
+let SELECTION_VERSION = 0;
+let LAST_EXTRACTED_IMAGE_LAYER_ID: string | null = null;
 
 /**
  * Initializes the plugin application.
  */
-async function initializePlugin() {
+async function initializePlugin(): Promise<void> {
   await figma.loadAllPagesAsync();
   initializeUI();
   initializeProject();
@@ -37,7 +38,7 @@ async function initializePlugin() {
 /**
  * Initializes the plugin's UI.
  */
-function initializeUI() {
+function initializeUI(): void {
   const html = __html__.replace("{{defoldHandoffUIMode}}", `"${figma.command}"`);
   figma.showUI(html, { width: 400, height: 600 });
 }
@@ -45,7 +46,7 @@ function initializeUI() {
 /**
  * Initializes the plugin message listeners.
  */
-function subscribeToMessages() {
+function subscribeToMessages(): void {
   figma.on("selectionchange", onSelectionChange);
   figma.on("documentchange", onDocumentChange);
   figma.ui.on("message", onUIMessage);
@@ -54,7 +55,7 @@ function subscribeToMessages() {
 /**
  * Handler function for selection changes.
  */
-function onSelectionChange() {
+function onSelectionChange(): void {
   updateSelection();
   tryResetLastExtractedImage();
 }
@@ -63,7 +64,7 @@ function onSelectionChange() {
  * Handler function for document changes.
  * @param event - The document change event.
  */
-function onDocumentChange(event: DocumentChangeEvent) {
+function onDocumentChange(event: DocumentChangeEvent): void {
   processDocumentChanges(event);
   updateSelection();
 }
@@ -73,7 +74,7 @@ function onDocumentChange(event: DocumentChangeEvent) {
  * @param message - The message from the UI application.
  * @async
  */
-function onUIMessage(message: PluginMessage) {
+function onUIMessage(message: PluginMessage): void {
   try {
     processUIMessage(message);
   } catch (error) {
@@ -86,8 +87,8 @@ function onUIMessage(message: PluginMessage) {
  * @param type - The message type.
  * @param data - The message data.
  */
-function tryPostMessageToUI(type: PluginMessageAction, data: PluginMessagePayload) {
-  if (isUIShown()) {
+function tryPostMessageToUI(type: PluginMessageAction, data: PluginMessagePayload): void {
+  if (isUIAvailable()) {
     figma.ui.postMessage({ type, data });
   }
 }
@@ -97,25 +98,80 @@ function tryPostMessageToUI(type: PluginMessageAction, data: PluginMessagePayloa
  * Checks if the plugin UI is shown.
  * @returns True if the plugin UI is shown, otherwise false.
  */
-function isUIShown() {
+function isUIAvailable(): boolean {
   return !!figma.ui;
+}
+
+/**
+ * Resizes the plugin UI.
+ * @param width - The width of the plugin UI.
+ * @param height - The height of the plugin UI.
+ */
+function resizeUI({ width, height }: { width: number, height: number }): void {
+  figma.ui.resize(width, height);
 }
 
 /**
  * Updates the selection data and sends it to the UI application.
  * @async
  */
-async function updateSelection() {
+async function updateSelection(): Promise<void> {
+  SELECTION_VERSION += 1;
+  const version = SELECTION_VERSION;
   SELECTION = reduceSelectionDataFromSelection();
   const selectionUI = await convertSelectionDataToSelectionUIData(SELECTION);
-  tryPostMessageToUI("selectionChanged", { selection: selectionUI });
+  if (version === SELECTION_VERSION) {
+    tryPostMessageToUI("selectionChanged", { selection: selectionUI });
+  }
+}
+
+/**
+ * Attempts to extract an image from a sprite layer.
+ * @param layer - The Figma layer to attempt to extract the image from.
+ * @returns The extracted image.
+ * @async
+ */
+async function tryExtractImage(layer: SceneNode): Promise<WithNull<Uint8Array<ArrayBufferLike>>> {
+  if (shouldExtractSprite(layer)) {
+    return extractImage(layer);
+  }
+  return null;
+}
+
+/**
+ * Determines if a sprite should be extracted.
+ * @param layer - The Figma layer to check.
+ * @returns True if the sprite should be extracted, otherwise false.
+ */
+function shouldExtractSprite(layer: SceneNode): boolean {
+  return layer.id !== LAST_EXTRACTED_IMAGE_LAYER_ID;
+}
+
+async function extractImage(layer: SceneNode): Promise<WithNull<Uint8Array<ArrayBufferLike>>> {
+  LAST_EXTRACTED_IMAGE_LAYER_ID = layer.id;
+  const image = await tryExtractSprite(layer);
+  return image;
+}
+
+function tryResetLastExtractedImage(): void {
+  if (shouldResetLastExtractedImage()) {
+    resetLastExtractedImage();
+  }
+}
+
+function shouldResetLastExtractedImage(): boolean {
+  return !!LAST_EXTRACTED_IMAGE_LAYER_ID && !SELECTION.gui.length;
+}
+
+function resetLastExtractedImage(): void {
+  LAST_EXTRACTED_IMAGE_LAYER_ID = null;
 }
 
 /**
  * Processes a message from the UI application.
  * @param message - The message from the UI application.
  */
-function processUIMessage(message: PluginMessage) {
+function processUIMessage(message: PluginMessage): void {
   const { type, data } = message;
   if (type === "updateProject" && data?.project) {
     onUpdateProject(data.project);
@@ -176,7 +232,7 @@ function processUIMessage(message: PluginMessage) {
   } else if (type === "restoreAtlases") {
     onRestoreAtlases();
   } else if (type === "addSprites") {
-    onAddSprites()
+    onAddSprites();
   } else if (type === "updateAtlas" && data?.atlas) {
     onUpdateAtlas(data.atlas);
   } else if (type === "removeAtlases") {
@@ -210,29 +266,29 @@ function processUIMessage(message: PluginMessage) {
   }
 }
 
-function onUpdateProject(data: Partial<ProjectData>) {
+function onUpdateProject(data: Partial<ProjectData>): void {
   updateProject(data);
   figma.notify("Project updated");
 }
 
-function onPurgeUnusedData() {
+function onPurgeUnusedData(): void {
   purgeUnusedData();
   figma.notify("Unused data purged");
 }
 
-function onLogGUI() {
+function onLogGUI(): void {
   const gui = pickGUIFromSelectionData(SELECTION);
   logGUI(gui);
 }
 
-function onExportGUI() {
+function onExportGUI(): void {
   const gui = pickGUIFromSelectionData(SELECTION);
   exportGUI(gui)
     .then(onGUIExported)
     .catch(processError);
 }
 
-function onGUIExported(gui: SerializedGUIData[]) {
+function onGUIExported(gui: SerializedGUIData[]): void {
   const bundle = { gui };
   const data = { bundle, project: PROJECT_CONFIG };
   tryPostMessageToUI("guiExported", data);
@@ -240,14 +296,14 @@ function onGUIExported(gui: SerializedGUIData[]) {
   figma.notify("GUI exported");
 }
 
-function onCopyGUI() {
+function onCopyGUI(): void {
   const layer = pickFirstGUINodeFromSelectionData(SELECTION);
   copyGUI(layer)
     .then(onGUICopied)
     .catch(processError);
 }
 
-function onGUICopied(gui: SerializedGUIData) {
+function onGUICopied(gui: SerializedGUIData): void {
   const bundle = { gui: [ gui ] };
   const data = { bundle };
   tryPostMessageToUI("guiCopied", data);
@@ -255,100 +311,100 @@ function onGUICopied(gui: SerializedGUIData) {
   figma.notify("GUI node copied");
 }
 
-async function onCopyGUIScheme() {
+function onCopyGUIScheme(): void {
   const layer = pickFirstGUINodeFromSelectionData(SELECTION);
   copyGUIScheme(layer)
     .then(onGUISchemeCopied)
     .catch(processError);
-  }
-  
-  function onGUISchemeCopied(guiData: SerializedGUIData) {
+}
+
+function onGUISchemeCopied(guiData: SerializedGUIData): void {
   const { data: scheme } = guiData;
   const data = { scheme };
   tryPostMessageToUI("guiSchemeCopied", data);
   figma.notify("GUI node scheme copied");
 }
 
-function onUpdateGUI(data: PluginGUINodeData[]) {
+function onUpdateGUI(data: PluginGUINodeData[]): void {
   const gui = pickGUIFromSelectionData(SELECTION);
   updateGUI(gui, data);
 }
 
-function onUpdateGUINode(data: PluginGUINodeData) {
+function onUpdateGUINode(data: PluginGUINodeData): void {
   const layer = pickFirstGUINodeFromSelectionData(SELECTION);
   updateGUINode(layer, data);
 }
 
-function onRemoveGUI() {
+function onRemoveGUI(): void {
   const gui = pickGUIFromSelectionData(SELECTION);
   removeGUI(gui);
   updateSelection();
   figma.notify("GUI nodes reset");
 }
 
-function onRemoveGUIOverrides() {
+function onRemoveGUIOverrides(): void {
   const gui = pickGUIFromSelectionData(SELECTION);
-  resetGUIOverrides(gui)
+  resetGUIOverrides(gui);
   delay(500)
     .then(onGUIOverridesRemoved);
 }
 
-function onGUIOverridesRemoved() {
+function onGUIOverridesRemoved(): void {
   updateSelection();
   figma.notify("GUI node data pulled");
 }
 
-function onFixGUI() {
+function onFixGUI(): void {
   const gui = pickGUIFromSelectionData(SELECTION);
   fixGUI(gui);
   delay(200)
     .then(onGUFixed);
 }
 
-function onGUFixed() {
+function onGUFixed(): void {
   updateSelection();
   figma.notify("GUI nodes fixed");
 }
 
-function onFixGUIText() {
+function onFixGUIText(): void {
   const layer = pickFirstGUINodeFromSelectionData(SELECTION);
   tryFixGUIText(layer);
   updateSelection();
   figma.notify("Text node fixed");
 }
 
-function onMatchGUINodeToGUIParent() {
+function onMatchGUINodeToGUIParent(): void {
   const layer = pickFirstGUINodeFromSelectionData(SELECTION);
   tryMatchGUINodeToGUIParent(layer);
   figma.notify("GUI node is matched to the parent");
 }
 
-function onMatchGUINodeToGUIChild() {
+function onMatchGUINodeToGUIChild(): void {
   const layer = pickFirstGUINodeFromSelectionData(SELECTION);
   tryMatchGUINodeToGUIChild(layer);
   figma.notify("Parent is matched to GUI node");
 }
 
-function onResizeGUIToScreen() {
+function onResizeGUIToScreen(): void {
   const gui = pickGUIFromSelectionData(SELECTION);
   resizeGUIToScreen(gui);
   figma.notify("Nodes resized to screen size");
 }
 
-function onForceGUIChildrenOnScreen() {
+function onForceGUIChildrenOnScreen(): void {
   const layer = pickFirstGUINodeFromSelectionData(SELECTION);
   tryForceGUIChildrenOnScreen(layer);
   figma.notify("Children will be exported on screen");
 }
 
-function onExportGameCollections() {
+function onExportGameCollections(): void {
   const gameObjects = pickGameObjectsFromSelectionData(SELECTION);
   exportGameCollections(gameObjects)
     .then(onGameCollectionsExported)
     .catch(processError);
 }
 
-function onGameCollectionsExported(gameObjects: SerializedGameCollectionData[]) {
+function onGameCollectionsExported(gameObjects: SerializedGameCollectionData[]): void {
   const bundle = { gameObjects };
   const data = { bundle, project: PROJECT_CONFIG };
   tryPostMessageToUI("gameCollectionsExported", data);
@@ -356,46 +412,46 @@ function onGameCollectionsExported(gameObjects: SerializedGameCollectionData[]) 
   figma.notify("Game collections exported");
 }
 
-function onCopyGameCollection() {
+function onCopyGameCollection(): void {
   const layer = pickFirstGameObjectFromSelectionData(SELECTION);
   copyGameCollection(layer)
     .then(onGameCollectionCopied)
     .catch(processError);
 }
 
-function onGameCollectionCopied(gameObject: SerializedGameCollectionData) {
+function onGameCollectionCopied(gameObject: SerializedGameCollectionData): void {
   const bundle = { gameObjects: [ gameObject ] };
   const data = { bundle };
-  tryPostMessageToUI("gameCollectionCopied", data)
+  tryPostMessageToUI("gameCollectionCopied", data);
   updateSelection();
   figma.notify("Game collection copied");
 }
 
-function onUpdateGameObject(data: PluginGameObjectData) {
+function onUpdateGameObject(data: PluginGameObjectData): void {
   const layer = pickFirstGameObjectFromSelectionData(SELECTION);
   updateGameObject(layer, data);
 }
 
-function onRemoveGameObjects() {
+function onRemoveGameObjects(): void {
   const gameObjects = pickGameObjectsFromSelectionData(SELECTION);
   removeGameObjects(gameObjects);
   updateSelection();
   figma.notify("Game objects reset");
 }
 
-function onFixGameObjects() {
+function onFixGameObjects(): void {
   const gameObjects = pickGameObjectsFromSelectionData(SELECTION);
   fixGameObjects(gameObjects);
   delay(200)
     .then(onGameObjectsFixed);
 }
 
-function onGameObjectsFixed() {
+function onGameObjectsFixed(): void {
   updateSelection();
   figma.notify("Game objects fixed");
 }
 
-function onExportAtlases() {
+function onExportAtlases(): void {
   const atlases = reduceAtlasesFromSelectionData(SELECTION);
   exportAtlases(atlases)
     .then(onAtlasesExported)
@@ -403,56 +459,56 @@ function onExportAtlases() {
   }
 
   
-function onExportGUIAtlases() {
+function onExportGUIAtlases(): void {
   const gui = pickGUIFromSelectionData(SELECTION);
   exportGUIAtlases(gui, false, DEFAULT_PACK_OPTIONS)
     .then(onAtlasesExported)
     .catch(processError);
 }
 
-function onExportGameCollectionAtlases() {
+function onExportGameCollectionAtlases(): void {
   const gameObjects = pickGameObjectsFromSelectionData(SELECTION);
   exportGameCollectionAtlases(gameObjects)
     .then(onAtlasesExported)
     .catch(processError);
 }
 
-function onAtlasesExported(atlases: SerializedAtlasData[]) {
+function onAtlasesExported(atlases: SerializedAtlasData[]): void {
   const bundle = { atlases };
   const data = { bundle, project: PROJECT_CONFIG };
   tryPostMessageToUI("atlasesExported", data);
   figma.notify("Atlases exported");
 }
 
-function onExportSprites(scale: number = 1) {
+function onExportSprites(scale: number = 1): void {
   const atlases = reduceAtlasesFromSelectionData(SELECTION);
   exportAtlases(atlases, scale)
     .then(onSpritesExported)
     .catch(processError);
 }
 
-function onSpritesExported(atlases: SerializedAtlasData[]) {
+function onSpritesExported(atlases: SerializedAtlasData[]): void {
   const bundle = { atlases };
   const data = { bundle, project: PROJECT_CONFIG };
   tryPostMessageToUI("spritesExported", data);
   figma.notify("Sprites exported");
 }
 
-function onCreateAtlas() {
+function onCreateAtlas(): void {
   const layers = pickLayersFromSelectionData(SELECTION);
   const atlas = createAtlas(layers);
   selectFigmaLayer(atlas);
   figma.notify("Atlas created");
 }
 
-function onRestoreAtlases() {
+function onRestoreAtlases(): void {
   const layers = pickLayersFromSelectionData(SELECTION);
   tryRestoreAtlases(layers);
   updateSelection();
   figma.notify("Atlases restored");
 }
 
-function onAddSprites() {
+function onAddSprites(): void {
   const atlas = pickFirstAtlasFromSelectionData(SELECTION);
   const layers = pickLayersFromSelectionData(SELECTION);
   addSprites(atlas, layers);
@@ -460,75 +516,75 @@ function onAddSprites() {
   figma.notify("Sprites added to atlas");
 }
 
-function onUpdateAtlas(data: PluginAtlasData) {
+function onUpdateAtlas(data: PluginAtlasData): void {
   const atlas = pickFirstAtlasFromSelectionData(SELECTION);
   updateAtlas(atlas, data);
 }
 
-function onRemoveAtlases() {
+function onRemoveAtlases(): void {
   const atlases = pickAtlasesFromSelectionData(SELECTION);
   removeAtlases(atlases);
   updateSelection();
   figma.notify("Atlases destroyed");
 }
 
-function onFixAtlases() {
+function onFixAtlases(): void {
   const atlases = pickAtlasesFromSelectionData(SELECTION);
   fixAtlases(atlases);
   figma.notify("Atlases fixed");
 }
 
-function onSortAtlasesBySize() {
+function onSortAtlasesBySize(): void {
   const atlases = pickAtlasesFromSelectionData(SELECTION);
   sortAtlasesBySize(atlases);
   figma.notify("Atlases sorted");
 }
 
-function onSortAtlasesAlphabetically() {
+function onSortAtlasesAlphabetically(): void {
   const atlases = pickAtlasesFromSelectionData(SELECTION);
   sortAtlasesAlphabetically(atlases);
   figma.notify("Atlases sorted");
 }
 
-function onFitAtlases() {
+function onFitAtlases(): void {
   const atlases = pickAtlasesFromSelectionData(SELECTION);
   fitAtlases(atlases);
   figma.notify("Atlases fitted");
 }
 
-function onExportGUISpines() {
+function onExportGUISpines(): void {
   const gui = pickGUIFromSelectionData(SELECTION);
   exportGUISpines(gui)
     .then(onGUISpinesExported)
     .catch(processError);
 }
 
-function onExportGUISpineAttachments() {
+function onExportGUISpineAttachments(): void {
   const gui = pickGUIFromSelectionData(SELECTION);
   exportGUISpineAttachments(gui)
     .then(onGUISpinesExported)
     .catch(processError);
 }
 
-function onGUISpinesExported(bundle: BundleData) {
+function onGUISpinesExported(bundle: BundleData): void {
   const data = { bundle, project: PROJECT_CONFIG };
   tryPostMessageToUI("spinesExported", data);
   figma.notify("GUI exported as Spine");
 }
 
-function onUpdateSection(data: PluginSectionData) {
+function onUpdateSection(data: PluginSectionData): void {
   const { sections: [ section ] } = SELECTION;
   updateSection(section, data);
 }
 
-function onRemoveSections() {
+function onRemoveSections(): void {
   const { sections } = SELECTION;
   removeSections(sections);
   updateSelection();
   figma.notify("Sections reset");
 }
 
-function onExportBundle() {
+function onExportBundle(): void {
   const { gui, gameObjects } = SELECTION;
   const bundle = { gui, gameObjects };
   exportBundle(bundle)
@@ -536,7 +592,7 @@ function onExportBundle() {
     .catch(processError);
 }
 
-function onExportBareBundle() {
+function onExportBareBundle(): void {
   const { gui, gameObjects } = SELECTION;
   const bundle = { gui, gameObjects };
   exportBareBundle(bundle)
@@ -544,35 +600,35 @@ function onExportBareBundle() {
     .catch(processError);
 }
 
-function onBundleExported(bundle: BundleData) {
-  const data = { bundle, project: PROJECT_CONFIG }
+function onBundleExported(bundle: BundleData): void {
+  const data = { bundle, project: PROJECT_CONFIG };
   tryPostMessageToUI("bundleExported", data);
   updateSelection();
   figma.notify("Bundle exported");
 }
 
-function onExportGUIPSD() {
+function onExportGUIPSD(): void {
   const gui = pickGUIFromSelectionData(SELECTION);
   exportGUIPSD(gui)
     .then(onGUIPSDExported)
     .catch(processError);
 }
 
-function onGUIPSDExported(psd: SerializedPSDData[]) {
+function onGUIPSDExported(psd: SerializedPSDData[]): void {
   const bundle = { psd };
   const data = { bundle, project: PROJECT_CONFIG };
   tryPostMessageToUI("psdExported", data);
   figma.notify("GUI exported as PSD");
 }
 
-async function onRequestImage() {
+function onRequestImage(): void {
   const layer = pickFirstGUINodeFromSelectionData(SELECTION);
   tryExtractImage(layer)
     .then(onImageExtracted)
     .catch(processError);
 }
 
-function onImageExtracted(image?: WithNull<Uint8Array>) {
+function onImageExtracted(image?: WithNull<Uint8Array>): void {
   if (image) {
     const data = { image };
     tryPostMessageToUI("imageExtracted", data);
@@ -580,68 +636,26 @@ function onImageExtracted(image?: WithNull<Uint8Array>) {
   }
 }
 
-function onRestoreSlice9() {
+function onRestoreSlice9(): void {
   const layer = pickFirstGUINodeFromSelectionData(SELECTION);
   tryRestoreSlice9Placeholder(layer, "defoldGUINode")
     .then(onSlice9Restored)
     .catch(processError);
 }
 
-function onSlice9Restored() {
+function onSlice9Restored(): void {
   updateSelection();
   figma.notify("Slice 9 restored");
 }
 
-function onCollapseUI() {
+function onCollapseUI(): void {
   const { uiSize: { collapsed } } = config;
   resizeUI(collapsed);
 }
 
-function onExpandUI() {
+function onExpandUI(): void {
   const { uiSize: { expanded } } = config;
   resizeUI(expanded);
-}
-
-/**
- * Attempts to extract an image from a sprite layer.
- * @param layer - The Figma layer to attempt to extract the image from.
- * @returns The extracted image.
- * @async
- */
-async function tryExtractImage(layer: SceneNode) {
-  if (shouldExtractSpite(layer)) {
-    LAST_EXTRACTED_IMAGE = layer.id;
-    const image = await tryExtractSprite(layer);
-    return image;
-  }
-}
-
-function tryResetLastExtractedImage() {
-  if (LAST_EXTRACTED_IMAGE && !SELECTION.gui.length) {
-    resetLastExtractedImage();
-  }
-}
-
-function resetLastExtractedImage() {
-  LAST_EXTRACTED_IMAGE = null;
-}
-
-/**
- * Determines if a sprite should be extracted.
- * @param layer - The Figma layer to check.
- * @returns True if the sprite should be extracted, otherwise false.
- */
-function shouldExtractSpite(layer: SceneNode) {
-  return layer && layer.id !== LAST_EXTRACTED_IMAGE;
-}
-
-/**
- * Resizes the plugin UI.
- * @param width - The width of the plugin UI.
- * @param height - The height of the plugin UI.
- */
-function resizeUI({ width, height }: { width: number, height: number }) {
-  figma.ui.resize(width, height);
 }
 
 initializePlugin();

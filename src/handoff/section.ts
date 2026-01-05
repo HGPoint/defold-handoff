@@ -10,17 +10,17 @@ import { getPluginData, removePluginData, setPluginData } from "utilities/figma"
  * @param layer - The section to update.
  * @param update - The update data to apply.
  */
-export function updateSection(layer: SectionNode, update: PluginSectionData) {
+export function updateSection(layer: SectionNode, update: PluginSectionData): void {
   const pluginData = getPluginData(layer, "defoldSection");
-  const guiNodeData: PluginData = { defoldSection: { ...pluginData, ...update } };
-  setPluginData(layer, guiNodeData); 
+  const sectionData: PluginData = { defoldSection: { ...pluginData, ...update } };
+  setPluginData(layer, sectionData); 
 }
 
 /**
  * Destroys an array of context sections, by removing bound context section data from the Figma sections.
  * @param layers - The context sections to destroy.
  */
-export function removeSections(layers: SectionNode[]) {
+export function removeSections(layers: SectionNode[]): void {
   layers.forEach(removeSection);
 }
 
@@ -29,6 +29,6 @@ export function removeSections(layers: SectionNode[]) {
  * Destroys a context section, by removing bound context section data from the Figma layer.
  * @param layer - The section layer to reset.
  */
-export function removeSection(layer: SectionNode) {
+export function removeSection(layer: SectionNode): void {
   removePluginData(layer, "defoldSection");
 }

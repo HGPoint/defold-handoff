@@ -1,6 +1,6 @@
 <script lang="ts">
-  import Actions from "components/Actions";
   import ActionButton from "components/ActionButton";
+  import Actions from "components/Actions";
   import DimensionsProperty from "components/DimensionsProperty";
   import NumberProperty from "components/NumberProperty";
   import Page from "components/Page";

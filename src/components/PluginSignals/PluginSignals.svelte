@@ -32,7 +32,7 @@
 
   function onModeChanged(data: PluginMessagePayload) {
     const { mode } = data;
-    if (isUIMode(mode)) {
+    if (mode && isUIMode(mode)) {
       $uiState.mode = mode;
     }
   }

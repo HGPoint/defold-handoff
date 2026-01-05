@@ -6,7 +6,7 @@ type GUIExportPipelineData = {
 type GUIPackOptions = {
   textAsSprites: boolean,
   collapseEmpty: boolean,
-  collapseTemplates: boolean
+  collapseTemplates: boolean,
 }
 
 type GUIVariantPipelineData = {
@@ -32,7 +32,7 @@ type GUIDefoldData = {
   background_color: Vector4,
   material: string,
   adjust_reference: string,
-  max_nodes: number
+  max_nodes: number,
 }
 
 type GUINodeData = {

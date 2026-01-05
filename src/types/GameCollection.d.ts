@@ -8,7 +8,7 @@ type GameCollectionData = {
 
 type GameCollectionDefoldData = {
   name: string,
-  scale_along_z: number
+  scale_along_z: number,
 }
 
 type GameObjectData = {

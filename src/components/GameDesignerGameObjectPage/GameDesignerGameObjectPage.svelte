@@ -3,15 +3,14 @@
   import Actions from "components/Actions";
   import LayerPositionProperty from "components/LayerPositionProperty";
   import NumberProperty from "components/NumberProperty";
-  import ScaleProperty from "components/ScaleProperty";
   import OptionsProperty from "components/OptionsProperty";
   import Page from "components/Page";
   import Properties from "components/Properties";
   import PropertyTip from "components/PropertyTip";
+  import ScaleProperty from "components/ScaleProperty";
   import SidesProperty from "components/SidesProperty";
   import TextProperty from "components/TextProperty";
   import ToggleProperty from "components/ToggleProperty";
-  import TransformationProperty from "components/TransformationProperty";
   import config from "config/config.json";
   import selectionState from "state/selection";
   import { isGameObjectLabelType, isGameObjectSpriteType } from "utilities/gameCollection";

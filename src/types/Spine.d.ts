@@ -36,7 +36,7 @@ type SpineSlotData = {
 
 type SpineSkinData = {
   name: string,
-  attachments: Record<string, Record<string, SpineAttachmentData>>
+  attachments: Record<string, Record<string, SpineAttachmentData>>,
 }
 
 type SpineAttachmentData = {

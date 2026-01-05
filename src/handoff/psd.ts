@@ -8,7 +8,7 @@ export async function exportGUIPSD(layers: Exclude<ExportableLayer, SliceLayer>[
     textAsSprites: true,
     collapseEmpty: true,
     collapseTemplates: true,
-  }
+  };
   const data = packGUI(layers, options);
   const exportGUIData = await runTransformPipelines(GUI_EXPORT_PIPELINE, data);
   const exportPSDData = await runTransformPipelines(GUI_PSD_EXPORT_PIPELINE, exportGUIData);

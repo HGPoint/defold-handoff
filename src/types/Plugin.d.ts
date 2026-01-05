@@ -19,7 +19,7 @@ type SelectionUIData = {
 
 type SelectionUIMetaData = {
   canTryMatch?: boolean,
-  originalValues?: WithNull<PluginGUINodeData>
+  originalValues?: WithNull<PluginGUINodeData>,
 }
 
 type PluginSectionData = {
@@ -142,7 +142,7 @@ type PluginData = {
 
 type PluginGUINodeDataOverrideKey = `defoldGUINodeOverride-${string}`
 
-type PluginDataKey = keyof PluginData;
+type PluginDataKey = keyof PluginData
 
 type UIMessage = {
   pluginMessage: PluginMessage,
@@ -264,4 +264,3 @@ type PluginMessagesLayerAction =
   "restoreSlice9" |
   "requestImage" |
   "imageExtracted"
-

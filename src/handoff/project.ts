@@ -18,12 +18,12 @@ export const PROJECT_CONFIG: ProjectData = {
   fontFamilies: [ ...config.defaultFontFamilies ],
   autoskip: config.autoskip,
   omitDefaultValues: config.omitDefaultValues,
-}
+};
 
 /**
  * Initializes the project configuration data.
  */
-export function initializeProject() {
+export function initializeProject(): void {
   const { root: document } = figma;
   const projectData = getPluginData(document, "defoldProject");
   if (projectData) {
@@ -35,7 +35,7 @@ export function initializeProject() {
  * Updates the project configuration data.
  * @param update - Project configuration update to apply.
  */
-export function updateProject(update: Partial<ProjectData>) {
+export function updateProject(update: Partial<ProjectData>): void {
   updateProjectProperties(update);
   updateProjectData();
 }
@@ -44,7 +44,7 @@ export function updateProject(update: Partial<ProjectData>) {
  * Updates the project configuration properties.
  * @param update - Project configuration update to apply.
  */
-function updateProjectProperties(update: Partial<ProjectData>) {
+function updateProjectProperties(update: Partial<ProjectData>): void {
   updateScreenSize(update.screenSize);
   updatePaths(update.paths);
   updateFontSize(update.fontSize);
@@ -58,7 +58,7 @@ function updateProjectProperties(update: Partial<ProjectData>) {
  * Updates the screen size property.
  * @param screenSize - The screen size property update to apply. 
  */
-function updateScreenSize(screenSize?: Vector4) {
+function updateScreenSize(screenSize?: Vector4): void {
   if (screenSize) {
     PROJECT_CONFIG.screenSize = screenSize ? { ...screenSize } : config.screenSize;
   }
@@ -68,7 +68,7 @@ function updateScreenSize(screenSize?: Vector4) {
  * Updates the path properties.
  * @param paths - The path properties update to apply.
  */
-function updatePaths(paths?: Partial<ProjectPathData>) {
+function updatePaths(paths?: Partial<ProjectPathData>): void {
   if (paths) {
     const entries = Object.entries(paths) as [keyof ProjectPathData, ProjectPathData[keyof ProjectPathData]][];
     entries.forEach(updatePath);
@@ -80,7 +80,7 @@ function updatePaths(paths?: Partial<ProjectPathData>) {
  * @param key - The path property key to update.
  * @param updateValue - The new path property value update to apply.
  */
-function updatePath([ key, updateValue ]: [ keyof ProjectPathData, ProjectPathData[keyof ProjectPathData] ]) {
+function updatePath([ key, updateValue ]: [ keyof ProjectPathData, ProjectPathData[keyof ProjectPathData] ]): void {
   const value = updateValue || updateValue == "" ? updateValue : config.paths[key];
   PROJECT_CONFIG.paths[key] = value;
 }
@@ -89,7 +89,7 @@ function updatePath([ key, updateValue ]: [ keyof ProjectPathData, ProjectPathDa
  * Updates the font size property.
  * @param fontSize - The font size property update to apply..
  */
-function updateFontSize(fontSize?: number) {
+function updateFontSize(fontSize?: number): void {
   if (fontSize) {
     PROJECT_CONFIG.fontSize = fontSize;
   }
@@ -99,7 +99,7 @@ function updateFontSize(fontSize?: number) {
  * Updates the font stroke ratio property.
  * @param fontStrokeRatio - The font stroke ratio property update to apply.
  */
-function updateFontStrokeRatio(fontStrokeRatio?: number) {
+function updateFontStrokeRatio(fontStrokeRatio?: number): void {
   if (fontStrokeRatio) {
     PROJECT_CONFIG.fontStrokeRatio = fontStrokeRatio;
   }
@@ -109,7 +109,7 @@ function updateFontStrokeRatio(fontStrokeRatio?: number) {
  * Updates the font families property.
  * @param fontFamilies - The new font families property update to apply.
  */
-function updateFontFamilies(fontFamilies?: ProjectFontData[]) {
+function updateFontFamilies(fontFamilies?: ProjectFontData[]): void {
   if (fontFamilies) {
     PROJECT_CONFIG.fontFamilies = fontFamilies ? [...fontFamilies] : config.defaultFontFamilies;
   }
@@ -119,7 +119,7 @@ function updateFontFamilies(fontFamilies?: ProjectFontData[]) {
  * Updates the autoskip property.
  * @param autoskip - The new autoskip property update to apply.
  */
-function updateAutoskip(autoskip?: string) {
+function updateAutoskip(autoskip?: string): void {
   if (autoskip) {
     PROJECT_CONFIG.autoskip = autoskip;
   }
@@ -129,7 +129,7 @@ function updateAutoskip(autoskip?: string) {
  * Updates the exclude default values property.
  * @param omitDefaultValues - The new exclude default values property update to apply.
  */
-function updateOmitDefaultValues(omitDefaultValues?: boolean) {
+function updateOmitDefaultValues(omitDefaultValues?: boolean): void {
   if (omitDefaultValues !== undefined) {
     PROJECT_CONFIG.omitDefaultValues = omitDefaultValues;
   }
@@ -138,7 +138,7 @@ function updateOmitDefaultValues(omitDefaultValues?: boolean) {
 /**
  * Updates the project data from the project configuration.
  */
-function updateProjectData() {
+function updateProjectData(): void {
   const { root: document } = figma;
   const projectData: ProjectData = {
     screenSize: { ...PROJECT_CONFIG.screenSize },
@@ -148,13 +148,13 @@ function updateProjectData() {
     fontFamilies: [...PROJECT_CONFIG.fontFamilies],
     autoskip: PROJECT_CONFIG.autoskip,
     omitDefaultValues: PROJECT_CONFIG.omitDefaultValues,
-  }
+  };
   setPluginData(document, { defoldProject: projectData });
 }
 
 /**
  * Purges unused project data.
  */
-export function purgeUnusedData() {
+export function purgeUnusedData(): void {
   purgeUnusedGUIOverridesPluginData();
 }

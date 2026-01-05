@@ -1,5 +1,4 @@
 <script lang="ts" generics="T">
-
   export let value: T;
   export let originalValue: T;
 

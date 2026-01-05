@@ -9,7 +9,7 @@ export async function exportGUISpines(layers: Exclude<ExportableLayer, SliceLaye
     textAsSprites: true,
     collapseEmpty: true,
     collapseTemplates: true,
-  }
+  };
   const data = packGUI(layers, options);
   const exportGUIData = await runTransformPipelines(GUI_EXPORT_PIPELINE, data);
   const exportSpineData = await runTransformPipelines(GUI_SPINES_EXPORT_PIPELINE, exportGUIData);
@@ -27,7 +27,7 @@ export async function exportGUISpineAttachments(layers: Exclude<ExportableLayer,
     textAsSprites: true,
     collapseEmpty: true,
     collapseTemplates: true,
-  }
+  };
   const data = packGUI(layers, options);
   const exportGUIData = await runTransformPipelines(GUI_EXPORT_PIPELINE, data);
   const exportSpineData = await runTransformPipelines(GUI_SPINE_ATTACHMENTS_EXPORT_PIPELINE, exportGUIData);

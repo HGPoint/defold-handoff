@@ -3,8 +3,7 @@
  * @packageDocumentation
  */
 
-import {
-  appendSprites, ATLAS_EXPORT_PIPELINE, ATLAS_SERIALIZATION_PIPELINE, ATLAS_UPDATE_PIPELINE, canExtractSprite, createAtlasLayer, createSpriteLayers, packSpritesBySize, packSpritesAlphabetically, extractSprite, fitAtlas, fixAtlas, removeAtlas, tryRestoreAtlasLayer } from "utilities/atlas";
+import { appendSprites, ATLAS_EXPORT_PIPELINE, ATLAS_SERIALIZATION_PIPELINE, ATLAS_UPDATE_PIPELINE, canExtractSprite, createAtlasLayer, createSpriteLayers, extractSprite, fitAtlas, fixAtlas, packSpritesAlphabetically, packSpritesBySize, removeAtlas, tryRestoreAtlasLayer } from "utilities/atlas";
 import { packAtlases } from "utilities/atlasExport";
 import { combineAtlases, spreadAtlasGroups } from "utilities/atlasProcessing";
 import { isFigmaComponentInstance } from "utilities/figma";
@@ -19,6 +18,7 @@ import { runUpdatePipeline } from "utilities/updatePipeline";
  * Exports serialized atlases containing sprites as Uint8Arrays from an array of atlas layers.
  * @param layers - The atlases and dynamic pseudo-atlases to export.
  * @param scale - The scale factor to apply to the atlas sprites. Defaults to 1.
+ * @param usedSprites - The list of sprites that were actually used in GUI or Game Objects.
  * @returns An array of serialized atlas data.
  */
 export async function exportAtlases(layers: AtlasLayer[], scale: number = 1, usedSprites: string[] = []): Promise<SerializedAtlasData[]> {
@@ -32,6 +32,8 @@ export async function exportAtlases(layers: AtlasLayer[], scale: number = 1, use
 /**
  * Exports serialized atlases containing sprites as Uint8Arrays extracted from an array of GUI layers.
  * @param layers - The GUI nodes to use for extracting atlases.
+ * @param onlyUsedSprites
+ * @param options
  * @returns An array of serialized atlas data.
  */
 export async function exportGUIAtlases(layers: Exclude<ExportableLayer, SliceLayer>[], onlyUsedSprites: boolean, options: GUIPackOptions): Promise<SerializedAtlasData[]> {
@@ -61,7 +63,7 @@ export async function exportGameCollectionAtlases(layers: Exclude<ExportableLaye
  * @param layers - The Figma layers to use as sprites.
  * @returns The created atlas layer.
  */
-export function createAtlas(layers: SceneNode[]) {
+export function createAtlas(layers: SceneNode[]): ComponentSetNode {
   const sprites = createSpriteLayers(layers);
   const atlas = createAtlasLayer(sprites);
   return atlas;
@@ -71,7 +73,7 @@ export function createAtlas(layers: SceneNode[]) {
  * Attempts to restore atlases from an array of Figma layers. Some layers may not be restorable as atlases.
  * @param layers - The Figma layers to attempt restoring atlas data from.
  */
-export function tryRestoreAtlases(layers: SceneNode[]) {
+export function tryRestoreAtlases(layers: SceneNode[]): void {
   layers.forEach(tryRestoreAtlasLayer);
 }
 
@@ -80,13 +82,13 @@ export function tryRestoreAtlases(layers: SceneNode[]) {
  * @param atlas - The atlas to add the sprites to.
  * @param layers - The Figma layers to add as sprites.
  */
-export function addSprites(atlas: ComponentSetNode, layers: SceneNode[]) {
+export function addSprites(atlas: ComponentSetNode, layers: SceneNode[]): void {
   const sprites = createSpriteLayers(layers);
   appendSprites(atlas, sprites);
 }
 
-export async function updateAtlas(layer: ComponentSetNode, update: PluginAtlasData) {
-  const result = await runUpdatePipeline(ATLAS_UPDATE_PIPELINE, layer, update); 
+export async function updateAtlas(atlas: ComponentSetNode, update: PluginAtlasData): Promise<boolean> {
+  const result = await runUpdatePipeline(ATLAS_UPDATE_PIPELINE, atlas, update); 
   return result;
 }
 
@@ -94,7 +96,7 @@ export async function updateAtlas(layer: ComponentSetNode, update: PluginAtlasDa
  * Destroys an array of atlases, by removing bound atlas data from the Figma layers.
  * @param layers - The atlases to destroy.
  */
-export function removeAtlases(layers: DataLayer[]) {
+export function removeAtlases(layers: DataLayer[]): void {
   layers.forEach(removeAtlas);
 }
 
@@ -102,7 +104,7 @@ export function removeAtlases(layers: DataLayer[]) {
  * Fixes general issues in an array of atlases.
  * @param layers - The atlases to fix.
  */
-export function fixAtlases(layers: ComponentSetNode[]) {
+export function fixAtlases(layers: ComponentSetNode[]): void {
   layers.forEach(fixAtlas);
 }
 
@@ -110,7 +112,7 @@ export function fixAtlases(layers: ComponentSetNode[]) {
  * Sorts sprites within each atlas in an array of atlases.
  * @param layers - The atlases whose sprites should be sorted.
  */
-export function sortAtlasesBySize(layers: ComponentSetNode[]) {
+export function sortAtlasesBySize(layers: ComponentSetNode[]): void {
   layers.forEach(packSpritesBySize);
 }
 
@@ -118,7 +120,7 @@ export function sortAtlasesBySize(layers: ComponentSetNode[]) {
  * Sorts sprites within each atlas in an array of atlases.
  * @param layers - The atlases whose sprites should be sorted.
  */
-export function sortAtlasesAlphabetically(layers: ComponentSetNode[]) {
+export function sortAtlasesAlphabetically(layers: ComponentSetNode[]): void {
   layers.forEach(packSpritesAlphabetically);
 }
 
@@ -126,7 +128,7 @@ export function sortAtlasesAlphabetically(layers: ComponentSetNode[]) {
  * Adjusts each atlas in an array to fit tightly around their sprites.
  * @param layers - The atlases to adjust.
  */
-export function fitAtlases(layers: ComponentSetNode[]) {
+export function fitAtlases(layers: ComponentSetNode[]): void {
   layers.forEach(fitAtlas);
 }
 
@@ -137,7 +139,7 @@ export function fitAtlases(layers: ComponentSetNode[]) {
  */
 export async function tryExtractSprite(layer: SceneNode): Promise<WithNull<Uint8Array>> {
   if (isFigmaComponentInstance(layer) && await canExtractSprite(layer)) {
-    const sprite = await extractSprite(layer)
+    const sprite = await extractSprite(layer);
     return sprite;
   }
   return null;

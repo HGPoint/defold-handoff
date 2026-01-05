@@ -56,11 +56,11 @@ type DynamicAtlas = {
 }
 
 type AtlasSpaceNode = {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  used?: boolean;
-  right?: AtlasSpaceNode;
-  down?: AtlasSpaceNode;
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  used?: boolean,
+  right?: AtlasSpaceNode,
+  down?: AtlasSpaceNode,
 }

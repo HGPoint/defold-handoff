@@ -16,7 +16,7 @@ import { runUpdatePipeline, runUpdatePipelines } from "utilities/updatePipeline"
  * Logs GUI data from an array of GUI layers.
  * @param layers - The GUI nodes to log.
  */
-export function logGUI(layers: ExportableLayer[]) {
+export function logGUI(layers: ExportableLayer[]): void {
   layers.forEach(logGUINode);
 }
 
@@ -24,10 +24,10 @@ export function logGUI(layers: ExportableLayer[]) {
  * Logs GUI data from a GUI node layer.
  * @param layer - The GUI node to log.
  */
-function logGUINode(layer: ExportableLayer) {
+function logGUINode(layer: ExportableLayer): void {
   const data = resolveGUINodePluginData(layer);
   if (data) {
-    console.log(data)
+    console.log(data);
   }
 }
 
@@ -65,7 +65,7 @@ export async function copyGUIScheme(layer: ExportableLayer): Promise<SerializedG
     textAsSprites: false,
     collapseTemplates: false,
     collapseEmpty: false
-  }
+  };
   const data = packGUINode(layer, options);
   const exportGUIData = await runTransformPipeline(GUI_EXPORT_PIPELINE, data);
   const serializedGUIData = await runTransformPipeline(GUI_SCHEME_SERIALIZATION_PIPELINE, exportGUIData);
@@ -78,7 +78,7 @@ export async function copyGUIScheme(layer: ExportableLayer): Promise<SerializedG
  * @param updates - The data updates to apply to each GUI node.
  * @returns An array of results for each GUI node update.
  */
-export async function updateGUI(layers: DataLayer[], updates: PluginGUINodeData[]) {
+export async function updateGUI(layers: DataLayer[], updates: PluginGUINodeData[]): Promise<boolean[]> {
   const result = await runUpdatePipelines(GUI_UPDATE_PIPELINE, layers, updates); 
   return result;
 }
@@ -89,7 +89,7 @@ export async function updateGUI(layers: DataLayer[], updates: PluginGUINodeData[
  * @param update - The update data to apply.
  * @returns True if the update was successful, false otherwise.
  */
-export async function updateGUINode(layer: DataLayer, update: PluginGUINodeData) {
+export async function updateGUINode(layer: DataLayer, update: PluginGUINodeData): Promise<boolean> {
   const result = await runUpdatePipeline(GUI_UPDATE_PIPELINE, layer, update);
   return result;
 }
@@ -98,15 +98,15 @@ export async function updateGUINode(layer: DataLayer, update: PluginGUINodeData)
  * Destroys an array of GUI nodes, by removing bound GUI data from the Figma layers.
  * @param layers - The GUI nodes to destroy.
  */
-export function removeGUI(layers: SceneNode[]) {
+export function removeGUI(layers: SceneNode[]): void {
   layers.forEach(tryRemoveGUINode);
 }
 
 /**
  * Attempts to destroy a GUI node, by removing bound GUI data from the Figma layer.
- * @param layers - The GUI nodes to destroy.
+ * @param layer - The GUI nodes to destroy.
  */
-function tryRemoveGUINode(layer: SceneNode) {
+function tryRemoveGUINode(layer: SceneNode): void {
   if (isLayerData(layer)) {
     removeGUINode(layer);
   }
@@ -116,25 +116,25 @@ function tryRemoveGUINode(layer: SceneNode) {
  * Destroys a GUI node, by removing bound GUI data from the Figma layer.
  * @param layer - Figma layer to reset GUI node data for.
  */
-export function removeGUINode(layer: DataLayer) {
+export function removeGUINode(layer: DataLayer): void {
   removePluginData(layer, "defoldGUINode");
   removePluginData(layer, "defoldSlice9");
-  tryRemoveGUINodeOverridesPluginData(layer)
+  tryRemoveGUINodeOverridesPluginData(layer);
 }
 
 /**
  * Pulls GUI node data from the main component for each Figma layer from an array.
  * @param layers - The layers to pull GUI node data for.
  */
-export function resetGUIOverrides(layers: SceneNode[]) {
-  layers.map(tryResetGUINodeOverrides);
+export function resetGUIOverrides(layers: SceneNode[]): void {
+  layers.forEach(tryResetGUINodeOverrides);
 }
 
 /**
  * Attempts to reset data overrides for a GUI node layer.
  * @param layer - The layer to pull GUI node data for.
  */
-async function tryResetGUINodeOverrides(layer: SceneNode) {
+async function tryResetGUINodeOverrides(layer: SceneNode): Promise<void> {
   if (isLayerData(layer) && await canChangeGUINodeOverridesPluginData(layer)) {
     removeGUINode(layer);
   }
@@ -144,7 +144,7 @@ async function tryResetGUINodeOverrides(layer: SceneNode) {
  * Infers GUI data from an array of Figma layers.
  * @param layers - The Figma layers to infer data for.
  */
-export function fixGUI(layers: SceneNode[]) {
+export function fixGUI(layers: SceneNode[]): void {
   inferGUI(layers, true, true);
 }
 
@@ -152,7 +152,7 @@ export function fixGUI(layers: SceneNode[]) {
  * Attempts to infer GUI data for a text node from a Figma layer.
  * @param layer - The Figma layer to infer data for.
  */
-export function tryFixGUIText(layer: SceneNode) {
+export function tryFixGUIText(layer: SceneNode): void {
   if (isFigmaText(layer)) {
     inferGUIText(layer);
   }
@@ -163,7 +163,7 @@ export function tryFixGUIText(layer: SceneNode) {
  * Attempts to match GUI node layer to the dimensions of the parent GUI node layer.
  * @param layer - The GUI node to match to the parent.
  */
-export function tryMatchGUINodeToGUIParent(layer: ExportableLayer) {
+export function tryMatchGUINodeToGUIParent(layer: ExportableLayer): void {
   if (isFigmaBox(layer)) {
     matchGUINodeToGUIParent(layer);
   }
@@ -173,7 +173,7 @@ export function tryMatchGUINodeToGUIParent(layer: ExportableLayer) {
  * Matches GUI node layer to the dimensions of the parent GUI node layer.
  * @param layer - The GUI node to match to the parent.
  */
-function matchGUINodeToGUIParent(layer: BoxLayer) {
+function matchGUINodeToGUIParent(layer: BoxLayer): void {
   const actualLayer = isSlice9Layer(layer) ? findSlice9PlaceholderLayer(layer) : layer;
   if (actualLayer) {
     const { parent } = actualLayer;
@@ -187,7 +187,7 @@ function matchGUINodeToGUIParent(layer: BoxLayer) {
  * Attempts to match parent GUI node layer to the dimensions of the GUI node layer.
  * @param layer - The GUI node to match parent to.
  */
-export function tryMatchGUINodeToGUIChild(layer: ExportableLayer) {
+export function tryMatchGUINodeToGUIChild(layer: ExportableLayer): void {
   if (isFigmaBox(layer)) {
     matchGUIToGUIChild(layer);
   }
@@ -197,7 +197,7 @@ export function tryMatchGUINodeToGUIChild(layer: ExportableLayer) {
  * Matches parent GUI node layer to the dimensions of the GUI node layer.
  * @param layer - The GUI node to match parent to.
  */
-function matchGUIToGUIChild(layer: BoxLayer) {
+function matchGUIToGUIChild(layer: BoxLayer): void {
   const actualLayer = isSlice9Layer(layer) ? findSlice9PlaceholderLayer(layer) : layer;
   if (actualLayer) {
     const { parent } = actualLayer;
@@ -211,7 +211,7 @@ function matchGUIToGUIChild(layer: BoxLayer) {
  * Attempts to resize GUI node layers to the dimensions of the screen.
  * @param layers - The GUI nodes to resize.
  */
-export function resizeGUIToScreen(layers: SceneNode[]) {
+export function resizeGUIToScreen(layers: SceneNode[]): void {
   layers.forEach(tryResizeGUINodeToScreen);
 }
 
@@ -219,7 +219,7 @@ export function resizeGUIToScreen(layers: SceneNode[]) {
  * Attempts to resize GUI node layer to the dimensions of the screen.
  * @param layer - The GUI node to resize.
  */
-function tryResizeGUINodeToScreen(layer: SceneNode) {
+function tryResizeGUINodeToScreen(layer: SceneNode): void {
   if (isFigmaFrame(layer) || isFigmaComponent(layer)) {
     resizeGUINodeToScreen(layer);
   }
@@ -229,7 +229,7 @@ function tryResizeGUINodeToScreen(layer: SceneNode) {
  * Resizes GUI node layer to the dimensions of the screen.
  * @param layer - The GUI node to resize.
  */
-function resizeGUINodeToScreen(layer: FrameNode | ComponentNode) {
+function resizeGUINodeToScreen(layer: FrameNode | ComponentNode): void {
   const { screenSize: { x, y } } = PROJECT_CONFIG;
   layer.resize(x, y);
 }
@@ -238,7 +238,7 @@ function resizeGUINodeToScreen(layer: FrameNode | ComponentNode) {
  * Attempts to force all direct children of the given GUI node layer to be exported "on screen".
  * @param layer - The GUI node to force the children "on screen" for.
  */
-export function tryForceGUIChildrenOnScreen(layer: SceneNode) {
+export function tryForceGUIChildrenOnScreen(layer: SceneNode): void {
   if (isFigmaBox(layer)) {
     layer.children.forEach(tryForceGUIChildOnScreen);
   }

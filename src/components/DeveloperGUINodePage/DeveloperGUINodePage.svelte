@@ -1,11 +1,11 @@
 <script lang="ts">
   import ActionButton from "components/ActionButton";
   import Actions from "components/Actions";
-  import ScaleProperty from "components/ScaleProperty";
   import OptionsProperty from "components/OptionsProperty";
   import Page from "components/Page";
   import Properties from "components/Properties";
   import PropertyTip from "components/PropertyTip";
+  import ScaleProperty from "components/ScaleProperty";
   import SidesProperty from "components/SidesProperty";
   import TextProperty from "components/TextProperty";
   import ToggleProperty from "components/ToggleProperty";

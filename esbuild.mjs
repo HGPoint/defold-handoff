@@ -6,7 +6,7 @@ import { build, context } from "esbuild";
 import esbuildSvelte from "esbuild-svelte"; 
 import sveltePreprocess from "svelte-preprocess";
 
-const HTML_TEMPLATE = `<style>{{style}}</style><div id="root" class="root"></div><script>const defoldHandoffUIMode={{defoldHandoffUIMode}};{{script}}</script>`
+const HTML_TEMPLATE = `<style>{{style}}</style><div id="root" class="root"></div><script>const defoldHandoffUIMode={{defoldHandoffUIMode}};{{script}}</script>`;
 
 function fileExists(filePath) {
   return new Promise((resolve, reject) => {
@@ -66,7 +66,7 @@ let inlineResources = {
         });
     });
   },
-}
+};
 
 const figmaPluginConfig = {
   entryPoints: ["./src/plugin.ts"],
@@ -74,7 +74,7 @@ const figmaPluginConfig = {
   bundle: true,
   outfile: "./dist/plugin.js",
   logLevel: "info",
-}
+};
 
 const uiConfig = {
   entryPoints: ["./src/app.ts"],
@@ -90,7 +90,7 @@ const uiConfig = {
     inlineResources,
   ],
   logLevel: "info",
-}
+};
 
 async function watchProjects() {
   try {
@@ -106,7 +106,7 @@ async function watchProjects() {
       }
     });
     await pluginContext.watch();
-    await uiContext.watch()
+    await uiContext.watch();
   } catch (error) {
     console.error("Watch failed:", error);
     process.exit(1);

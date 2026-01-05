@@ -1,13 +1,13 @@
-type SpriteResourceData = string[];
+type SpriteResourceData = string[]
 
 type SpriteVariantPipelineData = {
   layer: SceneNode,
   skipVariants: boolean,
 }
 
-type TextureResourceData = Record<string, TextureAtlasData>;
+type TextureResourceData = Record<string, TextureAtlasData>
 
-type TextureAtlasData = TextureStaticAtlasData | TextureDynamicAtlasData;
+type TextureAtlasData = TextureStaticAtlasData | TextureDynamicAtlasData
 
 type TextureStaticAtlasData = {
   id: string,
@@ -31,16 +31,16 @@ type TextureVariantPipelineData = {
   textAsSprites: boolean,
 }
 
-type FontData = Record<string, string>;
+type FontData = Record<string, string>
 
 type FontVariantPipelineData = {
   layer: SceneNode,
   skipVariants: boolean,
 }
 
-type LayerData = string[];
+type LayerData = string[]
 
-type SpineResourceData = Record<string, string>;
+type SpineResourceData = Record<string, string>
 
 type SpineVariantPipelineData = {
   layer: SceneNode,
