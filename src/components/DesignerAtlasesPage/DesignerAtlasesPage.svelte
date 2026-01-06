@@ -7,8 +7,9 @@
 <Page>
   <Actions title="Tools" collapseKey="atlasesActionsCollapsed">
     <ActionButton label="Fix Atlases" action="fixAtlases" />
-    <ActionButton label="Sort Atlases Alphabetically" action="sortAtlasesAlphabet" />
-    <ActionButton label="Sort Atlases By Size" action="sortAtlasesSize" />
-    <ActionButton label="Fit Atlases" action="fitAtlases" />
+    <ActionButton label="Sort Atlas Alphabetically" action="sortAtlasesAlphabet" />
+    <ActionButton label="Sort Atlas By Size" action="sortAtlasesSize" />
+    <ActionButton label="Fit Atlas" action="fitAtlases" />
+    <ActionButton label="Copy Atlas" action="copyAtlases" />
   </Actions>
 </Page>

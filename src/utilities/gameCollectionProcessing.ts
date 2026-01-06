@@ -101,6 +101,10 @@ function sanitizeGameObjectID(gameObject: GameObjectData, gameObjects: GameObjec
     }
   }
   usedIDs.push(gameObject.id);
+  const { components } = gameObject;
+  if (components) {
+    components.forEach((component) => { sanitizeGameObjectID(component, components, usedIDs); });
+  }
 }
 
 function resolveGameObjectID(originalID: string, index: number): string {

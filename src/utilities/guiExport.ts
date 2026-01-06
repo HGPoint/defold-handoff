@@ -13,7 +13,7 @@ import { isGUITemplate, resolveGUIFilePath, resolveGUINodeForcedName, resolveGUI
 import { convertBoxGUINodeData, convertGUIData, convertImpliedBoxGUINodeData, convertTextGUINodeData, convertTextSpriteGUINodeData } from "utilities/guiConversion";
 import { inferGUIBox, inferGUIText } from "utilities/inference";
 import { extractLayerData } from "utilities/layer";
-import { addVectors, isZeroVector, vector4 } from "utilities/math";
+import { vector4 } from "utilities/math";
 import { resolvePSDFilePath, resolvePSDFileSize } from "utilities/psd";
 import { generatePSDLayerData } from "utilities/psdExport";
 import { isSlice9ServiceLayer, isUsedSlice9Layer } from "utilities/slice9";
@@ -90,7 +90,7 @@ function resolveGUIExportOptions(layer: ExportableLayer, parameters: GUINodeExpo
     parentPivot: config.guiNodeDefaultValues.pivot,
     parentSize: vector4(0),
     parentShift: vector4(-layer.x, -layer.y, 0, 0),
-    parentScaleFactor: 1,
+    parentScaleFactor: config.guiNodeDefaultSpecialValues.scale_factor,
     clones: []
   };
   return options;
@@ -331,25 +331,22 @@ async function generateParentOptions(layer: ExportableLayer, shouldSkip: boolean
  */
 function resolveGUINodeLayerOptions(shouldSkip: boolean, parentOptions: GUINodeDataExportOptions, guiNodeData: GUINodeData): Pick<GUINodeDataExportOptions, "parentId" | "parentPivot" | "parentSize" | "parentShift" | "parentScaleFactor"> {
   const { parentScaleFactor } = parentOptions;
-  const resolvedParentScaleFactor = parentScaleFactor * (guiNodeData.scale_factor || config.guiNodeDefaultSpecialValues.scale_factor);
   if (shouldSkip) {
     const { parentId, parentSize, parentPivot, parentShift } = parentOptions;
-    const resolvedParentSize = isZeroVector(parentSize)  ? guiNodeData.figma_size : parentSize;
-    const resolvedFigmaPosition = guiNodeData.figma_position || vector4(0);
-    const resolvedParentShift = addVectors(parentShift, resolvedFigmaPosition);
     return {
       parentId,
-      parentSize: resolvedParentSize,
+      parentSize,
+      parentShift,
       parentPivot,
-      parentShift: resolvedParentShift,
-      parentScaleFactor: resolvedParentScaleFactor,
+      parentScaleFactor,
     };
   }
+  const resolvedParentScaleFactor = parentScaleFactor * (guiNodeData.scale_factor || config.guiNodeDefaultSpecialValues.scale_factor);
   return {
     parentId: guiNodeData.id,
-    parentSize: guiNodeData.figma_size,
-    parentPivot: guiNodeData.pivot,
+    parentSize: guiNodeData.figma_size || vector4(0),
     parentShift: vector4(0),
+    parentPivot: guiNodeData.pivot || config.gameObjectDefaultValues.pivot,
     parentScaleFactor: resolvedParentScaleFactor
   };
 }

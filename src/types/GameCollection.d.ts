@@ -17,7 +17,6 @@ type GameObjectData = {
   children?: string[],
   position: Vector4,
   rotation: Vector4,
-  scale: Vector4,
   size?: Vector4,
   text?: string,
   color?: Vector4,
@@ -53,7 +52,17 @@ type GameObjectData = {
   figma_node_id: string,
   figma_children?: string[],
   components?: GameObjectData[],
-}
+} & (GameObjectDataWithScale | GameObjectDataWithScale3);
+
+type GameObjectDataWithScale = {
+  scale: Vector4;
+  scale3?: never;
+};
+
+type GameObjectDataWithScale3 = {
+  scale?: never;
+  scale3: Vector4;
+};
 
 type GameObjectDataExportOptions = {
   layer: ExportableLayer,
@@ -64,8 +73,10 @@ type GameObjectDataExportOptions = {
   parentSize: Vector4,
   parentShift: Vector4,
   parentPivot: Pivot,
+  parentScaleFactor: number,
   arrangeDepth: boolean,
   depthAxis?: string,
+  depthLayer?: number,
 }
 
 type SerializedGameCollectionData = {

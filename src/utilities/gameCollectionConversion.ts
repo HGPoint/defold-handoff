@@ -11,7 +11,7 @@ import { getPluginData, hasChildren, isFigmaBox, isFigmaPage, isFigmaSection, is
 import { calculateGameObjectDepth, isGameObjectEmptyType, resolveFigmaLayerIndex, resolveGameCollectionName, resolveGameObjectDepthLayer, resolveGameObjectPluginData, resolveGameObjectZCoordinate } from "utilities/gameCollection";
 import { inferColor, inferFigmaPosition, inferFigmaSize, inferGameObjectType, inferLineBreak, inferRotation, inferScale, inferSize, inferSizeMode, inferSlice9, inferSpriteComponentSprite, inferText, inferTextBoxSize, inferTextCase, inferTextLeading, inferTextOutline, inferTextPivot, inferTextScale, inferTextShadow, inferTextTracking } from "utilities/inference";
 import { readableVector, vector4 } from "utilities/math";
-import { calculateCenteredPosition, convertCenteredPositionToPivotedPosition } from "utilities/pivot";
+import { calculateCenteredPosition, calculateChildPosition, calculateRootPosition, convertCenteredPositionToPivotedPosition } from "utilities/pivot";
 import { isSlice9PlaceholderLayer } from "utilities/slice9";
 
 /**
@@ -293,20 +293,23 @@ function convertGameObjectTransformations(layer: ExportableLayer) {
  * @param data - The plugin data.
  * @returns The converted game object position.
  */
-function convertGameObjectPosition(layer: ExportableLayer, size: Vector4, options: GameObjectDataExportOptions, data?: WithNull<PluginGameObjectData>) {
-  const { atRoot } = options;
-  const { parent } = layer;
-  if (atRoot && (!parent || (isFigmaPage(parent) || isFigmaSection(parent)))) {
-    return vector4(0);
-  }
-  const { x, y } = layer;
-  const centeredPosition = calculateCenteredPosition(layer, size, options);
-  const resolvedZ = resolveGameObjectZCoordinate(data);
-  const resolvedDepthLayer = resolveGameObjectDepthLayer(data);
+function convertGameObjectPosition(layer: ExportableLayer, size: Vector4, options: GameObjectDataExportOptions, pluginData?: WithNull<PluginGameObjectData>) {
+  const resolvedZ = resolveGameObjectZCoordinate(pluginData);
+  const resolvedDepthLayer = resolveGameObjectDepthLayer(pluginData);
   const resolvedIndex = resolveFigmaLayerIndex(layer);
+  if (options.atRoot) {
+    const position = calculateRootPosition(layer, "PIVOT_CENTER", size, options, pluginData);
+    const { x, y } = position;
+    const depth = calculateGameObjectDepth(x, y, resolvedZ, resolvedDepthLayer, resolvedIndex, options);
+    position.z = resolvedZ + depth;
+    const readablePosition = readableVector(position);
+    return readablePosition;
+  }
+  const position = calculateChildPosition(layer, "PIVOT_CENTER", size, options, pluginData);
+  const { x, y } = position;
   const depth = calculateGameObjectDepth(x, y, resolvedZ, resolvedDepthLayer, resolvedIndex, options);
-  centeredPosition.z = resolvedZ + depth;
-  const readablePosition = readableVector(centeredPosition);
+  position.z = resolvedZ + depth;
+  const readablePosition = readableVector(position);
   return readablePosition;
 }
 

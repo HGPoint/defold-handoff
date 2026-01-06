@@ -4,7 +4,7 @@
  */
 
 import config from "config/config.json";
-import { addSprites, createAtlas, exportAtlases, exportGameCollectionAtlases, exportGUIAtlases, fitAtlases, fixAtlases, removeAtlases, sortAtlasesAlphabetically, sortAtlasesBySize, tryExtractSprite, tryRestoreAtlases, updateAtlas } from "handoff/atlas";
+import { addSprites, copyAtlases, createAtlas, exportAtlases, exportGameCollectionAtlases, exportGUIAtlases, fitAtlases, fixAtlases, removeAtlases, sortAtlasesAlphabetically, sortAtlasesBySize, tryExtractSprite, tryRestoreAtlases, updateAtlas } from "handoff/atlas";
 import { exportBareBundle, exportBundle } from "handoff/bundle";
 import { copyGameCollection, exportGameCollections, fixGameObjects, removeGameObjects, updateGameObject } from "handoff/gameCollection";
 import { copyGUI, copyGUIScheme, exportGUI, fixGUI, logGUI, removeGUI, resetGUIOverrides, resizeGUIToScreen, tryFixGUIText, tryForceGUIChildrenOnScreen, tryMatchGUINodeToGUIChild, tryMatchGUINodeToGUIParent, updateGUI, updateGUINode } from "handoff/gui";
@@ -15,7 +15,7 @@ import { exportGUISpineAttachments, exportGUISpines } from "handoff/spine";
 import delay from "utilities/delay";
 import { processDocumentChanges } from "utilities/document";
 import { processError } from "utilities/error";
-import { selectFigmaLayer } from "utilities/figma";
+import { selectFigmaLayer, selectFigmaLayers } from "utilities/figma";
 import { DEFAULT_PACK_OPTIONS } from "utilities/guiExport";
 import { convertSelectionDataToSelectionUIData, pickAtlasesFromSelectionData, pickFirstAtlasFromSelectionData, pickFirstGameObjectFromSelectionData, pickFirstGUINodeFromSelectionData, pickGameObjectsFromSelectionData, pickGUIFromSelectionData, pickLayersFromSelectionData, reduceAtlasesFromSelectionData, reduceSelectionDataFromSelection } from "utilities/selection";
 import { tryRestoreSlice9Placeholder } from "utilities/slice9";
@@ -245,6 +245,8 @@ function processUIMessage(message: PluginMessage): void {
     onSortAtlasesAlphabetically();
   } else if (type === "fitAtlases") {
     onFitAtlases();
+  } else if (type === "copyAtlases")  {
+    onCopyAtlases();
   } else if (type === "updateSection" && data?.section) {
     onUpdateSection(data.section);
   } else if (type === "removeSections") {
@@ -550,6 +552,14 @@ function onFitAtlases(): void {
   const atlases = pickAtlasesFromSelectionData(SELECTION);
   fitAtlases(atlases);
   figma.notify("Atlases fitted");
+}
+
+function onCopyAtlases(): void {
+  const atlases = pickAtlasesFromSelectionData(SELECTION);
+  const copies = copyAtlases(atlases);
+  selectFigmaLayers(copies, true);
+  updateSelection();
+  figma.notify("Atlases copied");
 }
 
 function onExportGUISpines(): void {

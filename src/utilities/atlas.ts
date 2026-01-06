@@ -269,6 +269,18 @@ function fitAtlasSprites(atlas: ComponentSetNode) {
   }
 }
 
+export function copyAtlas(atlas: ComponentSetNode) {
+  const atlasCopy = atlas.clone();
+  const { parent } = atlas;
+  if (parent) {
+    parent.appendChild(atlasCopy);
+    const { name, width, x } = atlas;
+    atlasCopy.name = `Copy of ${name}`;
+    atlasCopy.x = x + width + 100;
+  }
+  return atlasCopy;
+}
+
 /**
  * Creates the sprites from a set of Figma layers.
  * @param layers - The Figma layers to create the sprites from.

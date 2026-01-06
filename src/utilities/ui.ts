@@ -32,8 +32,8 @@ export function generateRandomId(): string {
  * @param originalValue - The original value to compare against.
  * @returns True if the value is an override, otherwise false.
  */
-export function isValueOverridden<T extends PluginGUINodeData[keyof PluginGUINodeData]>(value: WithNull<T>, originalValue: WithNull<T>): boolean {
-  if (originalValue !== null) {
+export function isValueOverridden<T extends PluginGUINodeData[keyof PluginGUINodeData]>(value: WithNull<T>, originalValue?: WithNull<T>): boolean {
+  if (originalValue !== null && originalValue !== undefined) {
     if (typeof originalValue === "object") {
       return JSON.stringify(value) !== JSON.stringify(originalValue);
     }

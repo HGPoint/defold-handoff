@@ -83,7 +83,7 @@ export function calculateCenteredPosition(layer: SceneNode, size: Vector4, optio
  * @param options
  * @returns The pivoted position of the layer.
  */
-export function calculatePivotedPosition(centeredPosition: Vector4, pivot: Pivot, size: Vector4, rotation: number, options: GUINodeDataExportOptions) {
+export function calculatePivotedPosition(centeredPosition: Vector4, pivot: Pivot, size: Vector4, rotation: number, options: GUINodeDataExportOptions | GameObjectDataExportOptions) {
   const position = convertCenteredPositionToPivotedPosition(centeredPosition, options);
   const pivotShift = calculatePivotedShift(pivot, size, rotation, options);
   const pivotedPosition = addVectors(position, pivotShift);
@@ -102,7 +102,7 @@ export function calculatePivotedPosition(centeredPosition: Vector4, pivot: Pivot
  * @param data - GUI node data of the layer.
  * @returns The root position of the layer.
  */
-export function calculateRootPosition(layer: SceneNode, pivot: Pivot, size: Vector4, options: GUINodeDataExportOptions, data?: WithNull<PluginGUINodeData>) {
+export function calculateRootPosition(layer: SceneNode, pivot: Pivot, size: Vector4, options: GUINodeDataExportOptions | GameObjectDataExportOptions, data?: WithNull<PluginGUINodeData | PluginGameObjectData>) {
   const centeredPosition = calculateCenteredRootPosition(layer, size, options, data);
   if (data?.template && !options.asTemplate) {
     return centeredPosition;
@@ -124,7 +124,7 @@ export function calculateRootPosition(layer: SceneNode, pivot: Pivot, size: Vect
  * @param data - GUI node data of the layer.
  * @returns The centered root position of the layer.
  */
-export function calculateCenteredRootPosition(layer: SceneNode, size: Vector4, options: GUINodeDataExportOptions, data?: WithNull<PluginGUINodeData>) {
+export function calculateCenteredRootPosition(layer: SceneNode, size: Vector4, options: GUINodeDataExportOptions | GameObjectDataExportOptions, data?: WithNull<PluginGUINodeData | PluginGameObjectData>) {
   const { parentSize } = options;
   if (data?.screen && !options.asTemplate) {
     const halfScreenWidth = PROJECT_CONFIG.screenSize.x / 2;
@@ -157,7 +157,7 @@ export function calculateCenteredRootPosition(layer: SceneNode, size: Vector4, o
  * @param data - GUI node data of the child layer.
  * @returns The position of the child layer.
  */
-export function calculateChildPosition(layer: SceneNode, pivot: Pivot, size: Vector4, options: GUINodeDataExportOptions, data?: WithNull<PluginGUINodeData>) {
+export function calculateChildPosition(layer: SceneNode, pivot: Pivot, size: Vector4, options: GUINodeDataExportOptions | GameObjectDataExportOptions, data?: WithNull<PluginGUINodeData | PluginGameObjectData>) {
   const { parentScaleFactor } = options;
   const centeredPosition = calculateCenteredPosition(layer, size, options);
   const rotation = inferRotation(layer);
@@ -203,7 +203,7 @@ export function convertCenteredPositionToPivotedPosition(centeredPosition: Vecto
  * @param options
  * @returns The shift of the layer.
  */
-export function calculatePivotedShift(pivot: Pivot, size: Vector4, rotation: number, options: GUINodeDataExportOptions) {
+export function calculatePivotedShift(pivot: Pivot, size: Vector4, rotation: number, options: GUINodeDataExportOptions | GameObjectDataExportOptions) {
   const { x: width, y: height } = size;
   const x = calculatePivotedHorizontalShift(pivot, width, options);
   const y = calculatePivotedVerticalShift(pivot, height, options);
@@ -219,7 +219,7 @@ export function calculatePivotedShift(pivot: Pivot, size: Vector4, rotation: num
  * @param options
  * @returns The horizontal shift of the layer.
  */
-function calculatePivotedHorizontalShift(pivot: Pivot, width: number, options: GUINodeDataExportOptions) {
+function calculatePivotedHorizontalShift(pivot: Pivot, width: number, options: GUINodeDataExportOptions | GameObjectDataExportOptions) {
   const { parentPivot } = options;
   const halfWidth = width / 2;
   if (isPivotEast(parentPivot)) {
@@ -256,7 +256,7 @@ function calculatePivotedHorizontalShift(pivot: Pivot, width: number, options: G
  * @param options
  * @returns The vertical shift of the layer.
  */
-function calculatePivotedVerticalShift(pivot: Pivot, height: number, options: GUINodeDataExportOptions) {
+function calculatePivotedVerticalShift(pivot: Pivot, height: number, options: GUINodeDataExportOptions | GameObjectDataExportOptions) {
   const { parentSize, parentPivot } = options;
   const { y: parentHeight } = parentSize;
   const halfHeight = height / 2;

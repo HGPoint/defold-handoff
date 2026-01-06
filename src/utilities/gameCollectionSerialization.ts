@@ -78,6 +78,8 @@ const EXCLUDED_PROPERTY_KEYS = [
   "figma_node_id",
   "figma_children",
   "components",
+  "scale_factor",
+  "scale_along_z",
   "text_case",
 ];
 
@@ -88,7 +90,7 @@ const EXCLUDED_PROPERTY_KEYS = [
  */
 export async function serializeGameCollectionData(gameCollectionData: GameCollectionData): Promise<SerializedGameCollectionData> {
   const { name, filePath } = gameCollectionData;
-  const collection = Object.entries(gameCollectionData.collection).reduce(gameCollectionDataSerializer, "");
+  const collection = serializeGameCollectionDefoldData(gameCollectionData.collection);
   const gameObjects = gameCollectionData.gameObjects.reduce(gameObjectsSerializer, "");
   const data = `${`${collection}${gameObjects}`.trim()}\n`;
   const serializedData = {
@@ -99,8 +101,23 @@ export async function serializeGameCollectionData(gameCollectionData: GameCollec
   return Promise.resolve(serializedData);
 }
 
-function gameCollectionDataSerializer(serializedData: string, [property, value]: [keyof GameCollectionDefoldData, GameCollectionDefoldData[keyof GameCollectionDefoldData]]) {
-  return propertySerializer<GameCollectionDefoldData>(serializedData, [property, value]);
+function serializeGameCollectionDefoldData(gameCollectionData: GameCollectionDefoldData): string {
+  const properties = Object.entries(gameCollectionData) as [keyof GameCollectionDefoldData, GameCollectionDefoldData[keyof GameCollectionDefoldData]][];
+  const data = properties.reduce((serializedProperties: string, property) => {
+    if (shouldOmitGameCollectionProperty(property)) {
+      return serializedProperties;
+    }
+    return propertySerializer(serializedProperties, property);
+  }, "");
+  return data;
+}
+
+function shouldOmitGameCollectionProperty(property: [keyof GameCollectionDefoldData, GameCollectionDefoldData[keyof GameCollectionDefoldData]]) {
+  const [key] = property;
+  if (EXCLUDED_PROPERTY_KEYS.includes(key)) {
+    return true;
+  }
+  return false;
 }
 
 /**

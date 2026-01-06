@@ -3,13 +3,14 @@
  * @packageDocumentation
  */
 
+import config from "config/config.json";
 import { findAtlases, reduceAtlasIdsFromResources } from "utilities/atlas";
 import { canProcessChildLayer, isLayerSkippable } from "utilities/data";
 import { hasChildren, isFigmaBox, isFigmaSlice, isFigmaText, isLayerSprite, isVisible } from "utilities/figma";
 import { resolveDepthAxisParameters, resolveGameCollectionFilePath, resolveGameComponentTypeId, resolveGameObjectForcedName, resolveGameObjectNamePrefix, resolveGameObjectPluginData } from "utilities/gameCollection";
 import { convertEmptyComponentData, convertGameCollectionData, convertLabelComponentData, convertSpriteComponentData } from "utilities/gameCollectionConversion";
 import { inferGameCollectionParentTransformations } from "utilities/inference";
-import { addVectors, copyVector, isZeroVector, vector4 } from "utilities/math";
+import { copyVector, vector4 } from "utilities/math";
 import { isSlice9ServiceLayer, isUsedSlice9Layer } from "utilities/slice9";
 import { extractTextureData } from "utilities/texture";
 
@@ -53,7 +54,8 @@ export function resolveGameCollectionExportOptions(layer: ExportableLayer, data?
     atRoot: true,
     namePrefix: "",
     parentId: "",
-    parentPivot: "PIVOT_CENTER",
+    parentPivot: config.gameObjectDefaultValues.pivot,
+    parentScaleFactor: config.gameObjectDefaultSpecialValues.scale_factor,
     ...parentTransformations,
     ...depthAxisParameters,
   };
@@ -218,14 +220,14 @@ async function generateParentOptions(layer: ExportableLayer, shouldSkip: boolean
   const namePrefix = resolveGameObjectNamePrefix(shouldSkip, parentOptions);
   const forcedName = await resolveGameObjectForcedName(layer, parentOptions, parentGameObjectData);
   const depthAxisParameters = resolveDepthAxisParameters(parentGameObjectData);
-  const layerOptions = resolveGameObjectLayerOptions(shouldSkip, parentOptions, parentGameObjectData);
+  const parentParameters = resolveGameObjectLayerOptions(shouldSkip, parentOptions, parentGameObjectData);
   return {
     layer,
     atRoot,
     namePrefix,
     forcedName,
     ...depthAxisParameters,
-    ...layerOptions,
+    ...parentParameters,
   };
 }
 
@@ -236,26 +238,31 @@ async function generateParentOptions(layer: ExportableLayer, shouldSkip: boolean
  * @param gameObjectData - The game object data.
  * @returns The resolved game object layer export options.
  */
-function resolveGameObjectLayerOptions(shouldSkip: boolean, parentOptions: GameObjectDataExportOptions, gameObjectData: GameObjectData): Pick<GameObjectDataExportOptions, "parentId" | "parentSize" | "parentShift" | "parentPivot"> {
-  const { layer, atRoot } = parentOptions;
-  const fallbackParentSize = vector4(layer.width, layer.height, 0, 0);
+function resolveGameObjectLayerOptions(shouldSkip: boolean, parentOptions: GameObjectDataExportOptions, gameObjectData: GameObjectData): Pick<GameObjectDataExportOptions, "parentId" | "parentSize" | "parentShift" | "parentPivot" | "parentScaleFactor" | "arrangeDepth" | "depthAxis" | "depthLayer"> {
+  const { parentScaleFactor } = parentOptions;
   if (shouldSkip) {
-    const { parentId, parentSize, parentShift } = parentOptions;
-    const resolvedParentSize = isZeroVector(parentSize) ? fallbackParentSize : parentSize;
-    const resolvedFigmaPosition = gameObjectData.figma_position || vector4(0);
-    const resolvedParentShift = atRoot ? vector4(0) : addVectors(parentShift, resolvedFigmaPosition);
+    const { parentId, parentSize, parentPivot, parentShift, arrangeDepth, depthAxis, depthLayer } = parentOptions;
     return {
-      parentId: parentId,
-      parentSize: resolvedParentSize,
-      parentShift: resolvedParentShift,
-      parentPivot: "PIVOT_CENTER"
+      parentId,
+      parentSize,
+      parentShift,
+      parentPivot,
+      parentScaleFactor,
+      arrangeDepth,
+      depthAxis,
+      depthLayer,
     };
   }
+  const resolvedParentScaleFactor = parentScaleFactor * (gameObjectData.scale_factor || config.gameObjectDefaultSpecialValues.scale_factor);
   return {
     parentId: gameObjectData.id,
-    parentSize: fallbackParentSize,
+    parentSize: gameObjectData.figma_size,
     parentShift: vector4(0),
-    parentPivot: "PIVOT_CENTER"
+    parentPivot: gameObjectData.pivot || config.gameObjectDefaultValues.pivot,
+    parentScaleFactor: resolvedParentScaleFactor,
+    arrangeDepth: gameObjectData.arrange_depth,
+    depthAxis: gameObjectData.depth_axis,
+    depthLayer: gameObjectData.depth_layer,
   };
 }
 

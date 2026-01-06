@@ -5,7 +5,7 @@
   export let originalValue: WithNull<T>;
 
   function restoreValue() {
-    if (originalValue !== null) {
+    if (originalValue !== null && originalValue !== undefined) {
       value = originalValue;
     }
   }

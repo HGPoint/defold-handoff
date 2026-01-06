@@ -240,7 +240,8 @@ type PluginMessagesAtlasAction =
   "sortAtlasesAlphabet" |
   "sortAtlasesSize" |
   "fitAtlases" |
-  "validateAtlases"
+  "validateAtlases" |
+  "copyAtlases"
 
 type PluginMessageSpineAction =
   "exportGUISpine" |

@@ -5,13 +5,13 @@
 
 import config from "config/config.json";
 import evaluateExpression from "utilities/evaluation";
-import { getPluginData, isFigmaComponent, isFigmaComponentInstance, isFigmaSlice, isLayerExportable, isLayerSpriteHolder } from "utilities/figma";
+import { getPluginData, isFigmaComponent, isFigmaComponentInstance, isFigmaSceneNode, isFigmaSlice, isLayerExportable, isLayerSpriteHolder } from "utilities/figma";
 import { exportGameCollectionData, exportGameCollectionResources, extractGameCollectionAtlasData } from "utilities/gameCollectionExport";
 import { postprocessGameCollectionData, preprocessGameCollectionData } from "utilities/gameCollectionProcessing";
 import { serializeGameCollectionData } from "utilities/gameCollectionSerialization";
 import { ensureGameObjectLayer, extractGameObjectOriginalData, preprocessGameObjectData, updateGameObjectData, updateGameObjectLayer } from "utilities/gameCollectionUpdate";
 import { inferGameObjectType } from "utilities/inference";
-import { isSlice9PlaceholderLayer } from "utilities/slice9";
+import { ensureActionableLayer, isSlice9PlaceholderLayer } from "utilities/slice9";
 
 export const GAME_COLLECTION_EXPORT_PIPELINE: TransformPipeline<ExportableLayer, GameCollectionData> = {
   extractResources: exportGameCollectionResources,
@@ -187,9 +187,10 @@ export function resolveGameObjectDepthLayer(data?: WithNull<PluginGameObjectData
 }
 
 export function resolveFigmaLayerIndex(layer: ExportableLayer) {
-  const { parent } = layer;
-  if (parent) {
-    const index = parent.children.indexOf(layer);
+  const ensuredLayer = ensureActionableLayer(layer);
+  const { parent } = ensuredLayer;
+  if (parent && isFigmaSceneNode(ensuredLayer)) {
+    const index = parent.children.indexOf(ensuredLayer);
     if (index !== -1) {
       return index;
     }

@@ -3,7 +3,7 @@
  * @packageDocumentation
  */
 
-import { appendSprites, ATLAS_EXPORT_PIPELINE, ATLAS_SERIALIZATION_PIPELINE, ATLAS_UPDATE_PIPELINE, canExtractSprite, createAtlasLayer, createSpriteLayers, extractSprite, fitAtlas, fixAtlas, packSpritesAlphabetically, packSpritesBySize, removeAtlas, tryRestoreAtlasLayer } from "utilities/atlas";
+import { appendSprites, ATLAS_EXPORT_PIPELINE, ATLAS_SERIALIZATION_PIPELINE, ATLAS_UPDATE_PIPELINE, canExtractSprite, copyAtlas, createAtlasLayer, createSpriteLayers, extractSprite, fitAtlas, fixAtlas, packSpritesAlphabetically, packSpritesBySize, removeAtlas, tryRestoreAtlasLayer } from "utilities/atlas";
 import { packAtlases } from "utilities/atlasExport";
 import { combineAtlases, spreadAtlasGroups } from "utilities/atlasProcessing";
 import { isFigmaComponentInstance } from "utilities/figma";
@@ -130,6 +130,10 @@ export function sortAtlasesAlphabetically(layers: ComponentSetNode[]): void {
  */
 export function fitAtlases(layers: ComponentSetNode[]): void {
   layers.forEach(fitAtlas);
+}
+
+export function copyAtlases(layers: ComponentSetNode[]): ComponentSetNode[] {
+  return layers.map(copyAtlas);
 }
 
 /**

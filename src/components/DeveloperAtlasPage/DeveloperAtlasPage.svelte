@@ -49,6 +49,7 @@
     <ActionButton label="Sort Atlas Alphabetically" action="sortAtlasesAlphabet" />
     <ActionButton label="Sort Atlas By Size" action="sortAtlasesSize" />
     <ActionButton label="Fit Atlas" action="fitAtlases" />
+    <ActionButton label="Copy Atlas" action="copyAtlases" />
     <ActionButton label="Validate Atlas" action="validateAtlases" disabled={true} />
   </Actions>
   <Actions collapseKey="atlasActionsCollapsed">
