@@ -4,7 +4,7 @@
  */
 
 import { PROJECT_CONFIG } from "handoff/project";
-import { getPluginData, isFigmaComponentInstance, isFigmaRectangle, isLayerData, isLayerExportable, isLayerGUINode, isLayerGameObject, isLayerSprite, isLayerSpriteHolder } from "utilities/figma";
+import { getPluginData, isFigmaComponentInstance, isFigmaRectangle, isLayerData, isLayerExportable, isLayerGUINode, isLayerGameObject, isLayerSprite } from "utilities/figma";
 import { isSlice9PlaceholderLayer, isSlice9ServiceLayer } from "utilities/slice9";
 
 /**
@@ -32,8 +32,7 @@ export function isLayerInferred(layer: SceneNode, pluginDataKey: "defoldGUINode"
 export async function isLayerSkippable(layer: ExportableLayer, data: GUINodeData | GameObjectData | PluginGUINodeData | PluginGameObjectData): Promise<boolean> {
   return data.skip ||
     layer.name.startsWith(PROJECT_CONFIG.autoskip) ||
-    isSlice9PlaceholderLayer(layer) ||
-    await isLayerSpriteHolder(layer);
+    isSlice9PlaceholderLayer(layer);
 }
 
 /**

@@ -6,7 +6,7 @@
 import config from "config/config.json";
 import JSZip from "jszip";
 import { createBlob } from "utilities/blob";
-import { ensureRelativePath, generateAtlasFileName, generateGUIPath, generateGameCollectionPath, generateSpineFileName, generateSpriteFileName, generateTemplatePath, resolveSpriteExtension } from "utilities/path";
+import { ensureRelativePath, generateAtlasFileName, generateGUIFileName, generateGUIPath, generateGameCollectionFileName, generateGameCollectionPath, generateSpineFileName, generateSpriteFileName, generateTemplatePath, resolveSpriteExtension } from "utilities/path";
 
 /**
  * Archives the bundled into a zip archive.
@@ -62,6 +62,7 @@ function archiveGameObjects(gameObjects: SerializedGameCollectionData[], assetsF
  * @param assetsFolder - The folder in archive.
  */
 function archiveGameObject({ name, data, filePath }: SerializedGameCollectionData, assetsFolder: JSZip) {
+  name = ensureUniqueGameObjectName(name, assetsFolder);
   const gameCollectionFilePath = generateGameCollectionPath(name, filePath);
   const relativePath = ensureRelativePath(gameCollectionFilePath);
   assetsFolder.file(relativePath, data);
@@ -82,6 +83,7 @@ function archiveGUI(guiNodes: SerializedGUIData[], assetsFolder: JSZip) {
  * @param assetsFolder - The folder in archive.
  */
 function archiveGUINode({ name, data, template, templateName, templatePath, filePath }: SerializedGUIData, assetsFolder: JSZip) {
+  name = ensureUniqueGUIName(name, assetsFolder);
   const isTemplate = template && templateName && templatePath;
   const guiFilePath = isTemplate ? generateTemplatePath(templatePath, templateName) : generateGUIPath(name, filePath);
   const relativePath = ensureRelativePath(guiFilePath);
@@ -184,4 +186,26 @@ export async function archivePSD(files: { fileName: string, buffer: ArrayBuffer 
 
 function archivePSDFile({ fileName, buffer }: { fileName: string, buffer: ArrayBuffer }, zip: JSZip) {
   zip.file(fileName, buffer);
+}
+
+function ensureUniqueGUIName(name: string, folder: JSZip): string {
+  let fileName = generateGUIFileName(name);
+  let index = 1;
+  while (folder.files[fileName]) {
+    name = `${name}_${index}`;
+    index += 1;
+    fileName = generateGUIFileName(name);
+  }
+  return name;
+}
+
+function ensureUniqueGameObjectName(name: string, folder: JSZip): string {
+  let fileName = generateGameCollectionFileName(name);
+  let index = 1;
+  while (folder.files[fileName]) {
+    name = `${name}_${index}`;
+    index += 1;
+    fileName = generateGUIFileName(name);
+  }
+  return name;
 }

@@ -65,11 +65,13 @@ export function calculateCenteredPosition(layer: SceneNode, size: Vector4, optio
   const scale = inferScale(layer);
   const figmaSize = inferFigmaSize(layer);
   const figmaPosition = inferFigmaPosition(layer);
-  const { x, y } = figmaPosition;
   const { x: width, y: height } = figmaSize;
-  const normalizedX = scale.x == -1 ? x - width : x;
-  const normalizedY = scale.y == -1 ? y - height : y;
-  const center = calculateCenter(normalizedX, normalizedY, width, height, rotation.z);
+  let { x, y } = figmaPosition;
+  if (scale.x != scale.y) {
+    x = scale.x == -1 ? x - width : x;
+    y = scale.y == -1 ? y - height : y;
+  }
+  const center = calculateCenter(x, y, width, height, rotation.z);
   const centeredX = center.x - (parentSize.x / 2) + parentShift.x;
   const centeredY = (parentSize.y / 2) - center.y - parentShift.y;
   return vector4(centeredX, centeredY, 0, 0);
