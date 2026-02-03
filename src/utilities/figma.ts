@@ -5,7 +5,7 @@
 
 import { convertPaintToRGBA, isNonWhiteRGBColor, resolveBaseFill, resolveBaseTextOutline } from "utilities/color";
 import { canChangeGUINodeOverridesPluginData, resolveGUINodeOverridesDataKey } from "utilities/gui";
-import { absFloor, vector4 } from "utilities/math";
+import { absFloor, vector4, wrapDegrees } from "utilities/math";
 import { isSlice9PlaceholderLayer } from "utilities/slice9";
 
 /**
@@ -192,7 +192,7 @@ export function isLayerData(layer: BaseNode): layer is DataLayer {
  * @returns True if the Figma layer is exportable, otherwise false.
  */
 export function isLayerExportable(layer: BaseNode): layer is ExportableLayer {
-  return isLayerNode(layer) || isFigmaSlice(layer);
+  return isLayerNode(layer) || isFigmaSlice(layer) || isFigmaRectangle(layer);
 }
 
 export function isLayerContext(layer: BaseNode): layer is ContextLayer {
@@ -901,4 +901,43 @@ export function layerSorterByName(layerA: SceneNode, layerB: SceneNode) {
     return 1;
   }
   return 0;
+}
+
+export function decomposeRelativeTransform(transformMatrix: Transform): { rotation: number, scaleX: number, scaleY: number } {
+  const [ [ m00, m01 ], [ m10, m11 ] ] = transformMatrix;
+  let scaleX = Math.hypot(m00, m10);
+  if (scaleX === 0) {
+    scaleX = 1e-12;
+  }
+  const r00 = m00 / scaleX;
+  const r10 = m10 / scaleX;
+  const shear = r00 * m01 + r10 * m11;
+  const y0 = m01 - r00 * shear;
+  const y1 = m11 - r10 * shear;
+  let scaleY = Math.hypot(y0, y1);
+  if (scaleY === 0) {
+    scaleY = 1e-12;
+  }
+  let r01 = y0 / scaleY;
+  let r11 = y1 / scaleY;
+  const determinant = r00 * r11 - r01 * r10;
+  if (determinant < 0) {
+    scaleY = -scaleY;
+    r01 = -r01;
+    r11 = -r11;
+  }
+  const angle = Math.atan2(-r10, r00) * 180 / Math.PI;
+  const rotation = wrapDegrees(angle);
+
+  return { rotation, scaleX, scaleY };
+}
+
+export function canonicalizeFlipToX(rotation: number, scaleX: number, scaleY: number): number {
+  if (scaleX > 0 && scaleY < 0) {
+    return wrapDegrees(rotation + 180);
+  }
+  if (scaleX < 0 && scaleY < 0) {
+    return wrapDegrees(rotation + 180);
+  }
+  return rotation;
 }

@@ -11,7 +11,7 @@ import { resolveBaseBackgroundColor, resolveBaseColor, resolveBaseTextOutline, r
 import { generateContextData } from "utilities/context";
 import { isLayerInferred } from "utilities/data";
 import { injectEmptyComponentDefaults, injectGUINodeDefaults, injectLabelComponentDefaults, injectSpriteComponentDefaults } from "utilities/defaults";
-import { findMainFigmaComponent, getPluginData, hasAbsoluteRenderBounds, hasChildren, hasFont, hasParent, hasSolidNonWhiteFills, hasSolidStrokes, hasSolidVisibleFills, isFigmaBox, isFigmaComponentInstance, isFigmaRectangle, isFigmaSlice, isFigmaText, isLayerAtlas, isLayerExportable, isLayerNode, isLayerSprite, isShadowEffect, resolveFillColor, resolveTextOutlineColor, resolveTextShadowColor, setPluginData } from "utilities/figma";
+import { canonicalizeFlipToX, decomposeRelativeTransform, findMainFigmaComponent, getPluginData, hasAbsoluteRenderBounds, hasChildren, hasFont, hasParent, hasSolidNonWhiteFills, hasSolidStrokes, hasSolidVisibleFills, isFigmaBox, isFigmaComponentInstance, isFigmaRectangle, isFigmaSlice, isFigmaText, isLayerAtlas, isLayerExportable, isLayerNode, isLayerSprite, isShadowEffect, resolveFillColor, resolveTextOutlineColor, resolveTextShadowColor, setPluginData } from "utilities/figma";
 import { tryFindFont } from "utilities/font";
 import { resolveGameCollectionExportOptions } from "utilities/gameCollectionExport";
 import { detectFlip, isZeroVector, readableNumber, readableVector, vector4 } from "utilities/math";
@@ -308,12 +308,12 @@ export function inferFigmaSize(layer: SceneNode) {
  * @returns The inferred rotation for the GUI node or game object.
  */
 export function inferRotation(layer: SceneNode): Vector4 {
-  if (isLayerExportable(layer) || isFigmaRectangle(layer)) {
-    const actionableLayer = ensureActionableLayer(layer);
-    if (isFigmaBox(actionableLayer)) {
-      const { rotation } = actionableLayer;
-      return vector4(0, 0, readableNumber(rotation), 0);
-    }
+  const actionableLayer = ensureActionableLayer(layer);
+  if (isLayerExportable(actionableLayer)) {
+    const { relativeTransform } = actionableLayer;
+    const { rotation, scaleX, scaleY } = decomposeRelativeTransform(relativeTransform);
+    const canonicalRotation = canonicalizeFlipToX(rotation, scaleX, scaleY);
+    return vector4(0, 0, readableNumber(canonicalRotation), 0);
   }
   return vector4(0);
 }
@@ -324,7 +324,7 @@ export function inferRotation(layer: SceneNode): Vector4 {
  */
 export function inferScale(layer: SceneNode) {
   const actionableLayer = ensureActionableLayer(layer);
-  if (isFigmaBox(actionableLayer)) {
+  if (isFigmaBox(actionableLayer) || isFigmaRectangle(actionableLayer) || isFigmaText(actionableLayer)) {
     const { flipX, flipY } = detectFlip(actionableLayer.relativeTransform);
     const scaleX = flipX ? -1 : 1;
     const scaleY = flipY ? -1 : 1;
@@ -345,7 +345,9 @@ export function inferTextScale(layer: TextNode) {
     return baseScale;
   }
   const textScale = calculateTextScale(fontSize);
-  const scale = vector4(textScale.x * baseScale.x, textScale.y * baseScale.y, 1, 1);
+  const x = textScale.x * baseScale.x;
+  const y = textScale.y * baseScale.y;
+  const scale = vector4(x, y, 1, 1);
   return readableVector(scale);
 }
 
@@ -376,8 +378,8 @@ export function inferSize(layer: SceneNode) {
  */
 export function inferTextBoxSize(layer: TextLayer, scale: Vector4) {
   const { width, height } = layer;
-  const scaledWidth = Math.ceil(width / scale.x);
-  const scaledHeight = Math.ceil(height / scale.y);
+  const scaledWidth = Math.ceil(width / Math.abs(scale.x));
+  const scaledHeight = Math.ceil(height / Math.abs(scale.y));
   return vector4(scaledWidth, scaledHeight, 0, 0);
 }
 

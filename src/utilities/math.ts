@@ -268,3 +268,7 @@ export function convertRotationToQuaternion(degrees: number): Vector4 {
   const w = Math.cos(half);
   return vector4(0, 0, z, w);
 }
+
+export function wrapDegrees(deg: number): number {
+  return ((deg + 180) % 360) - 180;
+}
