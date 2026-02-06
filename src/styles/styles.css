@@ -535,3 +535,33 @@ select:hover:disabled {
 .originalValue {
   display: none;
 }
+
+.clipboardHelperOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0.17, 0.18, 0.20, 0.5);
+}
+
+.clipboardHelperOverlay button {
+  position: absolute;
+  z-index: 1;
+  top: 60px;
+  right: 30px;
+  min-width: 100px;
+}
+
+.clipboardHelperOverlay textarea {
+  padding: 1em;
+  font-family: monospace;
+}
+
+.clipboardHelper {
+  position: absolute;
+  top: 50px;
+  bottom: 20px;
+  left: 20px;
+  right: 20px;
+}

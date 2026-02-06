@@ -1,9 +1,11 @@
 <script lang="ts">
 /* global PKG */
 
+  import ClipboardHelper from "components/ClipboardHelper";
   import Controls from "components/Controls";
   import Pages from "components/Pages";
   import PluginSignals from "components/PluginSignals";
+  import StateSignals from "components/StateSignals";
   import config from "config/config.json";
   import selectionState from "state/selection";
   import uiState from "state/ui";
@@ -34,5 +36,7 @@
   {#if !$uiState.collapsed}
     <Pages />
   {/if}
+  <ClipboardHelper />
 {/if}
 <PluginSignals />
+<StateSignals />

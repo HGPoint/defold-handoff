@@ -51,6 +51,10 @@ export function isPluginMessage(event: MessageEvent): event is MessageEvent<UIMe
   return !!event?.data?.pluginMessage;
 }
 
+export function isUIMessage(event: MessageEvent): event is MessageEvent<UIMessage> {
+  return !!event?.data?.UIMessage;
+}
+
 /**
  * Determines whether the data contains a valid plugin message payload.
  * @param data - The data to check.

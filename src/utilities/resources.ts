@@ -265,7 +265,10 @@ export function copyGUI({ bundle }: PluginMessagePayload) {
     const { gui } = bundle;
     if (isSerializedGUIData(gui)) {
       const [ guiNode ] = gui;
-      copyOnClipboard(guiNode.data);
+      const success = copyOnClipboard(guiNode.data);
+      if (!success) {
+        window.postMessage({ StateMessage: { type: "updateClipboardState", data: guiNode.data } }, "*");
+      }
     }
   }
 }
@@ -276,7 +279,10 @@ export function copyGUI({ bundle }: PluginMessagePayload) {
  */
 export function copyGUIScheme({ scheme }: PluginMessagePayload) {
   if (scheme) {
-    copyOnClipboard(scheme);
+    const success = copyOnClipboard(scheme);
+    if (!success) {
+      window.postMessage({ StateMessage: { type: "updateClipboardState", data: scheme } }, "*");
+    }
   }
 }
 
@@ -289,7 +295,10 @@ export function copyGameObjects({ bundle }: PluginMessagePayload) {
     const { gameObjects } = bundle;
     if (isSerializedGameCollectionData(gameObjects)) {
       const [gameObject] = gameObjects;
-      copyOnClipboard(gameObject.data);
+      const success = copyOnClipboard(gameObject.data);
+      if (!success) {
+        window.postMessage({ StateMessage: { type: "updateClipboardState", data: gameObject.data } }, "*");
+      }
     }
   }
 }

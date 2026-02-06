@@ -11,4 +11,4 @@
   }
 </script>
 
-<Button {label} {disabled} onClick={onClick} />
+<Button {label} {disabled} {onClick} />
