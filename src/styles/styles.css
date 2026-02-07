@@ -553,6 +553,10 @@ select:hover:disabled {
   min-width: 100px;
 }
 
+.clipboardHelperOverlay button + button {
+  right: 140px;
+}
+
 .clipboardHelperOverlay textarea {
   padding: 1em;
   font-family: monospace;

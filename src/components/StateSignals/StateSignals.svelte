@@ -1,9 +1,13 @@
 <script lang="ts">
   import clipboardState from "state/clipboard";
 
+  function isStateMessage(event: MessageEvent) {
+    return !!event?.data?.stateMessage;
+  }
+
   function onMessage(event: MessageEvent) {
-    if (event.data.StateMessage) {
-      const { type, data } = event.data.StateMessage;
+    if (isStateMessage(event)) {
+      const { stateMessage: { type, data } } = event.data;
       if (type == "updateClipboardState" && typeof data == "string") {
         $clipboardState = data;
       }

@@ -37,11 +37,10 @@ export async function runTransformPipeline<TData, TTransformedData>(pipeline: Tr
  * @param data - The data to transform.
  * @returns The preprocessed data and resources.
  */
-async function runPreparationPipelineSteps<TData, TTransformedData>(pipeline: TransformPipeline<TData, TTransformedData>, data: TData) {
-  return Promise.all([
-    runPreprocessingPipelineStep(pipeline, data),
-    runResourcesPipelineStep(pipeline, data),
-  ]);
+async function runPreparationPipelineSteps<TData, TTransformedData>(pipeline: TransformPipeline<TData, TTransformedData>, data: TData): Promise < [Awaited<TData>, PipelineResources | undefined] > {
+  const preprocessing = await runPreprocessingPipelineStep(pipeline, data);
+  const resources = await runResourcesPipelineStep(pipeline, data);
+  return [preprocessing, resources];
 }
 
 /**

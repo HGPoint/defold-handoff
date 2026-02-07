@@ -267,7 +267,7 @@ export function copyGUI({ bundle }: PluginMessagePayload) {
       const [ guiNode ] = gui;
       const success = copyOnClipboard(guiNode.data);
       if (!success) {
-        window.postMessage({ StateMessage: { type: "updateClipboardState", data: guiNode.data } }, "*");
+        window.postMessage({ stateMessage: { type: "updateClipboardState", data: guiNode.data } }, "*");
       }
     }
   }
@@ -281,7 +281,7 @@ export function copyGUIScheme({ scheme }: PluginMessagePayload) {
   if (scheme) {
     const success = copyOnClipboard(scheme);
     if (!success) {
-      window.postMessage({ StateMessage: { type: "updateClipboardState", data: scheme } }, "*");
+      window.postMessage({ stateMessage: { type: "updateClipboardState", data: scheme } }, "*");
     }
   }
 }
@@ -297,7 +297,7 @@ export function copyGameObjects({ bundle }: PluginMessagePayload) {
       const [gameObject] = gameObjects;
       const success = copyOnClipboard(gameObject.data);
       if (!success) {
-        window.postMessage({ StateMessage: { type: "updateClipboardState", data: gameObject.data } }, "*");
+        window.postMessage({ stateMessage: { type: "updateClipboardState", data: gameObject.data } }, "*");
       }
     }
   }
