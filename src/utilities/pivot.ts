@@ -6,7 +6,7 @@
 import { PROJECT_CONFIG } from "handoff/project";
 import { isFigmaPage, isFigmaSection } from "utilities/figma";
 import { inferFigmaPosition, inferFigmaSize, inferRotation, inferScale } from "utilities/inference";
-import { addVectors, calculateCenter, divideVectorByValue, isZeroVector, shiftAlongAxis, vector4 } from "utilities/math";
+import { addVectors, calculateCenter, detectSign, divideVectorByValue, isZeroVector, shiftAlongAxis, vector4 } from "utilities/math";
 
 /**
  * Determines whether the pivot point is located to the north.
@@ -81,7 +81,7 @@ export function calculateCenteredPosition(layer: SceneNode, size: Vector4, optio
  * @returns The pivoted position of the layer.
  */
 export function calculatePivotedPosition(centeredPosition: Vector4, pivot: Pivot, size: Vector4, rotation: number, scale: Vector4, options: GUINodeDataExportOptions | GameObjectDataExportOptions) {
-  const position = convertCenteredPositionToPivotedPosition(centeredPosition, options);
+  const position = convertCenteredPositionToPivotedPosition(centeredPosition, scale, options);
   const pivotShift = calculatePivotedShift(pivot, size, rotation, scale, options);
   const pivotedPosition = addVectors(position, pivotShift);
   return pivotedPosition;
@@ -132,8 +132,8 @@ export function calculateCenteredRootPosition(layer: SceneNode, size: Vector4, o
       return vector4(halfScreenWidth, halfScreenHeight, 0, 0);
     } else {
       const { x, y } = calculateCenteredPosition(layer, size, options);
-      const rootX = x + halfScreenWidth;
-      const rootY = y + halfScreenHeight;
+      const rootX = x;
+      const rootY = y + PROJECT_CONFIG.screenSize.y;
       return vector4(rootX, rootY, 0, 0);
     }
   }
@@ -176,7 +176,7 @@ export function calculateChildPosition(layer: SceneNode, pivot: Pivot, size: Vec
  * @param options
  * @returns The pivoted position of the layer.
  */
-export function convertCenteredPositionToPivotedPosition(centeredPosition: Vector4, options: GUINodeDataExportOptions | GameObjectDataExportOptions) {
+export function convertCenteredPositionToPivotedPosition(centeredPosition: Vector4, scale: Vector4, options: GUINodeDataExportOptions | GameObjectDataExportOptions) {
   const { parentSize, parentPivot } = options;
   const { x, y } = centeredPosition;
   const { x: width, y: height } = parentSize;
@@ -204,8 +204,8 @@ export function convertCenteredPositionToPivotedPosition(centeredPosition: Vecto
  */
 export function calculatePivotedShift(pivot: Pivot, size: Vector4, rotation: number, scale: Vector4, options: GUINodeDataExportOptions | GameObjectDataExportOptions) {
   const { x: width, y: height } = size;
-  const x = calculatePivotedHorizontalShift(pivot, width, scale.x, options);
-  const y = calculatePivotedVerticalShift(pivot, height, scale.y, options);
+  const x = calculatePivotedHorizontalShift(pivot, width, scale, options);
+  const y = calculatePivotedVerticalShift(pivot, height, scale, options);
   const straightShift = vector4(x, y, 0, 0);
   const shift = shiftAlongAxis(straightShift, rotation);
   return shift;
@@ -218,33 +218,32 @@ export function calculatePivotedShift(pivot: Pivot, size: Vector4, rotation: num
  * @param options
  * @returns The horizontal shift of the layer.
  */
-function calculatePivotedHorizontalShift(pivot: Pivot, width: number, scale: number, options: GUINodeDataExportOptions | GameObjectDataExportOptions) {
+function calculatePivotedHorizontalShift(pivot: Pivot, width: number, scale: Vector4, options: GUINodeDataExportOptions | GameObjectDataExportOptions) {
   const { parentPivot } = options;
-  const halfWidth = width / 2;
-  const scaleShift = scale == -1 ? width : 0;
+  const halfWidth = width / 2 * detectSign(scale.x);
   if (isPivotEast(parentPivot)) {
     if (isPivotEast(pivot)) {
-      return halfWidth - scaleShift;
+      return halfWidth;
     } else if (isPivotWest(pivot)) {
-      return -halfWidth - scaleShift;
+      return -halfWidth;
     } else {
-      return 0 - scaleShift;
+      return 0;
     }
   } else if (isPivotWest(parentPivot)) {
     if (isPivotEast(pivot)) {
-      return halfWidth - scaleShift;
+      return halfWidth;
     } else if (isPivotWest(pivot)) {
-      return -halfWidth - scaleShift;
+      return -halfWidth;
     } else {
-      return 0 - scaleShift;
+      return 0;
     }
   } else {
     if (isPivotEast(pivot)) {
-      return halfWidth - scaleShift;
+      return halfWidth;
     } else if (isPivotWest(pivot)) {
-      return -halfWidth - scaleShift;
+      return -halfWidth;
     } else {
-      return 0 - scaleShift;
+      return 0;
     }
   }
 }
@@ -256,31 +255,30 @@ function calculatePivotedHorizontalShift(pivot: Pivot, width: number, scale: num
  * @param options
  * @returns The vertical shift of the layer.
  */
-function calculatePivotedVerticalShift(pivot: Pivot, height: number, scale: number, options: GUINodeDataExportOptions | GameObjectDataExportOptions) {
+function calculatePivotedVerticalShift(pivot: Pivot, height: number, scale: Vector4, options: GUINodeDataExportOptions | GameObjectDataExportOptions) {
   const { parentSize, parentPivot } = options;
   const { y: parentHeight } = parentSize;
-  const halfHeight = height / 2;
-  const scaleShift = scale == -1 ? height : 0;
+  const halfHeight = height / 2 * detectSign(scale.y);
   if (isPivotNorth(parentPivot)) {
     if (isPivotNorth(pivot)) {
-      return halfHeight - parentHeight - scaleShift;
+      return halfHeight - parentHeight;
     } else if (isPivotSouth(pivot)) {
-      return -parentHeight - halfHeight - scaleShift;
+      return -parentHeight - halfHeight;
     }
-    return -parentHeight - scaleShift;
+    return -parentHeight;
   } else if (isPivotSouth(parentPivot)) {
     if (isPivotNorth(pivot)) {
-      return halfHeight + parentHeight - scaleShift;
+      return halfHeight + parentHeight;
     } else if (isPivotSouth(pivot)) {
-      return parentHeight - halfHeight - scaleShift;
+      return parentHeight - halfHeight;
     }
-    return parentHeight - scaleShift;
+    return parentHeight;
   } else {
     if (isPivotNorth(pivot)) {
-      return halfHeight - scaleShift;
+      return halfHeight;
     } else if (isPivotSouth(pivot)) {
-      return -halfHeight - scaleShift;
+      return -halfHeight;
     }
-    return 0 - scaleShift;
+    return 0;
   }
 }

@@ -152,8 +152,8 @@ function canCollapseWithParent(parent: GUINodeData, child: GUINodeData): boolean
  * @param childIndex - The index of the child node.
  */
 function collapseWithParent(parent: GUINodeData, child: GUINodeData, childIndex: number) {
-  parent.visible = child.visible;
   parent.texture = child.texture;
+  parent.visible = parent.texture ? true : child.visible;
   parent.texture_size = child.texture_size && copyVector(child.texture_size);
   parent.color = child.color;
   parent.size_mode = child.size_mode;
@@ -191,27 +191,29 @@ function collapseWithParent(parent: GUINodeData, child: GUINodeData, childIndex:
 }
 
 function sanitizeGUINodeIDs(nodes: GUINodeData[]) {
-  nodes.forEach((node) => { sanitizeGUINodeID(node); });
+  const used: { [id: string]: true } = {};
+  nodes.forEach((node) => { sanitizeGUINodeID(node, "", used); });
 }
 
-function sanitizeGUINodeID(node: GUINodeData, newParentID: string = "", usedIDs: string[] = []) {
-  const { id } = node;
+function sanitizeGUINodeID(node: GUINodeData, newParentID: string = "", used: { [id: string]: true }) {
+  const id = node.id;
   let newNodeID: string;
   if (newParentID) {
     node.parent = newParentID;
   }
-  if (usedIDs.includes(id)) {
+  if (used[node.id]) {
     let nodeIndex = 1;
     newNodeID = resolveGUINodeID(id, nodeIndex);
-    while (usedIDs.includes(newNodeID)) {
+    while (used[newNodeID]) {
       nodeIndex += 1;
       newNodeID = resolveGUINodeID(id, nodeIndex);
     }
     node.id = newNodeID;
   }
-  usedIDs.push(node.id);
-  if (node.children) {
-    node.children.forEach((child) => sanitizeGUINodeID(child, newNodeID, usedIDs));
+  used[node.id] = true;
+  const parentForChildren = node.id;
+  if (node.children && node.children.length) {
+    node.children.forEach((child) => sanitizeGUINodeID(child, parentForChildren, used));
   }
 }
 

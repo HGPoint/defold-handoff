@@ -229,7 +229,7 @@ export function calculateCenter(x: number, y: number, width: number, height: num
   const lowerRightX = upperRightX + height * Math.sin(radians);
   const lowerRightY = upperRightY + height * Math.cos(radians);
   const centerX = (x + lowerRightX + upperRightX + lowerLeftX) / 4;
-  const centerY = (y + lowerRightY + upperRightY + lowerLeftY) / 4;
+  const centerY = (y + lowerRightY + upperRightY + lowerLeftY) / 4;  
   return vector4(centerX, centerY, 0, 0);
 }
 
@@ -251,9 +251,9 @@ export function shiftAlongAxis(shift: Vector4, rotation: number): Vector4 {
 }
 
 export function detectFlip(transformMatrix: TransformMatrix) {
-  const [[a], [, e]] = transformMatrix;
-  const flipX = a < 0;
-  const flipY = e < 0;
+  const [ [ scaleX ], [ , scaleY ] ] = transformMatrix;
+  const flipX = scaleX < 0;
+  const flipY = scaleY < 0;
   return { flipX, flipY };
 }
 
@@ -271,4 +271,10 @@ export function convertRotationToQuaternion(degrees: number): Vector4 {
 
 export function wrapDegrees(deg: number): number {
   return ((deg + 180) % 360) - 180;
+}
+
+export function normalizeRotation(transformMatrix: Transform, rotation: number): number {
+  const [ [ scaleX ] ] = transformMatrix;
+  const normalizedRotation = scaleX < 0 ? rotation + detectSign(rotation) * -1 * 180 : rotation;
+  return normalizedRotation;
 }

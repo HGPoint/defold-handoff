@@ -11,10 +11,10 @@ import { resolveBaseBackgroundColor, resolveBaseColor, resolveBaseTextOutline, r
 import { generateContextData } from "utilities/context";
 import { isLayerInferred } from "utilities/data";
 import { injectEmptyComponentDefaults, injectGUINodeDefaults, injectLabelComponentDefaults, injectSpriteComponentDefaults } from "utilities/defaults";
-import { canonicalizeFlipToX, decomposeRelativeTransform, findMainFigmaComponent, getPluginData, hasAbsoluteRenderBounds, hasChildren, hasFont, hasParent, hasSolidNonWhiteFills, hasSolidStrokes, hasSolidVisibleFills, isFigmaBox, isFigmaComponentInstance, isFigmaRectangle, isFigmaSlice, isFigmaText, isLayerAtlas, isLayerExportable, isLayerNode, isLayerSprite, isShadowEffect, resolveFillColor, resolveTextOutlineColor, resolveTextShadowColor, setPluginData } from "utilities/figma";
+import { findMainFigmaComponent, getPluginData, hasAbsoluteRenderBounds, hasChildren, hasFont, hasParent, hasSolidNonWhiteFills, hasSolidStrokes, hasSolidVisibleFills, isFigmaBox, isFigmaComponentInstance, isFigmaRectangle, isFigmaSlice, isFigmaText, isLayerAtlas, isLayerExportable, isLayerNode, isLayerSprite, isShadowEffect, resolveFillColor, resolveTextOutlineColor, resolveTextShadowColor, setPluginData } from "utilities/figma";
 import { tryFindFont } from "utilities/font";
 import { resolveGameCollectionExportOptions } from "utilities/gameCollectionExport";
-import { detectFlip, isZeroVector, readableNumber, readableVector, vector4 } from "utilities/math";
+import { detectFlip, isZeroVector, normalizeRotation, readableNumber, readableVector, vector4 } from "utilities/math";
 import { calculateCenteredPosition, convertCenteredPositionToPivotedPosition } from "utilities/pivot";
 import { ensureActionableLayer, findSlice9PlaceholderLayer, isSlice9Layer, parseSlice9Data } from "utilities/slice9";
 import { calculateTextScale, calculateTextStrokeWeight, resolveText } from "utilities/text";
@@ -282,10 +282,18 @@ export function inferFigmaPosition(layer: SceneNode) {
   if (isSlice9Layer(layer)) {
     const placeholder = findSlice9PlaceholderLayer(layer);
     if (placeholder) {
-      return vector4(placeholder.x, placeholder.y, 0, 0);
+      const scale = inferScale(placeholder);
+      const { x: width, y: height } = inferFigmaSize(layer);
+      const shiftX = scale.x < 0 ? -width : 0;
+      const shiftY = scale.y < 0 ? -height : 0;
+      return vector4(placeholder.x + shiftX, placeholder.y + shiftY, 0, 0);
     }
   }
-  return vector4(layer.x, layer.y, 0, 0);
+  const scale = inferScale(layer);
+  const { x: width, y: height } = inferFigmaSize(layer);
+  const shiftX = scale.x < 0 ? -width : 0;
+  const shiftY = scale.y < 0 ? -height : 0;
+  return vector4(layer.x + shiftX, layer.y + shiftY, 0, 0);
 }
 
 export function inferFigmaSize(layer: SceneNode) {
@@ -310,10 +318,9 @@ export function inferFigmaSize(layer: SceneNode) {
 export function inferRotation(layer: SceneNode): Vector4 {
   const actionableLayer = ensureActionableLayer(layer);
   if (isLayerExportable(actionableLayer)) {
-    const { relativeTransform } = actionableLayer;
-    const { rotation, scaleX, scaleY } = decomposeRelativeTransform(relativeTransform);
-    const canonicalRotation = canonicalizeFlipToX(rotation, scaleX, scaleY);
-    return vector4(0, 0, readableNumber(canonicalRotation), 0);
+    const { relativeTransform, rotation } = actionableLayer;
+    const normalizedRotation = normalizeRotation(relativeTransform, rotation);
+    return vector4(0, 0, readableNumber(normalizedRotation), 0);
   }
   return vector4(0);
 }

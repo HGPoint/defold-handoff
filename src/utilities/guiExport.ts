@@ -13,7 +13,7 @@ import { isGUITemplate, resolveGUIFilePath, resolveGUINodeForcedName, resolveGUI
 import { convertBoxGUINodeData, convertGUIData, convertImpliedBoxGUINodeData, convertTextGUINodeData, convertTextSpriteGUINodeData } from "utilities/guiConversion";
 import { inferGUIBox, inferGUIText } from "utilities/inference";
 import { extractLayerData } from "utilities/layer";
-import { vector4 } from "utilities/math";
+import { addVectors, vector4 } from "utilities/math";
 import { resolvePSDFilePath, resolvePSDFileSize } from "utilities/psd";
 import { generatePSDLayerData } from "utilities/psdExport";
 import { isSlice9ServiceLayer, isUsedSlice9Layer } from "utilities/slice9";
@@ -333,10 +333,11 @@ function resolveGUINodeLayerOptions(shouldSkip: boolean, parentOptions: GUINodeD
   const { parentScaleFactor } = parentOptions;
   if (shouldSkip) {
     const { parentId, parentSize, parentPivot, parentShift } = parentOptions;
+    const position = guiNodeData.figma_position || vector4(0);
     return {
       parentId,
       parentSize,
-      parentShift,
+      parentShift: addVectors(position, parentShift),
       parentPivot,
       parentScaleFactor,
     };
