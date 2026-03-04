@@ -352,8 +352,7 @@ async function createPSDLayer(layer: SerializedPSDLayerData) {
 }
 
 async function convertUint8ArrayToImageData(data: Uint8Array) {
-  const buffer = Buffer.from(data);
-  const blob = new Blob([buffer], { type: "image/png" });
+  const blob = new Blob([data], { type: "image/png" });
   const imgBitmap = await createImageBitmap(blob);
   const canvas = document.createElement("canvas");
   const context = canvas.getContext("2d");
@@ -365,5 +364,4 @@ async function convertUint8ArrayToImageData(data: Uint8Array) {
   }
   return null;
 }
-
 
