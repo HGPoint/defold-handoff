@@ -5,7 +5,7 @@
 
 import { PROJECT_CONFIG } from "handoff/project";
 import { isFigmaPage, isFigmaSection } from "utilities/figma";
-import { inferFigmaPosition, inferFigmaSize, inferRotation, inferScale } from "utilities/inference";
+import { inferFigmaPosition, inferRotation, inferScale, inferSize } from "utilities/inference";
 import { addVectors, calculateCenter, detectSign, divideVectorByValue, isZeroVector, shiftAlongAxis, vector4 } from "utilities/math";
 
 /**
@@ -62,9 +62,8 @@ export function isPivotVerticalCenter(pivot: Pivot) {
 export function calculateCenteredPosition(layer: SceneNode, size: Vector4, options: GUINodeDataExportOptions | GameObjectDataExportOptions) {
   const { parentSize, parentShift } = options;
   const rotation = inferRotation(layer);
-  const figmaSize = inferFigmaSize(layer);
   const figmaPosition = inferFigmaPosition(layer);
-  const { x: width, y: height } = figmaSize;
+  const { x: width, y: height } = size;
   const { x, y } = figmaPosition;
   const center = calculateCenter(x, y, width, height, rotation.z);
   const centeredX = center.x - (parentSize.x / 2) + parentShift.x;
@@ -99,7 +98,8 @@ export function calculatePivotedPosition(centeredPosition: Vector4, pivot: Pivot
  * @param data - GUI node data of the layer.
  * @returns The root position of the layer.
  */
-export function calculateRootPosition(layer: SceneNode, pivot: Pivot, size: Vector4, options: GUINodeDataExportOptions | GameObjectDataExportOptions, data?: WithNull<PluginGUINodeData | PluginGameObjectData>) {
+export function calculateRootPosition(layer: SceneNode, pivot: Pivot, options: GUINodeDataExportOptions | GameObjectDataExportOptions, data?: WithNull<PluginGUINodeData | PluginGameObjectData>) {
+  const size = inferSize(layer);
   const centeredPosition = calculateCenteredRootPosition(layer, size, options, data);
   if (data?.template && !options.asTemplate) {
     return centeredPosition;
@@ -132,8 +132,8 @@ export function calculateCenteredRootPosition(layer: SceneNode, size: Vector4, o
       return vector4(halfScreenWidth, halfScreenHeight, 0, 0);
     } else {
       const { x, y } = calculateCenteredPosition(layer, size, options);
-      const rootX = x;
-      const rootY = y + PROJECT_CONFIG.screenSize.y;
+      const rootX = x + halfScreenWidth;
+      const rootY = y + halfScreenHeight;
       return vector4(rootX, rootY, 0, 0);
     }
   }
@@ -155,11 +155,12 @@ export function calculateCenteredRootPosition(layer: SceneNode, size: Vector4, o
  * @param data - GUI node data of the child layer.
  * @returns The position of the child layer.
  */
-export function calculateChildPosition(layer: SceneNode, pivot: Pivot, size: Vector4, options: GUINodeDataExportOptions | GameObjectDataExportOptions, data?: WithNull<PluginGUINodeData | PluginGameObjectData>) {
+export function calculateChildPosition(layer: SceneNode, pivot: Pivot, options: GUINodeDataExportOptions | GameObjectDataExportOptions, data?: WithNull<PluginGUINodeData | PluginGameObjectData>) {
   const { parentScaleFactor } = options;
-  const centeredPosition = calculateCenteredPosition(layer, size, options);
   const rotation = inferRotation(layer);
   const scale = inferScale(layer);
+  const size = inferSize(layer);
+  const centeredPosition = calculateCenteredPosition(layer, size, options);
   if (data?.template && !options.asTemplate) {
     const pivotedPosition = calculatePivotedPosition(centeredPosition, "PIVOT_CENTER", size, rotation.z, scale, options);
     const shiftedPosition = divideVectorByValue(pivotedPosition, parentScaleFactor);

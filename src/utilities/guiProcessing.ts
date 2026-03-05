@@ -135,6 +135,7 @@ function collapseGUINode(node: GUINodeData) {
 function canCollapseWithParent(parent: GUINodeData, child: GUINodeData): boolean {
   return (
     !child.fixed &&
+    areVectorsEqual(parent.scale, child.scale) &&
     areVectorsEqual(parent.size, child.size) &&
     parent.type === child.type &&
     !parent.texture &&
@@ -173,7 +174,7 @@ function collapseWithParent(parent: GUINodeData, child: GUINodeData, childIndex:
       if (parent.pivot != child.pivot) {
         const { exportable_layer: layer } = collapsedChild;
         if (layer) {
-          const { pivot, figma_size: size } = collapsedChild;
+          const { pivot } = collapsedChild;
           const { pivot: parentPivot, figma_size: parentSize } = parent;
           const parentShift = vector4(0);
           const options = {
@@ -181,7 +182,7 @@ function collapseWithParent(parent: GUINodeData, child: GUINodeData, childIndex:
             parentSize,
             parentShift
           };
-          collapsedChild.position = calculateChildPosition(layer, pivot, size, options);
+          collapsedChild.position = calculateChildPosition(layer, pivot, options);
         }
       }
       collapsedChild.parent = parent.id;

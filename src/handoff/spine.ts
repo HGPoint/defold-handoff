@@ -7,7 +7,7 @@ import { runTransformPipelines } from "utilities/transformPipeline";
 export async function exportGUISpines(layers: Exclude<ExportableLayer, SliceLayer>[]): Promise<BundleData> {
   const options: GUIPackOptions = {
     textAsSprites: true,
-    collapseEmpty: true,
+    collapseEmpty: false,
     collapseTemplates: true,
   };
   const data = packGUI(layers, options);
@@ -25,7 +25,7 @@ export async function exportGUISpines(layers: Exclude<ExportableLayer, SliceLaye
 export async function exportGUISpineAttachments(layers: Exclude<ExportableLayer, SliceLayer>[]): Promise<BundleData> {
   const options: GUIPackOptions = {
     textAsSprites: true,
-    collapseEmpty: true,
+    collapseEmpty: false,
     collapseTemplates: true,
   };
   const data = packGUI(layers, options);

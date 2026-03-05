@@ -6,7 +6,7 @@ import { runTransformPipelines } from "utilities/transformPipeline";
 export async function exportGUIPSD(layers: Exclude<ExportableLayer, SliceLayer>[]): Promise<SerializedPSDData[]> {
   const options: GUIPackOptions = {
     textAsSprites: true,
-    collapseEmpty: true,
+    collapseEmpty: false,
     collapseTemplates: true,
   };
   const data = packGUI(layers, options);

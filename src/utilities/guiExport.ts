@@ -13,7 +13,7 @@ import { isGUITemplate, resolveGUIFilePath, resolveGUINodeForcedName, resolveGUI
 import { convertBoxGUINodeData, convertGUIData, convertImpliedBoxGUINodeData, convertTextGUINodeData, convertTextSpriteGUINodeData } from "utilities/guiConversion";
 import { inferGUIBox, inferGUIText } from "utilities/inference";
 import { extractLayerData } from "utilities/layer";
-import { addVectors, vector4 } from "utilities/math";
+import { vector4 } from "utilities/math";
 import { resolvePSDFilePath, resolvePSDFileSize } from "utilities/psd";
 import { generatePSDLayerData } from "utilities/psdExport";
 import { isSlice9ServiceLayer, isUsedSlice9Layer } from "utilities/slice9";
@@ -40,7 +40,7 @@ export async function exportGUIData({ layer, parameters }: GUIExportPipelineData
   const { asTemplate } = parameters;
   const rootData = resolveGUINodePluginData(layer);
   const size = resolveGUISize(layer);
-  const exportOptions = resolveGUIExportOptions(layer, parameters);
+  const exportOptions = resolveGUIExportOptions(layer, parameters, rootData);
   const gui = convertGUIData(rootData);
   const filePath = resolveGUIFilePath(rootData);
   const nodes = await generateGUINodeData(exportOptions);
@@ -80,7 +80,7 @@ function resolveGUISize(layer: ExportableLayer) {
  * @param layer - The Figma layer to resolve GUI node export options from
  * @returns The resolved GUI node export options.
  */
-function resolveGUIExportOptions(layer: ExportableLayer, parameters: GUINodeExportParameters): GUINodeDataExportOptions {
+function resolveGUIExportOptions(layer: ExportableLayer, parameters: GUINodeExportParameters, data?: WithNull<PluginGUINodeData>): GUINodeDataExportOptions {
   const options: GUINodeDataExportOptions = {
     ...parameters,
     layer,
@@ -88,8 +88,8 @@ function resolveGUIExportOptions(layer: ExportableLayer, parameters: GUINodeExpo
     namePrefix: "",
     parentId: "",
     parentPivot: config.guiNodeDefaultValues.pivot,
-    parentSize: vector4(0),
-    parentShift: vector4(-layer.x, -layer.y, 0, 0),
+    parentShift: data?.skip ? vector4(0) : vector4(-layer.x, -layer.y, 0, 0),
+    parentSize: vector4(layer.width, layer.height, 0, 0),
     parentScaleFactor: config.guiNodeDefaultSpecialValues.scale_factor,
     clones: []
   };
@@ -333,11 +333,10 @@ function resolveGUINodeLayerOptions(shouldSkip: boolean, parentOptions: GUINodeD
   const { parentScaleFactor } = parentOptions;
   if (shouldSkip) {
     const { parentId, parentSize, parentPivot, parentShift } = parentOptions;
-    const position = guiNodeData.figma_position || vector4(0);
     return {
       parentId,
       parentSize,
-      parentShift: addVectors(position, parentShift),
+      parentShift,
       parentPivot,
       parentScaleFactor,
     };
@@ -345,7 +344,7 @@ function resolveGUINodeLayerOptions(shouldSkip: boolean, parentOptions: GUINodeD
   const resolvedParentScaleFactor = parentScaleFactor * (guiNodeData.scale_factor || config.guiNodeDefaultSpecialValues.scale_factor);
   return {
     parentId: guiNodeData.id,
-    parentSize: guiNodeData.figma_size || vector4(0),
+    parentSize: guiNodeData.size,
     parentShift: vector4(0),
     parentPivot: guiNodeData.pivot || config.gameObjectDefaultValues.pivot,
     parentScaleFactor: resolvedParentScaleFactor

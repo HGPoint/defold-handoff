@@ -133,73 +133,73 @@ export function convertSpineSkinMeshAttachmentGeometry(node: GUINodeData & { tex
 
 function resolveBaseVertices(halfWidth: number, halfHeight: number) {
   return [
-    [-halfWidth, -halfHeight],
-    [halfWidth, -halfHeight],
-    [halfWidth, halfHeight],
     [-halfWidth, halfHeight],
+    [halfWidth, halfHeight],
+    [halfWidth, -halfHeight],
+    [-halfWidth, -halfHeight],
   ];
 }
 
 function resolveBaseUVs() {
   return [
-    [0, 1],
-    [1, 1],
-    [1, 0],
     [0, 0],
+    [1, 0],
+    [1, 1],
+    [0, 1],
   ];
 }
 
 function tryConvertMiddleVerticesAndUVs(index: number, slice9: Vector4, halfWidth: number, halfHeight: number, textureWidth: number, textureHeight: number, vertices: number[][], uvs: number[][]) {
   if (index == 0) {
     if (slice9.x > 0) {
-      const vertex = [-halfWidth + slice9.x, -halfHeight];
+      const vertex = [-halfWidth + slice9.x, halfHeight];
       vertices.push(vertex);
-      const uv = [slice9.x / textureWidth, 1];
+      const uv = [slice9.x / textureWidth, 0];
       uvs.push(uv);
     }
-    if (slice9.z > 0) {
-      const vertex = [halfWidth - slice9.z, -halfHeight];
-      vertices.push(vertex);
-      const uv = [(textureWidth - slice9.z) / textureWidth, 1];
-      uvs.push(uv);
-    }
-  } else if (index == 1) {
-    if (slice9.y > 0) {
-      const vertex = [halfWidth, -halfHeight + slice9.y];
-      vertices.push(vertex);
-      const uv = [1, (textureHeight - slice9.y) / textureHeight];
-      uvs.push(uv);
-    }
-    if (slice9.w > 0) {
-      const vertex = [halfWidth, halfHeight - slice9.w];
-      vertices.push(vertex);
-      const uv = [1, slice9.w / textureHeight];
-      uvs.push(uv);
-    }
-  } else if (index == 2) {
     if (slice9.z > 0) {
       const vertex = [halfWidth - slice9.z, halfHeight];
       vertices.push(vertex);
       const uv = [(textureWidth - slice9.z) / textureWidth, 0];
       uvs.push(uv);
     }
-    if (slice9.x > 0) {
-      const vertex = [-halfWidth + slice9.x, halfHeight];
+  } else if (index == 1) {
+    if (slice9.y > 0) {
+      const vertex = [halfWidth, halfHeight - slice9.y];
       vertices.push(vertex);
-      const uv = [slice9.x / textureWidth, 0];
+      const uv = [1, slice9.y / textureHeight];
+      uvs.push(uv);
+    }
+    if (slice9.w > 0) {
+      const vertex = [halfWidth, -halfHeight + slice9.w];
+      vertices.push(vertex);
+      const uv = [1, (textureHeight - slice9.w) / textureHeight];
+      uvs.push(uv);
+    }
+  } else if (index == 2) {
+    if (slice9.z > 0) {
+      const vertex = [halfWidth - slice9.z, -halfHeight];
+      vertices.push(vertex);
+      const uv = [(textureWidth - slice9.z) / textureWidth, 1];
+      uvs.push(uv);
+    }
+    if (slice9.x > 0) {
+      const vertex = [-halfWidth + slice9.x, -halfHeight];
+      vertices.push(vertex);
+      const uv = [slice9.x / textureWidth, 1];
       uvs.push(uv);
     }
   } else if (index == 3) {
     if (slice9.w > 0) {
-      const vertex = [-halfWidth, halfHeight - slice9.w];
+      const vertex = [-halfWidth, -halfHeight + slice9.w];
       vertices.push(vertex);
-      const uv = [0, slice9.w / textureHeight];
+      const uv = [0, (textureHeight - slice9.w) / textureHeight];
       uvs.push(uv);
     }
     if (slice9.y > 0) {
-      const vertex = [-halfWidth, -halfHeight + slice9.y];
+      const vertex = [-halfWidth, halfHeight - slice9.y];
       vertices.push(vertex);
-      const uv = [0, (textureHeight - slice9.y) / textureHeight];
+      const uv = [0, slice9.y / textureHeight];
       uvs.push(uv);
     }
   }
@@ -208,29 +208,29 @@ function tryConvertMiddleVerticesAndUVs(index: number, slice9: Vector4, halfWidt
 function tryConvertInsideVerticesAndUVs(slice9: Vector4, halfWidth: number, halfHeight: number, textureWidth: number, textureHeight: number, vertices: number[][], uvs: number[][]) {
   if (slice9.x > 0) {
     if (slice9.y > 0) {
-      const vertex = [-halfWidth + slice9.x, -halfHeight + slice9.y];
+      const vertex = [-halfWidth + slice9.x, halfHeight - slice9.y];
       vertices.push(vertex);
-      const uv = [slice9.x / textureWidth, (textureHeight - slice9.y) / textureHeight];
+      const uv = [slice9.x / textureWidth, slice9.y / textureHeight];
       uvs.push(uv);
     }
     if (slice9.w > 0) {
-      const vertex = [-halfWidth + slice9.x, halfHeight - slice9.w];
+      const vertex = [-halfWidth + slice9.x, -halfHeight + slice9.w];
       vertices.push(vertex);
-      const uv = [slice9.x / textureWidth, slice9.w / textureHeight];
+      const uv = [slice9.x / textureWidth, (textureHeight - slice9.w) / textureHeight];
       uvs.push(uv);
     }
   }
   if (slice9.z > 0) {
     if (slice9.y > 0) {
-      const vertex = [halfWidth - slice9.z, -halfHeight + slice9.y];
+      const vertex = [halfWidth - slice9.z, halfHeight - slice9.y];
       vertices.push(vertex);
-      const uv = [(textureWidth - slice9.z) / textureWidth, (textureHeight - slice9.y) / textureHeight];
+      const uv = [(textureWidth - slice9.z) / textureWidth, slice9.y / textureHeight];
       uvs.push(uv);
     }
     if (slice9.w > 0) {
-      const vertex = [halfWidth - slice9.z, halfHeight - slice9.w];
+      const vertex = [halfWidth - slice9.z, -halfHeight + slice9.w];
       vertices.push(vertex);
-      const uv = [(textureWidth - slice9.z) / textureWidth, slice9.w / textureHeight];
+      const uv = [(textureWidth - slice9.z) / textureWidth, (textureHeight - slice9.w) / textureHeight];
       uvs.push(uv);
     }
   }
@@ -238,13 +238,13 @@ function tryConvertInsideVerticesAndUVs(slice9: Vector4, halfWidth: number, half
 
 function findPolygons(width: number, height: number, slice9: Vector4) {
   const x1 = -width / 2;
-  const y1 = -height / 2;
+  const y1 = height / 2;
   const x2 = width / 2;
-  const y2 = height / 2;
+  const y2 = -height / 2;
   const left = x1 + slice9.x;
-  const top = y1 + slice9.y;
+  const top = y1 - slice9.y;
   const right = x2 - slice9.z;
-  const bottom = y2 - slice9.w;
+  const bottom = y2 + slice9.w;
   const slices = [
     [x1, y1, left, top],
     [left, y1, right, top],

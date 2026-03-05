@@ -230,7 +230,7 @@ function convertGUINodeType(layer: ExportableLayer, options: GUINodeDataExportOp
 function convertGUIBoxNodeTransformations(layer: BoxLayer, pivot: Pivot, options: GUINodeDataExportOptions, pluginData?: WithNull<PluginGUINodeData>) {
   const size = convertGUINodeSize(layer, options, pluginData);
   const scale = convertGUINodeScale(layer, options, pluginData);
-  const guiNodeTransformations = convertGUINodeTransformations(layer, pivot, size, options, pluginData);
+  const guiNodeTransformations = convertGUINodeTransformations(layer, pivot, options, pluginData);
   return {
     ...guiNodeTransformations,
     size,
@@ -241,7 +241,7 @@ function convertGUIBoxNodeTransformations(layer: BoxLayer, pivot: Pivot, options
 function convertGUIImpliedBoxNodeTransformations(layer: RectangleNode, pivot: Pivot, options: GUINodeDataExportOptions, pluginData: WithNull<PluginGUINodeData>) {
   const size = convertGUINodeSize(layer, options, pluginData);
   const scale = convertGUINodeScale(layer, options, pluginData);
-  const position = convertGUINodePosition(layer, pivot, size, options, pluginData);
+  const position = convertGUINodePosition(layer, pivot, options, pluginData);
   const figmaPosition = inferFigmaPosition(layer);
   const figmaSize = inferFigmaSize(layer);
   const rotation = inferRotation(layer);
@@ -265,9 +265,8 @@ function convertGUIImpliedBoxNodeTransformations(layer: RectangleNode, pivot: Pi
  */
 function convertGUITextNodeTransformations(layer: TextLayer, pivot: Pivot, options: GUINodeDataExportOptions, pluginData?: WithNull<PluginGUINodeData>) {
   const scale = convertGUITextNodeScale(layer, options, pluginData);
-  const textBoxSize = convertGUINodeSize(layer, options, pluginData);
   const size = convertGUITextNodeSize(layer, scale, options, pluginData);
-  const guiNodeTransformations = convertGUINodeTransformations(layer, pivot, textBoxSize, options, pluginData);
+  const guiNodeTransformations = convertGUINodeTransformations(layer, pivot, options, pluginData);
   return {
     ...guiNodeTransformations,
     size,
@@ -284,10 +283,10 @@ function convertGUITextNodeTransformations(layer: TextLayer, pivot: Pivot, optio
  * @param pluginData - The GUI node plugin data.
  * @returns The converted GUI node base transformations.
  */
-function convertGUINodeTransformations(layer: ExportableLayer, pivot: Pivot, size: Vector4, options: GUINodeDataExportOptions, pluginData?: WithNull<PluginGUINodeData>) {
+function convertGUINodeTransformations(layer: ExportableLayer, pivot: Pivot, options: GUINodeDataExportOptions, pluginData?: WithNull<PluginGUINodeData>) {
   const figmaPosition = inferFigmaPosition(layer);
   const figmaSize = inferFigmaSize(layer);
-  const position = convertGUINodePosition(layer, pivot, figmaSize, options, pluginData);
+  const position = convertGUINodePosition(layer, pivot, options, pluginData);
   const rotation = inferRotation(layer);
   return {
     position,
@@ -302,7 +301,7 @@ async function convertGUITextSpriteNodeTransformations(layer: TextLayer, pivot: 
   const scale = convertGUINodeScale(layer, options, pluginData);
   const figmaPosition = inferFigmaPosition(layer);
   const figmaSize = inferFigmaSize(layer);
-  const position = convertGUINodePosition(layer, pivot, size, options, pluginData);
+  const position = convertGUINodePosition(layer, pivot, options, pluginData);
   const rotation = inferRotation(layer);
   return {
     position,
@@ -336,13 +335,13 @@ function convertGUIBoxNodePivot(pluginData?: WithNull<PluginGUINodeData>) {
  * @param pluginData - The GUI node plugin data.
  * @returns The converted GUI node position.
  */
-function convertGUINodePosition(layer: SceneNode, pivot: Pivot, size: Vector4, options: GUINodeDataExportOptions, pluginData?: WithNull<PluginGUINodeData>) {
+function convertGUINodePosition(layer: SceneNode, pivot: Pivot, options: GUINodeDataExportOptions, pluginData?: WithNull<PluginGUINodeData>) {
   if (options.atRoot) {
-    const position = calculateRootPosition(layer, pivot, size, options, pluginData);
+    const position = calculateRootPosition(layer, pivot, options, pluginData);
     const readablePosition = readableVector(position);
     return readablePosition;
   }
-  const position = calculateChildPosition(layer, pivot, size, options, pluginData);
+  const position = calculateChildPosition(layer, pivot, options, pluginData);
   const readablePosition = readableVector(position);
   return readablePosition;
 }
