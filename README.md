@@ -109,3 +109,7 @@ The plugin offers three modes, each tailored to specific needs:
 ### UI
 
 `src/components/**/*.*` – Svelte components for the UI application.
+
+## License
+
+This project is licensed under the MIT License — see the LICENSE file for details.
