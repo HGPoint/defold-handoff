@@ -9,6 +9,10 @@ declare module "config/config.json" {
       collapsed: {
         width: number,
         height: number,
+      },
+      agent: {
+        width: number,
+        height: number,
       }
     },
     screenSize: Vector4,

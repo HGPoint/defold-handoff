@@ -151,6 +151,7 @@ type UIMessage = {
 type PluginMessage = {
   type: PluginMessageAction,
   data?: PluginMessagePayload,
+  requestId?: string,
 }
 
 type PluginMessagePayload = {
@@ -166,6 +167,15 @@ type PluginMessagePayload = {
   scheme?: string,
   image?: Uint8Array,
   option?: number | string | boolean,
+  agentSelect?: AgentSelectRequest,
+  agentInspect?: AgentInspectRequest,
+  agentFind?: AgentFindRequest,
+  agentCapture?: AgentCaptureRequest,
+  agentRun?: AgentRunRequest,
+  nodes?: AgentNodeData[],
+  document?: AgentDocumentData,
+  result?: unknown,
+  error?: string,
 }
 
 type PluginMessageAction =
@@ -179,7 +189,9 @@ type PluginMessageAction =
   PluginMessagesAtlasAction |
   PluginMessageSpineAction |
   PluginMessagePSDAction |
-  PluginMessagesLayerAction
+  PluginMessagesLayerAction |
+  PluginMessageResponseAction |
+  PluginMessageAgentAction
 
 type PluginMessageUIAction =
   "refreshPlugin" |
@@ -265,3 +277,15 @@ type PluginMessagesLayerAction =
   "restoreSlice9" |
   "requestImage" |
   "imageExtracted"
+
+type PluginMessageResponseAction =
+  "responded" |
+  "failed"
+
+type PluginMessageAgentAction =
+  "agentDocument" |
+  "agentFind" |
+  "agentInspect" |
+  "agentSelect" |
+  "agentCapture" |
+  "agentRun"

@@ -8,11 +8,12 @@
  * @param error - The error to process.
  * @returns The deciphered error message.
  */
-export function processError(error: Error) {
+export function processError(error: Error): string {
   const text = decipherError(error);
   console.error(error);
   console.warn(text);
   figma.notify(text);
+  return text;
 }
 
 /**

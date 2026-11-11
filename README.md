@@ -31,6 +31,7 @@ The plugin offers three modes, each tailored to specific needs:
 
 ### Pseudo-API
 
+- `src/handoff/agent.ts` – Provides endpoints for the agent mode, allowing an external agent to find, inspect, select, and capture Figma layers, and to run code against the Figma Plugin API.
 - `src/handoff/atlas.ts` – Provides endpoints for managing atlas-related features, including creating, updating, and exporting atlases.
 - `src/handoff/bundle.ts` – Provides endpoints for managing resource bundles, primarily focusing on export features.
 - `src/handoff/gameCollection.ts` – Provides endpoints for managing game object-related features, including editing, updating, and exporting game objects.
@@ -40,6 +41,7 @@ The plugin offers three modes, each tailored to specific needs:
 
 ### Utilities
 
+- `src/utilities/agent.ts` – Handles serialization of plugin messages relayed to the agent.
 - `src/utilities/archive.ts` – Handles file archiving using [JSZip](https://github.com/Stuk/jszip).
 - `src/utilities/array.ts` – Handles array operations.
 - `src/utilities/atlas.ts` – Handles operations with atlases.
@@ -109,6 +111,14 @@ The plugin offers three modes, each tailored to specific needs:
 ### UI
 
 `src/components/**/*.*` – Svelte components for the UI application.
+
+## Agent Mode
+
+The `Agent Mode` menu command opens a small window that connects the plugin to a local MCP server, letting an AI agent drive the plugin: find and select layers, edit Defold properties, and export resources. It is available in development builds only, since network access is limited to `devAllowedDomains`.
+
+- `agent/server.mjs` – The MCP server (stdio) with a WebSocket endpoint on `ws://localhost:3055` for the plugin.
+
+To use it, run `npm install` in `agent/`, register `node agent/server.mjs` as an MCP server in your agent, and keep the `Agent Mode` window open in Figma.
 
 ## License
 

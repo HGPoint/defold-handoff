@@ -1,6 +1,8 @@
 <script lang="ts">
 /* global PKG */
 
+  import AgentPage from "components/AgentPage";
+  import AgentSignals from "components/AgentSignals";
   import ClipboardHelper from "components/ClipboardHelper";
   import Controls from "components/Controls";
   import Pages from "components/Pages";
@@ -31,12 +33,17 @@
   $: tryResetScroll($selectionState);
 </script>
 
-{#if $uiState.mode}
-  <Controls {version} />
-  {#if !$uiState.collapsed}
-    <Pages />
+{#if $uiState.mode === "agent"}
+  <AgentPage />
+  <AgentSignals />
+{:else}
+  {#if $uiState.mode}
+    <Controls {version} />
+    {#if !$uiState.collapsed}
+      <Pages />
+    {/if}
+    <ClipboardHelper />
   {/if}
-  <ClipboardHelper />
+  <PluginSignals />
+  <StateSignals />
 {/if}
-<PluginSignals />
-<StateSignals />

@@ -21,12 +21,19 @@
     {
       "name": "Game Designer Mode",
       "command": "game-designer"
+    },
+    {
+      "name": "Agent Mode",
+      "command": "agent"
     }
   ],
   "ui": "dist/ui.html",
   "networkAccess": {
     "allowedDomains": [
       "none"
+    ],
+    "devAllowedDomains": [
+      "ws://localhost:3055"
     ]
   }
 }

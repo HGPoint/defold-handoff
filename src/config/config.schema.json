@@ -137,6 +137,21 @@
             "width",
             "height"
           ]
+        },
+        "agent": {
+          "type": "object",
+          "properties": {
+            "width": {
+              "type": "integer"
+            },
+            "height": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "width",
+            "height"
+          ]
         }
       }
     },

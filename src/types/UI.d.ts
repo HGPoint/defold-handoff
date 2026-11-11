@@ -1,4 +1,4 @@
-type UIMode = "developer" | "designer" | "game-designer";
+type UIMode = "developer" | "designer" | "game-designer" | "agent";
 
 type UIData = {
   mode: UIMode,

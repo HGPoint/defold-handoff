@@ -103,7 +103,8 @@ export function isSelectionUIData(selection?: SelectionUIData): selection is Sel
 export function isUIMode(mode: string): mode is UIMode {
   return isUIModeDeveloper(mode) ||
     isUIModeDesigner(mode) ||
-    isUIModeGameDesigner(mode);
+    isUIModeGameDesigner(mode) ||
+    isUIModeAgent(mode);
 }
 
 /**
@@ -131,6 +132,15 @@ export function isUIModeDesigner(mode: string): mode is "designer" {
  */
 export function isUIModeGameDesigner(mode: string): mode is "game-designer" {
   return mode === "game-designer";
+}
+
+/**
+ * Checks if the UI mode is "agent".
+ * @param mode - The UI mode to check.
+ * @returns True if the UI mode is "agent", otherwise false.
+ */
+export function isUIModeAgent(mode: string): mode is "agent" {
+  return mode === "agent";
 }
 
 /**
@@ -166,6 +176,15 @@ export function isCurrentUIModeDesigner(): boolean {
 export function isCurrentUIModeGameDesigner(): boolean {
   const mode = getCurrentUIMode();
   return isUIModeGameDesigner(mode);
+}
+
+/**
+ * Determines whether the current UI mode is "agent".
+ * @returns True if the current UI mode is "agent", otherwise false.
+ */
+export function isCurrentUIModeAgent(): boolean {
+  const mode = getCurrentUIMode();
+  return isUIModeAgent(mode);
 }
 
 /**
