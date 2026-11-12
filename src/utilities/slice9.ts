@@ -12,6 +12,8 @@ import { getGUINodePluginData } from "utilities/gui";
 import { inferSizeMode } from "utilities/inference";
 import { areVectorsEqual, isZeroVector, vector4 } from "utilities/math";
 
+const SLICE9_SERVICE_FRAME_MIN_SIZE = 0.01;
+
 export function ensureOriginalLayer(layer: BaseNode): BaseNode {
   if (isSlice9PlaceholderLayer(layer)) {
     const slice9Layer = findSlice9Layer(layer);
@@ -305,8 +307,8 @@ async function createSlice9LeftTopServiceFrame(placeholder: FrameNode, layer: In
  */
 async function createSlice9CenterTopServiceFrame(placeholder: FrameNode, layer: InstanceNode, slice9: Vector4) {
   const { x: left, y: top, z: right } = slice9;
-  if (top) {
-    const width = layer.width - left - right;
+  const width = layer.width - left - right;
+  if (top && width >= SLICE9_SERVICE_FRAME_MIN_SIZE) {
     const height = top;
     const frame = figma.createFrame();
     frame.x = left;
@@ -375,9 +377,9 @@ async function createSlice9RightTopServiceFrame(placeholder: FrameNode, layer: I
  */
 async function createSlice9LeftCenterServiceFrame(placeholder: FrameNode, layer: InstanceNode, slice9: Vector4) {
   const { x: left, y: top, w: bottom } = slice9;
-  if (left) {
+  const height = layer.height - top - bottom;
+  if (left && height >= SLICE9_SERVICE_FRAME_MIN_SIZE) {
     const width = left;
-    const height = layer.height - top - bottom;
     const frame = figma.createFrame();
     frame.resize(width, height);
     frame.x = 0;
@@ -412,6 +414,9 @@ async function createSlice9CenterServiceFrame(placeholder: FrameNode, layer: Ins
   const { x: left, y: top, z: right, w: bottom } = slice9;
   const width = layer.width - left - right;
   const height = layer.height - top - bottom;
+  if (width < SLICE9_SERVICE_FRAME_MIN_SIZE || height < SLICE9_SERVICE_FRAME_MIN_SIZE) {
+    return null;
+  }
   const frame = figma.createFrame();
   frame.resize(width, height);
   frame.x = left;
@@ -443,9 +448,9 @@ async function createSlice9CenterServiceFrame(placeholder: FrameNode, layer: Ins
  */
 async function createSlice9RightCenterServiceFrame(placeholder: FrameNode, layer: InstanceNode, slice9: Vector4) {
   const { z: right, y: top, w: bottom } = slice9;
-  if (right) {
+  const height = layer.height - top - bottom;
+  if (right && height >= SLICE9_SERVICE_FRAME_MIN_SIZE) {
     const width = right;
-    const height = layer.height - top - bottom;
     const frame = figma.createFrame();
     frame.resize(width, height);
     frame.x = layer.width - right;
@@ -515,8 +520,8 @@ async function createSlice9LeftBottomServiceFrame(placeholder: FrameNode, layer:
  */
 async function createSlice9CenterBottomServiceFrame(placeholder: FrameNode, layer: InstanceNode, slice9: Vector4) {
   const { x: left, z: right, w: bottom } = slice9;
-  if (bottom) {
-    const width = layer.width - left - right;
+  const width = layer.width - left - right;
+  if (bottom && width >= SLICE9_SERVICE_FRAME_MIN_SIZE) {
     const height = bottom;
     const frame = figma.createFrame();
     frame.resize(width, height);
