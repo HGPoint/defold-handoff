@@ -10,6 +10,9 @@
     "!**/__pycache__"
   ],
   "pi": {
+    "extensions": [
+      "./agent/extension.mjs"
+    ],
     "skills": [
       "./agent/skills"
     ]

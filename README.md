@@ -121,14 +121,21 @@ The `Agent Mode` menu command opens a small window that connects the plugin to a
 
 - `agent/server.mjs` – The MCP server (stdio) with a WebSocket endpoint on `ws://localhost:3055` for the plugin. It moves files between the disk and the plugin; everything else happens in `src/handoff/agent.ts`.
 - `agent/skills/defold-handoff` – The agent skill: how Figma maps to Defold, the tools, and the scripts that sync an export with a repository.
+- `agent/extension.mjs` – The [pi](https://pi.dev) extension that registers the server, so a pi install needs no `mcp.json`.
 
-Nothing is published to npm: the repository itself is the package. Register the server in your agent (`.mcp.json`, `.pi/mcp.json`, ...), pinning a tag or a branch after `#`:
+Nothing is published to npm: the repository itself is the package. In pi, install it to get both the server and the skill, pinning a tag or a branch after `@` and adding `-l` to keep it within one project:
+
+```bash
+pi install git:github.com/HGPoint/defold-handoff@master
+```
+
+In any other agent, register the server (`.mcp.json`, ...), pinning a tag or a branch after `#`:
 
 ```json
 { "mcpServers": { "defold-handoff": { "command": "npx", "args": ["-y", "github:HGPoint/defold-handoff#master"] } } }
 ```
 
-From a clone, run `npm install` and use `node agent/server.mjs` instead. The skill is a plain [Agent Skills](https://agentskills.io) directory: copy or link `agent/skills/defold-handoff` into the skills directory of your agent, or install the repository where the agent supports it (`pi install git:github.com/HGPoint/defold-handoff`).
+From a clone, run `npm install` and use `node agent/server.mjs` instead. The skill is a plain [Agent Skills](https://agentskills.io) directory: copy or link `agent/skills/defold-handoff` into the skills directory of your agent.
 
 A project describes itself in `handoff.json` at its root; the fields are listed in the skill. The server and the scripts find it going up from the working directory. Keep the `Agent Mode` window open in Figma while the agent works.
 
