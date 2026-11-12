@@ -4,7 +4,7 @@
  */
 
 import config from "config/config.json";
-import { captureNode, describeDocument, findNodes, inspectNodes, runCode, selectNodes } from "handoff/agent";
+import { captureNode, describeDocument, exportPage, findNodes, inspectNodes, runCode, selectNodes } from "handoff/agent";
 import { addSprites, copyAtlases, createAtlas, exportAtlases, exportGameCollectionAtlases, exportGUIAtlases, fitAtlases, fixAtlases, removeAtlases, sortAtlasesAlphabetically, sortAtlasesBySize, tryExtractSprite, tryRestoreAtlases, updateAtlas } from "handoff/atlas";
 import { exportBareBundle, exportBundle } from "handoff/bundle";
 import { copyGameCollection, exportGameCollections, fixGameObjects, removeGameObjects, updateGameObject } from "handoff/gameCollection";
@@ -293,6 +293,8 @@ async function processUIMessage(message: PluginMessage): Promise<PluginMessagePa
     return onAgentCapture(data.agentCapture);
   } else if (type === "agentRun" && data?.agentRun) {
     return onAgentRun(data.agentRun);
+  } else if (type === "agentExport" && data?.agentExport) {
+    return onAgentExport(data.agentExport);
   }
 }
 
@@ -736,11 +738,20 @@ function onAgentNodeCaptured(image: Uint8Array): PluginMessagePayload {
 
 function onAgentRun(request: AgentRunRequest): Promise<PluginMessagePayload> {
   return runCode(request)
-    .then(onAgentCodeRun);
+    .then(onAgentResultResolved);
 }
 
-function onAgentCodeRun(result: unknown): PluginMessagePayload {
+function onAgentResultResolved(result: unknown): PluginMessagePayload {
   return { result };
+}
+
+function onAgentExport(request: AgentExportRequest): Promise<PluginMessagePayload> {
+  return exportPage(request)
+    .then(onAgentPageExported);
+}
+
+function onAgentPageExported(bundle: BundleData): PluginMessagePayload {
+  return { bundle, project: PROJECT_CONFIG };
 }
 
 initializePlugin();

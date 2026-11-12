@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 
-/* global console, process, Buffer, setTimeout, clearTimeout */
+/* global console, process, Buffer, setTimeout, clearTimeout, URL */
 
 import { randomUUID } from "node:crypto";
+import { readFileSync } from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
 import JSZip from "jszip";
@@ -11,30 +12,33 @@ import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 
+const WS_HOST = "127.0.0.1";
 const WS_PORT = 3055;
 const REQUEST_TIMEOUT = 15000;
-const EXPORT_TIMEOUT = 120000;
-
-const EXPORT_ACTIONS = {
-  gui: "exportGUI",
-  gui_atlases: "exportGUIAtlases",
-  atlases: "exportAtlases",
-  bundle: "exportBundle",
-  bare_bundle: "exportBareBundle",
-};
+const RUN_TIMEOUT = 60000;
+const EXPORT_TIMEOUT = 300000;
+const PROJECT_FILE = "handoff.json";
+const BUILD_CODE = "const { id, name } = await L.build(ARGS.spec, await figma.getNodeByIdAsync(ARGS.parentId)); return { id, name };";
+const IMPORT_SPRITES_CODE = "return L.importSprites(ARGS.atlas, ARGS.group, ARGS.files);";
+const UPDATE_SPRITE_CODE = "return L.updateSprite(ARGS.sprite, ARGS.image);";
+const { version: VERSION } = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
 
 const pending = new Map();
 
 let plugin = null;
+let listenError = null;
 
 function log(...args) {
   console.error("[agent]", ...args);
 }
 
-function onPluginMessage(message) {
+function onPluginMessage(socket, message) {
+  if (message.type === "connected") {
+    plugin = { socket, ...message.data };
+    return;
+  }
   const request = pending.get(message.requestId);
   if (!request) {
-    pending.forEach(({ messages }) => messages.push(message));
     return;
   }
   pending.delete(message.requestId);
@@ -43,81 +47,117 @@ function onPluginMessage(message) {
     request.reject(new Error(message.data?.error ?? "Unknown plugin error"));
     return;
   }
-  request.resolve({ data: message.data, messages: request.messages });
+  request.resolve(message.data);
 }
 
 function onPluginConnected(socket) {
-  plugin = socket;
+  plugin = { socket };
   log("plugin connected");
-  socket.on("message", (raw) => onPluginMessage(JSON.parse(raw.toString())));
+  socket.on("message", (raw) => onPluginMessage(socket, JSON.parse(raw.toString())));
   socket.on("close", () => {
-    if (plugin === socket) {
+    if (plugin?.socket === socket) {
       plugin = null;
     }
     log("plugin disconnected");
   });
 }
 
+function onListenFailed(error) {
+  listenError = error.code === "EADDRINUSE" ? `Port ${WS_PORT} is taken: another agent session holds the plugin connection` : error.message;
+  log(listenError);
+}
+
 function onRequestTimedOut(requestId, type) {
   const { reject } = pending.get(requestId);
   pending.delete(requestId);
-  reject(new Error(`Timed out waiting for ${type}`));
+  reject(new Error(`Timed out waiting for ${type}. It may have been applied: inspect before repeating`));
 }
 
-function request(type, data, timeout = REQUEST_TIMEOUT) {
+function requirePlugin() {
+  if (listenError) {
+    throw new Error(listenError);
+  }
   if (!plugin) {
     throw new Error("Figma plugin is not connected. Open Defold Handoff > Agent Mode in Figma.");
   }
+  if (plugin.version !== VERSION) {
+    throw new Error(`Plugin is ${plugin.version ?? "unknown"}, the agent is ${VERSION}. Update both to the same release.`);
+  }
+  return plugin.socket;
+}
+
+function request(type, payload, timeout = REQUEST_TIMEOUT) {
+  const socket = requirePlugin();
   const requestId = randomUUID();
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => onRequestTimedOut(requestId, type), timeout);
-    pending.set(requestId, { messages: [], resolve, reject, timer });
-    plugin.send(JSON.stringify({ type, data, requestId }));
+    pending.set(requestId, { resolve, reject, timer });
+    socket.send(JSON.stringify({ type, data: { [type]: payload }, requestId }));
   });
 }
 
-async function requestData(type, payload) {
-  const { data } = await request(type, { [type]: payload });
-  return data;
+async function findProjectFile() {
+  for (let directory = process.cwd(); ; directory = path.dirname(directory)) {
+    const file = path.join(directory, PROJECT_FILE);
+    if (await fs.access(file).then(() => true, () => false)) {
+      return file;
+    }
+    if (directory === path.dirname(directory)) {
+      return null;
+    }
+  }
 }
 
-function trimSelection(selection) {
-  if (!selection) {
-    return selection;
+async function readProject() {
+  const file = await findProjectFile();
+  if (!file) {
+    throw new Error(`${PROJECT_FILE} not found in ${process.cwd()} or above it`);
   }
-  const layers = (selection.layers ?? []).map(({ id, name, type }) => ({ id, name, type }));
-  return { ...selection, layers };
+  const project = JSON.parse(await fs.readFile(file, "utf8"));
+  if (!project.page) {
+    throw new Error(`${file}: no page`);
+  }
+  return project;
 }
 
-function trimMessage(message) {
-  if (message.type !== "selectionChanged") {
-    return message;
-  }
-  return { ...message, data: { selection: trimSelection(message.data?.selection) } };
+async function requestProject(type, payload, timeout = RUN_TIMEOUT) {
+  const project = await readProject();
+  return request(type, { ...payload, project }, timeout);
 }
 
-function findArchive(messages) {
-  const exported = messages.find((message) => message.data?.archive);
-  if (!exported) {
-    const failed = messages.find((message) => message.type === "failed");
-    throw new Error(failed?.data?.error ?? "Nothing was exported");
+async function readCode(code, file) {
+  if (code === undefined && file === undefined) {
+    throw new Error("Pass code or file");
   }
-  return exported.data.archive;
+  return code ?? fs.readFile(path.resolve(file), "utf8");
+}
+
+async function readBase64(file) {
+  const bytes = await fs.readFile(path.resolve(file));
+  return bytes.toString("base64");
+}
+
+async function readFiles(files) {
+  const entries = Object.entries(files).map(async ([name, file]) => [name, await readBase64(file)]);
+  return Object.fromEntries(await Promise.all(entries));
+}
+
+async function requireEmpty(directory) {
+  const entries = await fs.readdir(directory).catch(() => []);
+  if (entries.length) {
+    throw new Error(`${directory} is not empty: export into a new directory`);
+  }
 }
 
 async function unpackArchive(base64, outDir) {
   const zip = await JSZip.loadAsync(Buffer.from(base64, "base64"));
-  const written = [];
-  for (const [relativePath, entry] of Object.entries(zip.files)) {
-    if (entry.dir) {
-      continue;
-    }
+  const files = Object.entries(zip.files).filter(([, entry]) => !entry.dir);
+  for (const [relativePath, entry] of files) {
     const target = path.join(outDir, relativePath);
     await fs.mkdir(path.dirname(target), { recursive: true });
     await fs.writeFile(target, await entry.async("nodebuffer"));
-    written.push(target);
   }
-  return written;
+  return files.length;
 }
 
 function text(value) {
@@ -125,88 +165,114 @@ function text(value) {
   return { content: [{ type: "text", text: payload }] };
 }
 
+async function run(code, args) {
+  const { result } = await requestProject("agentRun", { code, args });
+  return text(result ?? null);
+}
+
 function registerTools(server) {
   server.tool(
     "figma_status",
-    "Check whether the Defold Handoff plugin is connected in Agent Mode",
+    "Check the connection to the Defold Handoff plugin (Agent Mode) and which handoff.json is in use",
     {},
-    async () => text({ connected: !!plugin }),
+    async () => text({ connected: !!plugin, plugin: plugin?.version ?? null, agent: VERSION, project: await findProjectFile(), error: listenError }),
   );
 
   server.tool(
     "figma_document",
-    "Read the document name, its pages and the current page",
+    "Read the document name, its pages, the current page and the Handoff project settings (screen size, paths, fonts)",
     {},
-    async () => text(await requestData("agentDocument")),
+    async () => text(await request("agentDocument")),
   );
 
   server.tool(
     "figma_find",
     "Find Figma layers by name substring inside root_id (page or layer). Without root_id searches the current page",
     { query: z.string().min(1), root_id: z.string().optional() },
-    async ({ query, root_id }) => text(await requestData("agentFind", { query, rootId: root_id })),
+    async ({ query, root_id }) => text((await request("agentFind", { query, rootId: root_id })).nodes),
   );
 
   server.tool(
     "figma_inspect",
-    "Read node tree (geometry + Defold GUI node data) of pages or layers. Without ids inspects current selection",
+    "Read the tree of layers: geometry, text styles, the atlas sprite or template behind an instance, the source size of a foreign image, non-default Defold GUI node data. Without ids inspects the current selection",
     { ids: z.array(z.string()).optional(), depth: z.number().int().min(0).max(10).optional() },
-    async ({ ids, depth }) => text(await requestData("agentInspect", { ids, depth })),
+    async ({ ids, depth }) => text((await request("agentInspect", { ids, depth })).nodes),
   );
 
   server.tool(
     "figma_select",
-    "Select layers in Figma, switching to their page. Handoff actions and exports act on this selection",
+    "Select layers in Figma, switching to their page",
     { ids: z.array(z.string()).min(1) },
-    async ({ ids }) => text(await requestData("agentSelect", { ids })),
+    async ({ ids }) => text((await request("agentSelect", { ids })).nodes),
   );
 
   server.tool(
     "figma_screenshot",
-    "Render a Figma page or layer to a PNG image",
-    { id: z.string(), scale: z.number().min(0.1).max(4).optional() },
-    async ({ id, scale }) => {
-      const { image } = await requestData("agentCapture", { id, scale });
-      return { content: [{ type: "image", data: image, mimeType: "image/png" }] };
+    "Render a Figma page or layer to PNG. With path the image is saved to that file instead of being returned: use it to take a sprite out of a frame",
+    { id: z.string(), scale: z.number().min(0.1).max(8).optional(), path: z.string().optional() },
+    async ({ id, scale, path: file }) => {
+      const { image } = await request("agentCapture", { id, scale });
+      if (!file) {
+        return { content: [{ type: "image", data: image, mimeType: "image/png" }] };
+      }
+      const target = path.resolve(file);
+      await fs.mkdir(path.dirname(target), { recursive: true });
+      await fs.writeFile(target, Buffer.from(image, "base64"));
+      return text({ path: target });
     },
   );
 
   server.tool(
     "figma_run",
-    "Run JavaScript inside the plugin as an async function body with the Figma Plugin API available as `figma`. Use it to create, modify or remove layers. Return a JSON-serializable value, never a node",
-    { code: z.string().min(1) },
-    async ({ code }) => text(await requestData("agentRun", { code })),
+    "Run JavaScript inside the plugin as an async function body: inline code or a script file. In scope: `figma` (Plugin API), `L` (Handoff library), `PROJECT` (handoff.json), `ARGS`. Return a JSON-serializable value, never a node",
+    { code: z.string().optional(), file: z.string().optional(), args: z.record(z.unknown()).optional() },
+    async ({ code, file, args }) => run(await readCode(code, file), args),
   );
 
   server.tool(
-    "figma_send",
-    "Send any Defold Handoff plugin message (e.g. updateGUINode, updateGUI, updateProject, fixGUI, updateAtlas, updateSection). Acts on current selection. Resolves when the plugin has processed the message and returns the messages it emitted meanwhile. Use figma_inspect to read the resulting data",
-    { type: z.string(), data: z.record(z.unknown()).optional() },
-    async ({ type, data }) => {
-      const { messages } = await request(type, data);
-      return text(messages.map(trimMessage));
+    "figma_build",
+    "Build a GUI node with its children from a spec file (JSON) inside parent_id: a section for a root, a node for a child. Fails when the parent already has a child of that name",
+    { spec_file: z.string(), parent_id: z.string() },
+    async ({ spec_file, parent_id }) => {
+      const spec = JSON.parse(await fs.readFile(path.resolve(spec_file), "utf8"));
+      return run(BUILD_CODE, { spec, parentId: parent_id });
     },
   );
 
   server.tool(
+    "figma_import_sprites",
+    "Add PNG files as sprites to a group (component set) of an atlas, creating the group when it is new. files maps sprite names to PNG paths; existing names are skipped",
+    { atlas: z.string(), group: z.string(), files: z.record(z.string()) },
+    async ({ atlas, group, files }) => run(IMPORT_SPRITES_CODE, { atlas, group, files: await readFiles(files) }),
+  );
+
+  server.tool(
+    "figma_update_sprite",
+    "Replace the picture of a sprite (`<atlas>/<name>`) with a PNG file, keeping its instances in place. Returns the instances with their kind: slice9, auto, manual",
+    { sprite: z.string(), path: z.string() },
+    async ({ sprite, path: file }) => run(UPDATE_SPRITE_CODE, { sprite, image: await readBase64(file) }),
+  );
+
+  server.tool(
     "figma_export",
-    "Export current selection through Defold Handoff and unpack the result into out_dir",
-    { kind: z.enum(Object.keys(EXPORT_ACTIONS)), out_dir: z.string() },
-    async ({ kind, out_dir }) => {
-      const { messages } = await request(EXPORT_ACTIONS[kind], undefined, EXPORT_TIMEOUT);
-      const archive = findArchive(messages);
-      const files = await unpackArchive(archive, path.resolve(out_dir));
-      return text({ files });
+    "Export every GUI root and atlas of the page through Defold Handoff and unpack them into out_dir, which must be empty or missing",
+    { out_dir: z.string() },
+    async ({ out_dir }) => {
+      const target = path.resolve(out_dir);
+      await requireEmpty(target);
+      const { archive } = await requestProject("agentExport", {}, EXPORT_TIMEOUT);
+      return text({ out_dir: target, files: await unpackArchive(archive, target) });
     },
   );
 }
 
 async function main() {
-  const wss = new WebSocketServer({ port: WS_PORT });
+  const wss = new WebSocketServer({ host: WS_HOST, port: WS_PORT });
   wss.on("connection", onPluginConnected);
-  log(`listening on ws://localhost:${WS_PORT}`);
+  wss.on("error", onListenFailed);
+  wss.on("listening", () => log(`listening on ws://${WS_HOST}:${WS_PORT}`));
 
-  const server = new McpServer({ name: "defold-handoff-agent", version: "0.1.0" });
+  const server = new McpServer({ name: "defold-handoff-agent", version: VERSION });
   registerTools(server);
   await server.connect(new StdioServerTransport());
   process.stdin.on("close", () => process.exit(0));

@@ -7,8 +7,6 @@ import { archiveBundle } from "utilities/archive";
 
 export const AGENT_SERVER_URL = "ws://localhost:3055";
 
-const ARCHIVED_ACTIONS: PluginMessageAction[] = ["guiExported", "gameCollectionsExported", "atlasesExported", "bundleExported"];
-
 /**
  * Encodes bytes to a base64 string.
  * @param bytes - The bytes to encode.
@@ -48,8 +46,8 @@ function serializeValue(_key: string, value: unknown): unknown {
  * @param message - The plugin message.
  * @returns The resolved message data.
  */
-async function resolveMessageData({ type, data }: PluginMessage): Promise<PluginMessagePayload | { archive: string } | undefined> {
-  if (ARCHIVED_ACTIONS.includes(type) && data?.bundle && data.project) {
+async function resolveMessageData({ data }: PluginMessage): Promise<PluginMessagePayload | { archive: string } | undefined> {
+  if (data?.bundle && data.project) {
     const blob = await archiveBundle(data.bundle, data.project);
     const archive = await encodeBlob(blob);
     return { archive };

@@ -168,10 +168,11 @@ type PluginMessagePayload = {
   image?: Uint8Array,
   option?: number | string | boolean,
   agentSelect?: AgentSelectRequest,
-  agentInspect?: AgentInspectRequest,
   agentFind?: AgentFindRequest,
+  agentInspect?: AgentInspectRequest,
   agentCapture?: AgentCaptureRequest,
   agentRun?: AgentRunRequest,
+  agentExport?: AgentExportRequest,
   nodes?: AgentNodeData[],
   document?: AgentDocumentData,
   result?: unknown,
@@ -288,4 +289,5 @@ type PluginMessageAgentAction =
   "agentInspect" |
   "agentSelect" |
   "agentCapture" |
-  "agentRun"
+  "agentRun" |
+  "agentExport"

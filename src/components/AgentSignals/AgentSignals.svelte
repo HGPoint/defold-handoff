@@ -1,7 +1,7 @@
 <script lang="ts">
   import agentState from "state/agent";
   import { AGENT_SERVER_URL, serializeAgentMessage } from "utilities/agent";
-  import { isPluginMessage } from "utilities/ui";
+  import { isPluginMessage, resolvePluginVersion } from "utilities/ui";
 
   const RECONNECT_DELAY = 2000;
   const IDLE_DELAY = 600;
@@ -12,7 +12,7 @@
 
   function connect() {
     socket = new WebSocket(AGENT_SERVER_URL);
-    socket.onopen = resetState;
+    socket.onopen = onServerConnected;
     socket.onmessage = onServerMessage;
     socket.onclose = onServerDisconnected;
   }
@@ -32,6 +32,12 @@
     }
   }
 
+  function onServerConnected() {
+    const message = JSON.stringify({ type: "connected", data: { version: resolvePluginVersion() } });
+    sendToServer(message);
+    resetState();
+  }
+
   function onServerDisconnected() {
     resetState();
     setTimeout(connect, RECONNECT_DELAY);
@@ -44,25 +50,23 @@
     parent.postMessage({ pluginMessage }, "*");
   }
 
-  async function forwardMessage(pluginMessage: PluginMessage) {
+  async function forwardResponse(pluginMessage: PluginMessage) {
     const message = await serializeAgentMessage(pluginMessage);
     sendToServer(message);
-    if (pluginMessage.requestId) {
-      idleTimer = setTimeout(resetState, IDLE_DELAY);
-    }
+    idleTimer = setTimeout(resetState, IDLE_DELAY);
   }
 
-  function onForwardFailed(error: Error) {
-    const message = JSON.stringify({ type: "failed", data: { error: error.message } });
+  function onForwardFailed(error: Error, requestId?: string) {
+    const message = JSON.stringify({ type: "failed", data: { error: error.message }, requestId });
     sendToServer(message);
   }
 
   function onMessage(event: MessageEvent) {
-    if (isPluginMessage(event)) {
+    if (isPluginMessage(event) && event.data.pluginMessage.requestId) {
       const { pluginMessage } = event.data;
       forwarding = forwarding
-        .then(() => forwardMessage(pluginMessage))
-        .catch(onForwardFailed);
+        .then(() => forwardResponse(pluginMessage))
+        .catch((error: Error) => onForwardFailed(error, pluginMessage.requestId));
     }
   }
 

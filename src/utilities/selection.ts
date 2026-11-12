@@ -117,8 +117,17 @@ export function areMultipleLayersSelected(selection: SelectionData | SelectionUI
  * @returns The selection data.
  */
 export function reduceSelectionDataFromSelection(): SelectionData {
+  return reduceSelectionDataFromLayers(figma.currentPage.selection);
+}
+
+/**
+ * Reduces an array of Figma layers to the selection data.
+ * @param layers - The Figma layers to reduce.
+ * @returns The selection data.
+ */
+export function reduceSelectionDataFromLayers(layers: readonly SceneNode[]): SelectionData {
   const selection: SelectionData = { gui: [], gameObjects: [], atlases: [], sections: [], layers: [] };
-  const pluginSelection = figma.currentPage.selection.reduce(selectionDataReducer, selection);
+  const pluginSelection = layers.reduce(selectionDataReducer, selection);
   return pluginSelection;
 }
 

@@ -31,7 +31,7 @@ The plugin offers three modes, each tailored to specific needs:
 
 ### Pseudo-API
 
-- `src/handoff/agent.ts` – Provides endpoints for the agent mode, allowing an external agent to find, inspect, select, and capture Figma layers, and to run code against the Figma Plugin API.
+- `src/handoff/agent.ts` – Provides endpoints for the agent mode, allowing an external agent to find, inspect, select, and capture Figma layers, to export the page, and to run code against the Figma Plugin API with the library that builds GUI nodes and manages atlas sprites.
 - `src/handoff/atlas.ts` – Provides endpoints for managing atlas-related features, including creating, updating, and exporting atlases.
 - `src/handoff/bundle.ts` – Provides endpoints for managing resource bundles, primarily focusing on export features.
 - `src/handoff/gameCollection.ts` – Provides endpoints for managing game object-related features, including editing, updating, and exporting game objects.
@@ -42,6 +42,9 @@ The plugin offers three modes, each tailored to specific needs:
 ### Utilities
 
 - `src/utilities/agent.ts` – Handles serialization of plugin messages relayed to the agent.
+- `src/utilities/agentAtlas.ts` – Handles how the agent manages atlas sprites.
+- `src/utilities/agentGUI.ts` – Handles how the agent builds and edits GUI nodes.
+- `src/utilities/agentPage.ts` – Handles what the agent reads from the current page.
 - `src/utilities/archive.ts` – Handles file archiving using [JSZip](https://github.com/Stuk/jszip).
 - `src/utilities/array.ts` – Handles array operations.
 - `src/utilities/atlas.ts` – Handles operations with atlases.
@@ -114,11 +117,22 @@ The plugin offers three modes, each tailored to specific needs:
 
 ## Agent Mode
 
-The `Agent Mode` menu command opens a small window that connects the plugin to a local MCP server, letting an AI agent drive the plugin: find and select layers, edit Defold properties, and export resources. It is available in development builds only, since network access is limited to `devAllowedDomains`.
+The `Agent Mode` menu command opens a small window that connects the plugin to a local MCP server, letting an AI agent drive the plugin: inspect frames, build GUI nodes, manage atlas sprites, and export resources. It is available in development builds only, since network access is limited to `devAllowedDomains`.
 
-- `agent/server.mjs` – The MCP server (stdio) with a WebSocket endpoint on `ws://localhost:3055` for the plugin.
+- `agent/server.mjs` – The MCP server (stdio) with a WebSocket endpoint on `ws://localhost:3055` for the plugin. It moves files between the disk and the plugin; everything else happens in `src/handoff/agent.ts`.
+- `agent/skills/defold-handoff` – The agent skill: how Figma maps to Defold, the tools, and the scripts that sync an export with a repository.
 
-To use it, run `npm install` in `agent/`, register `node agent/server.mjs` as an MCP server in your agent, and keep the `Agent Mode` window open in Figma.
+Nothing is published to npm: the repository itself is the package. Register the server in your agent (`.mcp.json`, `.pi/mcp.json`, ...), pinning a tag or a branch after `#`:
+
+```json
+{ "mcpServers": { "defold-handoff": { "command": "npx", "args": ["-y", "github:HGPoint/defold-handoff#master"] } } }
+```
+
+From a clone, run `npm install` and use `node agent/server.mjs` instead. The skill is a plain [Agent Skills](https://agentskills.io) directory: copy or link `agent/skills/defold-handoff` into the skills directory of your agent, or install the repository where the agent supports it (`pi install git:github.com/HGPoint/defold-handoff`).
+
+A project describes itself in `handoff.json` at its root; the fields are listed in the skill. The server and the scripts find it going up from the working directory. Keep the `Agent Mode` window open in Figma while the agent works.
+
+The server refuses to work with a plugin of another version: update both together.
 
 ## License
 

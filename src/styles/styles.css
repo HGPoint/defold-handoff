@@ -584,11 +584,11 @@ select:hover:disabled {
 
 .agentIndicator {
   position: relative;
-  width: 12px;
-  height: 12px;
-  margin: 0 0 18px;
+  width: 44px;
+  height: 44px;
+  margin: 0 0 14px;
   border-radius: 50%;
-  background: currentColor;
+  background: radial-gradient(circle, currentColor 5px, transparent 5.5px);
   transition: color 0.3s;
 }
 
@@ -596,32 +596,39 @@ select:hover:disabled {
 .agentIndicator::after {
   content: "";
   position: absolute;
+  border-radius: 50%;
+}
+
+.agentIndicator::before {
   top: 0;
   right: 0;
   bottom: 0;
   left: 0;
-  border-radius: 50%;
+  opacity: 0.12;
+  background: currentColor;
+}
+
+.agentIndicator::after {
+  top: 17px;
+  right: 17px;
+  bottom: 17px;
+  left: 17px;
 }
 
 .agent-is-waiting .agentIndicator {
   color: var(--figma-color-icon-warning);
 }
 
-.agent-is-waiting .agentIndicator::before,
 .agent-is-waiting .agentIndicator::after {
   border: 1px solid currentColor;
   animation: agentPing 2s cubic-bezier(0.2, 0.6, 0.4, 1) infinite;
-}
-
-.agent-is-waiting .agentIndicator::after {
-  animation-delay: 1s;
 }
 
 .agent-is-connected .agentIndicator {
   color: var(--figma-color-icon-success);
 }
 
-.agent-is-connected .agentIndicator::before {
+.agent-is-connected .agentIndicator::after {
   background: currentColor;
   animation: agentBreathe 3s ease-in-out infinite;
 }
@@ -630,28 +637,29 @@ select:hover:disabled {
   color: var(--figma-color-icon-brand);
 }
 
-.agent-is-working .agentIndicator::before {
-  top: -7px;
-  right: -7px;
-  bottom: -7px;
-  left: -7px;
+.agent-is-working .agentIndicator::after {
+  top: 9px;
+  right: 9px;
+  bottom: 9px;
+  left: 9px;
   border: 2px solid transparent;
   border-top-color: currentColor;
   animation: agentSpin 0.8s linear infinite;
 }
 
 .agentTitle {
-  font-size: 15px;
-  font-weight: 500;
-  line-height: 1.3;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
   color: var(--figma-color-text);
 }
 
 .agentHint {
   overflow: hidden;
   max-width: 100%;
-  margin: 3px 0 0;
+  margin: 2px 0 0;
   font-size: 11px;
+  line-height: 1.45;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
@@ -664,7 +672,7 @@ select:hover:disabled {
 
   to {
     opacity: 0;
-    transform: scale(4);
+    transform: scale(4.4);
   }
 }
 
@@ -676,8 +684,8 @@ select:hover:disabled {
   }
 
   50% {
-    opacity: 0.25;
-    transform: scale(2.4);
+    opacity: 0.3;
+    transform: scale(2.2);
   }
 }
 
@@ -688,7 +696,6 @@ select:hover:disabled {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .agentIndicator::before,
   .agentIndicator::after {
     animation: none;
   }
