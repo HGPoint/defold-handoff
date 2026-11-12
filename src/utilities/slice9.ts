@@ -603,7 +603,7 @@ export async function tryRefreshSlice9(layer: InstanceNode) {
  */
 export async function tryRefreshSlice9Placeholder(layer: ExportableLayer, slice9?: Vector4, oldSlice9?: Vector4) {
   if (isFigmaComponentInstance(layer) && shouldRefreshSlice9Placeholder(slice9, oldSlice9)) {
-    refreshSlice9Placeholder(layer, slice9);
+    await refreshSlice9Placeholder(layer, slice9);
   }
 }
 
@@ -625,12 +625,12 @@ function shouldRefreshSlice9Placeholder(slice9?: Vector4, oldSlice9?: Vector4): 
 async function refreshSlice9Placeholder(layer: InstanceNode, slice9: Vector4) {
   if (isSlice9Layer(layer)) {
     if (isZeroVector(slice9)) {
-      removeSlice9Placeholder(layer);
+      await removeSlice9Placeholder(layer);
     } else {
-      updateSlice9Placeholder(layer, slice9);
+      await updateSlice9Placeholder(layer, slice9);
     }
   } else if (!isZeroVector(slice9) && await isLayerSprite(layer)) {
-    createSlice9Placeholder(layer, slice9);
+    await createSlice9Placeholder(layer, slice9);
   }
 }
 

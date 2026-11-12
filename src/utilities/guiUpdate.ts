@@ -72,7 +72,7 @@ export async function updateGUIData(layer: DataLayer, updateData: PluginGUINodeD
 export async function updateGUILayer(layer: DataLayer, updateData: PluginGUINodeData, originalData: WithNull<PluginGUINodeData>) {
   if (isLayerNode(layer)) {
     tryUpdateFigmaLayerName(layer, updateData.id);
-    tryRefreshSlice9Placeholder(layer, updateData.slice9, originalData?.slice9);
+    await tryRefreshSlice9Placeholder(layer, updateData.slice9, originalData?.slice9);
     tryUpdateFigmaLayerScale(layer, updateData.scale_factor, originalData?.scale_factor);
     trySelectCreatedSlice9Placeholder(layer, updateData.slice9, originalData?.slice9);
   }

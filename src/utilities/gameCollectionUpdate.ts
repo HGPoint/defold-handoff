@@ -93,6 +93,6 @@ export async function updateGameObjectData(layer: DataLayer, updateData: PluginG
 export async function updateGameObjectLayer(layer: DataLayer, updateData: PluginGameObjectData, originalData: WithNull<PluginGameObjectData>) {
   if (isLayerNode(layer)) {
     tryUpdateFigmaLayerName(layer, updateData.id);
-    tryRefreshSlice9Placeholder(layer, updateData.slice9, originalData?.slice9);
+    await tryRefreshSlice9Placeholder(layer, updateData.slice9, originalData?.slice9);
   }
 }
