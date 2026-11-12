@@ -79,27 +79,8 @@ function onDocumentChange(event: DocumentChangeEvent): void {
  */
 function onUIMessage(message: PluginMessage): void {
   processUIMessage(message)
-    .then((data) => onUIMessageProcessed(message, data))
-    .catch((error: Error) => onUIMessageFailed(message, error));
-}
-
-/**
- * Handler function for a processed message from the UI application.
- * @param message - The processed message.
- * @param data - The data to respond with.
- */
-function onUIMessageProcessed({ requestId }: PluginMessage, data: PluginMessagePayload | void): void {
-  tryPostMessageToUI("responded", data ?? {}, requestId);
-}
-
-/**
- * Handler function for a failed message from the UI application.
- * @param message - The failed message.
- * @param error - The error that occurred.
- */
-function onUIMessageFailed({ requestId }: PluginMessage, error: Error): void {
-  const data = { error: processError(error) };
-  tryPostMessageToUI("failed", data, requestId);
+    .then((data) => tryRespondToUI(message, "responded", data ?? {}))
+    .catch((error: Error) => tryRespondToUI(message, "failed", { error: processError(error) }));
 }
 
 /**
@@ -111,6 +92,18 @@ function onUIMessageFailed({ requestId }: PluginMessage, error: Error): void {
 function tryPostMessageToUI(type: PluginMessageAction, data: PluginMessagePayload, requestId?: string): void {
   if (isUIAvailable()) {
     figma.ui.postMessage({ type, data, requestId });
+  }
+}
+
+/**
+ * Attempts to respond to a message from the UI application: only a request waits for a response.
+ * @param message - The message to respond to.
+ * @param type - The type of the response.
+ * @param data - The data of the response.
+ */
+function tryRespondToUI({ requestId }: PluginMessage, type: PluginMessageResponseAction, data: PluginMessagePayload): void {
+  if (requestId) {
+    tryPostMessageToUI(type, data, requestId);
   }
 }
 
@@ -191,103 +184,103 @@ function resetLastExtractedImage(): void {
 /**
  * Processes a message from the UI application.
  * @param message - The message from the UI application.
- * @returns The data to respond with.
+ * @returns The data a request is responded with.
  * @async
  */
 async function processUIMessage(message: PluginMessage): Promise<PluginMessagePayload | void> {
   const { type, data } = message;
   if (type === "updateProject" && data?.project) {
-    return onUpdateProject(data.project);
+    onUpdateProject(data.project);
   } else if (type === "purgeUnusedData") {
-    return onPurgeUnusedData();
+    onPurgeUnusedData();
   } else if (type === "logGUI") {
-    return onLogGUI();
+    onLogGUI();
   } else if (type === "exportGUI") {
-    return onExportGUI();
+    onExportGUI();
   } else if (type === "exportGUISpine") {
-    return onExportGUISpines();
+    onExportGUISpines();
   } else if (type === "exportGUISpineAttachments") {
-    return onExportGUISpineAttachments();
+    onExportGUISpineAttachments();
   } else if (type === "copyGUI") {
-    return onCopyGUI();
+    onCopyGUI();
   } else if (type === "copyGUIScheme") {
-    return onCopyGUIScheme();
+    onCopyGUIScheme();
   } else if (type === "updateGUI" && data?.gui) {
-    return onUpdateGUI(data.gui);
+    onUpdateGUI(data.gui);
   } else if (type === "updateGUINode" && data?.guiNode) {
-    return onUpdateGUINode(data.guiNode);
+    onUpdateGUINode(data.guiNode);
   } else if (type === "removeGUI") {
-    return onRemoveGUI();
+    onRemoveGUI();
   } else if (type === "removeGUIOverrides") {
-    return onRemoveGUIOverrides();
+    onRemoveGUIOverrides();
   } else if (type === "fixGUI") {
-    return onFixGUI();
+    onFixGUI();
   } else if (type === "fixGUIText") {
-    return onFixGUIText();
+    onFixGUIText();
   } else if (type === "matchGUINodeToGUIParent") {
-    return onMatchGUINodeToGUIParent();
+    onMatchGUINodeToGUIParent();
   } else if (type === "matchGUINodeToGUIChild") {
-    return onMatchGUINodeToGUIChild();
+    onMatchGUINodeToGUIChild();
   } else if (type === "resizeGUIToScreen") {
-    return onResizeGUIToScreen();
+    onResizeGUIToScreen();
   } else if (type === "forceGUIChildrenOnScreen") {
-    return onForceGUIChildrenOnScreen();
+    onForceGUIChildrenOnScreen();
   } else if (type === "exportGameCollections") {
-    return onExportGameCollections();
+    onExportGameCollections();
   } else if (type === "copyGameCollection") {
-    return onCopyGameCollection();
+    onCopyGameCollection();
   } else if (type === "updateGameObject" && data?.gameObject) {
-    return onUpdateGameObject(data.gameObject);
+    onUpdateGameObject(data.gameObject);
   } else if (type === "removeGameObjects") {
-    return onRemoveGameObjects();
+    onRemoveGameObjects();
   } else if (type === "fixGameObjects") {
-    return onFixGameObjects();
+    onFixGameObjects();
   } else if (type === "exportAtlases") {
-    return onExportAtlases();
+    onExportAtlases();
   } else if (type === "exportGUIAtlases") {
-    return onExportGUIAtlases();
+    onExportGUIAtlases();
   } else if (type === "exportGameCollectionAtlases") {
-    return onExportGameCollectionAtlases();
+    onExportGameCollectionAtlases();
   } else if (type === "exportSprites" && data?.option && typeof data.option === "number") {
-    return onExportSprites(data.option);
+    onExportSprites(data.option);
   } else if (type === "createAtlas") {
-    return onCreateAtlas();
+    onCreateAtlas();
   } else if (type === "restoreAtlases") {
-    return onRestoreAtlases();
+    onRestoreAtlases();
   } else if (type === "addSprites") {
-    return onAddSprites();
+    onAddSprites();
   } else if (type === "updateAtlas" && data?.atlas) {
-    return onUpdateAtlas(data.atlas);
+    onUpdateAtlas(data.atlas);
   } else if (type === "removeAtlases") {
-    return onRemoveAtlases();
+    onRemoveAtlases();
   } else if (type === "fixAtlases") {
-    return onFixAtlases();
+    onFixAtlases();
   } else if (type === "sortAtlasesSize") {
-    return onSortAtlasesBySize();
+    onSortAtlasesBySize();
   } else if (type === "sortAtlasesAlphabet") {
-    return onSortAtlasesAlphabetically();
+    onSortAtlasesAlphabetically();
   } else if (type === "fitAtlases") {
-    return onFitAtlases();
+    onFitAtlases();
   } else if (type === "copyAtlases")  {
-    return onCopyAtlases();
+    onCopyAtlases();
   } else if (type === "updateSection" && data?.section) {
-    return onUpdateSection(data.section);
+    onUpdateSection(data.section);
   } else if (type === "removeSections") {
-    return onRemoveSections();
+    onRemoveSections();
   } else if (type === "exportBundle") {
-    return onExportBundle();
+    onExportBundle();
   } else if (type === "exportBareBundle") {
-    return onExportBareBundle();
+    onExportBareBundle();
   } else if (type === "exportGUIPSD") {
-    return onExportGUIPSD();
+    onExportGUIPSD();
   } else if (type === "restoreSlice9") {
-    return onRestoreSlice9();
+    onRestoreSlice9();
   } else if (type === "requestImage") {
-    return onRequestImage();
+    onRequestImage();
   } else if (type === "collapseUI") {
-    return onCollapseUI();
+    onCollapseUI();
   } else if (type === "expandUI") {
-    return onExpandUI();
+    onExpandUI();
   } else if (type === "agentDocument") {
     return onAgentDocument();
   } else if (type === "agentFind" && data?.agentFind) {
@@ -318,10 +311,11 @@ function onLogGUI(): void {
   logGUI(gui);
 }
 
-function onExportGUI(): Promise<void> {
+function onExportGUI(): void {
   const gui = pickGUIFromSelectionData(SELECTION);
-  return exportGUI(gui)
-    .then(onGUIExported);
+  exportGUI(gui)
+    .then(onGUIExported)
+    .catch(processError);
 }
 
 function onGUIExported(gui: SerializedGUIData[]): void {
@@ -332,10 +326,11 @@ function onGUIExported(gui: SerializedGUIData[]): void {
   figma.notify("GUI exported");
 }
 
-function onCopyGUI(): Promise<void> {
+function onCopyGUI(): void {
   const layer = pickFirstGUINodeFromSelectionData(SELECTION);
-  return copyGUI(layer)
-    .then(onGUICopied);
+  copyGUI(layer)
+    .then(onGUICopied)
+    .catch(processError);
 }
 
 function onGUICopied(gui: SerializedGUIData): void {
@@ -346,10 +341,11 @@ function onGUICopied(gui: SerializedGUIData): void {
   figma.notify("GUI node copied");
 }
 
-function onCopyGUIScheme(): Promise<void> {
+function onCopyGUIScheme(): void {
   const layer = pickFirstGUINodeFromSelectionData(SELECTION);
-  return copyGUIScheme(layer)
-    .then(onGUISchemeCopied);
+  copyGUIScheme(layer)
+    .then(onGUISchemeCopied)
+    .catch(processError);
 }
 
 function onGUISchemeCopied(guiData: SerializedGUIData): void {
@@ -359,14 +355,14 @@ function onGUISchemeCopied(guiData: SerializedGUIData): void {
   figma.notify("GUI node scheme copied");
 }
 
-async function onUpdateGUI(data: PluginGUINodeData[]): Promise<void> {
+function onUpdateGUI(data: PluginGUINodeData[]): void {
   const gui = pickGUIFromSelectionData(SELECTION);
-  await updateGUI(gui, data);
+  updateGUI(gui, data);
 }
 
-async function onUpdateGUINode(data: PluginGUINodeData): Promise<void> {
+function onUpdateGUINode(data: PluginGUINodeData): void {
   const layer = pickFirstGUINodeFromSelectionData(SELECTION);
-  await updateGUINode(layer, data);
+  updateGUINode(layer, data);
 }
 
 function onRemoveGUI(): void {
@@ -376,10 +372,10 @@ function onRemoveGUI(): void {
   figma.notify("GUI nodes reset");
 }
 
-function onRemoveGUIOverrides(): Promise<void> {
+function onRemoveGUIOverrides(): void {
   const gui = pickGUIFromSelectionData(SELECTION);
   resetGUIOverrides(gui);
-  return delay(500)
+  delay(500)
     .then(onGUIOverridesRemoved);
 }
 
@@ -388,10 +384,10 @@ function onGUIOverridesRemoved(): void {
   figma.notify("GUI node data pulled");
 }
 
-function onFixGUI(): Promise<void> {
+function onFixGUI(): void {
   const gui = pickGUIFromSelectionData(SELECTION);
   fixGUI(gui);
-  return delay(200)
+  delay(200)
     .then(onGUFixed);
 }
 
@@ -431,10 +427,11 @@ function onForceGUIChildrenOnScreen(): void {
   figma.notify("Children will be exported on screen");
 }
 
-function onExportGameCollections(): Promise<void> {
+function onExportGameCollections(): void {
   const gameObjects = pickGameObjectsFromSelectionData(SELECTION);
-  return exportGameCollections(gameObjects)
-    .then(onGameCollectionsExported);
+  exportGameCollections(gameObjects)
+    .then(onGameCollectionsExported)
+    .catch(processError);
 }
 
 function onGameCollectionsExported(gameObjects: SerializedGameCollectionData[]): void {
@@ -445,10 +442,11 @@ function onGameCollectionsExported(gameObjects: SerializedGameCollectionData[]):
   figma.notify("Game collections exported");
 }
 
-function onCopyGameCollection(): Promise<void> {
+function onCopyGameCollection(): void {
   const layer = pickFirstGameObjectFromSelectionData(SELECTION);
-  return copyGameCollection(layer)
-    .then(onGameCollectionCopied);
+  copyGameCollection(layer)
+    .then(onGameCollectionCopied)
+    .catch(processError);
 }
 
 function onGameCollectionCopied(gameObject: SerializedGameCollectionData): void {
@@ -459,9 +457,9 @@ function onGameCollectionCopied(gameObject: SerializedGameCollectionData): void 
   figma.notify("Game collection copied");
 }
 
-async function onUpdateGameObject(data: PluginGameObjectData): Promise<void> {
+function onUpdateGameObject(data: PluginGameObjectData): void {
   const layer = pickFirstGameObjectFromSelectionData(SELECTION);
-  await updateGameObject(layer, data);
+  updateGameObject(layer, data);
 }
 
 function onRemoveGameObjects(): void {
@@ -471,10 +469,10 @@ function onRemoveGameObjects(): void {
   figma.notify("Game objects reset");
 }
 
-function onFixGameObjects(): Promise<void> {
+function onFixGameObjects(): void {
   const gameObjects = pickGameObjectsFromSelectionData(SELECTION);
   fixGameObjects(gameObjects);
-  return delay(200)
+  delay(200)
     .then(onGameObjectsFixed);
 }
 
@@ -483,22 +481,26 @@ function onGameObjectsFixed(): void {
   figma.notify("Game objects fixed");
 }
 
-function onExportAtlases(): Promise<void> {
+function onExportAtlases(): void {
   const atlases = reduceAtlasesFromSelectionData(SELECTION);
-  return exportAtlases(atlases)
-    .then(onAtlasesExported);
-}
+  exportAtlases(atlases)
+    .then(onAtlasesExported)
+    .catch(processError);
+  }
 
-function onExportGUIAtlases(): Promise<void> {
+  
+function onExportGUIAtlases(): void {
   const gui = pickGUIFromSelectionData(SELECTION);
-  return exportGUIAtlases(gui, false, DEFAULT_PACK_OPTIONS)
-    .then(onAtlasesExported);
+  exportGUIAtlases(gui, false, DEFAULT_PACK_OPTIONS)
+    .then(onAtlasesExported)
+    .catch(processError);
 }
 
-function onExportGameCollectionAtlases(): Promise<void> {
+function onExportGameCollectionAtlases(): void {
   const gameObjects = pickGameObjectsFromSelectionData(SELECTION);
-  return exportGameCollectionAtlases(gameObjects)
-    .then(onAtlasesExported);
+  exportGameCollectionAtlases(gameObjects)
+    .then(onAtlasesExported)
+    .catch(processError);
 }
 
 function onAtlasesExported(atlases: SerializedAtlasData[]): void {
@@ -508,10 +510,11 @@ function onAtlasesExported(atlases: SerializedAtlasData[]): void {
   figma.notify("Atlases exported");
 }
 
-function onExportSprites(scale: number = 1): Promise<void> {
+function onExportSprites(scale: number = 1): void {
   const atlases = reduceAtlasesFromSelectionData(SELECTION);
-  return exportAtlases(atlases, scale)
-    .then(onSpritesExported);
+  exportAtlases(atlases, scale)
+    .then(onSpritesExported)
+    .catch(processError);
 }
 
 function onSpritesExported(atlases: SerializedAtlasData[]): void {
@@ -543,9 +546,9 @@ function onAddSprites(): void {
   figma.notify("Sprites added to atlas");
 }
 
-async function onUpdateAtlas(data: PluginAtlasData): Promise<void> {
+function onUpdateAtlas(data: PluginAtlasData): void {
   const atlas = pickFirstAtlasFromSelectionData(SELECTION);
-  await updateAtlas(atlas, data);
+  updateAtlas(atlas, data);
 }
 
 function onRemoveAtlases(): void {
@@ -587,16 +590,18 @@ function onCopyAtlases(): void {
   figma.notify("Atlases copied");
 }
 
-function onExportGUISpines(): Promise<void> {
+function onExportGUISpines(): void {
   const gui = pickGUIFromSelectionData(SELECTION);
-  return exportGUISpines(gui)
-    .then(onGUISpinesExported);
+  exportGUISpines(gui)
+    .then(onGUISpinesExported)
+    .catch(processError);
 }
 
-function onExportGUISpineAttachments(): Promise<void> {
+function onExportGUISpineAttachments(): void {
   const gui = pickGUIFromSelectionData(SELECTION);
-  return exportGUISpineAttachments(gui)
-    .then(onGUISpinesExported);
+  exportGUISpineAttachments(gui)
+    .then(onGUISpinesExported)
+    .catch(processError);
 }
 
 function onGUISpinesExported(bundle: BundleData): void {
@@ -617,18 +622,20 @@ function onRemoveSections(): void {
   figma.notify("Sections reset");
 }
 
-function onExportBundle(): Promise<void> {
+function onExportBundle(): void {
   const { gui, gameObjects } = SELECTION;
   const bundle = { gui, gameObjects };
-  return exportBundle(bundle)
-    .then(onBundleExported);
+  exportBundle(bundle)
+    .then(onBundleExported)
+    .catch(processError);
 }
 
-function onExportBareBundle(): Promise<void> {
+function onExportBareBundle(): void {
   const { gui, gameObjects } = SELECTION;
   const bundle = { gui, gameObjects };
-  return exportBareBundle(bundle)
-    .then(onBundleExported);
+  exportBareBundle(bundle)
+    .then(onBundleExported)
+    .catch(processError);
 }
 
 function onBundleExported(bundle: BundleData): void {
@@ -638,10 +645,11 @@ function onBundleExported(bundle: BundleData): void {
   figma.notify("Bundle exported");
 }
 
-function onExportGUIPSD(): Promise<void> {
+function onExportGUIPSD(): void {
   const gui = pickGUIFromSelectionData(SELECTION);
-  return exportGUIPSD(gui)
-    .then(onGUIPSDExported);
+  exportGUIPSD(gui)
+    .then(onGUIPSDExported)
+    .catch(processError);
 }
 
 function onGUIPSDExported(psd: SerializedPSDData[]): void {
@@ -651,10 +659,11 @@ function onGUIPSDExported(psd: SerializedPSDData[]): void {
   figma.notify("GUI exported as PSD");
 }
 
-function onRequestImage(): Promise<void> {
+function onRequestImage(): void {
   const layer = pickFirstGUINodeFromSelectionData(SELECTION);
-  return tryExtractImage(layer)
-    .then(onImageExtracted);
+  tryExtractImage(layer)
+    .then(onImageExtracted)
+    .catch(processError);
 }
 
 function onImageExtracted(image?: WithNull<Uint8Array>): void {
@@ -665,10 +674,11 @@ function onImageExtracted(image?: WithNull<Uint8Array>): void {
   }
 }
 
-function onRestoreSlice9(): Promise<void> {
+function onRestoreSlice9(): void {
   const layer = pickFirstGUINodeFromSelectionData(SELECTION);
-  return tryRestoreSlice9Placeholder(layer, "defoldGUINode")
-    .then(onSlice9Restored);
+  tryRestoreSlice9Placeholder(layer, "defoldGUINode")
+    .then(onSlice9Restored)
+    .catch(processError);
 }
 
 function onSlice9Restored(): void {
@@ -688,7 +698,7 @@ function onExpandUI(): void {
 
 function onAgentDocument(): PluginMessagePayload {
   const document = describeDocument();
-  return { document };
+  return { document, project: PROJECT_CONFIG };
 }
 
 function onAgentFind(request: AgentFindRequest): Promise<PluginMessagePayload> {
